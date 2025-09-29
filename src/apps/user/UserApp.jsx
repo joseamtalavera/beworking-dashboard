@@ -9,7 +9,7 @@ import { DEFAULT_TABS } from '../../constants.js';
 
 const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
-const Mailbox = React.lazy(() => import('../../components/tabs/Mailbox.jsx'));
+const Mailbox = React.lazy(() => import('../../components/tabs/user/MailboxUser.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
 const Integrations = React.lazy(() => import('../../components/tabs/Integrations.jsx'));
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));

@@ -14,7 +14,6 @@ const accentColor = '#fb923c';
 const activeColor = '#16a34a';
 const accentHover = 'rgba(251, 146, 60, 0.12)';
 const activeHover = 'rgba(22, 163, 74, 0.12)';
-const brandLogoText = 'BeWorking';
 
 const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp }) => (
   <Drawer
@@ -31,42 +30,40 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp }) 
       }
     }}
   >
-    <Box sx={{ height: 84, borderBottom: '1px solid', borderColor: 'divider', px: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
-      <Typography variant="h4" fontWeight={800} sx={{ color: '#16a34a' }}>
-        {brandLogoText}
-      </Typography>
+    <Box sx={{ height: 120, borderBottom: '1px solid', borderColor: 'divider', px: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
+      <img src="/public/assets/logo.png" alt="Logo" style={{ maxHeight: '300px', maxWidth: '200px', objectFit: 'contain' }} />
     </Box>
     <List sx={{ flex: 1, px: 2, py: 3 }}>
       {tabs.map((tab) => (
         <ListItem key={tab.id} disablePadding>
-        <ListItemButton
-          selected={activeTab === tab.id}
-          onClick={() => setActiveTab(tab.id)}
-          sx={{
-            borderRadius: 2,
-            mb: 1,
-            color: 'text.primary',
-            '& .MuiListItemIcon-root': { color: accentColor },
-            '&:hover': { backgroundColor: activeHover, color: activeColor },
-            '&.Mui-selected': {
-              backgroundColor: activeColor,
-              color: 'common.white',
-              boxShadow: 2
-            },
-            '&.Mui-selected .MuiListItemIcon-root': {
-              color: 'common.white'
-            },
-            '&.Mui-selected:hover': {
-              backgroundColor: activeColor,
-              color: 'common.white'
-            }
-          }}
-        >
-          <ListItemIcon>
-            <tab.icon sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText primary={tab.label} />
-        </ListItemButton>
+          <ListItemButton
+            selected={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              color: 'text.primary',
+              '& .MuiListItemIcon-root': { color: accentColor },
+              '&:hover': { backgroundColor: activeHover, color: activeColor },
+              '&.Mui-selected': {
+                backgroundColor: activeColor,
+                color: 'common.white',
+                boxShadow: 2
+              },
+              '&.Mui-selected .MuiListItemIcon-root': {
+                color: 'common.white'
+              },
+              '&.Mui-selected:hover': {
+                backgroundColor: activeColor,
+                color: 'common.white'
+              }
+            }}
+          >
+            <ListItemIcon>
+              <tab.icon sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary={tab.label} />
+          </ListItemButton>
         </ListItem>
       ))}
     </List>
