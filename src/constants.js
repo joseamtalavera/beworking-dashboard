@@ -1,5 +1,4 @@
 import {
-  OverviewIcon,
   StorageIcon,
   MailboxIcon,
   BookingIcon,
@@ -8,29 +7,25 @@ import {
   CommunityIcon,
   EventsIcon,
   ContactsIcon,
-  AdminBookingsIcon,
   InvoicesIcon,
   TicketsIcon,
   ReportsIcon
 } from './components/icons/Icons.js';
 
-export const DEFAULT_TABS = [
-  { id: 'Overview', label: 'Overview', icon: OverviewIcon },
-  { id: 'Storage', label: 'Storage', icon: StorageIcon },
+const BASE_TABS = [
+  { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
   { id: 'Mailbox', label: 'Mailbox', icon: MailboxIcon },
   { id: 'Booking', label: 'Booking', icon: BookingIcon },
+  { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
   { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon },
   { id: 'Automation', label: 'Automation', icon: AutomationIcon },
   { id: 'Community', label: 'Community', icon: CommunityIcon },
-  { id: 'Events', label: 'Events', icon: EventsIcon }
-];
-
-export const ADMIN_EXTRA_TABS = [
-  { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
-  { id: 'AdminBookings', label: 'Bookings (Admin)', icon: AdminBookingsIcon },
-  { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
+  { id: 'Events', label: 'Events', icon: EventsIcon },
+  { id: 'Storage', label: 'Storage', icon: StorageIcon },
   { id: 'Tickets', label: 'Tickets', icon: TicketsIcon },
   { id: 'Reports', label: 'Reports', icon: ReportsIcon }
 ];
 
-export const ADMIN_TABS = [...DEFAULT_TABS, ...ADMIN_EXTRA_TABS];
+export const DEFAULT_TABS = BASE_TABS;
+
+export const ADMIN_TABS = BASE_TABS;

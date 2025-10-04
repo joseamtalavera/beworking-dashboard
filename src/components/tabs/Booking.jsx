@@ -1,151 +1,70 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Divider from '@mui/material/Divider';
-import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormGroup from '@mui/material/FormGroup';
 import Grid from '@mui/material/Grid';
-import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import Paper from '@mui/material/Paper';
-import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
+import Tab from '@mui/material/Tab';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
+import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-const accentColor = '#fb923c';
-const availableColor = '#22c55e';
-const pendingColor = '#facc15';
+import { fetchBookings } from '../../api/bookings.js';
 
-const ROOMS = [
-  { id: 'room-1', name: 'Room A1' },
-  { id: 'room-2', name: 'Room A2' },
-  { id: 'room-3', name: 'Room A3' },
-  { id: 'room-4', name: 'Room A4' },
-  { id: 'room-5', name: 'Room A5' }
-];
-
-const CLIENT_OPTIONS = ['ACME Corp.', 'Lunar Bank', 'Cloud Ops Ltd.', 'BeWorking Tenant'];
-const CENTER_OPTIONS = ['MA1 - Malaga Dumas', 'MAD - Madrid Center', 'BCN - Barcelona Hub'];
-const ROOM_TYPE_OPTIONS = ['Aula', 'Sala de reuniones', 'Despacho'];
-const PRODUCT_OPTIONS = ['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5'];
-const RESERVATION_TYPES = ['Por horas', 'Por día'];
-const CONFIGURATION_OPTIONS = ['Boardroom', 'Escuela', 'Auditorio', 'U-shape'];
-const WEEKDAY_OPTIONS = [
-  { value: 'monday', label: 'Lunes' },
-  { value: 'tuesday', label: 'Martes' },
-  { value: 'wednesday', label: 'Miércoles' },
-  { value: 'thursday', label: 'Jueves' },
-  { value: 'friday', label: 'Viernes' },
-  { value: 'saturday', label: 'Sábado' },
-  { value: 'sunday', label: 'Domingo' }
-];
-
-const TIME_SLOTS = Array.from({ length: 17 }).map((_, idx) => {
-  const hour = 7 + idx; // 07:00 to 23:00
-  return {
-    id: `${hour.toString().padStart(2, '0')}:00`,
-    label: `${hour.toString().padStart(2, '0')}:00`
-  };
-});
-
-const initialDateISO = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = `${today.getMonth() + 1}`.padStart(2, '0');
-  const day = `${today.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const INITIAL_BOOKINGS = [
-  {
-    id: 'bk-100',
-    roomId: 'room-2',
-    slotId: '10:00',
-    date: initialDateISO(),
-    status: 'booked',
-    title: 'Marketing sync',
-    host: 'Ana Steele',
-    client: 'ACME Corp.',
-    center: 'MA1 - Malaga Dumas',
-    roomType: 'Aula',
-    product: 'MA1A2',
-    reservationType: 'Por horas',
-    rate: '45',
-    attendees: '8',
-    configuration: 'Boardroom',
-    days: ['tuesday'],
-    dateFrom: initialDateISO(),
-    dateTo: initialDateISO(),
-    timeFrom: '10:00',
-    timeTo: '11:00'
-  },
-  {
-    id: 'bk-101',
-    roomId: 'room-4',
-    slotId: '14:00',
-    date: initialDateISO(),
-    status: 'pending',
-    title: 'Client onboarding',
-    host: 'Mark Chen',
-    client: 'Cloud Ops Ltd.',
-    center: 'MA1 - Malaga Dumas',
-    roomType: 'Aula',
-    product: 'MA1A4',
-    reservationType: 'Por horas',
-    rate: '60',
-    attendees: '5',
-    configuration: 'Escuela',
-    days: ['thursday'],
-    dateFrom: initialDateISO(),
-    dateTo: initialDateISO(),
-    timeFrom: '14:00',
-    timeTo: '15:00'
-  }
-];
+const DEFAULT_START_HOUR = 7;
+const DEFAULT_END_HOUR = 20;
 
 const statusStyles = {
   available: {
-    bgcolor: 'rgba(34, 197, 94, 0.12)',
-    borderColor: availableColor,
-    color: availableColor
+    bgcolor: 'rgba(34, 197, 94, 0.08)',
+    borderColor: '#cbd5f5',
+    color: '#15803d'
   },
   booked: {
-    bgcolor: 'rgba(251, 146, 60, 0.15)',
-    borderColor: accentColor,
-    color: accentColor
+    bgcolor: 'rgba(251, 146, 60, 0.18)',
+    borderColor: '#fb923c',
+    color: '#c2410c'
   },
   pending: {
     bgcolor: 'rgba(250, 204, 21, 0.18)',
-    borderColor: pendingColor,
+    borderColor: '#facc15',
     color: '#92400e'
+  },
+  cancelled: {
+    bgcolor: 'rgba(148, 163, 184, 0.16)',
+    borderColor: '#94a3b8',
+    color: '#475569'
   }
 };
 
 const statusLabels = {
   available: 'Available',
   booked: 'Booked',
-  pending: 'Booked · Payment pending'
+  pending: 'Booking pending',
+  cancelled: 'Cancelled'
 };
+
+const LEGEND_STATUSES = ['available', 'booked', 'pending', 'cancelled'];
 
 const Legend = () => (
   <Stack direction="row" spacing={2} flexWrap="wrap">
-    {['available', 'booked', 'pending'].map((status) => (
+    {LEGEND_STATUSES.map((status) => (
       <Stack key={status} direction="row" spacing={1} alignItems="center">
         <Box
           sx={{
@@ -165,512 +84,783 @@ const Legend = () => (
   </Stack>
 );
 
-const Booking = () => {
-  const [selectedDate, setSelectedDate] = useState(initialDateISO());
-  const [bookings, setBookings] = useState(INITIAL_BOOKINGS);
+const formatDate = (isoDate) => {
+  if (!isoDate) {
+    return '—';
+  }
+  const date = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return isoDate;
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).format(date);
+};
 
-  const computeNextSlot = (slotId) => {
-    if (!slotId) return '';
-    const [hourString] = slotId.split(':');
-    const hour = Number.parseInt(hourString, 10);
-    if (hour >= 23) return '23:59';
-    const nextHour = hour + 1;
-    return `${nextHour.toString().padStart(2, '0')}:00`;
-  };
+const formatDateRange = (from, to) => {
+  if (!from && !to) {
+    return '—';
+  }
+  if (from && to && from !== to) {
+    return `${formatDate(from)} – ${formatDate(to)}`;
+  }
+  return formatDate(from ?? to);
+};
 
-  const buildEmptyDialogState = (roomId = '', slotId = '') => ({
-    open: false,
-    readOnly: false,
-    id: undefined,
-    roomId,
-    slotId,
-    title: '',
-    host: '',
-    status: 'pending',
-    client: CLIENT_OPTIONS[0],
-    center: CENTER_OPTIONS[0],
-    roomType: ROOM_TYPE_OPTIONS[0],
-    product: PRODUCT_OPTIONS[0],
-    reservationType: RESERVATION_TYPES[0],
-    rate: '',
-    attendees: '',
-    configuration: CONFIGURATION_OPTIONS[0],
-    days: [],
-    dateFrom: selectedDate,
-    dateTo: selectedDate,
-    timeFrom: slotId || '',
-    timeTo: slotId ? computeNextSlot(slotId) : ''
+const formatTimeRange = (from, to) => {
+  if (!from && !to) {
+    return '—';
+  }
+  if (from && to) {
+    if (from === to) {
+      return from;
+    }
+    return `${from} – ${to}`;
+  }
+  return from ?? to ?? '—';
+};
+
+const getWeekdayKey = (isoDate) => {
+  const date = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return keys[date.getUTCDay()];
+};
+
+const timeStringToMinutes = (value) => {
+  if (!value) {
+    return null;
+  }
+  const [hourPart, minutePart = '0'] = value.split(':');
+  const hour = Number.parseInt(hourPart, 10);
+  const minute = Number.parseInt(minutePart, 10);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return null;
+  }
+  return hour * 60 + minute;
+};
+
+const buildTimeSlots = (bookings) => {
+  let minHour = DEFAULT_START_HOUR;
+  let maxHour = DEFAULT_END_HOUR;
+  let hasTimeData = false;
+
+  bookings.forEach((booking) => {
+    const start = timeStringToMinutes(booking.timeFrom);
+    const end = timeStringToMinutes(booking.timeTo);
+    if (start != null) {
+      hasTimeData = true;
+      minHour = Math.min(minHour, Math.floor(start / 60));
+    }
+    if (end != null) {
+      hasTimeData = true;
+      maxHour = Math.max(maxHour, Math.ceil(end / 60));
+    }
   });
 
-  const [dialog, setDialog] = useState(buildEmptyDialogState());
+  if (!hasTimeData) {
+    minHour = DEFAULT_START_HOUR;
+    maxHour = DEFAULT_END_HOUR;
+  }
 
-  const dayBookings = useMemo(() => bookings.filter((bk) => bk.date === selectedDate), [bookings, selectedDate]);
+  if (maxHour <= minHour) {
+    maxHour = Math.min(23, minHour + 8);
+  }
 
-  const getSlotStatus = (roomId, slotId) => {
-    const match = dayBookings.find((bk) => bk.roomId === roomId && bk.slotId === slotId);
-    if (!match) {
-      return { status: 'available', booking: null };
+  minHour = Math.max(0, Math.min(minHour, 23));
+  maxHour = Math.max(minHour + 1, Math.min(maxHour, 23));
+
+  const slots = [];
+  for (let hour = minHour; hour <= maxHour; hour += 1) {
+    const label = `${hour.toString().padStart(2, '0')}:00`;
+    slots.push({ id: label, label });
+  }
+  return slots;
+};
+
+const bookingAppliesToDate = (booking, isoDate) => {
+  if (!isoDate) {
+    return false;
+  }
+  const dateKey = isoDate;
+  const from = booking.dateFrom ?? dateKey;
+  const to = booking.dateTo ?? booking.dateFrom ?? dateKey;
+
+  if (from > dateKey || to < dateKey) {
+    return false;
+  }
+
+  if (Array.isArray(booking.days) && booking.days.length > 0) {
+    const weekday = getWeekdayKey(dateKey);
+    if (weekday && !booking.days.includes(weekday)) {
+      return false;
     }
-    return { status: match.status, booking: match };
-  };
+  }
 
-  const openDialogForSlot = (roomId, slotId) => {
-    const { status, booking } = getSlotStatus(roomId, slotId);
-    if (status !== 'available') {
-      if (!booking) return;
-      setDialog({
-        ...buildEmptyDialogState(roomId, slotId),
-        open: true,
-        readOnly: true,
-        id: booking.id,
-        title: booking.title,
-        host: booking.host,
-        status: booking.status,
-        client: booking.client,
-        center: booking.center,
-        roomType: booking.roomType,
-        product: booking.product,
-        reservationType: booking.reservationType,
-        rate: booking.rate,
-        attendees: booking.attendees,
-        configuration: booking.configuration,
-        days: booking.days ?? [],
-        dateFrom: booking.dateFrom ?? booking.date,
-        dateTo: booking.dateTo ?? booking.date,
-        timeFrom: booking.timeFrom ?? slotId,
-        timeTo: booking.timeTo ?? computeNextSlot(slotId)
-      });
+  return true;
+};
+
+const coversSlot = (booking, slot) => {
+  const slotMinutes = timeStringToMinutes(slot.id);
+  const startMinutes = timeStringToMinutes(booking.timeFrom) ?? 0;
+  let endMinutes = timeStringToMinutes(booking.timeTo);
+
+  if (endMinutes == null || endMinutes <= startMinutes) {
+    const isAllDay = booking.reservationType?.toLowerCase().includes('dia');
+    endMinutes = isAllDay ? 24 * 60 : startMinutes + 60;
+  }
+
+  return slotMinutes != null && slotMinutes >= startMinutes && slotMinutes < endMinutes;
+};
+
+const mapStatusKey = (status) => {
+  const normalized = (status || '').toLowerCase();
+  if (normalized.includes('cancel')) {
+    return 'cancelled';
+  }
+  if (normalized.includes('pend') || normalized.includes('no confirm')) {
+    return 'pending';
+  }
+  return 'booked';
+};
+
+const describeBooking = (booking) => {
+  const pieces = [];
+  if (booking.clientName) {
+    pieces.push(booking.clientName);
+  }
+  if (booking.centerName) {
+    pieces.push(booking.centerName);
+  }
+  if (booking.productName) {
+    pieces.push(booking.productName);
+  } else if (booking.productType) {
+    pieces.push(booking.productType);
+  }
+  return pieces.join(' · ');
+};
+
+const composeRooms = (bookings) => {
+  const map = new Map();
+  bookings.forEach((booking) => {
+    if (!booking.productId) {
       return;
     }
-    setDialog({ ...buildEmptyDialogState(roomId, slotId), open: true });
-  };
+    if (!map.has(booking.productId)) {
+      map.set(booking.productId, {
+        id: booking.productId,
+        label: booking.productName || booking.productType || `Room ${booking.productId}`,
+        productId: booking.productId,
+        centerName: booking.centerName,
+        centerCode: booking.centerCode
+      });
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+};
 
-  const closeDialog = () => {
-    setDialog(buildEmptyDialogState());
-  };
+const BookingsTable = ({ bookings, onSelect }) => {
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 25;
 
-  const handleSubmitBooking = () => {
-    if (!dialog.title || !dialog.host) return;
-    const newBooking = {
-      id: `bk-${Date.now()}`,
-      roomId: dialog.roomId,
-      slotId: dialog.slotId,
-      date: selectedDate,
-      status: dialog.status,
-      title: dialog.title,
-      host: dialog.host,
-      client: dialog.client,
-      center: dialog.center,
-      roomType: dialog.roomType,
-      product: dialog.product,
-      reservationType: dialog.reservationType,
-      rate: dialog.rate,
-      attendees: dialog.attendees,
-      configuration: dialog.configuration,
-      days: dialog.days,
-      dateFrom: dialog.dateFrom,
-      dateTo: dialog.dateTo,
-      timeFrom: dialog.timeFrom || dialog.slotId,
-      timeTo: dialog.timeTo || computeNextSlot(dialog.slotId)
-    };
-    setBookings((prev) => [...prev.filter((bk) => !(bk.roomId === newBooking.roomId && bk.slotId === newBooking.slotId && bk.date === newBooking.date)), newBooking]);
-    closeDialog();
-  };
-
-  const updateDialogField = (field, value) => {
-    setDialog((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const toggleDialogDay = (dayValue) => {
-    setDialog((prev) => {
-      const exists = prev.days.includes(dayValue);
-      return {
-        ...prev,
-        days: exists ? prev.days.filter((value) => value !== dayValue) : [...prev.days, dayValue]
-      };
+  const sortedBookings = useMemo(() => {
+    const clone = [...bookings];
+    clone.sort((a, b) => {
+      const dateCompare = (a.dateFrom || '').localeCompare(b.dateFrom || '');
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+      return (a.timeFrom || '').localeCompare(b.timeFrom || '');
     });
+    return clone;
+  }, [bookings]);
+
+  const paginated = useMemo(() => {
+    const start = page * rowsPerPage;
+    return sortedBookings.slice(start, start + rowsPerPage);
+  }, [sortedBookings, page, rowsPerPage]);
+
+  const handleChangePage = (_event, newPage) => {
+    setPage(newPage);
   };
+
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>User</TableCell>
+              <TableCell>Center</TableCell>
+              <TableCell>Product</TableCell>
+              <TableCell>Starting</TableCell>
+              <TableCell>Finishing</TableCell>
+              <TableCell>Status</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginated.map((booking) => {
+              const statusKey = mapStatusKey(booking.status);
+              const statusStyle = statusStyles[statusKey];
+              const centerLabel = booking.centerName || booking.centerCode || '—';
+              const productLabel = booking.productName || booking.productType || '—';
+              const startLabel = formatDate(booking.dateFrom);
+              const endLabel = formatDate(booking.dateTo || booking.dateFrom);
+              return (
+                <TableRow
+                  key={booking.id}
+                  hover
+                  onClick={() => onSelect(booking)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell>{booking.clientName || '—'}</TableCell>
+                  <TableCell>{centerLabel}</TableCell>
+                  <TableCell>{productLabel}</TableCell>
+                  <TableCell>{startLabel}</TableCell>
+                  <TableCell>{endLabel}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={statusLabels[statusKey]}
+                      size="small"
+                      sx={{
+                        bgcolor: statusStyle.bgcolor,
+                        color: statusStyle.color,
+                        border: '1px solid',
+                        borderColor: statusStyle.borderColor
+                      }}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {paginated.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No bookings found for this range.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={sortedBookings.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={[rowsPerPage]}
+      />
+    </Paper>
+  );
+};
+
+const BookingDetailsDialog = ({ booking, onClose }) => {
+  const open = Boolean(booking);
+  const daysLabel = useMemo(() => {
+    if (!booking?.days || booking.days.length === 0) {
+      return '—';
+    }
+    return booking.days
+      .map((day) => day.charAt(0).toUpperCase() + day.slice(1))
+      .join(', ');
+  }, [booking]);
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Booking details</DialogTitle>
+      <DialogContent dividers>
+        {booking ? (
+          <Stack spacing={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Client
+                </Typography>
+                <Typography variant="body2">{booking.clientName || '—'}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {booking.clientEmail || ''}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Center / Room
+                </Typography>
+                <Typography variant="body2">
+                  {booking.centerName || booking.centerCode || '—'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {booking.productName || booking.productType || '—'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Date range
+                </Typography>
+                <Typography variant="body2">
+                  {formatDateRange(booking.dateFrom, booking.dateTo)}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Time
+                </Typography>
+                <Typography variant="body2">
+                  {formatTimeRange(booking.timeFrom, booking.timeTo)}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Reservation type
+                </Typography>
+                <Typography variant="body2">{booking.reservationType || '—'}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Status
+                </Typography>
+                <Typography variant="body2">{statusLabels[mapStatusKey(booking.status)]}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Days
+                </Typography>
+                <Typography variant="body2">{daysLabel}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Attendees
+                </Typography>
+                <Typography variant="body2">
+                  {typeof booking.attendees === 'number' ? booking.attendees : '—'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Notes
+                </Typography>
+                <Typography variant="body2">{booking.notes || '—'}</Typography>
+              </Grid>
+            </Grid>
+          </Stack>
+        ) : null}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const initialDateISO = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = `${today.getMonth() + 1}`.padStart(2, '0');
+  const day = `${today.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const Booking = ({ mode = 'user' }) => {
+  const isAdmin = mode === 'admin';
+  const [view, setView] = useState('calendar');
+  const [selectedDate, setSelectedDate] = useState(initialDateISO());
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [filterUser, setFilterUser] = useState('');
+  const [filterCenter, setFilterCenter] = useState('');
+  const [filterProduct, setFilterProduct] = useState('');
+  const [filterEmail, setFilterEmail] = useState('');
+  const [filterCheckIn, setFilterCheckIn] = useState('');
+  const [filterCheckOut, setFilterCheckOut] = useState('');
+
+  const monthKey = useMemo(() => selectedDate.slice(0, 7), [selectedDate]);
+
+  useEffect(() => {
+    const [year, month] = monthKey.split('-').map((value) => Number.parseInt(value, 10));
+    if (!year || !month) {
+      return undefined;
+    }
+
+    const rangeStart = new Date(Date.UTC(year, month - 1, 1));
+    const rangeEnd = new Date(Date.UTC(year, month, 0));
+
+    const from = `${rangeStart.getUTCFullYear()}-${`${rangeStart.getUTCMonth() + 1}`.padStart(2, '0')}-${`${rangeStart.getUTCDate()}`.padStart(2, '0')}`;
+    const to = `${rangeEnd.getUTCFullYear()}-${`${rangeEnd.getUTCMonth() + 1}`.padStart(2, '0')}-${`${rangeEnd.getUTCDate()}`.padStart(2, '0')}`;
+
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+
+    fetchBookings({ from, to }, { signal: controller.signal })
+      .then((data) => {
+        setBookings(Array.isArray(data) ? data : []);
+      })
+      .catch((fetchError) => {
+        if (fetchError.name === 'AbortError') {
+          return;
+        }
+        setError(fetchError.message || 'Unable to load bookings');
+        setBookings([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [monthKey, mode]);
+
+  const timeSlots = useMemo(() => buildTimeSlots(bookings), [bookings]);
+  const rooms = useMemo(() => composeRooms(bookings), [bookings]);
+  const filterOptions = useMemo(() => {
+    const users = new Set();
+    const centers = new Set();
+    const products = new Set();
+
+    bookings.forEach((booking) => {
+      if (booking.clientName) {
+        users.add(booking.clientName);
+      }
+      const centerLabel = booking.centerName || booking.centerCode;
+      if (centerLabel) {
+        centers.add(centerLabel);
+      }
+      const productLabel = booking.productName || booking.productType;
+      if (productLabel) {
+        products.add(productLabel);
+      }
+    });
+
+    const sorter = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+
+    return {
+      users: Array.from(users).sort(sorter),
+      centers: Array.from(centers).sort(sorter),
+      products: Array.from(products).sort(sorter)
+    };
+  }, [bookings]);
+
+  const filteredBookings = useMemo(() => {
+    return bookings.filter((booking) => {
+      const userLabel = booking.clientName || '';
+      if (filterUser && userLabel !== filterUser) {
+        return false;
+      }
+
+      const centerLabel = booking.centerName || booking.centerCode || '';
+      if (filterCenter && centerLabel !== filterCenter) {
+        return false;
+      }
+
+      const productLabel = booking.productName || booking.productType || '';
+      if (filterProduct && productLabel !== filterProduct) {
+        return false;
+      }
+
+      if (filterEmail) {
+        const email = (booking.clientEmail || '').toLowerCase();
+        if (!email.includes(filterEmail.toLowerCase())) {
+          return false;
+        }
+      }
+
+      const startDate = booking.dateFrom || booking.dateTo || '';
+      const endDate = booking.dateTo || booking.dateFrom || '';
+
+      if (filterCheckIn && (!startDate || startDate < filterCheckIn)) {
+        return false;
+      }
+
+      if (filterCheckOut && (!endDate || endDate > filterCheckOut)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [bookings, filterUser, filterCenter, filterProduct, filterEmail, filterCheckIn, filterCheckOut]);
+
+  const dayBookings = useMemo(
+    () => bookings.filter((booking) => bookingAppliesToDate(booking, selectedDate)),
+    [bookings, selectedDate]
+  );
+
+  const getSlotStatus = (room, slot) => {
+    const booking = dayBookings.find(
+      (entry) => entry.productId === room.productId && coversSlot(entry, slot)
+    );
+    if (!booking) {
+      return { status: 'available', booking: null };
+    }
+    return { status: mapStatusKey(booking.status), booking };
+  };
+
+  const handleViewChange = (_event, newValue) => {
+    if (newValue) {
+      setView(newValue);
+    }
+  };
+
+  const handleDateChange = (event) => {
+    setSelectedDate(event.target.value);
+  };
+
+  const handleSelectBooking = (booking) => {
+    if (booking) {
+      setSelectedBooking(booking);
+    }
+  };
+
+  const noDataMessage = isAdmin
+    ? 'No bookings found for this date. Try a different range or center.'
+    : 'No bookings registered for your account on this date.';
 
   return (
     <Stack spacing={4}>
       <Stack spacing={1}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Meeting Rooms
+          {isAdmin ? 'Workspace bookings' : 'My meeting room bookings'}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Track availability for all five rooms. Select an available slot to create a booking. Existing slots show current details and payment status.
+          {isAdmin
+            ? 'Browse every reservation across BeWorking locations. Switch between calendar and list views to review occupancy, statuses, and tenants.'
+            : 'Track your reservations, check upcoming slots, and review booking details from the calendar or list views.'}
         </Typography>
       </Stack>
 
-      <Grid container spacing={3} alignItems="center">
-        <Grid item xs={12} sm={6} md={4}>
-          <TextField
-            type="date"
-            label="Select date"
-            value={selectedDate}
-            onChange={(event) => setSelectedDate(event.target.value)}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={8}>
-          <Legend />
-        </Grid>
-      </Grid>
+      <Tabs value={view} onChange={handleViewChange} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Tab label="Calendar" value="calendar" disableRipple />
+        <Tab label="Bookings" value="list" disableRipple />
+      </Tabs>
 
-      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: 160 }}>Meeting room</TableCell>
-                {TIME_SLOTS.map((slot) => (
-                  <TableCell key={slot.id} align="center">
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {slot.label}
-                    </Typography>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {ROOMS.map((room) => (
-                <TableRow key={room.id} hover>
-                  <TableCell>
-                    <Typography variant="body2" fontWeight="medium">
-                      {room.name}
-                    </Typography>
-                  </TableCell>
-                  {TIME_SLOTS.map((slot) => {
-                    const { status, booking } = getSlotStatus(room.id, slot.id);
-                    const styles = statusStyles[status];
-                    return (
-                      <TableCell key={`${room.id}-${slot.id}`} align="center" sx={{ p: 1.5 }}>
-                        <Tooltip
-                          title={
-                            status === 'available'
-                              ? 'Click to reserve this room'
-                              : `${booking?.title} — ${booking?.host}`
-                          }
-                          arrow
-                        >
-                          <Box
-                            onClick={() => openDialogForSlot(room.id, slot.id)}
-                            sx={{
-                              height: 54,
-                              borderRadius: 2,
-                              border: '1px solid',
-                              borderColor: styles.borderColor,
-                              bgcolor: styles.bgcolor,
-                              color: styles.color,
-                              cursor: status === 'available' ? 'pointer' : 'default',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: (theme) => theme.transitions.create('transform'),
-                              '&:hover': {
-                                transform: status === 'available' ? 'scale(1.02)' : 'none'
-                              }
-                            }}
-                          >
-                            <Box component="span" sx={{ display: 'none' }}>
-                              {statusLabels[status]}
-                            </Box>
-                          </Box>
-                        </Tooltip>
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      {error && <Alert severity="error">{error}</Alert>}
 
-      <Dialog open={dialog.open} onClose={closeDialog} fullWidth maxWidth="md">
-        <DialogTitle>
-          {dialog.readOnly ? 'Booking details' : 'Reserve meeting room'}
-        </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-          <Grid container spacing={2}>
+      {view === 'calendar' ? (
+        <Stack spacing={3}>
+          <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                label="Room"
-                value={ROOMS.find((room) => room.id === dialog.roomId)?.name ?? ''}
-                InputProps={{ readOnly: true }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={3} md={2}>
-              <TextField label="Slot" value={dialog.slotId} InputProps={{ readOnly: true }} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={3} md={2}>
-              <TextField label="Date" value={selectedDate} InputProps={{ readOnly: true }} fullWidth />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth disabled={dialog.readOnly}>
-                <InputLabel id="booking-status-label">Estado</InputLabel>
-                <Select
-                  labelId="booking-status-label"
-                  value={dialog.status}
-                  label="Estado"
-                  onChange={(event) => updateDialogField('status', event.target.value)}
-                  input={<OutlinedInput label="Estado" />}
-                >
-                  <MenuItem value="pending">Booked – payment pending</MenuItem>
-                  <MenuItem value="booked">Booked – paid</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Título de la reunión"
-                value={dialog.title}
-                onChange={(event) => updateDialogField('title', event.target.value)}
-                disabled={dialog.readOnly}
-                placeholder="e.g. Revisión trimestral"
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Cliente / anfitrión"
-                value={dialog.host}
-                onChange={(event) => updateDialogField('host', event.target.value)}
-                disabled={dialog.readOnly}
-                placeholder="Nombre del participante"
-                fullWidth
-              />
-            </Grid>
-          </Grid>
-
-          <Divider flexItem />
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormControl fullWidth disabled={dialog.readOnly}>
-                <InputLabel id="cliente-label">Cliente</InputLabel>
-                <Select
-                  labelId="cliente-label"
-                  value={dialog.client}
-                  label="Cliente"
-                  onChange={(event) => updateDialogField('client', event.target.value)}
-                  input={<OutlinedInput label="Cliente" />}
-                >
-                  {CLIENT_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormControl fullWidth disabled={dialog.readOnly}>
-                <InputLabel id="center-label">Centro</InputLabel>
-                <Select
-                  labelId="center-label"
-                  value={dialog.center}
-                  label="Centro"
-                  onChange={(event) => updateDialogField('center', event.target.value)}
-                  input={<OutlinedInput label="Centro" />}
-                >
-                  {CENTER_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormControl fullWidth disabled={dialog.readOnly}>
-                <InputLabel id="room-type-label">Tipo</InputLabel>
-                <Select
-                  labelId="room-type-label"
-                  value={dialog.roomType}
-                  label="Tipo"
-                  onChange={(event) => updateDialogField('roomType', event.target.value)}
-                  input={<OutlinedInput label="Tipo" />}
-                >
-                  {ROOM_TYPE_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormControl fullWidth disabled={dialog.readOnly}>
-                <InputLabel id="product-label">Producto</InputLabel>
-                <Select
-                  labelId="product-label"
-                  value={dialog.product}
-                  label="Producto"
-                  onChange={(event) => updateDialogField('product', event.target.value)}
-                  input={<OutlinedInput label="Producto" />}
-                >
-                  {PRODUCT_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormControl fullWidth disabled={dialog.readOnly}>
-                <InputLabel id="reservation-type-label">Reserva</InputLabel>
-                <Select
-                  labelId="reservation-type-label"
-                  value={dialog.reservationType}
-                  label="Reserva"
-                  onChange={(event) => updateDialogField('reservationType', event.target.value)}
-                  input={<OutlinedInput label="Reserva" />}
-                >
-                  {RESERVATION_TYPES.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Tarifa"
-                value={dialog.rate}
-                onChange={(event) => updateDialogField('rate', event.target.value)}
-                disabled={dialog.readOnly}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Asistentes"
-                value={dialog.attendees}
-                onChange={(event) => updateDialogField('attendees', event.target.value)}
-                disabled={dialog.readOnly}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <FormControl fullWidth disabled={dialog.readOnly}>
-                <InputLabel id="configuration-label">Configuración</InputLabel>
-                <Select
-                  labelId="configuration-label"
-                  value={dialog.configuration}
-                  label="Configuración"
-                  onChange={(event) => updateDialogField('configuration', event.target.value)}
-                  input={<OutlinedInput label="Configuración" />}
-                >
-                  {CONFIGURATION_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          <FormGroup row sx={{ gap: 1 }}>
-            {WEEKDAY_OPTIONS.map((day) => (
-              <FormControlLabel
-                key={day.value}
-                control={
-                  <Checkbox
-                    checked={dialog.days.includes(day.value)}
-                    onChange={() => toggleDialogDay(day.value)}
-                    disabled={dialog.readOnly}
-                  />
-                }
-                label={day.label}
-              />
-            ))}
-          </FormGroup>
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
               <TextField
                 type="date"
-                label="De"
-                value={dialog.dateFrom}
-                onChange={(event) => updateDialogField('dateFrom', event.target.value)}
-                disabled={dialog.readOnly}
+                label="Select date"
+                value={selectedDate}
+                onChange={handleDateChange}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                type="date"
-                label="A"
-                value={dialog.dateTo}
-                onChange={(event) => updateDialogField('dateTo', event.target.value)}
-                disabled={dialog.readOnly}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
+            <Grid item xs={12} sm={6} md={8}>
+              <Legend />
             </Grid>
           </Grid>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                type="time"
-                label="Desde"
-                value={dialog.timeFrom}
-                onChange={(event) => updateDialogField('timeFrom', event.target.value)}
-                disabled={dialog.readOnly}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                type="time"
-                label="Hasta"
-                value={dialog.timeTo}
-                onChange={(event) => updateDialogField('timeTo', event.target.value)}
-                disabled={dialog.readOnly}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-            </Grid>
-          </Grid>
+          {loading ? (
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            </Paper>
+          ) : rooms.length === 0 ? (
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 6 }}>
+              <Typography variant="body2" color="text.secondary" align="center">
+                {noDataMessage}
+              </Typography>
+            </Paper>
+          ) : (
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ width: 220 }}>Room</TableCell>
+                      {timeSlots.map((slot) => (
+                        <TableCell key={slot.id} align="center">
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {slot.label}
+                          </Typography>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rooms.map((room) => (
+                      <TableRow key={room.id} hover>
+                        <TableCell>
+                          <Stack spacing={0.5}>
+                            <Typography variant="body2" fontWeight="medium">
+                              {room.label}
+                            </Typography>
+                            {room.centerName && (
+                              <Typography variant="caption" color="text.secondary">
+                                {room.centerName}
+                              </Typography>
+                            )}
+                          </Stack>
+                        </TableCell>
+                        {timeSlots.map((slot) => {
+                          const { status, booking } = getSlotStatus(room, slot);
+                          const styles = statusStyles[status];
+                          return (
+                            <TableCell key={`${room.id}-${slot.id}`} align="center" sx={{ p: 1.25 }}>
+                              <Tooltip
+                                arrow
+                                title={booking ? describeBooking(booking) : 'Available slot'}
+                              >
+                                <Box
+                                  onClick={() => booking && handleSelectBooking(booking)}
+                                  sx={{
+                                    height: 52,
+                                    borderRadius: 2,
+                                    border: '1px solid',
+                                    borderColor: styles.borderColor,
+                                    bgcolor: styles.bgcolor,
+                                    color: styles.color,
+                                    cursor: booking ? 'pointer' : 'default',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: (theme) => theme.transitions.create('transform'),
+                                    '&:hover': {
+                                      transform: booking ? 'scale(1.03)' : 'none'
+                                    }
+                                  }}
+                                >
+                                  {booking ? (
+                                    <Typography variant="caption" fontWeight={600} noWrap>
+                                      {booking.clientName || booking.productName || 'Booked'}
+                                    </Typography>
+                                  ) : null}
+                                </Box>
+                              </Tooltip>
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )}
+        </Stack>
+      ) : (
+        <Stack spacing={3}>
+          {loading ? (
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            </Paper>
+          ) : (
+            <Stack spacing={2}>
+              <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2 }}>
+                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <TextField
+                      select
+                      label="User"
+                      value={filterUser}
+                      onChange={(event) => setFilterUser(event.target.value)}
+                      fullWidth
+                    >
+                      <MenuItem value="">All users</MenuItem>
+                      {filterOptions.users.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <TextField
+                      select
+                      label="Center"
+                      value={filterCenter}
+                      onChange={(event) => setFilterCenter(event.target.value)}
+                      fullWidth
+                    >
+                      <MenuItem value="">All centers</MenuItem>
+                      {filterOptions.centers.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <TextField
+                      select
+                      label="Product"
+                      value={filterProduct}
+                      onChange={(event) => setFilterProduct(event.target.value)}
+                      fullWidth
+                    >
+                      <MenuItem value="">All products</MenuItem>
+                      {filterOptions.products.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <TextField
+                      label="Email contains"
+                      value={filterEmail}
+                      onChange={(event) => setFilterEmail(event.target.value)}
+                      placeholder="tenant@domain.com"
+                      fullWidth
+                    />
+                  </Box>
+                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <TextField
+                      type="date"
+                      label="Check-in from"
+                      value={filterCheckIn}
+                      onChange={(event) => setFilterCheckIn(event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                  </Box>
+                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
+                    <TextField
+                      type="date"
+                      label="Check-out to"
+                      value={filterCheckOut}
+                      onChange={(event) => setFilterCheckOut(event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                  </Box>
+                  <Box sx={{ flex: '1 1 180px', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                    <Button
+                      variant="text"
+                      onClick={() => {
+                        setFilterUser('');
+                        setFilterCenter('');
+                        setFilterProduct('');
+                        setFilterEmail('');
+                        setFilterCheckIn('');
+                        setFilterCheckOut('');
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  </Box>
+                </Box>
+              </Paper>
+              <BookingsTable bookings={filteredBookings} onSelect={handleSelectBooking} />
+            </Stack>
+          )}
+        </Stack>
+      )}
 
-          {dialog.readOnly && (
-            <Chip
-              label={statusLabels[dialog.status]}
-              sx={{
-                alignSelf: 'flex-start',
-                bgcolor: statusStyles[dialog.status].bgcolor,
-                color: statusStyles[dialog.status].color,
-                border: '1px solid',
-                borderColor: statusStyles[dialog.status].borderColor
-              }}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog}>Close</Button>
-          {!dialog.readOnly && (
-            <Button variant="contained" onClick={handleSubmitBooking} sx={{ bgcolor: accentColor, '&:hover': { bgcolor: '#f97316' } }}>
-              Save booking
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
+      <BookingDetailsDialog booking={selectedBooking} onClose={() => setSelectedBooking(null)} />
     </Stack>
   );
 };

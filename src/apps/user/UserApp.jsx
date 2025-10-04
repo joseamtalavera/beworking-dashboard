@@ -7,7 +7,6 @@ import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
 import { DEFAULT_TABS } from '../../constants.js';
 
-const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
 const Mailbox = React.lazy(() => import('../../components/tabs/user/MailboxUser.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
@@ -15,25 +14,34 @@ const Integrations = React.lazy(() => import('../../components/tabs/Integrations
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));
 const Community = React.lazy(() => import('../../components/tabs/Community.jsx'));
 const Events = React.lazy(() => import('../../components/tabs/Events.jsx'));
+const Contacts = React.lazy(() => import('../../components/tabs/admin/Contacts.jsx'));
+const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.jsx'));
+const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
+const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
 
 const TAB_COMPONENTS = {
-  Overview,
-  Storage,
+  Contacts,
   Mailbox,
-  Booking,
+  Invoices,
   Integrations,
   Automation,
   Community,
-  Events
+  Events,
+  Storage,
+  Tickets,
+  Reports
 };
 
 const UserApp = ({ userProfile }) => {
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeTab, setActiveTab] = useState('Contacts');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
   const TabContent = useMemo(() => {
-    const Component = TAB_COMPONENTS[activeTab] ?? Overview;
+    if (activeTab === 'Booking') {
+      return <Booking mode="user" />;
+    }
+    const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
     return <Component />;
   }, [activeTab]);
 

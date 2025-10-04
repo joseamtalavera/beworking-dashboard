@@ -7,6 +7,7 @@ const LOGIN_URL = import.meta.env.VITE_LOGIN_URL || 'http://localhost:3020/main/
 const BASE_PROFILE = {
   name: 'John Doe',
   role: 'ADMIN',
+  tenantId: null,
   email: 'john.doe@beworking.io',
   phone: '+34 600 123 456',
   status: 'Active tenant',
@@ -36,7 +37,8 @@ const composeProfile = (apiProfile = {}) => ({
   ...BASE_PROFILE,
   ...apiProfile,
   role: apiProfile.role || BASE_PROFILE.role,
-  email: apiProfile.email || BASE_PROFILE.email
+  email: apiProfile.email || BASE_PROFILE.email,
+  tenantId: apiProfile.tenantId ?? BASE_PROFILE.tenantId
 });
 
 export const useAuthProfile = () => {
