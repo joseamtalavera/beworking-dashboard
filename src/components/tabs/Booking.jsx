@@ -244,6 +244,14 @@ const describeBooking = (booking) => {
   return pieces.join(' · ');
 };
 
+const toTimestamp = (value) => {
+  if (!value) {
+    return null;
+  }
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 const composeRooms = (bookings) => {
   const map = new Map();
   bookings.forEach((booking) => {
@@ -270,11 +278,25 @@ const BookingsTable = ({ bookings, onSelect }) => {
   const sortedBookings = useMemo(() => {
     const clone = [...bookings];
     clone.sort((a, b) => {
-      const dateCompare = (a.dateFrom || '').localeCompare(b.dateFrom || '');
+      // Sort newest first by creation timestamp, falling back to start date/time.
+      const createdA = toTimestamp(a.createdAt);
+      const createdB = toTimestamp(b.createdAt);
+      if (createdA != null || createdB != null) {
+        if (createdA == null) {
+          return 1;
+        }
+        if (createdB == null) {
+          return -1;
+        }
+        if (createdA !== createdB) {
+          return createdB - createdA;
+        }
+      }
+      const dateCompare = (b.dateFrom || '').localeCompare(a.dateFrom || '');
       if (dateCompare !== 0) {
         return dateCompare;
       }
-      return (a.timeFrom || '').localeCompare(b.timeFrom || '');
+      return (b.timeFrom || '').localeCompare(a.timeFrom || '');
     });
     return clone;
   }, [bookings]);
@@ -296,20 +318,26 @@ const BookingsTable = ({ bookings, onSelect }) => {
             <TableRow>
               <TableCell>User</TableCell>
               <TableCell>Center</TableCell>
+              <TableCell>User type</TableCell>
               <TableCell>Product</TableCell>
-              <TableCell>Starting</TableCell>
-              <TableCell>Finishing</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell>Start hour</TableCell>
+              <TableCell>Finish hour</TableCell>
+              <TableCell>Payment status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginated.map((booking) => {
               const statusKey = mapStatusKey(booking.status);
               const statusStyle = statusStyles[statusKey];
+              const statusLabel = booking.status || statusLabels[statusKey];
               const centerLabel = booking.centerName || booking.centerCode || '—';
               const productLabel = booking.productName || booking.productType || '—';
-              const startLabel = formatDate(booking.dateFrom);
-              const endLabel = formatDate(booking.dateTo || booking.dateFrom);
+              const startHour = booking.timeFrom ? booking.timeFrom : 'All day';
+              const finishHour = booking.timeTo
+                ? booking.timeTo
+                : booking.timeFrom
+                ? '—'
+                : 'All day';
               return (
                 <TableRow
                   key={booking.id}
@@ -319,12 +347,13 @@ const BookingsTable = ({ bookings, onSelect }) => {
                 >
                   <TableCell>{booking.clientName || '—'}</TableCell>
                   <TableCell>{centerLabel}</TableCell>
+                  <TableCell>{booking.clientTenantType || '—'}</TableCell>
                   <TableCell>{productLabel}</TableCell>
-                  <TableCell>{startLabel}</TableCell>
-                  <TableCell>{endLabel}</TableCell>
+                  <TableCell>{startHour}</TableCell>
+                  <TableCell>{finishHour}</TableCell>
                   <TableCell>
                     <Chip
-                      label={statusLabels[statusKey]}
+                      label={statusLabel}
                       size="small"
                       sx={{
                         bgcolor: statusStyle.bgcolor,
@@ -357,6 +386,93 @@ const BookingsTable = ({ bookings, onSelect }) => {
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[rowsPerPage]}
       />
+    </Paper>
+  );
+};
+
+const AgendaTable = ({ bookings, onSelect }) => {
+  const sortedBookings = useMemo(() => {
+    const clone = [...bookings];
+    clone.sort((a, b) => {
+      const timeA = timeStringToMinutes(a.timeFrom);
+      const timeB = timeStringToMinutes(b.timeFrom);
+      const normalizedA = timeA != null ? timeA : -1;
+      const normalizedB = timeB != null ? timeB : -1;
+      if (normalizedA !== normalizedB) {
+        return normalizedA - normalizedB;
+      }
+      return (a.clientName || '').localeCompare(b.clientName || '');
+    });
+    return clone;
+  }, [bookings]);
+
+  if (sortedBookings.length === 0) {
+    return (
+      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 6 }}>
+        <Typography variant="body2" color="text.secondary" align="center">
+          No bookings scheduled for this date.
+        </Typography>
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>User</TableCell>
+              <TableCell>Center</TableCell>
+              <TableCell>User type</TableCell>
+              <TableCell>Product</TableCell>
+              <TableCell>Start hour</TableCell>
+              <TableCell>Finish hour</TableCell>
+              <TableCell>Payment status</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedBookings.map((booking) => {
+              const statusKey = mapStatusKey(booking.status);
+              const statusStyle = statusStyles[statusKey];
+              const statusLabel = booking.status || statusLabels[statusKey];
+              const startHour = booking.timeFrom ? booking.timeFrom : 'All day';
+              const finishHour = booking.timeTo
+                ? booking.timeTo
+                : booking.timeFrom
+                ? '—'
+                : 'All day';
+              return (
+                <TableRow
+                  key={`agenda-${booking.id}`}
+                  hover
+                  onClick={() => onSelect(booking)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell>{booking.clientName || '—'}</TableCell>
+                  <TableCell>{booking.centerName || booking.centerCode || '—'}</TableCell>
+                  <TableCell>{booking.clientTenantType || '—'}</TableCell>
+                  <TableCell>{booking.productName || booking.productType || '—'}</TableCell>
+                  <TableCell>{startHour}</TableCell>
+                  <TableCell>{finishHour}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={statusLabel}
+                      size="small"
+                      sx={{
+                        bgcolor: statusStyle.bgcolor,
+                        color: statusStyle.color,
+                        border: '1px solid',
+                        borderColor: statusStyle.borderColor
+                      }}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Paper>
   );
 };
@@ -480,6 +596,7 @@ const Booking = ({ mode = 'user' }) => {
   const [filterEmail, setFilterEmail] = useState('');
   const [filterCheckIn, setFilterCheckIn] = useState('');
   const [filterCheckOut, setFilterCheckOut] = useState('');
+  const [agendaUserTypeFilter, setAgendaUserTypeFilter] = useState('');
 
   const monthKey = useMemo(() => selectedDate.slice(0, 7), [selectedDate]);
 
@@ -523,6 +640,7 @@ const Booking = ({ mode = 'user' }) => {
     const users = new Set();
     const centers = new Set();
     const products = new Set();
+    const userTypes = new Set();
 
     bookings.forEach((booking) => {
       if (booking.clientName) {
@@ -536,6 +654,9 @@ const Booking = ({ mode = 'user' }) => {
       if (productLabel) {
         products.add(productLabel);
       }
+      if (booking.clientTenantType) {
+        userTypes.add(booking.clientTenantType);
+      }
     });
 
     const sorter = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
@@ -543,7 +664,8 @@ const Booking = ({ mode = 'user' }) => {
     return {
       users: Array.from(users).sort(sorter),
       centers: Array.from(centers).sort(sorter),
-      products: Array.from(products).sort(sorter)
+      products: Array.from(products).sort(sorter),
+      userTypes: Array.from(userTypes).sort(sorter)
     };
   }, [bookings]);
 
@@ -591,6 +713,26 @@ const Booking = ({ mode = 'user' }) => {
     [bookings, selectedDate]
   );
 
+  const agendaBookings = useMemo(() => {
+    const sameDayBookings = dayBookings.filter((booking) => {
+      const from = booking.dateFrom;
+      const to = booking.dateTo || booking.dateFrom;
+      if (!from || !to) {
+        return true;
+      }
+      return from === to;
+    });
+
+    if (!agendaUserTypeFilter) {
+      return sameDayBookings;
+    }
+    return sameDayBookings.filter(
+      (booking) => (booking.clientTenantType || '') === agendaUserTypeFilter
+    );
+  }, [agendaUserTypeFilter, dayBookings]);
+
+  const selectedDateLabel = useMemo(() => formatDate(selectedDate), [selectedDate]);
+
   const getSlotStatus = (room, slot) => {
     const booking = dayBookings.find(
       (entry) => entry.productId === room.productId && coversSlot(entry, slot)
@@ -629,14 +771,15 @@ const Booking = ({ mode = 'user' }) => {
         </Typography>
         <Typography variant="body1" color="text.secondary">
           {isAdmin
-            ? 'Browse every reservation across BeWorking locations. Switch between calendar and list views to review occupancy, statuses, and tenants.'
-            : 'Track your reservations, check upcoming slots, and review booking details from the calendar or list views.'}
+            ? 'Browse every reservation across BeWorking locations. Switch between calendar, list, and agenda views to review occupancy, statuses, and tenants.'
+            : 'Track your reservations, check upcoming slots, and review booking details from the calendar, list, or agenda views.'}
         </Typography>
       </Stack>
 
       <Tabs value={view} onChange={handleViewChange} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
         <Tab label="Calendar" value="calendar" disableRipple />
         <Tab label="Bookings" value="list" disableRipple />
+        <Tab label="Agenda" value="agenda" disableRipple />
       </Tabs>
 
       {error && <Alert severity="error">{error}</Alert>}
@@ -748,7 +891,7 @@ const Booking = ({ mode = 'user' }) => {
             </Paper>
           )}
         </Stack>
-      ) : (
+      ) : view === 'list' ? (
         <Stack spacing={3}>
           {loading ? (
             <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
@@ -856,6 +999,54 @@ const Booking = ({ mode = 'user' }) => {
               </Paper>
               <BookingsTable bookings={filteredBookings} onSelect={handleSelectBooking} />
             </Stack>
+          )}
+        </Stack>
+      ) : (
+        <Stack spacing={3}>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                type="date"
+                label="Agenda date"
+                value={selectedDate}
+                onChange={handleDateChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                select
+                label="User type"
+                value={agendaUserTypeFilter}
+                onChange={(event) => setAgendaUserTypeFilter(event.target.value)}
+                fullWidth
+              >
+                <MenuItem value="">All user types</MenuItem>
+                {(filterOptions.userTypes || []).map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={12} md={4}>
+              {selectedDateLabel !== '—' && (
+                <Typography variant="body2" color="text.secondary">
+                  Showing bookings happening on {selectedDateLabel}.
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
+
+          {loading ? (
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            </Paper>
+          ) : (
+            <AgendaTable bookings={agendaBookings} onSelect={handleSelectBooking} />
           )}
         </Stack>
       )}
