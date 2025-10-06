@@ -36,21 +36,37 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
 import ContactProfileView from './ContactProfileView';
 
 const STATUS_COLOR = {
-  Active: { color: 'success', label: 'Active' },
+  Activo: { color: 'success', label: 'Activo' },
+  Convertido: { color: 'success', label: 'Convertido' },
+  Inactivo: { color: 'error', label: 'Inactivo' },
+  Potencial: { color: 'warning', label: 'Potencial' },
   Trial: { color: 'warning', label: 'Trial' },
   Suspended: { color: 'error', label: 'Suspended' },
   Inactive: { color: 'default', label: 'Inactive' }
 };
 
-const PLAN_FALLBACK = 'Custom';
+// Activity status based on bookings and invoices
+const ACTIVITY_STATUS = {
+  Activo: { color: 'success', label: 'Active', variant: 'outlined' },
+  Inactivo: { color: 'error', label: 'Inactive', variant: 'outlined' },
+  Potencial: { color: 'default', label: 'Potencial', variant: 'outlined' }
+};
+
 const PAGE_SIZE = 25;
-const DEFAULT_STATUSES = ['Active', 'Trial', 'Suspended', 'Inactive'];
+const DEFAULT_STATUSES = ['Activo', 'Convertido', 'Potencial', 'Trial', 'Suspended', 'Inactive'];
 const ADD_USER_STATUS_OPTIONS = [
-  { value: 'Active', label: 'Activo' },
+  { value: 'Activo', label: 'Activo' },
+  { value: 'Convertido', label: 'Convertido' },
+  { value: 'Potencial', label: 'Potencial' },
   { value: 'Inactive', label: 'Inactivo' }
 ];
 
@@ -77,6 +93,25 @@ const normalizeContact = (entry = {}) => {
   const contact = entry.contact ?? {};
   const billing = entry.billing ?? {};
 
+  // Fallbacks from flat API fields (DB columns) when nested objects are missing
+  const fallbackContactName = contact.name
+    ?? entry.primary_contact
+    ?? ([entry.representative_first_name, entry.representative_last_name].filter(Boolean).join(' ') || null);
+  const fallbackContactEmail = contact.email
+    ?? entry.email_primary
+    ?? entry.representative_email
+    ?? null;
+
+  const fallbackBilling = {
+    company: billing.company ?? entry.billing_name ?? entry.name ?? null,
+    email: billing.email ?? entry.billing_email ?? entry.email_primary ?? null,
+    address: billing.address ?? entry.billing_address ?? null,
+    postal_code: billing.postal_code ?? entry.billing_postal_code ?? null,
+    county: billing.county ?? entry.billing_province ?? null,
+    country: billing.country ?? entry.billing_country ?? null,
+    tax_id: billing.tax_id ?? entry.billing_tax_id ?? null
+  };
+
   const usageValue = typeof entry.usage === 'number' && Number.isFinite(entry.usage)
     ? Math.max(0, Math.min(1, entry.usage))
     : 0;
@@ -90,8 +125,8 @@ const normalizeContact = (entry = {}) => {
   return {
     ...entry,
     id: entry.id != null ? String(entry.id) : Math.random().toString(36).slice(2),
-    name: entry.name ?? '—',
-    plan: entry.plan ?? PLAN_FALLBACK,
+    name: entry.name ?? entry.billing_name ?? '—',
+    plan: entry.plan ?? 'Custom',
     center: entry.center != null ? String(entry.center) : null,
     user_type: entry.user_type ?? '—',
     status: entry.status ?? 'Unknown',
@@ -102,18 +137,10 @@ const normalizeContact = (entry = {}) => {
     created_at: entry.created_at ?? null,
     phone_primary: entry.phone_primary ?? null,
     contact: {
-      name: contact.name ?? '—',
-      email: contact.email ?? '—'
+      name: fallbackContactName ?? '—',
+      email: fallbackContactEmail ?? '—'
     },
-    billing: {
-      company: billing.company ?? entry.name ?? '—',
-      email: billing.email ?? contact.email ?? '—',
-      address: billing.address ?? null,
-      postal_code: billing.postal_code ?? null,
-      county: billing.county ?? null,
-      country: billing.country ?? null,
-      tax_id: billing.tax_id ?? null
-    }
+    billing: fallbackBilling
   };
 };
 
@@ -165,127 +192,432 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ pb: 1.5 }}>Add new user</DialogTitle>
-      <DialogContent
-        dividers
-        sx={{ bgcolor: '#f8fafc', px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}
-      >
-        <Stack spacing={3}>
-          <Box
-            sx={{ borderRadius: 3, border: '1px solid #d1fae5', bgcolor: '#ecfdf5', p: { xs: 2.5, md: 3 } }}
-          >
-            <Typography variant="subtitle2" fontWeight={700} color="#047857" sx={{ mb: 2 }}>
-              Basic data
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="lg" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        pb: 0,
+        background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+        color: 'white',
+        borderRadius: '12px 12px 0 0',
+        p: 3
+      }}>
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+            <AddRoundedIcon />
+          </Avatar>
+          <Box>
+            <Typography variant="h5" fontWeight={700}>
+              Add New User
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <TextField label="User / Company name" value={form.name} onChange={handleFieldChange('name')} fullWidth required />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField label="Primary contact" value={form.primaryContact} onChange={handleFieldChange('primaryContact')} fullWidth />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField label="Email" type="email" value={form.email} onChange={handleFieldChange('email')} fullWidth required />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField label="Phone" value={form.phone} onChange={handleFieldChange('phone')} fullWidth />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  select
-                  label="Status"
-                  value={form.status}
-                  onChange={handleFieldChange('status')}
-                  fullWidth
-                >
-                  {statusOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  select
-                  label="User type"
-                  value={form.userType}
-                  onChange={handleFieldChange('userType')}
-                  fullWidth
-                >
-                  {USER_TYPE_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  select
-                  label="Center"
-                  value={form.center}
-                  onChange={handleFieldChange('center')}
-                  fullWidth
-                >
-                  {CENTER_OPTIONS.map((center) => (
-                    <MenuItem key={center} value={center}>
-                      {center}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField label="Seats" value={form.seats} onChange={handleFieldChange('seats')} type="number" inputProps={{ min: 0 }} fullWidth />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField label="Channel" value={form.channel} onChange={handleFieldChange('channel')} fullWidth />
-              </Grid>
-            </Grid>
-          </Box>
-
-          <Box
-            sx={{ borderRadius: 3, border: '1px solid #fed7aa', bgcolor: '#fff7ed', p: { xs: 2.5, md: 3 } }}
-          >
-            <Typography variant="subtitle2" fontWeight={700} color="#c2410c" sx={{ mb: 2 }}>
-              Billing data
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Create a new user profile with basic and billing information
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <TextField label="Billing company" value={form.billingCompany} onChange={handleFieldChange('billingCompany')} fullWidth />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField label="Billing email" value={form.billingEmail} onChange={handleFieldChange('billingEmail')} fullWidth />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Billing address"
-                  value={form.billingAddress}
-                  onChange={handleFieldChange('billingAddress')}
-                  fullWidth
-                  multiline
-                  minRows={2}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField label="Postal code" value={form.billingPostalCode} onChange={handleFieldChange('billingPostalCode')} fullWidth />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField label="County" value={form.billingCounty} onChange={handleFieldChange('billingCounty')} fullWidth />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField label="Country" value={form.billingCountry} onChange={handleFieldChange('billingCountry')} fullWidth />
-              </Grid>
-            </Grid>
           </Box>
         </Stack>
+      </DialogTitle>
+      <DialogContent sx={{ p: 0 }}>
+        <Box sx={{ p: 4 }}>
+          <Stack spacing={4}>
+            {/* Basic Information Section */}
+            <Paper 
+              elevation={0}
+              sx={{ 
+                borderRadius: 3, 
+                border: '1px solid #e2e8f0',
+                overflow: 'hidden',
+                background: 'white'
+              }}
+            >
+              <Box sx={{ 
+                p: 3, 
+                background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
+                borderBottom: '1px solid #e2e8f0'
+              }}>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Avatar sx={{ bgcolor: '#f97316', width: 36, height: 36 }}>
+                    <PersonRoundedIcon />
+                  </Avatar>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    Basic Information
+                  </Typography>
+                </Stack>
+              </Box>
+              <Box sx={{ p: 3 }}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="User / Company name" 
+                      value={form.name} 
+                      onChange={handleFieldChange('name')} 
+                      fullWidth 
+                      required
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Status" 
+                      value={form.status} 
+                      onChange={handleFieldChange('status')} 
+                      fullWidth 
+                      select
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    >
+                      {statusOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Primary contact" 
+                      value={form.primaryContact} 
+                      onChange={handleFieldChange('primaryContact')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Email" 
+                      type="email" 
+                      value={form.email} 
+                      onChange={handleFieldChange('email')} 
+                      fullWidth 
+                      required
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Phone" 
+                      value={form.phone} 
+                      onChange={handleFieldChange('phone')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="User type" 
+                      value={form.userType} 
+                      onChange={handleFieldChange('userType')} 
+                      fullWidth 
+                      select
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    >
+                      {USER_TYPE_OPTIONS.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Center" 
+                      value={form.center} 
+                      onChange={handleFieldChange('center')} 
+                      fullWidth 
+                      select
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    >
+                      {CENTER_OPTIONS.map((center) => (
+                        <MenuItem key={center} value={center}>
+                          {center}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Seats" 
+                      value={form.seats} 
+                      onChange={handleFieldChange('seats')} 
+                      type="number" 
+                      inputProps={{ min: 0 }} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f97316'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            </Paper>
+
+            {/* Billing Information Section */}
+            <Paper 
+              elevation={0}
+              sx={{ 
+                borderRadius: 3, 
+                border: '1px solid #e2e8f0',
+                overflow: 'hidden',
+                background: 'white'
+              }}
+            >
+              <Box sx={{ 
+                p: 3, 
+                background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
+                borderBottom: '1px solid #e2e8f0'
+              }}>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Avatar sx={{ bgcolor: '#ea580c', width: 36, height: 36 }}>
+                    <BusinessRoundedIcon />
+                  </Avatar>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    Billing Details
+                  </Typography>
+                </Stack>
+              </Box>
+              <Box sx={{ p: 3 }}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Billing company" 
+                      value={form.billingCompany} 
+                      onChange={handleFieldChange('billingCompany')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ea580c'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField 
+                      label="Billing email" 
+                      value={form.billingEmail} 
+                      onChange={handleFieldChange('billingEmail')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ea580c'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField 
+                      label="Billing address" 
+                      value={form.billingAddress} 
+                      onChange={handleFieldChange('billingAddress')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ea580c'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField 
+                      label="Postal code" 
+                      value={form.billingPostalCode} 
+                      onChange={handleFieldChange('billingPostalCode')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ea580c'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField 
+                      label="County" 
+                      value={form.billingCounty} 
+                      onChange={handleFieldChange('billingCounty')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ea580c'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField 
+                      label="Country" 
+                      value={form.billingCountry} 
+                      onChange={handleFieldChange('billingCountry')} 
+                      fullWidth 
+                      variant="outlined"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          minHeight: 56,
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#ea580c'
+                          }
+                        }
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            </Paper>
+          </Stack>
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button color="inherit" onClick={onClose}>
+      <DialogActions sx={{ 
+        p: 3, 
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        borderRadius: '0 0 12px 12px'
+      }}>
+        <Button 
+          startIcon={<CloseRoundedIcon />}
+          onClick={onClose}
+          sx={{
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 3,
+            py: 1,
+            color: 'text.secondary',
+            borderColor: '#e2e8f0',
+            '&:hover': {
+              borderColor: '#cbd5e1',
+              backgroundColor: '#f8fafc'
+            }
+          }}
+          variant="outlined"
+        >
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={!form.name.trim() || !form.email.trim()}>
+        <Button 
+          variant="contained" 
+          startIcon={<SaveRoundedIcon />}
+          onClick={handleSubmit}
+          disabled={!form.name.trim() || !form.email.trim()}
+          sx={{
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 3,
+            py: 1,
+            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+              transform: 'translateY(-1px)',
+              boxShadow: '0 8px 25px rgba(249, 115, 22, 0.3)'
+            },
+            '&:disabled': {
+              background: '#d1d5db',
+              color: '#9ca3af'
+            },
+            transition: 'all 0.2s ease-in-out'
+          }}
+        >
           Save user
         </Button>
       </DialogActions>
@@ -304,10 +636,11 @@ AddUserDialog.defaultProps = {
   existingStatuses: []
 };
 
-const buildQueryString = ({ page, search, status, plan }) => {
+const buildQueryString = ({ page, search, status, email, userType }) => {
   const params = new URLSearchParams({
     page: String(page),
-    size: String(PAGE_SIZE)
+    size: String(PAGE_SIZE),
+    sort: 'lastActive,desc'
   });
 
   if (search) {
@@ -316,8 +649,11 @@ const buildQueryString = ({ page, search, status, plan }) => {
   if (status && status !== 'all') {
     params.append('status', status);
   }
-  if (plan && plan !== 'all') {
-    params.append('plan', plan);
+  if (email && email !== 'all') {
+    params.append('email', email);
+  }
+  if (userType && userType !== 'all') {
+    params.append('tenantType', userType);
   }
 
   return params.toString();
@@ -325,7 +661,8 @@ const buildQueryString = ({ page, search, status, plan }) => {
 
 const Contacts = () => {
   const [statusFilter, setStatusFilter] = useState('all');
-  const [planFilter, setPlanFilter] = useState('all');
+  const [emailFilter, setEmailFilter] = useState('all');
+  const [userTypeFilter, setUserTypeFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [contacts, setContacts] = useState([]);
@@ -336,7 +673,8 @@ const Contacts = () => {
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
   const [statusOptions, setStatusOptions] = useState([]);
-  const [planOptions, setPlanOptions] = useState([]);
+  const [emailOptions, setEmailOptions] = useState([]);
+  const [userTypeOptions, setUserTypeOptions] = useState([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -351,15 +689,15 @@ const Contacts = () => {
   }, [statusFilter, statusOptions]);
 
   useEffect(() => {
-    if (planFilter !== 'all' && !planOptions.includes(planFilter)) {
-      setPlanOptions((prev) => {
-        if (prev.includes(planFilter)) {
+    if (emailFilter !== 'all' && !emailOptions.includes(emailFilter)) {
+      setEmailOptions((prev) => {
+        if (prev.includes(emailFilter)) {
           return prev;
         }
-        return [...prev, planFilter].sort((a, b) => a.localeCompare(b));
+        return [...prev, emailFilter].sort((a, b) => a.localeCompare(b));
       });
     }
-  }, [planFilter, planOptions]);
+  }, [emailFilter, emailOptions]);
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(search.trim()), 250);
@@ -368,7 +706,7 @@ const Contacts = () => {
 
   useEffect(() => {
     setPage(0);
-  }, [debouncedSearch, statusFilter, planFilter]);
+  }, [debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
 
   useEffect(() => {
     let active = true;
@@ -383,7 +721,8 @@ const Contacts = () => {
           page,
           search: debouncedSearch,
           status: statusFilter,
-          plan: planFilter
+          email: emailFilter,
+          userType: userTypeFilter
         });
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/contact-profiles?${query}`, {
           signal: controller.signal
@@ -398,13 +737,17 @@ const Contacts = () => {
 
         const rawItems = Array.isArray(data?.items)
           ? data.items
+          : Array.isArray(data?.content)
+            ? data.content
           : Array.isArray(data)
             ? data
             : [];
+        
         const normalized = rawItems.map((entry) => normalizeContact(entry));
 
         setContacts(normalized);
-        setTotal(Number.isFinite(data?.totalElements) ? data.totalElements : normalized.length);
+        setTotal(Number.isFinite(data?.totalElements) ? data.totalElements :
+          Number.isFinite(data?.total) ? data.total : normalized.length);
 
         setStatusOptions((prev) => {
           const next = new Set(prev);
@@ -416,11 +759,12 @@ const Contacts = () => {
           return Array.from(next).sort((a, b) => a.localeCompare(b));
         });
 
-        setPlanOptions((prev) => {
+
+        setUserTypeOptions((prev) => {
           const next = new Set(prev);
           normalized.forEach((tenant) => {
-            if (tenant.plan && tenant.plan !== PLAN_FALLBACK) {
-              next.add(tenant.plan);
+            if (tenant.user_type && tenant.user_type !== '—') {
+              next.add(tenant.user_type);
             }
           });
           return Array.from(next).sort((a, b) => a.localeCompare(b));
@@ -445,7 +789,7 @@ const Contacts = () => {
       active = false;
       controller.abort();
     };
-  }, [page, debouncedSearch, statusFilter, planFilter]);
+  }, [page, debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
 
   const handleRowClick = (tenant) => {
     setSelectedContact(tenant);
@@ -473,10 +817,18 @@ const Contacts = () => {
     });
   };
 
+  const handleResetFilters = () => {
+    setSearch('');
+    setStatusFilter('all');
+    setEmailFilter('all');
+    setUserTypeFilter('all');
+    setPage(0);
+  };
+
   const handleAddUser = (values) => {
     const now = new Date();
     const seatsValue = values.seats ? Number.parseInt(values.seats, 10) : 0;
-    const planValue = PLAN_FALLBACK;
+    const planValue = 'Custom';
     const statusValue = values.status || 'Active';
 
     const entry = {
@@ -569,8 +921,17 @@ const Contacts = () => {
               sx={{
                 minWidth: 170,
                 borderRadius: 2,
-                bgcolor: '#16a34a',
-                '&:hover': { bgcolor: '#15803d' }
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 8px 25px rgba(249, 115, 22, 0.3)'
+                },
+                transition: 'all 0.2s ease-in-out'
               }}
               onClick={() => setAddDialogOpen(true)}
             >
@@ -601,25 +962,55 @@ const Contacts = () => {
             sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 140 }}
           >
             <MenuItem value="all">All statuses</MenuItem>
-            {statusOptions.map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
+            <MenuItem value="Activo">Activo</MenuItem>
+            <MenuItem value="Inactivo">Inactivo</MenuItem>
+            <MenuItem value="Potencial">Potencial</MenuItem>
           </Select>
+          <OutlinedInput
+            size="small"
+            value={emailFilter === 'all' ? '' : emailFilter}
+            onChange={(event) => setEmailFilter(event.target.value || 'all')}
+            placeholder="Search by email"
+            startAdornment={
+              <InputAdornment position="start">
+                <MailOutlinedIcon fontSize="small" />
+              </InputAdornment>
+            }
+            sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 200 }}
+          />
           <Select
             size="small"
-            value={planFilter}
-            onChange={(event) => setPlanFilter(event.target.value)}
+            value={userTypeFilter}
+            onChange={(event) => setUserTypeFilter(event.target.value)}
             sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 140 }}
           >
-            <MenuItem value="all">All plans</MenuItem>
-            {planOptions.map((plan) => (
-              <MenuItem key={plan} value={plan}>
-                {plan}
-              </MenuItem>
-            ))}
+            <MenuItem value="all">All user types</MenuItem>
+            <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+            <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+            <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
+            <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
+            <MenuItem value="Servicios">Servicios</MenuItem>
+            <MenuItem value="Proveedor">Proveedor</MenuItem>
+            <MenuItem value="Distribuidor">Distribuidor</MenuItem>
           </Select>
+          <Stack 
+            direction="row" 
+            alignItems="center" 
+            spacing={0.5}
+            onClick={handleResetFilters}
+            sx={{ 
+              cursor: 'pointer',
+              color: 'text.secondary',
+              '&:hover': {
+                color: 'primary.main'
+              }
+            }}
+          >
+            <RefreshRoundedIcon fontSize="small" />
+            <Typography variant="body2" fontWeight={500}>
+              Reset
+            </Typography>
+          </Stack>
         </Stack>
       </Box>
 
@@ -629,11 +1020,8 @@ const Contacts = () => {
         <Table size="small" sx={{ '& th': { fontWeight: 600, color: 'text.secondary' } }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ pl: 4 }}>Tenant</TableCell>
-              <TableCell>Primary contact</TableCell>
-              <TableCell>Plan</TableCell>
-              <TableCell align="center">Seats</TableCell>
-              <TableCell align="center">Adoption</TableCell>
+              <TableCell sx={{ pl: 4 }}>User</TableCell>
+              <TableCell>Type of user</TableCell>
               <TableCell align="center">Status</TableCell>
               <TableCell align="center">Last activity</TableCell>
               <TableCell align="right" sx={{ pr: 4 }}>Actions</TableCell>
@@ -642,7 +1030,7 @@ const Contacts = () => {
           <TableBody>
             {loading && (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
                   <Stack spacing={1} alignItems="center">
                     <CircularProgress size={24} />
                     <Typography variant="body2" color="text.secondary">
@@ -665,7 +1053,7 @@ const Contacts = () => {
 
             {!loading && !error && contacts.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     No contacts match your filters.
                   </Typography>
@@ -674,7 +1062,7 @@ const Contacts = () => {
             )}
 
             {!loading && !error && contacts.map((tenant) => {
-              const statusMeta = STATUS_COLOR[tenant.status] || { color: 'default', label: tenant.status };
+              const statusMeta = ACTIVITY_STATUS[tenant.status] || { color: 'default', label: 'Unknown' };
               const initials = tenant.name
                 .split(' ')
                 .map((word) => word[0])
@@ -690,7 +1078,7 @@ const Contacts = () => {
                 >
                   <TableCell sx={{ pl: 4 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
-                      <Avatar sx={{ bgcolor: '#1d4ed8' }}>{initials.slice(0, 2)}</Avatar>
+                      <Avatar sx={{ bgcolor: '#f97316' }}>{initials.slice(0, 2)}</Avatar>
                       <Box>
                         <Typography fontWeight={600}>{tenant.name}</Typography>
                         <Stack direction="row" spacing={0.5} alignItems="center" color="text.secondary">
@@ -701,28 +1089,22 @@ const Contacts = () => {
                     </Stack>
                   </TableCell>
                   <TableCell>
-                    <Typography fontWeight={600}>{tenant.contact.name}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={tenant.plan} color="primary" size="small" variant="outlined" sx={{ borderRadius: 1.5 }} />
+                    <Typography fontWeight={500}>{tenant.user_type || '—'}</Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Typography fontWeight={600}>{tenant.seats}</Typography>
-                  </TableCell>
-                  <TableCell align="center" sx={{ minWidth: 160 }}>
-                    <Stack spacing={0.5} alignItems="center">
-                      <Typography variant="caption" color="text.secondary">
-                        {(tenant.usage * 100).toFixed(0)}% active users
-                      </Typography>
-                      <LinearProgress
-                        variant="determinate"
-                        value={tenant.usage * 100}
-                        sx={{ width: '100%', height: 6, borderRadius: 999, backgroundColor: '#e2e8f0' }}
-                      />
-                    </Stack>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip label={statusMeta.label} color={statusMeta.color} size="small" sx={{ borderRadius: 1.5, fontWeight: 600 }} />
+                    <Chip 
+                      label={statusMeta.label} 
+                      color={statusMeta.color} 
+                      variant={statusMeta.variant || 'filled'}
+                      size="small" 
+                      sx={{ 
+                        borderRadius: 1.5, 
+                        fontWeight: 600,
+                        minWidth: 80,
+                        width: 80,
+                        justifyContent: 'center'
+                      }} 
+                    />
                   </TableCell>
                   <TableCell align="center">
                     <Typography variant="body2" fontWeight={500} color="text.secondary">
@@ -730,17 +1112,17 @@ const Contacts = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="right" sx={{ pr: 4 }}>
-                    <Tooltip title="Copy tenant ID">
+                    <Tooltip title="Copy email">
                       <IconButton
                         size="small"
                         onClick={(event) => {
                           event.stopPropagation();
                           if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-                            navigator.clipboard.writeText(tenant.id);
+                            navigator.clipboard.writeText(tenant.contact.email || '');
                           }
                         }}
                       >
-                        <ContentCopyRoundedIcon fontSize="inherit" />
+                        <MailOutlinedIcon fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
                   </TableCell>

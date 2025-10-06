@@ -8,6 +8,11 @@ import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -20,6 +25,8 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
+import Divider from '@mui/material/Divider';
 
 const ContactProfileView = ({ contact, onBack, onSave }) => {
   const [editorOpen, setEditorOpen] = useState(false);
@@ -59,6 +66,16 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
     }));
   };
 
+  const handleBillingChange = (field) => (event) => {
+    setDraft((prev) => ({
+      ...prev,
+      billing: {
+        ...prev.billing,
+        [field]: event.target.value
+      }
+    }));
+  };
+
   const handleSave = () => {
     if (onSave) {
       onSave(draft);
@@ -92,7 +109,25 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
         <Button startIcon={<ArrowBackRoundedIcon />} onClick={onBack}>
           Back to contacts
         </Button>
-        <Button variant="contained" onClick={() => setEditorOpen(true)}>
+        <Button 
+          variant="contained" 
+          startIcon={<EditRoundedIcon />}
+          onClick={() => setEditorOpen(true)}
+          sx={{
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 3,
+            py: 1,
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              transform: 'translateY(-1px)',
+              boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+            },
+            transition: 'all 0.2s ease-in-out'
+          }}
+        >
           Edit profile
         </Button>
       </Stack>
@@ -108,7 +143,7 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
       >
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center" justifyContent="space-between">
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
-            <Avatar sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#1d4ed8' }}>{initials.slice(0, 2)}</Avatar>
+            <Avatar sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#f97316' }}>{initials.slice(0, 2)}</Avatar>
             <Box>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Typography variant="h4" fontWeight={700}>
@@ -248,24 +283,421 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
       </Box>
 
 
-      <Dialog open={editorOpen} onClose={() => setEditorOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit tenant profile</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2}>
-            <TextField label="Tenant name" value={draft?.name || ''} onChange={handleChange('name')} fullWidth />
-            <TextField label="Status" value={draft?.status || ''} onChange={handleChange('status')} fullWidth />
-            <TextField label="Primary contact" value={draft?.contact?.name || ''} onChange={handleContactChange('name')} fullWidth />
-            <TextField label="Email" value={draft?.contact?.email || ''} onChange={handleContactChange('email')} fullWidth />
-            <TextField label="Plan" value={draft?.plan || ''} onChange={handleChange('plan')} fullWidth />
-            <TextField label="User type" value={draft?.user_type || ''} onChange={handleChange('user_type')} fullWidth />
-            <TextField label="Phone" value={draft?.phone_primary || ''} onChange={handleChange('phone_primary')} fullWidth />
+      <Dialog 
+        open={editorOpen} 
+        onClose={() => setEditorOpen(false)} 
+        maxWidth="lg" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          pb: 0,
+          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          color: 'white',
+          borderRadius: '12px 12px 0 0',
+          p: 3
+        }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+              <EditRoundedIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="h5" fontWeight={700}>
+                Edit User Profile
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Update user information and billing details
+              </Typography>
+            </Box>
           </Stack>
+        </DialogTitle>
+        
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 4 }}>
+            <Stack spacing={4}>
+              {/* Basic Information Section */}
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  borderRadius: 3, 
+                  border: '1px solid #e2e8f0',
+                  overflow: 'hidden',
+                  background: 'white'
+                }}
+              >
+                <Box sx={{ 
+                  p: 3, 
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
+                  borderBottom: '1px solid #e2e8f0'
+                }}>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Avatar sx={{ bgcolor: '#10b981', width: 36, height: 36 }}>
+                      <PersonRoundedIcon />
+                    </Avatar>
+                    <Typography variant="h6" fontWeight={600} color="text.primary">
+                      Basic Information
+                    </Typography>
+                  </Stack>
+                </Box>
+                <Box sx={{ p: 3 }}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="User name" 
+                        value={draft?.name || ''} 
+                        onChange={handleChange('name')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Status" 
+                        value={draft?.status || ''} 
+                        onChange={handleChange('status')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Primary contact" 
+                        value={draft?.contact?.name || ''} 
+                        onChange={handleContactChange('name')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Email" 
+                        value={draft?.contact?.email || ''} 
+                        onChange={handleContactChange('email')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Phone" 
+                        value={draft?.phone_primary || ''} 
+                        onChange={handleChange('phone_primary')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="User type" 
+                        value={draft?.user_type || ''} 
+                        onChange={handleChange('user_type')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Plan" 
+                        value={draft?.plan || ''} 
+                        onChange={handleChange('plan')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Center" 
+                        value={draft?.center || ''} 
+                        onChange={handleChange('center')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#10b981'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Paper>
+
+              {/* Billing Information Section */}
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  borderRadius: 3, 
+                  border: '1px solid #e2e8f0',
+                  overflow: 'hidden',
+                  background: 'white'
+                }}
+              >
+                <Box sx={{ 
+                  p: 3, 
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
+                  borderBottom: '1px solid #e2e8f0'
+                }}>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Avatar sx={{ bgcolor: '#059669', width: 36, height: 36 }}>
+                      <BusinessRoundedIcon />
+                    </Avatar>
+                    <Typography variant="h6" fontWeight={600} color="text.primary">
+                      Billing Details
+                    </Typography>
+                  </Stack>
+                </Box>
+                <Box sx={{ p: 3 }}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Company name" 
+                        value={draft?.billing?.company || ''} 
+                        onChange={handleBillingChange('company')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#059669'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Billing email" 
+                        value={draft?.billing?.email || ''} 
+                        onChange={handleBillingChange('email')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#059669'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField 
+                        label="Address" 
+                        value={draft?.billing?.address || ''} 
+                        onChange={handleBillingChange('address')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#059669'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField 
+                        label="Postal code" 
+                        value={draft?.billing?.postal_code || ''} 
+                        onChange={handleBillingChange('postal_code')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#059669'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField 
+                        label="County/State" 
+                        value={draft?.billing?.county || ''} 
+                        onChange={handleBillingChange('county')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#059669'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField 
+                        label="Country" 
+                        value={draft?.billing?.country || ''} 
+                        onChange={handleBillingChange('country')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#059669'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        label="Tax ID" 
+                        value={draft?.billing?.tax_id || ''} 
+                        onChange={handleBillingChange('tax_id')} 
+                        fullWidth 
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#059669'
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Paper>
+            </Stack>
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button color="inherit" onClick={() => setEditorOpen(false)}>
+        
+        <DialogActions sx={{ 
+          p: 3, 
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          borderRadius: '0 0 12px 12px'
+        }}>
+          <Button 
+            startIcon={<CloseRoundedIcon />}
+            onClick={() => setEditorOpen(false)}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              color: 'text.secondary',
+              borderColor: '#e2e8f0',
+              '&:hover': {
+                borderColor: '#cbd5e1',
+                backgroundColor: '#f8fafc'
+              }
+            }}
+            variant="outlined"
+          >
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleSave}>
+          <Button 
+            variant="contained" 
+            startIcon={<SaveRoundedIcon />}
+            onClick={handleSave}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+              },
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
             Save changes
           </Button>
         </DialogActions>
@@ -344,13 +776,13 @@ const InfoCard = ({ title, icon: Icon, children }) => (
             width: 36,
             height: 36,
             borderRadius: '50%',
-            bgcolor: '#eff4ff',
+            bgcolor: '#fed7aa',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}
         >
-          <Icon fontSize="small" color="primary" />
+          <Icon fontSize="small" sx={{ color: '#f97316' }} />
         </Box>
       )}
       <Typography variant="subtitle1" fontWeight={600}>
@@ -425,13 +857,13 @@ const SectionCard = ({ icon: Icon, title, children }) => (
           width: 40,
           height: 40,
           borderRadius: '50%',
-          bgcolor: '#eff4ff',
+          bgcolor: '#fed7aa',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}
       >
-        <Icon fontSize="small" color="primary" />
+        <Icon fontSize="small" sx={{ color: '#f97316' }} />
       </Box>
       <Typography variant="subtitle2" fontWeight={600}>
         {title}
