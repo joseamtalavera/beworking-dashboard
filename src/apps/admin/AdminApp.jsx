@@ -7,6 +7,7 @@ import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
 import { ADMIN_TABS } from '../../constants.js';
 
+const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
 const Mailbox = React.lazy(() => import('../../components/tabs/admin/MailboxAdmin.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
@@ -18,8 +19,10 @@ const Contacts = React.lazy(() => import('../../components/tabs/admin/Contacts.j
 const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
 const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
+import Marketplace from '../../components/tabs/Marketplace.jsx';
 
 const TAB_COMPONENTS = {
+  Overview,
   Contacts,
   Mailbox,
   Invoices,
@@ -29,11 +32,12 @@ const TAB_COMPONENTS = {
   Events,
   Storage,
   Tickets,
-  Reports
+  Reports,
+  Marketplace
 };
 
 const AdminApp = ({ userProfile }) => {
-  const [activeTab, setActiveTab] = useState('Contacts');
+  const [activeTab, setActiveTab] = useState('Overview');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 

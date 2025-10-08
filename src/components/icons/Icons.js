@@ -14,6 +14,7 @@ import AdminBookingsIcon from '@mui/icons-material/CalendarMonthOutlined';
 import InvoicesIcon from '@mui/icons-material/ReceiptLongOutlined';
 import TicketsIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import ReportsIcon from '@mui/icons-material/AssessmentOutlined';
+import MarketplaceIcon from '@mui/icons-material/StoreOutlined';
 
 export {
   OverviewIcon,
@@ -31,5 +32,6 @@ export {
   AdminBookingsIcon,
   InvoicesIcon,
   TicketsIcon,
-  ReportsIcon
+  ReportsIcon,
+  MarketplaceIcon
 };

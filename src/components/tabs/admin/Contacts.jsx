@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, memo } from 'react';
+
+import { apiFetch } from '../../../api/client';
 
 import PropTypes from 'prop-types';
 
@@ -41,6 +43,8 @@ import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import WarningRoundedIcon from '@mui/icons-material/WarningRounded';
 
 import ContactProfileView from './ContactProfileView';
 
@@ -76,7 +80,7 @@ const ADD_USER_DEFAULT = {
   email: '',
   phone: '',
   plan: '',
-  status: 'Active',
+  status: 'Activo',
   userType: 'Usuario Mesa',
   center: 'MA1 MALAGA DUMAS',
   seats: '',
@@ -94,9 +98,13 @@ const normalizeContact = (entry = {}) => {
   const billing = entry.billing ?? {};
 
   // Fallbacks from flat API fields (DB columns) when nested objects are missing
+  // Compute representative full name separately to avoid mixing `??` with `||` in one expression
+  const representativeName = [entry.representative_first_name, entry.representative_last_name]
+    .filter(Boolean)
+    .join(' ');
   const fallbackContactName = contact.name
     ?? entry.primary_contact
-    ?? ([entry.representative_first_name, entry.representative_last_name].filter(Boolean).join(' ') || null);
+    ?? (representativeName || null);
   const fallbackContactEmail = contact.email
     ?? entry.email_primary
     ?? entry.representative_email
@@ -144,6 +152,16 @@ const normalizeContact = (entry = {}) => {
   };
 };
 
+// Memoized TextField component for better performance
+const MemoizedTextField = memo(({ label, value, onChange, ...props }) => (
+  <TextField 
+    label={label}
+    value={value}
+    onChange={onChange}
+    {...props}
+  />
+));
+
 const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
   const [form, setForm] = useState(ADD_USER_DEFAULT);
 
@@ -154,14 +172,28 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
   }, [open]);
 
   const statusOptions = useMemo(() => {
-    const existing = new Set(existingStatuses ?? []);
-    ADD_USER_STATUS_OPTIONS.forEach((item) => existing.add(item.value));
-    return Array.from(existing)
-      .map((status) => {
-        const match = ADD_USER_STATUS_OPTIONS.find((item) => item.value === status);
-        return { value: status, label: match ? match.label : status };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
+    // Build a map keyed by label to avoid duplicate labels like 'Inactivo' coming
+    // from different values ('Inactive' vs 'Inactivo'). Prefer the canonical
+    // entries defined in ADD_USER_STATUS_OPTIONS, then include any existingStatuses
+    // that don't conflict by label.
+    const labelMap = new Map();
+
+    // First, add canonical options so they take precedence.
+    ADD_USER_STATUS_OPTIONS.forEach((item) => {
+      labelMap.set(item.label, { value: item.value, label: item.label });
+    });
+
+    // Then add any existing statuses from backend if their label isn't already used.
+    (existingStatuses ?? []).forEach((status) => {
+      // See if this status matches a canonical value to get its label
+      const match = ADD_USER_STATUS_OPTIONS.find((item) => item.value === status || item.label === status);
+      const label = match ? match.label : status;
+      if (!labelMap.has(label)) {
+        labelMap.set(label, { value: status, label });
+      }
+    });
+
+    return Array.from(labelMap.values()).sort((a, b) => a.label.localeCompare(b.label));
   }, [existingStatuses]);
 
   const CENTER_OPTIONS = ['MA1 MALAGA DUMAS'];
@@ -176,20 +208,20 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
     'Servicios'
   ];
 
-  const handleFieldChange = (field) => (event) => {
+  const handleFieldChange = useCallback((field) => (event) => {
     const { value } = event.target;
     setForm((prev) => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  const handleSubmit = () => {
-    if (!form.name.trim() || !form.email.trim()) {
+  const handleSubmit = useCallback(() => {
+    if (!form.name || !form.name.trim() || !form.email || !form.email.trim()) {
       return;
     }
     onSave?.(form);
-  };
+  }, [form, onSave]);
 
   return (
     <Dialog 
@@ -205,9 +237,9 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
         }
       }}
     >
-      <DialogTitle sx={{ 
+      <DialogTitle sx={{
         pb: 0,
-        background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
         color: 'white',
         borderRadius: '12px 12px 0 0',
         p: 3
@@ -245,18 +277,18 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                 borderBottom: '1px solid #e2e8f0'
               }}>
                 <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar sx={{ bgcolor: '#f97316', width: 36, height: 36 }}>
+                  <Avatar sx={{ bgcolor: '#10b981', width: 36, height: 36 }}>
                     <PersonRoundedIcon />
                   </Avatar>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
                     Basic Information
-                  </Typography>
+            </Typography>
                 </Stack>
               </Box>
               <Box sx={{ p: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
+                    <MemoizedTextField 
                       label="User / Company name" 
                       value={form.name} 
                       onChange={handleFieldChange('name')} 
@@ -268,18 +300,18 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
+                            borderColor: '#10b981'
                           }
                         }
                       }}
                     />
-                  </Grid>
+              </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
-                      label="Status" 
-                      value={form.status} 
-                      onChange={handleFieldChange('status')} 
-                      fullWidth 
+                <TextField
+                  label="Status"
+                  value={form.status}
+                  onChange={handleFieldChange('status')}
+                  fullWidth
                       select
                       variant="outlined"
                       sx={{
@@ -287,20 +319,20 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
+                            borderColor: '#10b981'
                           }
                         }
                       }}
-                    >
-                      {statusOptions.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
+                >
+                  {statusOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
+                <TextField
                       label="Primary contact" 
                       value={form.primaryContact} 
                       onChange={handleFieldChange('primaryContact')} 
@@ -311,14 +343,14 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
+                            borderColor: '#10b981'
                           }
                         }
                       }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
+                    <MemoizedTextField 
                       label="Email" 
                       type="email" 
                       value={form.email} 
@@ -331,7 +363,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
+                            borderColor: '#10b981'
                           }
                         }
                       }}
@@ -349,7 +381,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
+                            borderColor: '#10b981'
                           }
                         }
                       }}
@@ -357,10 +389,10 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField 
-                      label="User type" 
-                      value={form.userType} 
-                      onChange={handleFieldChange('userType')} 
-                      fullWidth 
+                  label="User type"
+                  value={form.userType}
+                  onChange={handleFieldChange('userType')}
+                  fullWidth
                       select
                       variant="outlined"
                       sx={{
@@ -368,7 +400,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
+                            borderColor: '#10b981'
                           }
                         }
                       }}
@@ -376,16 +408,16 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                       {USER_TYPE_OPTIONS.map((type) => (
                         <MenuItem key={type} value={type}>
                           {type}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
-                      label="Center" 
-                      value={form.center} 
-                      onChange={handleFieldChange('center')} 
-                      fullWidth 
+                <TextField
+                  label="Center"
+                  value={form.center}
+                  onChange={handleFieldChange('center')}
+                  fullWidth
                       select
                       variant="outlined"
                       sx={{
@@ -393,40 +425,22 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
+                            borderColor: '#10b981'
                           }
                         }
                       }}
-                    >
-                      {CENTER_OPTIONS.map((center) => (
-                        <MenuItem key={center} value={center}>
-                          {center}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
+                >
+                  {CENTER_OPTIONS.map((center) => (
+                    <MenuItem key={center} value={center}>
+                      {center}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
-                      label="Seats" 
-                      value={form.seats} 
-                      onChange={handleFieldChange('seats')} 
-                      type="number" 
-                      inputProps={{ min: 0 }} 
-                      fullWidth 
-                      variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#f97316'
-                          }
-                        }
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
+              </Grid>
+            </Grid>
+          </Box>
             </Paper>
 
             {/* Billing Information Section */}
@@ -445,12 +459,12 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                 borderBottom: '1px solid #e2e8f0'
               }}>
                 <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar sx={{ bgcolor: '#ea580c', width: 36, height: 36 }}>
+                  <Avatar sx={{ bgcolor: '#059669', width: 36, height: 36 }}>
                     <BusinessRoundedIcon />
                   </Avatar>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
                     Billing Details
-                  </Typography>
+            </Typography>
                 </Stack>
               </Box>
               <Box sx={{ p: 3 }}>
@@ -467,12 +481,12 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ea580c'
+                            borderColor: '#059669'
                           }
                         }
                       }}
                     />
-                  </Grid>
+              </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField 
                       label="Billing email" 
@@ -485,30 +499,30 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ea580c'
+                            borderColor: '#059669'
                           }
                         }
                       }}
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField 
-                      label="Billing address" 
-                      value={form.billingAddress} 
-                      onChange={handleFieldChange('billingAddress')} 
-                      fullWidth 
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Billing address"
+                  value={form.billingAddress}
+                  onChange={handleFieldChange('billingAddress')}
+                  fullWidth
                       variant="outlined"
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ea580c'
+                            borderColor: '#059669'
                           }
                         }
                       }}
-                    />
-                  </Grid>
+                />
+              </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField 
                       label="Postal code" 
@@ -521,12 +535,12 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ea580c'
+                            borderColor: '#059669'
                           }
                         }
                       }}
                     />
-                  </Grid>
+              </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField 
                       label="County" 
@@ -539,12 +553,12 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ea580c'
+                            borderColor: '#059669'
                           }
                         }
                       }}
                     />
-                  </Grid>
+              </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField 
                       label="Country" 
@@ -557,16 +571,16 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#ea580c'
+                            borderColor: '#059669'
                           }
                         }
                       }}
                     />
-                  </Grid>
-                </Grid>
-              </Box>
+              </Grid>
+            </Grid>
+          </Box>
             </Paper>
-          </Stack>
+        </Stack>
         </Box>
       </DialogContent>
       <DialogActions sx={{ 
@@ -594,30 +608,30 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
         >
           Cancel
         </Button>
-        <Button 
-          variant="contained" 
-          startIcon={<SaveRoundedIcon />}
-          onClick={handleSubmit}
-          disabled={!form.name.trim() || !form.email.trim()}
-          sx={{
-            borderRadius: 2,
-            textTransform: 'none',
-            fontWeight: 600,
-            px: 3,
-            py: 1,
-            background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
-              transform: 'translateY(-1px)',
-              boxShadow: '0 8px 25px rgba(249, 115, 22, 0.3)'
-            },
-            '&:disabled': {
-              background: '#d1d5db',
-              color: '#9ca3af'
-            },
-            transition: 'all 0.2s ease-in-out'
-          }}
-        >
+                <Button 
+                  variant="contained" 
+                  startIcon={<SaveRoundedIcon />}
+                  onClick={handleSubmit}
+                  disabled={!form.name.trim() || !form.email.trim()}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+                    },
+                    '&:disabled': {
+                      background: '#d1d5db',
+                      color: '#9ca3af'
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                >
           Save user
         </Button>
       </DialogActions>
@@ -676,6 +690,8 @@ const Contacts = () => {
   const [emailOptions, setEmailOptions] = useState([]);
   const [userTypeOptions, setUserTypeOptions] = useState([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     if (statusFilter !== 'all' && !statusOptions.includes(statusFilter)) {
@@ -708,11 +724,7 @@ const Contacts = () => {
     setPage(0);
   }, [debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
 
-  useEffect(() => {
-    let active = true;
-    const controller = new AbortController();
-
-    const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
       setLoading(true);
       setError(null);
 
@@ -721,33 +733,24 @@ const Contacts = () => {
           page,
           search: debouncedSearch,
           status: statusFilter,
-          email: emailFilter,
-          userType: userTypeFilter
-        });
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/contact-profiles?${query}`, {
-          signal: controller.signal
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch contact profiles');
-        }
-        const data = await response.json();
-        if (!active) {
-          return;
-        }
+        email: emailFilter,
+        userType: userTypeFilter
+      });
+      const data = await apiFetch(`/contact-profiles?${query}`);
 
         const rawItems = Array.isArray(data?.items)
           ? data.items
-          : Array.isArray(data?.content)
-            ? data.content
+        : Array.isArray(data?.content)
+          ? data.content
           : Array.isArray(data)
             ? data
             : [];
-        
+      
         const normalized = rawItems.map((entry) => normalizeContact(entry));
 
         setContacts(normalized);
-        setTotal(Number.isFinite(data?.totalElements) ? data.totalElements :
-          Number.isFinite(data?.total) ? data.total : normalized.length);
+      setTotal(Number.isFinite(data?.totalElements) ? data.totalElements :
+        Number.isFinite(data?.total) ? data.total : normalized.length);
 
         setStatusOptions((prev) => {
           const next = new Set(prev);
@@ -759,37 +762,27 @@ const Contacts = () => {
           return Array.from(next).sort((a, b) => a.localeCompare(b));
         });
 
-
-        setUserTypeOptions((prev) => {
+      setUserTypeOptions((prev) => {
           const next = new Set(prev);
           normalized.forEach((tenant) => {
-            if (tenant.user_type && tenant.user_type !== '—') {
-              next.add(tenant.user_type);
+          if (tenant.user_type && tenant.user_type !== '—') {
+            next.add(tenant.user_type);
             }
           });
           return Array.from(next).sort((a, b) => a.localeCompare(b));
         });
       } catch (fetchError) {
-        if (!active || fetchError.name === 'AbortError') {
-          return;
-        }
         setError(fetchError.message || 'Unable to load contacts');
         setContacts([]);
         setTotal(0);
       } finally {
-        if (active) {
           setLoading(false);
         }
-      }
-    };
-
-    fetchContacts();
-
-    return () => {
-      active = false;
-      controller.abort();
-    };
   }, [page, debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [fetchContacts]);
 
   const handleRowClick = (tenant) => {
     setSelectedContact(tenant);
@@ -825,54 +818,60 @@ const Contacts = () => {
     setPage(0);
   };
 
-  const handleAddUser = (values) => {
-    const now = new Date();
-    const seatsValue = values.seats ? Number.parseInt(values.seats, 10) : 0;
-    const planValue = 'Custom';
-    const statusValue = values.status || 'Active';
+  const handleAddUser = async (values) => {
+    try {
+      const userData = {
+        name: values.name,
+        email: values.email,
+        primaryContact: values.primaryContact,
+        phone: values.phone,
+        status: values.status || 'Potencial',
+        userType: values.userType,
+        center: values.center,
+        channel: values.channel,
+        billingCompany: values.billingCompany,
+        billingEmail: values.billingEmail,
+        billingAddress: values.billingAddress,
+        billingPostalCode: values.billingPostalCode,
+        billingCounty: values.billingCounty,
+        billingCountry: values.billingCountry
+      };
 
-    const entry = {
-      id: `tmp-${now.getTime()}`,
-      name: values.name || 'New user',
-      contact: {
-        name: values.primaryContact || values.name || '—',
-        email: values.email
-      },
-      plan: planValue,
-      user_type: values.userType || '—',
-      center: values.center || null,
-      status: statusValue,
-      seats: Number.isFinite(seatsValue) ? seatsValue : 0,
-      usage: 0,
-      lastActive: 'Just now',
-      channel: values.channel || 'Manual',
-      created_at: now.toISOString(),
-      phone_primary: values.phone || '',
-      billing: {
-        company: values.billingCompany || values.name || '—',
-        email: values.billingEmail || values.email,
-        address: values.billingAddress || '',
-        postal_code: values.billingPostalCode || '',
-        county: values.billingCounty || '',
-        country: values.billingCountry || '',
-        tax_id: ''
-      }
-    };
-
-    const normalized = normalizeContact(entry);
-
-    setContacts((prev) => {
-      const updated = [normalized, ...prev];
-      return updated.slice(0, PAGE_SIZE);
-    });
-
-    setTotal((prev) => prev + 1);
-
-    if (normalized.status && normalized.status !== 'Unknown') {
-      setStatusOptions((prev) => (prev.includes(normalized.status) ? prev : [...prev, normalized.status].sort((a, b) => a.localeCompare(b))));
+      const newUser = await apiFetch('/contact-profiles', {
+        method: 'POST',
+        body: userData
+      });
+      
+      // Refresh the contacts list to show the new user
+      fetchContacts();
+      setAddDialogOpen(false);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[Contacts] Error creating user:', error);
+      // You could add error handling here, like showing a toast notification
     }
+  };
 
-    setAddDialogOpen(false);
+  const handleDeleteUser = async (userId) => {
+    try {
+      await apiFetch(`/contact-profiles/${userId}`, {
+        method: 'DELETE'
+      });
+
+      // Refresh the contacts list to remove the deleted user
+      fetchContacts();
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[Contacts] Error deleting user:', error);
+      // You could add error handling here, like showing a toast notification
+    }
+  };
+
+  const openDeleteDialog = (user) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
   };
 
   if (viewMode === 'profile' && selectedContact) {
@@ -921,17 +920,17 @@ const Contacts = () => {
               sx={{
                 minWidth: 170,
                 borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                py: 1,
-                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 8px 25px rgba(249, 115, 22, 0.3)'
-                },
-                transition: 'all 0.2s ease-in-out'
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 3,
+            py: 1,
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              transform: 'translateY(-1px)',
+              boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+            },
+            transition: 'all 0.2s ease-in-out'
               }}
               onClick={() => setAddDialogOpen(true)}
             >
@@ -944,6 +943,7 @@ const Contacts = () => {
         </Stack>
 
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 3 }}>
+          {/* 1. Search user */}
           <OutlinedInput
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -955,17 +955,7 @@ const Contacts = () => {
             }
             sx={{ maxWidth: 320, borderRadius: 2, bgcolor: 'white' }}
           />
-          <Select
-            size="small"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 140 }}
-          >
-            <MenuItem value="all">All statuses</MenuItem>
-            <MenuItem value="Activo">Activo</MenuItem>
-            <MenuItem value="Inactivo">Inactivo</MenuItem>
-            <MenuItem value="Potencial">Potencial</MenuItem>
-          </Select>
+          {/* 2. Search email */}
           <OutlinedInput
             size="small"
             value={emailFilter === 'all' ? '' : emailFilter}
@@ -978,6 +968,7 @@ const Contacts = () => {
             }
             sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 200 }}
           />
+          {/* 3. User type */}
           <Select
             size="small"
             value={userTypeFilter}
@@ -992,6 +983,18 @@ const Contacts = () => {
             <MenuItem value="Servicios">Servicios</MenuItem>
             <MenuItem value="Proveedor">Proveedor</MenuItem>
             <MenuItem value="Distribuidor">Distribuidor</MenuItem>
+          </Select>
+          {/* 4. Status */}
+          <Select
+            size="small"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 140 }}
+          >
+            <MenuItem value="all">All statuses</MenuItem>
+            <MenuItem value="Activo">Activo</MenuItem>
+            <MenuItem value="Inactivo">Inactivo</MenuItem>
+            <MenuItem value="Potencial">Potencial</MenuItem>
           </Select>
           <Stack 
             direction="row" 
@@ -1112,19 +1115,33 @@ const Contacts = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="right" sx={{ pr: 4 }}>
-                    <Tooltip title="Copy email">
+                    <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                      <Tooltip title="Copy email">
                       <IconButton
                         size="small"
                         onClick={(event) => {
                           event.stopPropagation();
                           if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-                            navigator.clipboard.writeText(tenant.contact.email || '');
+                              navigator.clipboard.writeText(tenant.contact.email || '');
                           }
                         }}
                       >
-                        <MailOutlinedIcon fontSize="inherit" />
+                          <MailOutlinedIcon fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
+                      <Tooltip title="Delete user">
+                        <IconButton
+                          size="small"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openDeleteDialog(tenant);
+                          }}
+                          sx={{ color: 'error.main' }}
+                        >
+                          <DeleteRoundedIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               );
@@ -1163,6 +1180,117 @@ const Contacts = () => {
         onSave={handleAddUser}
         existingStatuses={statusOptions}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          pb: 0,
+          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+          color: 'white',
+          borderRadius: '12px 12px 0 0',
+          p: 3
+        }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+              <WarningRoundedIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="h5" fontWeight={700}>
+                Delete User
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                This action cannot be undone
+              </Typography>
+            </Box>
+          </Stack>
+        </DialogTitle>
+        <DialogContent sx={{ p: 4 }}>
+          <Stack spacing={3}>
+            <Typography variant="body1" color="text.primary">
+              Are you sure you want to delete <strong>{userToDelete?.name}</strong>?
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This will permanently remove the user and all associated data from the system.
+            </Typography>
+            {userToDelete?.contact?.email && (
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: 'grey.50', 
+                borderRadius: 2, 
+                border: '1px solid #e2e8f0' 
+              }}>
+                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                  User Details:
+                </Typography>
+                <Typography variant="body2" color="text.primary">
+                  Email: {userToDelete.contact.email}
+                </Typography>
+                <Typography variant="body2" color="text.primary">
+                  Type: {userToDelete.user_type || '—'}
+                </Typography>
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ 
+          p: 3, 
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          borderRadius: '0 0 12px 12px'
+        }}>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              color: 'text.secondary',
+              borderColor: '#e2e8f0',
+              '&:hover': {
+                borderColor: '#cbd5e1',
+                backgroundColor: '#f8fafc'
+              }
+            }}
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            startIcon={<DeleteRoundedIcon />}
+            onClick={() => handleDeleteUser(userToDelete?.id)}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)'
+              },
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
+            Delete User
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

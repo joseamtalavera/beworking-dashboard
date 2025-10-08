@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8080/api' : '/api')).replace(/\/$/, '');
 const TOKEN_STORAGE_KEY = 'beworking_token';
 
 export const getStoredToken = () => {
@@ -110,7 +110,9 @@ export async function apiFetch(path, options = {}) {
     }
   }
 
-  const response = await fetch(resolveApiUrl(path), requestInit);
+  const url = resolveApiUrl(path);
+  console.log('API Request URL:', url);
+  const response = await fetch(url, requestInit);
 
   if (!response.ok) {
     throw new Error(await extractErrorMessage(response));

@@ -24,11 +24,14 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import InputAdornment from '@mui/material/InputAdornment';
 
-import { fetchBookings } from '../../api/bookings.js';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
-const DEFAULT_START_HOUR = 7;
-const DEFAULT_END_HOUR = 20;
+import { fetchBloqueos } from '../../api/bookings.js';
+
+const DEFAULT_START_HOUR = 6;
+const DEFAULT_END_HOUR = 24;
 
 const statusStyles = {
   available: {
@@ -83,6 +86,19 @@ const Legend = () => (
     ))}
   </Stack>
 );
+
+const getInitials = (value) => {
+  if (!value || typeof value !== 'string') {
+    return 'NA';
+  }
+  return value
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'NA';
+};
 
 const formatDate = (isoDate) => {
   if (!isoDate) {
@@ -144,14 +160,20 @@ const timeStringToMinutes = (value) => {
   return hour * 60 + minute;
 };
 
-const buildTimeSlots = (bookings) => {
+const buildTimeSlots = (bloqueos) => {
+  if (!Array.isArray(bloqueos) || bloqueos.length === 0) {
+    return [];
+  }
   let minHour = DEFAULT_START_HOUR;
   let maxHour = DEFAULT_END_HOUR;
   let hasTimeData = false;
 
-  bookings.forEach((booking) => {
-    const start = timeStringToMinutes(booking.timeFrom);
-    const end = timeStringToMinutes(booking.timeTo);
+  bloqueos.forEach((bloqueo) => {
+    const startTime = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : null;
+    const endTime = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[1] : null;
+    
+    const start = timeStringToMinutes(startTime);
+    const end = timeStringToMinutes(endTime);
     if (start != null) {
       hasTimeData = true;
       minHour = Math.min(minHour, Math.floor(start / 60));
@@ -182,37 +204,65 @@ const buildTimeSlots = (bookings) => {
   return slots;
 };
 
-const bookingAppliesToDate = (booking, isoDate) => {
-  if (!isoDate) {
+const bloqueoAppliesToDate = (bloqueo, isoDate) => {
+  if (!isoDate || !bloqueo.fechaIni) {
     return false;
   }
   const dateKey = isoDate;
-  const from = booking.dateFrom ?? dateKey;
-  const to = booking.dateTo ?? booking.dateFrom ?? dateKey;
+  const from = bloqueo.fechaIni.split('T')[0];
+  const to = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : from;
 
   if (from > dateKey || to < dateKey) {
     return false;
   }
 
-  if (Array.isArray(booking.days) && booking.days.length > 0) {
-    const weekday = getWeekdayKey(dateKey);
-    if (weekday && !booking.days.includes(weekday)) {
-      return false;
-    }
+  return true;
+};
+
+const bloqueoOverlapsRange = (bloqueo, startDate, endDate) => {
+  if (!bloqueo) {
+    return false;
+  }
+
+  const from = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
+  const to = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : from;
+
+  if (!from && !to) {
+    return true;
+  }
+
+  const rangeStart = startDate || null;
+  const rangeEnd = endDate || null;
+
+  if (!rangeStart && !rangeEnd) {
+    return true;
+  }
+
+  const effectiveFrom = from || to;
+  const effectiveTo = to || from;
+
+  if (!effectiveFrom) {
+    return true;
+  }
+
+  if (rangeStart && effectiveTo && effectiveTo < rangeStart) {
+    return false;
+  }
+
+  if (rangeEnd && effectiveFrom && effectiveFrom > rangeEnd) {
+    return false;
   }
 
   return true;
 };
 
-const coversSlot = (booking, slot) => {
+const coversBloqueoSlot = (bloqueo, slot) => {
   const slotMinutes = timeStringToMinutes(slot.id);
-  const startMinutes = timeStringToMinutes(booking.timeFrom) ?? 0;
-  let endMinutes = timeStringToMinutes(booking.timeTo);
-
-  if (endMinutes == null || endMinutes <= startMinutes) {
-    const isAllDay = booking.reservationType?.toLowerCase().includes('dia');
-    endMinutes = isAllDay ? 24 * 60 : startMinutes + 60;
-  }
+  const startTime = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : '00:00';
+  const endTime = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[1] : '23:59';
+  
+  const startMinutes = timeStringToMinutes(startTime) ?? 0;
+  const endMinutes = timeStringToMinutes(endTime) ?? 24 * 60;
 
   return slotMinutes != null && slotMinutes >= startMinutes && slotMinutes < endMinutes;
 };
@@ -228,43 +278,42 @@ const mapStatusKey = (status) => {
   return 'booked';
 };
 
-const describeBooking = (booking) => {
+const describeBloqueo = (bloqueo) => {
   const pieces = [];
-  if (booking.clientName) {
-    pieces.push(booking.clientName);
+  if (bloqueo.cliente?.nombre) {
+    pieces.push(bloqueo.cliente.nombre);
   }
-  if (booking.centerName) {
-    pieces.push(booking.centerName);
+  if (bloqueo.centro?.nombre) {
+    pieces.push(bloqueo.centro.nombre);
   }
-  if (booking.productName) {
-    pieces.push(booking.productName);
-  } else if (booking.productType) {
-    pieces.push(booking.productType);
+  if (bloqueo.producto?.nombre) {
+    pieces.push(bloqueo.producto.nombre);
   }
   return pieces.join(' · ');
 };
 
-const toTimestamp = (value) => {
-  if (!value) {
-    return null;
-  }
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : parsed;
-};
+const ALLOWED_PRODUCT_NAMES = new Set(['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5']);
 
-const composeRooms = (bookings) => {
+const composeRooms = (bloqueos) => {
+  if (!Array.isArray(bloqueos) || bloqueos.length === 0) {
+    return [];
+  }
   const map = new Map();
-  bookings.forEach((booking) => {
-    if (!booking.productId) {
+  bloqueos.forEach((bloqueo) => {
+    if (!bloqueo.producto?.id) {
       return;
     }
-    if (!map.has(booking.productId)) {
-      map.set(booking.productId, {
-        id: booking.productId,
-        label: booking.productName || booking.productType || `Room ${booking.productId}`,
-        productId: booking.productId,
-        centerName: booking.centerName,
-        centerCode: booking.centerCode
+    const productName = bloqueo.producto?.nombre || '';
+    if (!ALLOWED_PRODUCT_NAMES.has(productName)) {
+      return;
+    }
+    if (!map.has(bloqueo.producto.id)) {
+      map.set(bloqueo.producto.id, {
+        id: bloqueo.producto.id,
+        label: bloqueo.producto.nombre || `Room ${bloqueo.producto.id}`,
+        productId: bloqueo.producto.id,
+        centerName: bloqueo.centro?.nombre,
+        centerCode: bloqueo.centro?.codigo
       });
     }
   });
@@ -390,27 +439,27 @@ const BookingsTable = ({ bookings, onSelect }) => {
   );
 };
 
-const AgendaTable = ({ bookings, onSelect }) => {
-  const sortedBookings = useMemo(() => {
-    const clone = [...bookings];
+const AgendaTable = ({ bloqueos, onSelect }) => {
+  const sortedBloqueos = useMemo(() => {
+    const clone = [...bloqueos];
     clone.sort((a, b) => {
-      const timeA = timeStringToMinutes(a.timeFrom);
-      const timeB = timeStringToMinutes(b.timeFrom);
+      const timeA = a.fechaIni ? timeStringToMinutes(a.fechaIni.split('T')[1]) : null;
+      const timeB = b.fechaIni ? timeStringToMinutes(b.fechaIni.split('T')[1]) : null;
       const normalizedA = timeA != null ? timeA : -1;
       const normalizedB = timeB != null ? timeB : -1;
       if (normalizedA !== normalizedB) {
         return normalizedA - normalizedB;
       }
-      return (a.clientName || '').localeCompare(b.clientName || '');
+      return (a.cliente?.nombre || '').localeCompare(b.cliente?.nombre || '');
     });
     return clone;
-  }, [bookings]);
+  }, [bloqueos]);
 
-  if (sortedBookings.length === 0) {
+  if (sortedBloqueos.length === 0) {
     return (
       <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 6 }}>
         <Typography variant="body2" color="text.secondary" align="center">
-          No bookings scheduled for this date.
+          No bloqueos scheduled for this date.
         </Typography>
       </Paper>
     );
@@ -432,27 +481,27 @@ const AgendaTable = ({ bookings, onSelect }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedBookings.map((booking) => {
-              const statusKey = mapStatusKey(booking.status);
+            {sortedBloqueos.map((bloqueo) => {
+              const statusKey = mapStatusKey(bloqueo.estado);
               const statusStyle = statusStyles[statusKey];
-              const statusLabel = booking.status || statusLabels[statusKey];
-              const startHour = booking.timeFrom ? booking.timeFrom : 'All day';
-              const finishHour = booking.timeTo
-                ? booking.timeTo
-                : booking.timeFrom
+              const statusLabel = bloqueo.estado || statusLabels[statusKey];
+              const startHour = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : 'All day';
+              const finishHour = bloqueo.fechaFin
+                ? bloqueo.fechaFin.split('T')[1]
+                : bloqueo.fechaIni
                 ? '—'
                 : 'All day';
               return (
                 <TableRow
-                  key={`agenda-${booking.id}`}
+                  key={`agenda-${bloqueo.id}`}
                   hover
-                  onClick={() => onSelect(booking)}
+                  onClick={() => onSelect(bloqueo)}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell>{booking.clientName || '—'}</TableCell>
-                  <TableCell>{booking.centerName || booking.centerCode || '—'}</TableCell>
-                  <TableCell>{booking.clientTenantType || '—'}</TableCell>
-                  <TableCell>{booking.productName || booking.productType || '—'}</TableCell>
+                  <TableCell>{bloqueo.cliente?.nombre || '—'}</TableCell>
+                  <TableCell>{bloqueo.centro?.nombre || '—'}</TableCell>
+                  <TableCell>{bloqueo.cliente?.tipoTenant || '—'}</TableCell>
+                  <TableCell>{bloqueo.producto?.nombre || '—'}</TableCell>
                   <TableCell>{startHour}</TableCell>
                   <TableCell>{finishHour}</TableCell>
                   <TableCell>
@@ -574,6 +623,97 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
   );
 };
 
+const BloqueoDetailsDialog = ({ bloqueo, onClose }) => {
+  const open = Boolean(bloqueo);
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Bloqueo details</DialogTitle>
+      <DialogContent dividers>
+        {bloqueo ? (
+          <Stack spacing={2}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Cliente
+                </Typography>
+                <Typography variant="body2">{bloqueo.cliente?.nombre || '—'}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {bloqueo.cliente?.email || ''}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Centro / Producto
+                </Typography>
+                <Typography variant="body2">
+                  {bloqueo.centro?.nombre || '—'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {bloqueo.producto?.nombre || '—'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Fecha inicio
+                </Typography>
+                <Typography variant="body2">
+                  {bloqueo.fechaIni ? new Date(bloqueo.fechaIni).toLocaleString() : '—'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Fecha fin
+                </Typography>
+                <Typography variant="body2">
+                  {bloqueo.fechaFin ? new Date(bloqueo.fechaFin).toLocaleString() : '—'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Estado
+                </Typography>
+                <Typography variant="body2">{bloqueo.estado || '—'}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Asistentes
+                </Typography>
+                <Typography variant="body2">
+                  {bloqueo.asistentes || '—'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Tarifa
+                </Typography>
+                <Typography variant="body2">
+                  {bloqueo.tarifa ? `€${bloqueo.tarifa}` : '—'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Configuración
+                </Typography>
+                <Typography variant="body2">{bloqueo.configuracion || '—'}</Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Nota
+                </Typography>
+                <Typography variant="body2">{bloqueo.nota || '—'}</Typography>
+              </Grid>
+            </Grid>
+          </Stack>
+        ) : null}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const initialDateISO = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -585,20 +725,25 @@ const initialDateISO = () => {
 const Booking = ({ mode = 'user' }) => {
   const isAdmin = mode === 'admin';
   const [view, setView] = useState('calendar');
-  const [selectedDate, setSelectedDate] = useState(initialDateISO());
-  const [bookings, setBookings] = useState([]);
+  const [calendarDate, setCalendarDate] = useState(initialDateISO());
+  const [agendaStartDate, setAgendaStartDate] = useState(initialDateISO());
+  const [agendaEndDate, setAgendaEndDate] = useState(initialDateISO());
+  const [bloqueos, setBloqueos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedBloqueo, setSelectedBloqueo] = useState(null);
   const [filterUser, setFilterUser] = useState('');
   const [filterCenter, setFilterCenter] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
   const [filterEmail, setFilterEmail] = useState('');
-  const [filterCheckIn, setFilterCheckIn] = useState('');
-  const [filterCheckOut, setFilterCheckOut] = useState('');
-  const [agendaUserTypeFilter, setAgendaUserTypeFilter] = useState('');
 
-  const monthKey = useMemo(() => selectedDate.slice(0, 7), [selectedDate]);
+  const monthKey = useMemo(() => calendarDate.slice(0, 7), [calendarDate]);
+
+  useEffect(() => {
+    if (agendaStartDate && agendaEndDate && agendaStartDate > agendaEndDate) {
+      setAgendaEndDate(agendaStartDate);
+    }
+  }, [agendaStartDate, agendaEndDate]);
 
   useEffect(() => {
     const [year, month] = monthKey.split('-').map((value) => Number.parseInt(value, 10));
@@ -616,16 +761,22 @@ const Booking = ({ mode = 'user' }) => {
     setLoading(true);
     setError('');
 
-    fetchBookings({ from, to }, { signal: controller.signal })
+    fetchBloqueos({ from, to }, { signal: controller.signal })
       .then((data) => {
-        setBookings(Array.isArray(data) ? data : []);
+        setBloqueos(Array.isArray(data) ? data : []);
       })
       .catch((fetchError) => {
         if (fetchError.name === 'AbortError') {
           return;
         }
-        setError(fetchError.message || 'Unable to load bookings');
-        setBookings([]);
+        console.error('Error fetching bloqueos:', fetchError);
+        // If the API endpoint doesn't exist yet, show a helpful message
+        if (fetchError.status === 404) {
+          setError('Bloqueos API endpoint not yet implemented. Please check backend configuration.');
+        } else {
+          setError(fetchError.message || 'Unable to load bloqueos');
+        }
+        setBloqueos([]);
       })
       .finally(() => {
         setLoading(false);
@@ -634,28 +785,86 @@ const Booking = ({ mode = 'user' }) => {
     return () => controller.abort();
   }, [monthKey, mode]);
 
-  const timeSlots = useMemo(() => buildTimeSlots(bookings), [bookings]);
-  const rooms = useMemo(() => composeRooms(bookings), [bookings]);
+  const filteredBloqueos = useMemo(() => {
+    try {
+      return (bloqueos || []).filter((bloqueo) => {
+        const userLabel = bloqueo?.cliente?.nombre || '';
+        if (filterUser && userLabel !== filterUser) {
+          return false;
+        }
+
+        const centerLabel = bloqueo?.centro?.nombre || '';
+        if (filterCenter && centerLabel !== filterCenter) {
+          return false;
+        }
+
+        const productLabel = bloqueo?.producto?.nombre || '';
+        if (filterProduct && productLabel !== filterProduct) {
+          return false;
+        }
+
+        if (filterEmail) {
+          const email = (bloqueo?.cliente?.email || '').toLowerCase();
+          if (!email.includes(filterEmail.toLowerCase())) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+    } catch (error) {
+      console.error('Error filtering bloqueos:', error);
+      return [];
+    }
+  }, [bloqueos, filterUser, filterCenter, filterProduct, filterEmail]);
+
+  const calendarBloqueos = useMemo(() => {
+    try {
+      return (filteredBloqueos || []).filter((bloqueo) => {
+        const tenantType = (bloqueo?.cliente?.tipoTenant || '').toLowerCase();
+        if (tenantType !== 'usuario aulas') {
+          return false;
+        }
+        return bloqueoAppliesToDate(bloqueo, calendarDate);
+      });
+    } catch (error) {
+      console.error('Error filtering day bloqueos:', error);
+      return [];
+    }
+  }, [filteredBloqueos, calendarDate]);
+
+  const timeSlots = useMemo(() => {
+    try {
+      return buildTimeSlots(calendarBloqueos || []);
+    } catch (error) {
+      console.error('Error building time slots:', error);
+      return [];
+    }
+  }, [calendarBloqueos]);
+
+  const rooms = useMemo(() => {
+    try {
+      return composeRooms(calendarBloqueos || []);
+    } catch (error) {
+      console.error('Error composing rooms:', error);
+      return [];
+    }
+  }, [calendarBloqueos]);
+
   const filterOptions = useMemo(() => {
     const users = new Set();
     const centers = new Set();
     const products = new Set();
-    const userTypes = new Set();
 
-    bookings.forEach((booking) => {
-      if (booking.clientName) {
-        users.add(booking.clientName);
+    (filteredBloqueos || []).forEach((bloqueo) => {
+      if (bloqueo.cliente?.nombre) {
+        users.add(bloqueo.cliente.nombre);
       }
-      const centerLabel = booking.centerName || booking.centerCode;
-      if (centerLabel) {
-        centers.add(centerLabel);
+      if (bloqueo.centro?.nombre) {
+        centers.add(bloqueo.centro.nombre);
       }
-      const productLabel = booking.productName || booking.productType;
-      if (productLabel) {
-        products.add(productLabel);
-      }
-      if (booking.clientTenantType) {
-        userTypes.add(booking.clientTenantType);
+      if (bloqueo.producto?.nombre) {
+        products.add(bloqueo.producto.nombre);
       }
     });
 
@@ -664,83 +873,42 @@ const Booking = ({ mode = 'user' }) => {
     return {
       users: Array.from(users).sort(sorter),
       centers: Array.from(centers).sort(sorter),
-      products: Array.from(products).sort(sorter),
-      userTypes: Array.from(userTypes).sort(sorter)
+      products: Array.from(products).sort(sorter)
     };
-  }, [bookings]);
+  }, [filteredBloqueos]);
 
-  const filteredBookings = useMemo(() => {
-    return bookings.filter((booking) => {
-      const userLabel = booking.clientName || '';
-      if (filterUser && userLabel !== filterUser) {
-        return false;
-      }
-
-      const centerLabel = booking.centerName || booking.centerCode || '';
-      if (filterCenter && centerLabel !== filterCenter) {
-        return false;
-      }
-
-      const productLabel = booking.productName || booking.productType || '';
-      if (filterProduct && productLabel !== filterProduct) {
-        return false;
-      }
-
-      if (filterEmail) {
-        const email = (booking.clientEmail || '').toLowerCase();
-        if (!email.includes(filterEmail.toLowerCase())) {
-          return false;
-        }
-      }
-
-      const startDate = booking.dateFrom || booking.dateTo || '';
-      const endDate = booking.dateTo || booking.dateFrom || '';
-
-      if (filterCheckIn && (!startDate || startDate < filterCheckIn)) {
-        return false;
-      }
-
-      if (filterCheckOut && (!endDate || endDate > filterCheckOut)) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [bookings, filterUser, filterCenter, filterProduct, filterEmail, filterCheckIn, filterCheckOut]);
-
-  const dayBookings = useMemo(
-    () => bookings.filter((booking) => bookingAppliesToDate(booking, selectedDate)),
-    [bookings, selectedDate]
-  );
-
-  const agendaBookings = useMemo(() => {
-    const sameDayBookings = dayBookings.filter((booking) => {
-      const from = booking.dateFrom;
-      const to = booking.dateTo || booking.dateFrom;
-      if (!from || !to) {
-        return true;
-      }
-      return from === to;
-    });
-
-    if (!agendaUserTypeFilter) {
-      return sameDayBookings;
-    }
-    return sameDayBookings.filter(
-      (booking) => (booking.clientTenantType || '') === agendaUserTypeFilter
+  const agendaBloqueos = useMemo(() => {
+    return (filteredBloqueos || []).filter((bloqueo) =>
+      bloqueoOverlapsRange(bloqueo, agendaStartDate, agendaEndDate)
     );
-  }, [agendaUserTypeFilter, dayBookings]);
+  }, [filteredBloqueos, agendaStartDate, agendaEndDate]);
 
-  const selectedDateLabel = useMemo(() => formatDate(selectedDate), [selectedDate]);
+  const agendaRangeLabel = useMemo(() => {
+    if (!agendaStartDate && !agendaEndDate) {
+      return 'Showing all bloqueos.';
+    }
+    if (agendaStartDate && agendaEndDate) {
+      return `Showing bloqueos from ${formatDate(agendaStartDate)} to ${formatDate(agendaEndDate)}.`;
+    }
+    if (agendaStartDate) {
+      return `Showing bloqueos from ${formatDate(agendaStartDate)} onwards.`;
+    }
+    return `Showing bloqueos up to ${formatDate(agendaEndDate)}.`;
+  }, [agendaStartDate, agendaEndDate]);
 
   const getSlotStatus = (room, slot) => {
-    const booking = dayBookings.find(
-      (entry) => entry.productId === room.productId && coversSlot(entry, slot)
-    );
-    if (!booking) {
-      return { status: 'available', booking: null };
+    try {
+      const bloqueo = (calendarBloqueos || []).find(
+        (entry) => entry?.producto?.id === room.productId && coversBloqueoSlot(entry, slot)
+      );
+      if (!bloqueo) {
+        return { status: 'available', bloqueo: null };
+      }
+      return { status: mapStatusKey(bloqueo.estado), bloqueo };
+    } catch (error) {
+      console.error('Error getting slot status:', error);
+      return { status: 'available', bloqueo: null };
     }
-    return { status: mapStatusKey(booking.status), booking };
   };
 
   const handleViewChange = (_event, newValue) => {
@@ -749,36 +917,45 @@ const Booking = ({ mode = 'user' }) => {
     }
   };
 
-  const handleDateChange = (event) => {
-    setSelectedDate(event.target.value);
+  const handleCalendarDateChange = (event) => {
+    setCalendarDate(event.target.value);
   };
 
-  const handleSelectBooking = (booking) => {
-    if (booking) {
-      setSelectedBooking(booking);
+  const handleAgendaStartChange = (event) => {
+    setAgendaStartDate(event.target.value);
+  };
+
+  const handleAgendaEndChange = (event) => {
+    setAgendaEndDate(event.target.value);
+  };
+
+  const handleSelectBloqueo = (bloqueo) => {
+    if (bloqueo) {
+      setSelectedBloqueo(bloqueo);
     }
   };
 
+  const calendarDateLabel = useMemo(() => formatDate(calendarDate), [calendarDate]);
+
   const noDataMessage = isAdmin
-    ? 'No bookings found for this date. Try a different range or center.'
-    : 'No bookings registered for your account on this date.';
+    ? `No bloqueos found for ${calendarDateLabel}. Try a different range or center.`
+    : `No bloqueos registered for your account on ${calendarDateLabel}.`;
 
   return (
     <Stack spacing={4}>
       <Stack spacing={1}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          {isAdmin ? 'Workspace bookings' : 'My meeting room bookings'}
+          {isAdmin ? 'Workspace bloqueos' : 'My bloqueos'}
         </Typography>
         <Typography variant="body1" color="text.secondary">
           {isAdmin
-            ? 'Browse every reservation across BeWorking locations. Switch between calendar, list, and agenda views to review occupancy, statuses, and tenants.'
-            : 'Track your reservations, check upcoming slots, and review booking details from the calendar, list, or agenda views.'}
+            ? 'Browse every bloqueo across BeWorking locations. Switch between calendar and agenda views to review occupancy, statuses, and tenants.'
+            : 'Track your bloqueos, check upcoming slots, and review bloqueo details from the calendar or agenda views.'}
         </Typography>
       </Stack>
 
       <Tabs value={view} onChange={handleViewChange} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
         <Tab label="Calendar" value="calendar" disableRipple />
-        <Tab label="Bookings" value="list" disableRipple />
         <Tab label="Agenda" value="agenda" disableRipple />
       </Tabs>
 
@@ -791,8 +968,8 @@ const Booking = ({ mode = 'user' }) => {
               <TextField
                 type="date"
                 label="Select date"
-                value={selectedDate}
-                onChange={handleDateChange}
+                value={calendarDate}
+                onChange={handleCalendarDateChange}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
               />
@@ -838,44 +1015,44 @@ const Booking = ({ mode = 'user' }) => {
                             <Typography variant="body2" fontWeight="medium">
                               {room.label}
                             </Typography>
-                            {room.centerName && (
-                              <Typography variant="caption" color="text.secondary">
-                                {room.centerName}
-                              </Typography>
-                            )}
                           </Stack>
                         </TableCell>
                         {timeSlots.map((slot) => {
-                          const { status, booking } = getSlotStatus(room, slot);
+                          const { status, bloqueo } = getSlotStatus(room, slot);
                           const styles = statusStyles[status];
                           return (
-                            <TableCell key={`${room.id}-${slot.id}`} align="center" sx={{ p: 1.25 }}>
+                            <TableCell
+                              key={`${room.id}-${slot.id}`}
+                              align="center"
+                              sx={{ p: 0.75, width: 64, maxWidth: 64 }}
+                            >
                               <Tooltip
                                 arrow
-                                title={booking ? describeBooking(booking) : 'Available slot'}
+                                title={bloqueo ? describeBloqueo(bloqueo) : 'Available slot'}
                               >
                                 <Box
-                                  onClick={() => booking && handleSelectBooking(booking)}
+                                  onClick={() => bloqueo && handleSelectBloqueo(bloqueo)}
                                   sx={{
                                     height: 52,
+                                    width: '100%',
                                     borderRadius: 2,
                                     border: '1px solid',
                                     borderColor: styles.borderColor,
                                     bgcolor: styles.bgcolor,
                                     color: styles.color,
-                                    cursor: booking ? 'pointer' : 'default',
+                                    cursor: bloqueo ? 'pointer' : 'default',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     transition: (theme) => theme.transitions.create('transform'),
                                     '&:hover': {
-                                      transform: booking ? 'scale(1.03)' : 'none'
+                                      transform: bloqueo ? 'scale(1.03)' : 'none'
                                     }
                                   }}
                                 >
-                                  {booking ? (
+                                  {bloqueo ? (
                                     <Typography variant="caption" fontWeight={600} noWrap>
-                                      {booking.clientName || booking.productName || 'Booked'}
+                                      {getInitials(bloqueo.cliente?.nombre || bloqueo.producto?.nombre || 'Bloqueado')}
                                     </Typography>
                                   ) : null}
                                 </Box>
@@ -891,153 +1068,99 @@ const Booking = ({ mode = 'user' }) => {
             </Paper>
           )}
         </Stack>
-      ) : view === 'list' ? (
-        <Stack spacing={3}>
-          {loading ? (
-            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <CircularProgress size={32} />
-              </Box>
-            </Paper>
-          ) : (
-            <Stack spacing={2}>
-              <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2 }}>
-                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
-                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <TextField
-                      select
-                      label="User"
-                      value={filterUser}
-                      onChange={(event) => setFilterUser(event.target.value)}
-                      fullWidth
-                    >
-                      <MenuItem value="">All users</MenuItem>
-                      {filterOptions.users.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Box>
-                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <TextField
-                      select
-                      label="Center"
-                      value={filterCenter}
-                      onChange={(event) => setFilterCenter(event.target.value)}
-                      fullWidth
-                    >
-                      <MenuItem value="">All centers</MenuItem>
-                      {filterOptions.centers.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Box>
-                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <TextField
-                      select
-                      label="Product"
-                      value={filterProduct}
-                      onChange={(event) => setFilterProduct(event.target.value)}
-                      fullWidth
-                    >
-                      <MenuItem value="">All products</MenuItem>
-                      {filterOptions.products.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Box>
-                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <TextField
-                      label="Email contains"
-                      value={filterEmail}
-                      onChange={(event) => setFilterEmail(event.target.value)}
-                      placeholder="tenant@domain.com"
-                      fullWidth
-                    />
-                  </Box>
-                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <TextField
-                      type="date"
-                      label="Check-in from"
-                      value={filterCheckIn}
-                      onChange={(event) => setFilterCheckIn(event.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                      fullWidth
-                    />
-                  </Box>
-                  <Box sx={{ flex: '1 1 180px', minWidth: 0 }}>
-                    <TextField
-                      type="date"
-                      label="Check-out to"
-                      value={filterCheckOut}
-                      onChange={(event) => setFilterCheckOut(event.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                      fullWidth
-                    />
-                  </Box>
-                  <Box sx={{ flex: '1 1 180px', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                    <Button
-                      variant="text"
-                      onClick={() => {
-                        setFilterUser('');
-                        setFilterCenter('');
-                        setFilterProduct('');
-                        setFilterEmail('');
-                        setFilterCheckIn('');
-                        setFilterCheckOut('');
-                      }}
-                    >
-                      Clear filters
-                    </Button>
-                  </Box>
-                </Box>
-              </Paper>
-              <BookingsTable bookings={filteredBookings} onSelect={handleSelectBooking} />
-            </Stack>
-          )}
-        </Stack>
       ) : (
         <Stack spacing={3}>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} sm={6} md={4}>
               <TextField
                 type="date"
-                label="Agenda date"
-                value={selectedDate}
-                onChange={handleDateChange}
+                label="From date"
+                value={agendaStartDate}
+                onChange={handleAgendaStartChange}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
               />
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
               <TextField
+                type="date"
+                label="To date"
+                value={agendaEndDate}
+                onChange={handleAgendaEndChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={12} md={4}>
+              <TextField
+                label="Filter by email"
+                value={filterEmail}
+                onChange={(event) => setFilterEmail(event.target.value)}
+                placeholder="Search by email"
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRoundedIcon fontSize="small" />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
+          </Grid>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
                 select
-                label="User type"
-                value={agendaUserTypeFilter}
-                onChange={(event) => setAgendaUserTypeFilter(event.target.value)}
+                label="Contact"
+                value={filterUser}
+                onChange={(event) => setFilterUser(event.target.value)}
                 fullWidth
               >
-                <MenuItem value="">All user types</MenuItem>
-                {(filterOptions.userTypes || []).map((option) => (
+                <MenuItem value="">All contacts</MenuItem>
+                {(filterOptions.users || []).map((option) => (
                   <MenuItem key={option} value={option}>
                     {option}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={12} md={4}>
-              {selectedDateLabel !== '—' && (
-                <Typography variant="body2" color="text.secondary">
-                  Showing bookings happening on {selectedDateLabel}.
-                </Typography>
-              )}
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                select
+                label="Centro"
+                value={filterCenter}
+                onChange={(event) => setFilterCenter(event.target.value)}
+                fullWidth
+              >
+                <MenuItem value="">All centros</MenuItem>
+                {(filterOptions.centers || []).map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                select
+                label="Producto"
+                value={filterProduct}
+                onChange={(event) => setFilterProduct(event.target.value)}
+                fullWidth
+              >
+                <MenuItem value="">All productos</MenuItem>
+                {(filterOptions.products || []).map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
           </Grid>
+          <Typography variant="body2" color="text.secondary">
+            {agendaRangeLabel}
+          </Typography>
 
           {loading ? (
             <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
@@ -1046,12 +1169,12 @@ const Booking = ({ mode = 'user' }) => {
               </Box>
             </Paper>
           ) : (
-            <AgendaTable bookings={agendaBookings} onSelect={handleSelectBooking} />
+            <AgendaTable bloqueos={agendaBloqueos} onSelect={handleSelectBloqueo} />
           )}
         </Stack>
       )}
 
-      <BookingDetailsDialog booking={selectedBooking} onClose={() => setSelectedBooking(null)} />
+      <BloqueoDetailsDialog bloqueo={selectedBloqueo} onClose={() => setSelectedBloqueo(null)} />
     </Stack>
   );
 };

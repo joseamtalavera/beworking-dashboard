@@ -1,4 +1,5 @@
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
@@ -6,6 +7,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { SettingsIcon, HelpIcon } from './icons/Icons.js';
 
@@ -62,7 +64,27 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp }) 
             <ListItemIcon>
               <tab.icon sx={{ fontSize: 20 }} />
             </ListItemIcon>
-            <ListItemText primary={tab.label} />
+            <ListItemText 
+              primary={
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="body2">{tab.label}</Typography>
+                  {tab.soon && (
+                    <Chip 
+                      label="Soon" 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: '#fb923c', 
+                        color: 'white', 
+                        fontSize: '0.6rem',
+                        height: 16,
+                        minWidth: 'auto',
+                        '& .MuiChip-label': { px: 0.5, py: 0 }
+                      }} 
+                    />
+                  )}
+                </Stack>
+              } 
+            />
           </ListItemButton>
         </ListItem>
       ))}
@@ -82,7 +104,25 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp }) 
           <ListItemIcon>
             <HelpIcon sx={{ fontSize: 20 }} />
           </ListItemIcon>
-          <ListItemText primary="Help & Support" />
+          <ListItemText 
+            primary={
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography variant="body2">Help & Support</Typography>
+                <Chip 
+                  label="Soon" 
+                  size="small" 
+                  sx={{ 
+                    bgcolor: '#fb923c', 
+                    color: 'white', 
+                    fontSize: '0.6rem',
+                    height: 16,
+                    minWidth: 'auto',
+                    '& .MuiChip-label': { px: 0.5, py: 0 }
+                  }} 
+                />
+              </Stack>
+            } 
+          />
         </ListItemButton>
       </ListItem>
     </List>
