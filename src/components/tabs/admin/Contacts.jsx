@@ -47,6 +47,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import WarningRoundedIcon from '@mui/icons-material/WarningRounded';
 
 import ContactProfileView from './ContactProfileView';
+import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 
 const STATUS_COLOR = {
   Activo: { color: 'success', label: 'Activo' },
@@ -130,13 +131,16 @@ const normalizeContact = (entry = {}) => {
       ? parsedSeats
       : 0;
 
+  const rawUserType = entry.user_type ?? '—';
+  const normalizedUserType = rawUserType === '—' ? rawUserType : normalizeUserTypeLabel(rawUserType);
+
   return {
     ...entry,
     id: entry.id != null ? String(entry.id) : Math.random().toString(36).slice(2),
     name: entry.name ?? entry.billing_name ?? '—',
     plan: entry.plan ?? 'Custom',
     center: entry.center != null ? String(entry.center) : null,
-    user_type: entry.user_type ?? '—',
+    user_type: normalizedUserType,
     status: entry.status ?? 'Unknown',
     seats: seatsValue,
     usage: usageValue,
@@ -197,16 +201,6 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
   }, [existingStatuses]);
 
   const CENTER_OPTIONS = ['MA1 MALAGA DUMAS'];
-
-  const USER_TYPE_OPTIONS = [
-    'Usuario Mesa',
-    'Usuario Aulas',
-    'Usuario Virtual',
-    'Usuario Nómada',
-    'Distribuidor',
-    'Proveedor',
-    'Servicios'
-  ];
 
   const handleFieldChange = useCallback((field) => (event) => {
     const { value } = event.target;
@@ -405,7 +399,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                         }
                       }}
                     >
-                      {USER_TYPE_OPTIONS.map((type) => (
+                      {CANONICAL_USER_TYPES.map((type) => (
                         <MenuItem key={type} value={type}>
                           {type}
                     </MenuItem>
@@ -688,7 +682,7 @@ const Contacts = () => {
   const [total, setTotal] = useState(0);
   const [statusOptions, setStatusOptions] = useState([]);
   const [emailOptions, setEmailOptions] = useState([]);
-  const [userTypeOptions, setUserTypeOptions] = useState([]);
+  const [userTypeOptions, setUserTypeOptions] = useState(() => [...CANONICAL_USER_TYPES]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -762,15 +756,15 @@ const Contacts = () => {
           return Array.from(next).sort((a, b) => a.localeCompare(b));
         });
 
-      setUserTypeOptions((prev) => {
-          const next = new Set(prev);
-          normalized.forEach((tenant) => {
+      setUserTypeOptions(() => {
+        const next = new Set(CANONICAL_USER_TYPES);
+        normalized.forEach((tenant) => {
           if (tenant.user_type && tenant.user_type !== '—') {
             next.add(tenant.user_type);
-            }
-          });
-          return Array.from(next).sort((a, b) => a.localeCompare(b));
+          }
         });
+        return Array.from(next).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+      });
       } catch (fetchError) {
         setError(fetchError.message || 'Unable to load contacts');
         setContacts([]);
@@ -789,26 +783,95 @@ const Contacts = () => {
     setViewMode('profile');
   };
 
-  const handleSaveProfile = (updatedProfile) => {
-    if (!updatedProfile?.id) {
-      return;
-    }
-
-    setContacts((prev) =>
-      prev.map((tenant) =>
-        tenant.id === String(updatedProfile.id)
-          ? normalizeContact({ ...tenant, ...updatedProfile })
-          : tenant
-      )
-    );
-
-    setSelectedContact((prev) => {
-      if (!prev || prev.id !== String(updatedProfile.id)) {
-        return prev;
+  const handleSaveProfile = useCallback(
+    async (updatedProfile) => {
+      if (!updatedProfile?.id) {
+        return;
       }
-      return normalizeContact({ ...prev, ...updatedProfile });
-    });
-  };
+
+      const normalizeString = (value, { allowEmpty = false } = {}) => {
+        if (value == null) return undefined;
+        if (typeof value !== 'string') return String(value);
+        const trimmed = value.trim();
+        if (!trimmed && !allowEmpty) {
+          return undefined;
+        }
+        return trimmed;
+      };
+
+      const normalizedUserType = normalizeUserTypeLabel(updatedProfile.user_type);
+
+      const payload = {
+        name: normalizeString(updatedProfile.name, { allowEmpty: false }) ?? updatedProfile.name ?? '',
+        status: normalizeString(updatedProfile.status) ?? null,
+        plan: normalizeString(updatedProfile.plan) ?? null,
+        primaryContact: normalizeString(updatedProfile.contact?.name) ?? null,
+        email: normalizeString(updatedProfile.contact?.email) ?? null,
+        phone: normalizeString(updatedProfile.phone_primary) ?? null,
+        userType: normalizedUserType ?? null,
+        tenantType: normalizedUserType ?? null,
+        center: normalizeString(updatedProfile.center) ?? null,
+        channel: normalizeString(updatedProfile.channel) ?? null,
+        billingCompany: normalizeString(updatedProfile.billing?.company) ?? null,
+        billingEmail: normalizeString(updatedProfile.billing?.email) ?? null,
+        billingAddress: normalizeString(updatedProfile.billing?.address) ?? null,
+        billingPostalCode: normalizeString(updatedProfile.billing?.postal_code) ?? null,
+        billingCounty: normalizeString(updatedProfile.billing?.county) ?? null,
+        billingCountry: normalizeString(updatedProfile.billing?.country) ?? null,
+        billingTaxId: normalizeString(updatedProfile.billing?.tax_id) ?? null
+      };
+
+      try {
+        setLoading(true);
+        await apiFetch(`/contact-profiles/${updatedProfile.id}`, {
+          method: 'PUT',
+          body: payload
+        });
+
+        const merged = normalizeContact({
+          ...updatedProfile,
+          name: payload.name || updatedProfile.name,
+          status: payload.status || updatedProfile.status,
+          plan: payload.plan || updatedProfile.plan,
+          user_type: payload.tenantType || updatedProfile.user_type,
+          center: payload.center ?? updatedProfile.center,
+          channel: payload.channel ?? updatedProfile.channel,
+          phone_primary: payload.phone ?? updatedProfile.phone_primary,
+          contact: {
+            ...(updatedProfile.contact || {}),
+            name: payload.primaryContact ?? updatedProfile.contact?.name ?? null,
+            email: payload.email ?? updatedProfile.contact?.email ?? null
+          },
+          billing: {
+            ...(updatedProfile.billing || {}),
+            company: payload.billingCompany ?? updatedProfile.billing?.company ?? null,
+            email: payload.billingEmail ?? updatedProfile.billing?.email ?? null,
+            address: payload.billingAddress ?? updatedProfile.billing?.address ?? null,
+            postal_code: payload.billingPostalCode ?? updatedProfile.billing?.postal_code ?? null,
+            county: payload.billingCounty ?? updatedProfile.billing?.county ?? null,
+            country: payload.billingCountry ?? updatedProfile.billing?.country ?? null,
+            tax_id: payload.billingTaxId ?? updatedProfile.billing?.tax_id ?? null
+          }
+        });
+
+        setContacts((prev) =>
+          prev.map((tenant) => (tenant.id === String(updatedProfile.id) ? merged : tenant))
+        );
+
+        setSelectedContact(merged);
+
+        await fetchContacts();
+
+        return merged;
+      } catch (error) {
+        console.error('[Contacts] Error updating user:', error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchContacts, setContacts, setSelectedContact]
+  );
 
   const handleResetFilters = () => {
     setSearch('');
@@ -883,6 +946,7 @@ const Contacts = () => {
           setSelectedContact(null);
         }}
         onSave={handleSaveProfile}
+        userTypeOptions={userTypeOptions}
       />
     );
   }
@@ -976,13 +1040,11 @@ const Contacts = () => {
             sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 140 }}
           >
             <MenuItem value="all">All user types</MenuItem>
-            <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
-            <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
-            <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
-            <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
-            <MenuItem value="Servicios">Servicios</MenuItem>
-            <MenuItem value="Proveedor">Proveedor</MenuItem>
-            <MenuItem value="Distribuidor">Distribuidor</MenuItem>
+            {userTypeOptions.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
           </Select>
           {/* 4. Status */}
           <Select

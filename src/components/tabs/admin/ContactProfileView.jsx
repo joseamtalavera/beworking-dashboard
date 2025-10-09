@@ -27,14 +27,44 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
+import Alert from '@mui/material/Alert';
 
-const ContactProfileView = ({ contact, onBack, onSave }) => {
+import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
+
+const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
+  const mapContactToDraft = (value) => {
+    if (!value) {
+      return value;
+    }
+    return {
+      ...value,
+      user_type:
+        value.user_type && value.user_type !== '—'
+          ? normalizeUserTypeLabel(value.user_type)
+          : ''
+    };
+  };
+
   const [editorOpen, setEditorOpen] = useState(false);
-  const [draft, setDraft] = useState(contact);
+  const [draft, setDraft] = useState(() => mapContactToDraft(contact));
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
-    setDraft(contact);
+    setDraft(mapContactToDraft(contact));
   }, [contact]);
+
+  const availableUserTypes = useMemo(() => {
+    const source = Array.isArray(userTypeOptions) && userTypeOptions.length > 0
+      ? userTypeOptions
+      : CANONICAL_USER_TYPES;
+    const next = new Set(source);
+    if (contact?.user_type && contact.user_type !== '—') {
+      next.add(normalizeUserTypeLabel(contact.user_type));
+    }
+    return Array.from(next).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  }, [userTypeOptions, contact?.user_type]);
 
   const initials = useMemo(() => {
     if (!contact?.name) return '—';
@@ -76,11 +106,23 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
     }));
   };
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave(draft);
+  const handleSave = async () => {
+    if (!onSave) {
+      setEditorOpen(false);
+      return;
     }
-    setEditorOpen(false);
+
+    try {
+      setSaving(true);
+      setSaveError('');
+      await onSave(draft);
+      setEditorOpen(false);
+    } catch (error) {
+      console.error('[ContactProfileView] Failed to save contact:', error);
+      setSaveError(error?.message || 'No se pudieron guardar los cambios.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const joinedLabel = useMemo(() => {
@@ -321,6 +363,7 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 4 }}>
             <Stack spacing={4}>
+              {saveError ? <Alert severity="error">{saveError}</Alert> : null}
               {/* Basic Information Section */}
               <Paper 
                 elevation={0}
@@ -438,12 +481,14 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="User type" 
-                        value={draft?.user_type || ''} 
-                        onChange={handleChange('user_type')} 
-                        fullWidth 
+                      <TextField
+                        select
+                        label="User type"
+                        value={draft?.user_type && draft.user_type !== '—' ? draft.user_type : ''}
+                        onChange={handleChange('user_type')}
+                        fullWidth
                         variant="outlined"
+                        SelectProps={{ displayEmpty: true }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
@@ -453,7 +498,16 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
                             }
                           }
                         }}
-                      />
+                      >
+                        <MenuItem value="">
+                          <em>Sin definir</em>
+                        </MenuItem>
+                        {availableUserTypes.map((type) => (
+                          <MenuItem key={type} value={type}>
+                            {type}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField 
@@ -659,9 +713,10 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
           background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
           borderRadius: '0 0 12px 12px'
         }}>
-          <Button 
+          <Button
             startIcon={<CloseRoundedIcon />}
             onClick={() => setEditorOpen(false)}
+            disabled={saving}
             sx={{
               borderRadius: 2,
               textTransform: 'none',
@@ -679,10 +734,11 @@ const ContactProfileView = ({ contact, onBack, onSave }) => {
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             variant="contained" 
             startIcon={<SaveRoundedIcon />}
             onClick={handleSave}
+            disabled={saving}
             sx={{
               borderRadius: 2,
               textTransform: 'none',
@@ -734,7 +790,14 @@ ContactProfileView.propTypes = {
     })
   }),
   onBack: PropTypes.func.isRequired,
-  onSave: PropTypes.func
+  onSave: PropTypes.func,
+  userTypeOptions: PropTypes.arrayOf(PropTypes.string)
+};
+
+ContactProfileView.defaultProps = {
+  contact: null,
+  onSave: undefined,
+  userTypeOptions: CANONICAL_USER_TYPES
 };
 
 const MetricCard = ({ title, value }) => (

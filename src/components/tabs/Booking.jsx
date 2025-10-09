@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -25,6 +25,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
+import Autocomplete from '@mui/material/Autocomplete';
 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
@@ -33,37 +34,66 @@ import { fetchBloqueos } from '../../api/bookings.js';
 const DEFAULT_START_HOUR = 6;
 const DEFAULT_END_HOUR = 24;
 
+const TENANT_TYPE_OVERRIDES = {
+  'cesar manuel del castillo rivero': 'Usuario Virtual',
+  'francisca granados ballesteros': 'Usuario Virtual',
+  horums: 'Usuario Virtual',
+  'juan lopez garcia': 'Usuario Virtual',
+  'osguese business, sociedad limitada': 'Usuario Virtual',
+  'moderniza & actua consultores s.l.': 'Usuario Aulas',
+  'p2 formacion y empleo sl': 'Usuario Aulas',
+  'jose a molina-talavera': 'Usuario Mesa'
+};
+
+const LEGACY_TENANT_TYPE_MAP = {
+  'Usuario Oficinas Virtuales': 'Usuario Virtual'
+};
+
+const normalizeName = (value = '') =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+const resolveTenantType = (bloqueo) => {
+  const nameKey = normalizeName(bloqueo?.cliente?.nombre || '');
+  const override = nameKey ? TENANT_TYPE_OVERRIDES[nameKey] : undefined;
+  const rawType = override || bloqueo?.cliente?.tipoTenant || '';
+  return LEGACY_TENANT_TYPE_MAP[rawType] || rawType;
+};
+
 const statusStyles = {
   available: {
-    bgcolor: 'rgba(34, 197, 94, 0.08)',
+    bgcolor: 'rgba(229, 231, 235, 0.45)',
     borderColor: '#cbd5f5',
-    color: '#15803d'
+    color: '#64748b'
   },
-  booked: {
-    bgcolor: 'rgba(251, 146, 60, 0.18)',
-    borderColor: '#fb923c',
-    color: '#c2410c'
+  paid: {
+    bgcolor: 'rgba(0, 255, 0, 0.18)',
+    borderColor: '#00b300',
+    color: '#006600'
   },
-  pending: {
-    bgcolor: 'rgba(250, 204, 21, 0.18)',
+  invoiced: {
+    bgcolor: 'rgba(255, 234, 128, 0.25)',
     borderColor: '#facc15',
     color: '#92400e'
   },
-  cancelled: {
-    bgcolor: 'rgba(148, 163, 184, 0.16)',
-    borderColor: '#94a3b8',
-    color: '#475569'
+  created: {
+    bgcolor: 'rgba(255, 102, 102, 0.18)',
+    borderColor: '#f87171',
+    color: '#991b1b'
   }
 };
 
 const statusLabels = {
   available: 'Available',
-  booked: 'Booked',
-  pending: 'Booking pending',
-  cancelled: 'Cancelled'
+  paid: 'Paid',
+  invoiced: 'Invoiced',
+  created: 'Created'
 };
 
-const LEGEND_STATUSES = ['available', 'booked', 'pending', 'cancelled'];
+const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created'];
 
 const Legend = () => (
   <Stack direction="row" spacing={2} flexWrap="wrap">
@@ -98,6 +128,25 @@ const getInitials = (value) => {
     .slice(0, 2)
     .join('')
     .toUpperCase() || 'NA';
+};
+
+const filterFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 2,
+    backgroundColor: '#fff'
+  },
+  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#1d4ed8'
+  },
+  '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#94a3b8'
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#cbd5f5'
+  },
+  '& .MuiInputAdornment-root': {
+    color: '#64748b'
+  }
 };
 
 const formatDate = (isoDate) => {
@@ -193,7 +242,7 @@ const buildTimeSlots = (bloqueos) => {
     maxHour = Math.min(23, minHour + 8);
   }
 
-  minHour = Math.max(0, Math.min(minHour, 23));
+  minHour = Math.max(DEFAULT_START_HOUR, Math.min(minHour, 23));
   maxHour = Math.max(minHour + 1, Math.min(maxHour, 23));
 
   const slots = [];
@@ -219,43 +268,6 @@ const bloqueoAppliesToDate = (bloqueo, isoDate) => {
   return true;
 };
 
-const bloqueoOverlapsRange = (bloqueo, startDate, endDate) => {
-  if (!bloqueo) {
-    return false;
-  }
-
-  const from = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
-  const to = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : from;
-
-  if (!from && !to) {
-    return true;
-  }
-
-  const rangeStart = startDate || null;
-  const rangeEnd = endDate || null;
-
-  if (!rangeStart && !rangeEnd) {
-    return true;
-  }
-
-  const effectiveFrom = from || to;
-  const effectiveTo = to || from;
-
-  if (!effectiveFrom) {
-    return true;
-  }
-
-  if (rangeStart && effectiveTo && effectiveTo < rangeStart) {
-    return false;
-  }
-
-  if (rangeEnd && effectiveFrom && effectiveFrom > rangeEnd) {
-    return false;
-  }
-
-  return true;
-};
-
 const coversBloqueoSlot = (bloqueo, slot) => {
   const slotMinutes = timeStringToMinutes(slot.id);
   const startTime = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : '00:00';
@@ -269,13 +281,13 @@ const coversBloqueoSlot = (bloqueo, slot) => {
 
 const mapStatusKey = (status) => {
   const normalized = (status || '').toLowerCase();
-  if (normalized.includes('cancel')) {
-    return 'cancelled';
+  if (normalized.includes('pag') || normalized.includes('paid')) {
+    return 'paid';
   }
-  if (normalized.includes('pend') || normalized.includes('no confirm')) {
-    return 'pending';
+  if (normalized.includes('fact')) {
+    return 'invoiced';
   }
-  return 'booked';
+  return 'created';
 };
 
 const describeBloqueo = (bloqueo) => {
@@ -363,22 +375,46 @@ const BookingsTable = ({ bookings, onSelect }) => {
     <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
       <TableContainer>
         <Table size="small">
-          <TableHead>
-            <TableRow>
+          <TableHead
+            sx={{
+              bgcolor: '#e6ffe8',
+              boxShadow: 'inset 0 -1px 0 rgba(15, 118, 110, 0.35)',
+              '& .MuiTableCell-head': {
+                bgcolor: '#d9fbe5',
+                color: '#14532d',
+                fontWeight: 800,
+                fontSize: '0.75rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                borderBottom: 'none',
+                py: 1.4,
+                px: 3
+              },
+              '& .MuiTableCell-head:first-of-type': {
+                borderTopLeftRadius: 14,
+                pl: 3
+              },
+              '& .MuiTableCell-head:last-of-type': {
+                borderTopRightRadius: 14,
+                pr: 3
+              }
+            }}
+          >
+            <TableRow
+            >
               <TableCell>User</TableCell>
-              <TableCell>Center</TableCell>
-              <TableCell>User type</TableCell>
               <TableCell>Product</TableCell>
-              <TableCell>Start hour</TableCell>
-              <TableCell>Finish hour</TableCell>
+              <TableCell>Start</TableCell>
+              <TableCell>Finish</TableCell>
+              <TableCell align="center">People</TableCell>
               <TableCell>Payment status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginated.map((booking) => {
               const statusKey = mapStatusKey(booking.status);
-              const statusStyle = statusStyles[statusKey];
-              const statusLabel = booking.status || statusLabels[statusKey];
+              const statusStyle = statusStyles[statusKey] || statusStyles.created;
+              const statusLabel = booking.status || statusLabels[statusKey] || 'Created';
               const centerLabel = booking.centerName || booking.centerCode || '—';
               const productLabel = booking.productName || booking.productType || '—';
               const startHour = booking.timeFrom ? booking.timeFrom : 'All day';
@@ -466,31 +502,73 @@ const AgendaTable = ({ bloqueos, onSelect }) => {
   }
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
       <TableContainer>
-        <Table size="small">
+        <Table size="small" sx={{ tableLayout: 'fixed' }}>
           <TableHead>
-            <TableRow>
-              <TableCell>User</TableCell>
-              <TableCell>Center</TableCell>
-              <TableCell>User type</TableCell>
-              <TableCell>Product</TableCell>
-              <TableCell>Start hour</TableCell>
-              <TableCell>Finish hour</TableCell>
-              <TableCell>Payment status</TableCell>
+            <TableRow
+              sx={{
+                backgroundColor: '#dcfce7',
+                '& .MuiTableCell-head': {
+                  position: 'relative',
+                  fontWeight: 700,
+                  textTransform: 'capitalize',
+                  letterSpacing: '0.04em',
+                  fontSize: '0.85rem',
+                  color: '#166534',
+                  borderBottom: '1px solid #bbf7d0',
+                  py: 1.6,
+                  px: 3,
+                  backgroundColor: '#dcfce7'
+                },
+                '& .MuiTableCell-head:first-of-type': {
+                  pl: 3,
+                  pr: 4,
+                  borderTopLeftRadius: 12
+                },
+                '& .MuiTableCell-head:nth-of-type(2)': {
+                  pl: 2.5,
+                  pr: 3
+                },
+                '& .MuiTableCell-head:last-of-type': {
+                  pr: 3,
+                  borderTopRightRadius: 12
+                }
+              }}
+            >
+              <TableCell
+                sx={{
+                  minWidth: 260,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                User
+              </TableCell>
+              <TableCell align="right" sx={{ width: 140 }}>Product</TableCell>
+              <TableCell align="right" sx={{ width: 120 }}>Start</TableCell>
+              <TableCell align="right" sx={{ width: 120 }}>Finish</TableCell>
+              <TableCell align="right" sx={{ width: 90 }}>People</TableCell>
+              <TableCell align="right" sx={{ width: 160 }}>Payment status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedBloqueos.map((bloqueo) => {
               const statusKey = mapStatusKey(bloqueo.estado);
-              const statusStyle = statusStyles[statusKey];
-              const statusLabel = bloqueo.estado || statusLabels[statusKey];
+              const statusStyle = statusStyles[statusKey] || statusStyles.created;
+              const statusLabel = bloqueo.estado || statusLabels[statusKey] || 'Created';
               const startHour = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : 'All day';
               const finishHour = bloqueo.fechaFin
                 ? bloqueo.fechaFin.split('T')[1]
                 : bloqueo.fechaIni
                 ? '—'
                 : 'All day';
+              const attendees = Number.isFinite(bloqueo.asistentes)
+                ? bloqueo.asistentes
+                : bloqueo.asistentes != null
+                ? bloqueo.asistentes
+                : null;
               return (
                 <TableRow
                   key={`agenda-${bloqueo.id}`}
@@ -498,24 +576,36 @@ const AgendaTable = ({ bloqueos, onSelect }) => {
                   onClick={() => onSelect(bloqueo)}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell>{bloqueo.cliente?.nombre || '—'}</TableCell>
-                  <TableCell>{bloqueo.centro?.nombre || '—'}</TableCell>
-                  <TableCell>{bloqueo.cliente?.tipoTenant || '—'}</TableCell>
-                  <TableCell>{bloqueo.producto?.nombre || '—'}</TableCell>
-                  <TableCell>{startHour}</TableCell>
-                  <TableCell>{finishHour}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={statusLabel}
-                      size="small"
-                      sx={{
-                        bgcolor: statusStyle.bgcolor,
-                        color: statusStyle.color,
-                        border: '1px solid',
-                        borderColor: statusStyle.borderColor
-                      }}
-                    />
-                  </TableCell>
+              <TableCell
+                sx={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 320
+                }}
+              >
+                {bloqueo.cliente?.nombre || '—'}
+              </TableCell>
+              <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
+              <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
+              <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
+              <TableCell align="right" sx={{ width: 90 }}>{attendees ?? '—'}</TableCell>
+              <TableCell align="right" sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Chip
+                  label={statusLabel}
+                  size="small"
+                  sx={{
+                    bgcolor: statusStyle.bgcolor,
+                    color: statusStyle.color,
+                    border: '1px solid',
+                    borderColor: statusStyle.borderColor,
+                    width: 108,
+                    justifyContent: 'center',
+                    fontWeight: 600,
+                    px: 1.5
+                  }}
+                />
+              </TableCell>
                 </TableRow>
               );
             })}
@@ -726,8 +816,7 @@ const Booking = ({ mode = 'user' }) => {
   const isAdmin = mode === 'admin';
   const [view, setView] = useState('calendar');
   const [calendarDate, setCalendarDate] = useState(initialDateISO());
-  const [agendaStartDate, setAgendaStartDate] = useState(initialDateISO());
-  const [agendaEndDate, setAgendaEndDate] = useState(initialDateISO());
+  const [agendaDate, setAgendaDate] = useState(initialDateISO());
   const [bloqueos, setBloqueos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -736,14 +825,9 @@ const Booking = ({ mode = 'user' }) => {
   const [filterCenter, setFilterCenter] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
   const [filterEmail, setFilterEmail] = useState('');
+  const [filterUserType, setFilterUserType] = useState('');
 
   const monthKey = useMemo(() => calendarDate.slice(0, 7), [calendarDate]);
-
-  useEffect(() => {
-    if (agendaStartDate && agendaEndDate && agendaStartDate > agendaEndDate) {
-      setAgendaEndDate(agendaStartDate);
-    }
-  }, [agendaStartDate, agendaEndDate]);
 
   useEffect(() => {
     const [year, month] = monthKey.split('-').map((value) => Number.parseInt(value, 10));
@@ -803,6 +887,11 @@ const Booking = ({ mode = 'user' }) => {
           return false;
         }
 
+        const tenantType = resolveTenantType(bloqueo);
+        if (filterUserType && tenantType !== filterUserType) {
+          return false;
+        }
+
         if (filterEmail) {
           const email = (bloqueo?.cliente?.email || '').toLowerCase();
           if (!email.includes(filterEmail.toLowerCase())) {
@@ -816,12 +905,12 @@ const Booking = ({ mode = 'user' }) => {
       console.error('Error filtering bloqueos:', error);
       return [];
     }
-  }, [bloqueos, filterUser, filterCenter, filterProduct, filterEmail]);
+  }, [bloqueos, filterUser, filterCenter, filterProduct, filterUserType, filterEmail]);
 
   const calendarBloqueos = useMemo(() => {
     try {
       return (filteredBloqueos || []).filter((bloqueo) => {
-        const tenantType = (bloqueo?.cliente?.tipoTenant || '').toLowerCase();
+        const tenantType = resolveTenantType(bloqueo).toLowerCase();
         if (tenantType !== 'usuario aulas') {
           return false;
         }
@@ -855,8 +944,9 @@ const Booking = ({ mode = 'user' }) => {
     const users = new Set();
     const centers = new Set();
     const products = new Set();
+    const userTypes = new Set();
 
-    (filteredBloqueos || []).forEach((bloqueo) => {
+    (bloqueos || []).forEach((bloqueo) => {
       if (bloqueo.cliente?.nombre) {
         users.add(bloqueo.cliente.nombre);
       }
@@ -866,35 +956,37 @@ const Booking = ({ mode = 'user' }) => {
       if (bloqueo.producto?.nombre) {
         products.add(bloqueo.producto.nombre);
       }
+      const resolvedType = resolveTenantType(bloqueo);
+      if (resolvedType) {
+        userTypes.add(resolvedType);
+      }
     });
 
     const sorter = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
 
+    userTypes.add('Usuario Aulas');
+
     return {
       users: Array.from(users).sort(sorter),
       centers: Array.from(centers).sort(sorter),
-      products: Array.from(products).sort(sorter)
+      products: Array.from(products).sort(sorter),
+      userTypes: Array.from(userTypes).sort(sorter)
     };
-  }, [filteredBloqueos]);
+  }, [bloqueos]);
 
   const agendaBloqueos = useMemo(() => {
-    return (filteredBloqueos || []).filter((bloqueo) =>
-      bloqueoOverlapsRange(bloqueo, agendaStartDate, agendaEndDate)
-    );
-  }, [filteredBloqueos, agendaStartDate, agendaEndDate]);
+    if (!agendaDate) {
+      return filteredBloqueos || [];
+    }
+    return (filteredBloqueos || []).filter((bloqueo) => bloqueoAppliesToDate(bloqueo, agendaDate));
+  }, [filteredBloqueos, agendaDate]);
 
   const agendaRangeLabel = useMemo(() => {
-    if (!agendaStartDate && !agendaEndDate) {
+    if (!agendaDate) {
       return 'Showing all bloqueos.';
     }
-    if (agendaStartDate && agendaEndDate) {
-      return `Showing bloqueos from ${formatDate(agendaStartDate)} to ${formatDate(agendaEndDate)}.`;
-    }
-    if (agendaStartDate) {
-      return `Showing bloqueos from ${formatDate(agendaStartDate)} onwards.`;
-    }
-    return `Showing bloqueos up to ${formatDate(agendaEndDate)}.`;
-  }, [agendaStartDate, agendaEndDate]);
+    return `Showing bloqueos on ${formatDate(agendaDate)}.`;
+  }, [agendaDate]);
 
   const getSlotStatus = (room, slot) => {
     try {
@@ -921,12 +1013,8 @@ const Booking = ({ mode = 'user' }) => {
     setCalendarDate(event.target.value);
   };
 
-  const handleAgendaStartChange = (event) => {
-    setAgendaStartDate(event.target.value);
-  };
-
-  const handleAgendaEndChange = (event) => {
-    setAgendaEndDate(event.target.value);
+  const handleAgendaDateChange = (event) => {
+    setAgendaDate(event.target.value);
   };
 
   const handleSelectBloqueo = (bloqueo) => {
@@ -1019,7 +1107,7 @@ const Booking = ({ mode = 'user' }) => {
                         </TableCell>
                         {timeSlots.map((slot) => {
                           const { status, bloqueo } = getSlotStatus(room, slot);
-                          const styles = statusStyles[status];
+                          const styles = status ? (statusStyles[status] || statusStyles.created) : statusStyles.available;
                           return (
                             <TableCell
                               key={`${room.id}-${slot.id}`}
@@ -1070,94 +1158,109 @@ const Booking = ({ mode = 'user' }) => {
         </Stack>
       ) : (
         <Stack spacing={3}>
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                type="date"
-                label="From date"
-                value={agendaStartDate}
-                onChange={handleAgendaStartChange}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                type="date"
-                label="To date"
-                value={agendaEndDate}
-                onChange={handleAgendaEndChange}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={12} md={4}>
-              <TextField
-                label="Filter by email"
-                value={filterEmail}
-                onChange={(event) => setFilterEmail(event.target.value)}
-                placeholder="Search by email"
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchRoundedIcon fontSize="small" />
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Grid>
-          </Grid>
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                select
-                label="Contact"
-                value={filterUser}
-                onChange={(event) => setFilterUser(event.target.value)}
-                fullWidth
-              >
-                <MenuItem value="">All contacts</MenuItem>
-                {(filterOptions.users || []).map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                select
-                label="Centro"
-                value={filterCenter}
-                onChange={(event) => setFilterCenter(event.target.value)}
-                fullWidth
-              >
-                <MenuItem value="">All centros</MenuItem>
-                {(filterOptions.centers || []).map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                select
-                label="Producto"
-                value={filterProduct}
-                onChange={(event) => setFilterProduct(event.target.value)}
-                fullWidth
-              >
-                <MenuItem value="">All productos</MenuItem>
-                {(filterOptions.products || []).map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-          </Grid>
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 3,
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                lg: 'repeat(3, minmax(0, 1fr))'
+              }
+            }}
+          >
+            <TextField
+              type="date"
+              label="Agenda date"
+              value={agendaDate}
+              onChange={handleAgendaDateChange}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+            <Autocomplete
+              options={filterOptions.users || []}
+              value={filterUser || null}
+              onChange={(_event, newValue) => setFilterUser(newValue || '')}
+              isOptionEqualToValue={(option, value) => option === value}
+              noOptionsText="No contacts found"
+              clearOnEscape
+              fullWidth
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Contact"
+                  placeholder="Search contact"
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <>
+                        <InputAdornment position="start">
+                          <SearchRoundedIcon fontSize="small" />
+                        </InputAdornment>
+                        {params.InputProps.startAdornment}
+                      </>
+                    )
+                  }}
+                />
+              )}
+            />
+            <TextField
+              label="Filter by email"
+              value={filterEmail}
+              onChange={(event) => setFilterEmail(event.target.value)}
+              placeholder="Search by email"
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" />
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
+              select
+              label="Centro"
+              value={filterCenter}
+              onChange={(event) => setFilterCenter(event.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">All centros</MenuItem>
+              {(filterOptions.centers || []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="User type"
+              value={filterUserType}
+              onChange={(event) => setFilterUserType(event.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">All user types</MenuItem>
+              {(filterOptions.userTypes || []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Producto"
+              value={filterProduct}
+              onChange={(event) => setFilterProduct(event.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">All productos</MenuItem>
+              {(filterOptions.products || []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
           <Typography variant="body2" color="text.secondary">
             {agendaRangeLabel}
           </Typography>
