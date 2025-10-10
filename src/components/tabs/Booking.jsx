@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -8,6 +8,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import DialogContentText from '@mui/material/DialogContentText';
 import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
@@ -26,13 +27,41 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import Autocomplete from '@mui/material/Autocomplete';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormGroup from '@mui/material/FormGroup';
+import Switch from '@mui/material/Switch';
+import IconButton from '@mui/material/IconButton';
+
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
-import { fetchBloqueos } from '../../api/bookings.js';
+import {
+  createReserva,
+  fetchBloqueos,
+  fetchBookingContacts,
+  fetchBookingCentros,
+  fetchBookingProductos,
+  deleteBloqueo
+} from '../../api/bookings.js';
+import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 
 const DEFAULT_START_HOUR = 6;
 const DEFAULT_END_HOUR = 24;
+const DEFAULT_RESERVATION_TYPE = 'Por Horas';
+const RESERVATION_TYPE_OPTIONS = ['Por Horas', 'Diaria', 'Mensual'];
+const STATUS_FORM_OPTIONS = ['Created', 'Invoiced', 'Paid'];
+const WEEKDAY_OPTIONS = [
+  { value: 'monday', label: 'Monday', shortLabel: 'Mon' },
+  { value: 'tuesday', label: 'Tuesday', shortLabel: 'Tue' },
+  { value: 'wednesday', label: 'Wednesday', shortLabel: 'Wed' },
+  { value: 'thursday', label: 'Thursday', shortLabel: 'Thu' },
+  { value: 'friday', label: 'Friday', shortLabel: 'Fri' },
+  { value: 'saturday', label: 'Saturday', shortLabel: 'Sat' },
+  { value: 'sunday', label: 'Sunday', shortLabel: 'Sun' }
+];
 
 const TENANT_TYPE_OVERRIDES = {
   'cesar manuel del castillo rivero': 'Usuario Virtual',
@@ -209,9 +238,18 @@ const timeStringToMinutes = (value) => {
   return hour * 60 + minute;
 };
 
+const buildDefaultSlots = () => {
+  const slots = [];
+  for (let hour = DEFAULT_START_HOUR; hour <= DEFAULT_END_HOUR; hour += 1) {
+    const label = `${hour.toString().padStart(2, '0')}:00`;
+    slots.push({ id: label, label });
+  }
+  return slots;
+};
+
 const buildTimeSlots = (bloqueos) => {
   if (!Array.isArray(bloqueos) || bloqueos.length === 0) {
-    return [];
+    return buildDefaultSlots();
   }
   let minHour = DEFAULT_START_HOUR;
   let maxHour = DEFAULT_END_HOUR;
@@ -234,8 +272,7 @@ const buildTimeSlots = (bloqueos) => {
   });
 
   if (!hasTimeData) {
-    minHour = DEFAULT_START_HOUR;
-    maxHour = DEFAULT_END_HOUR;
+    return buildDefaultSlots();
   }
 
   if (maxHour <= minHour) {
@@ -245,12 +282,10 @@ const buildTimeSlots = (bloqueos) => {
   minHour = Math.max(DEFAULT_START_HOUR, Math.min(minHour, 23));
   maxHour = Math.max(minHour + 1, Math.min(maxHour, 23));
 
-  const slots = [];
-  for (let hour = minHour; hour <= maxHour; hour += 1) {
-    const label = `${hour.toString().padStart(2, '0')}:00`;
-    slots.push({ id: label, label });
-  }
-  return slots;
+  return buildDefaultSlots().filter((slot) => {
+    const hourValue = Number.parseInt(slot.id.split(':')[0], 10);
+    return hourValue >= minHour && hourValue <= maxHour;
+  });
 };
 
 const bloqueoAppliesToDate = (bloqueo, isoDate) => {
@@ -307,10 +342,22 @@ const describeBloqueo = (bloqueo) => {
 const ALLOWED_PRODUCT_NAMES = new Set(['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5']);
 
 const composeRooms = (bloqueos) => {
-  if (!Array.isArray(bloqueos) || bloqueos.length === 0) {
-    return [];
-  }
   const map = new Map();
+
+  ALLOWED_PRODUCT_NAMES.forEach((roomName) => {
+    map.set(roomName, {
+      id: roomName,
+      label: roomName,
+      productId: null,
+      centerName: null,
+      centerCode: null
+    });
+  });
+
+  if (!Array.isArray(bloqueos) || bloqueos.length === 0) {
+    return Array.from(map.values()).sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+  }
+
   bloqueos.forEach((bloqueo) => {
     if (!bloqueo.producto?.id) {
       return;
@@ -319,16 +366,25 @@ const composeRooms = (bloqueos) => {
     if (!ALLOWED_PRODUCT_NAMES.has(productName)) {
       return;
     }
-    if (!map.has(bloqueo.producto.id)) {
-      map.set(bloqueo.producto.id, {
-        id: bloqueo.producto.id,
-        label: bloqueo.producto.nombre || `Room ${bloqueo.producto.id}`,
-        productId: bloqueo.producto.id,
-        centerName: bloqueo.centro?.nombre,
-        centerCode: bloqueo.centro?.codigo
-      });
-    }
+
+    const existing = map.get(productName) || {
+      id: productName || bloqueo.producto.id,
+      label: productName || `Room ${bloqueo.producto.id}`,
+      productId: null,
+      centerName: null,
+      centerCode: null
+    };
+
+    map.set(productName, {
+      ...existing,
+      id: existing.id,
+      label: productName || existing.label,
+      productId: bloqueo.producto.id,
+      centerName: bloqueo.centro?.nombre || existing.centerName,
+      centerCode: bloqueo.centro?.codigo || existing.centerCode
+    });
   });
+
   return Array.from(map.values()).sort((a, b) => (a.label || '').localeCompare(b.label || ''));
 };
 
@@ -475,7 +531,7 @@ const BookingsTable = ({ bookings, onSelect }) => {
   );
 };
 
-const AgendaTable = ({ bloqueos, onSelect }) => {
+const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
   const sortedBloqueos = useMemo(() => {
     const clone = [...bloqueos];
     clone.sort((a, b) => {
@@ -551,13 +607,15 @@ const AgendaTable = ({ bloqueos, onSelect }) => {
               <TableCell align="right" sx={{ width: 120 }}>Finish</TableCell>
               <TableCell align="right" sx={{ width: 90 }}>People</TableCell>
               <TableCell align="right" sx={{ width: 160 }}>Payment status</TableCell>
+              {onDelete ? <TableCell align="right" sx={{ width: 72 }}>Actions</TableCell> : null}
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedBloqueos.map((bloqueo) => {
               const statusKey = mapStatusKey(bloqueo.estado);
               const statusStyle = statusStyles[statusKey] || statusStyles.created;
-              const statusLabel = bloqueo.estado || statusLabels[statusKey] || 'Created';
+              const statusLabel = statusLabels[statusKey] || 'Created';
+              const rawStatusLabel = bloqueo.estado || '';
               const startHour = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : 'All day';
               const finishHour = bloqueo.fechaFin
                 ? bloqueo.fechaFin.split('T')[1]
@@ -569,28 +627,7 @@ const AgendaTable = ({ bloqueos, onSelect }) => {
                 : bloqueo.asistentes != null
                 ? bloqueo.asistentes
                 : null;
-              return (
-                <TableRow
-                  key={`agenda-${bloqueo.id}`}
-                  hover
-                  onClick={() => onSelect(bloqueo)}
-                  sx={{ cursor: 'pointer' }}
-                >
-              <TableCell
-                sx={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: 320
-                }}
-              >
-                {bloqueo.cliente?.nombre || '—'}
-              </TableCell>
-              <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
-              <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
-              <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
-              <TableCell align="right" sx={{ width: 90 }}>{attendees ?? '—'}</TableCell>
-              <TableCell align="right" sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              const chip = (
                 <Chip
                   label={statusLabel}
                   size="small"
@@ -605,7 +642,60 @@ const AgendaTable = ({ bloqueos, onSelect }) => {
                     px: 1.5
                   }}
                 />
-              </TableCell>
+              );
+
+              const chipContent =
+                rawStatusLabel && rawStatusLabel.toLowerCase() !== statusLabel.toLowerCase() ? (
+                  <Tooltip title={rawStatusLabel}>{chip}</Tooltip>
+                ) : (
+                  chip
+                );
+
+              const isDeleting = deletingId === bloqueo.id;
+
+              return (
+                <TableRow
+                  key={`agenda-${bloqueo.id}`}
+                  hover
+                  onClick={() => onSelect(bloqueo)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell
+                    sx={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 320
+                    }}
+                  >
+                    {bloqueo.cliente?.nombre || '—'}
+                  </TableCell>
+                  <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
+                  <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
+                  <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
+                  <TableCell align="right" sx={{ width: 90 }}>{attendees ?? '—'}</TableCell>
+                  <TableCell align="right" sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {chipContent}
+                  </TableCell>
+                  {onDelete ? (
+                    <TableCell align="right" sx={{ width: 72 }}>
+                      <Tooltip title="Delete bloqueo">
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            disabled={isDeleting}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onDelete(bloqueo.id);
+                            }}
+                          >
+                            <DeleteOutlineRoundedIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               );
             })}
@@ -613,6 +703,957 @@ const AgendaTable = ({ bloqueos, onSelect }) => {
         </Table>
       </TableContainer>
     </Paper>
+  );
+};
+
+const DEFAULT_TIME_RANGE = { start: '09:00', end: '10:00' };
+const DEFAULT_USER_TYPE = 'Usuario Aulas';
+const ALLOWED_CENTRO_IDS = new Set([1, 8]);
+
+const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
+    const fieldStyles = {
+      '& .MuiOutlinedInput-root': {
+        minHeight: '48px',
+        '& input': {
+          color: '#1a1a1a',
+          fontWeight: 500
+        },
+        '& input::placeholder': {
+          color: '#666666',
+          opacity: 1
+        }
+      },
+      '& .MuiInputLabel-root': {
+        color: '#666666',
+        '&.Mui-focused': {
+          color: '#fb923c'
+        }
+      }
+    };
+  const buildInitialState = () => ({
+    contact: null,
+    centro: null,
+    producto: null,
+    userType: DEFAULT_USER_TYPE,
+    reservationType: DEFAULT_RESERVATION_TYPE,
+    dateFrom: defaultDate || initialDateISO(),
+    dateTo: defaultDate || initialDateISO(),
+    startTime: DEFAULT_TIME_RANGE.start,
+    endTime: DEFAULT_TIME_RANGE.end,
+    weekdays: [],
+    openEnded: false,
+    tarifa: '',
+    attendees: '',
+    configuracion: '',
+    note: '',
+    status: STATUS_FORM_OPTIONS[0]
+  });
+
+  const [formState, setFormState] = useState(buildInitialState);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const [contactOptions, setContactOptions] = useState([]);
+  const [contactInputValue, setContactInputValue] = useState('');
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactFetchError, setContactFetchError] = useState('');
+
+  const [centroOptions, setCentroOptions] = useState([]);
+  const [productOptions, setProductOptions] = useState([]);
+  const [lookupError, setLookupError] = useState('');
+  const [lookupsLoading, setLookupsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    setFormState(buildInitialState());
+    setError('');
+    setContactInputValue('');
+  }, [open, defaultDate]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    let active = true;
+    setLookupsLoading(true);
+    setLookupError('');
+    Promise.all([fetchBookingCentros(), fetchBookingProductos()])
+      .then(([centers, products]) => {
+        if (!active) {
+          return;
+        }
+        const filteredCenters = Array.isArray(centers)
+          ? centers.filter((center) => ALLOWED_CENTRO_IDS.has(Number(center?.id)))
+          : [];
+
+        setCentroOptions(filteredCenters);
+        setProductOptions(Array.isArray(products) ? products : []);
+      })
+      .catch((lookupErr) => {
+        if (active) {
+          setLookupError(lookupErr.message || 'Unable to load centros and productos.');
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLookupsLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    let active = true;
+    setContactsLoading(true);
+    setContactFetchError('');
+    const handler = setTimeout(() => {
+      const params = {};
+      if (contactInputValue) {
+        params.search = contactInputValue;
+      }
+      if (formState.userType) {
+        params.tenantType = formState.userType;
+      }
+
+      fetchBookingContacts(params)
+        .then((contacts) => {
+          if (!active) {
+            return;
+          }
+          setContactOptions(Array.isArray(contacts) ? contacts : []);
+        })
+        .catch((fetchError) => {
+          if (active) {
+            setContactFetchError(fetchError.message || 'Unable to load contacts.');
+          }
+        })
+        .finally(() => {
+          if (active) {
+            setContactsLoading(false);
+          }
+        });
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(handler);
+    };
+  }, [open, contactInputValue, formState.userType]);
+
+  const userTypeOptions = useMemo(() => {
+    const next = new Set([DEFAULT_USER_TYPE, ...CANONICAL_USER_TYPES]);
+    contactOptions.forEach((option) => {
+      if (option?.tenantType) {
+        next.add(option.tenantType);
+      }
+    });
+    if (formState.userType) {
+      next.add(formState.userType);
+    }
+    return Array.from(next)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  }, [contactOptions, formState.userType]);
+
+  const filteredContactOptions = useMemo(() => {
+    if (!formState.userType) {
+      return contactOptions;
+    }
+    return contactOptions.filter((option) =>
+      option?.tenantType?.toLowerCase() === formState.userType.toLowerCase()
+    );
+  }, [contactOptions, formState.userType]);
+
+  const availableProducts = useMemo(() => {
+    if (!formState.centro || !formState.centro.code) {
+      return productOptions;
+    }
+    return productOptions.filter(
+      (product) =>
+        !product.centerCode ||
+        product.centerCode.toLowerCase() === formState.centro.code.toLowerCase()
+    );
+  }, [formState.centro, productOptions]);
+
+  const handleFieldChange = (field) => (event) => {
+    setFormState((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const handleToggleOpenEnded = (event) => {
+    setFormState((prev) => ({ ...prev, openEnded: event.target.checked }));
+  };
+
+  const handleWeekdayToggle = (value) => () => {
+    setFormState((prev) => {
+      const hasValue = prev.weekdays.includes(value);
+      const nextWeekdays = hasValue
+        ? prev.weekdays.filter((day) => day !== value)
+        : [...prev.weekdays, value];
+      return { ...prev, weekdays: nextWeekdays };
+    });
+  };
+
+  const handleUserTypeChange = (event) => {
+    const value = event.target.value;
+    setFormState((prev) => {
+      const next = { ...prev, userType: value };
+      if (value && prev.contact?.tenantType && prev.contact.tenantType.toLowerCase() !== value.toLowerCase()) {
+        next.contact = null;
+      }
+      return next;
+    });
+  };
+
+  const normalizedReservationType = (formState.reservationType || '').toLowerCase();
+  const isPerHour = normalizedReservationType === 'por horas';
+  const showWeekdays = normalizedReservationType === 'por horas' || normalizedReservationType === 'diaria';
+
+  const handleReservationTypeChange = (event) => {
+    const value = event.target.value;
+    const normalized = (value || '').toLowerCase();
+    const nextIsPerHour = normalized === 'por horas';
+    const nextShowWeekdays = normalized === 'por horas' || normalized === 'diaria';
+
+    setFormState((prev) => ({
+      ...prev,
+      reservationType: value,
+      startTime: nextIsPerHour ? prev.startTime || DEFAULT_TIME_RANGE.start : '',
+      endTime: nextIsPerHour ? prev.endTime || DEFAULT_TIME_RANGE.end : '',
+      weekdays: nextShowWeekdays ? prev.weekdays : [],
+      openEnded: nextShowWeekdays ? prev.openEnded : false
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+
+    const contactId = formState.contact?.id;
+    const centroId = formState.centro?.id;
+    const productoId = formState.producto?.id;
+
+    if (!contactId) {
+      setError('Please select a contact.');
+      return;
+    }
+    if (!centroId) {
+      setError('Please select a centro.');
+      return;
+    }
+    if (!productoId) {
+      setError('Please select a producto.');
+      return;
+    }
+
+    if (!formState.dateFrom || !formState.dateTo) {
+      setError('Both start and end dates are required.');
+      return;
+    }
+
+    if (formState.dateFrom > formState.dateTo) {
+      setError('Start date must be before or equal to end date.');
+      return;
+    }
+
+    if (isPerHour) {
+      if (!formState.startTime || !formState.endTime) {
+        setError('Both start and end times are required for hourly bookings.');
+        return;
+      }
+      if (formState.startTime >= formState.endTime) {
+        setError('End time must be after start time.');
+        return;
+      }
+    }
+
+    const tarifaValue = String(formState.tarifa ?? '').trim();
+    const tarifa = tarifaValue === '' ? null : Number(tarifaValue);
+    if (tarifaValue !== '' && Number.isNaN(tarifa)) {
+      setError('Tarifa must be a valid number.');
+      return;
+    }
+
+    const attendeesValue = String(formState.attendees ?? '').trim();
+    const attendees = attendeesValue === '' ? null : Number(attendeesValue);
+    if (attendeesValue !== '' && !Number.isInteger(attendees)) {
+      setError('Attendees must be a whole number.');
+      return;
+    }
+
+    if (
+      formState.centro?.code &&
+      formState.producto?.centerCode &&
+      formState.producto.centerCode.toLowerCase() !== formState.centro.code.toLowerCase()
+    ) {
+      setError('Selected product does not belong to the chosen centro.');
+      return;
+    }
+
+    const orderedWeekdays = WEEKDAY_OPTIONS.map((option) => option.value).filter((value) =>
+      formState.weekdays.includes(value)
+    );
+
+    const payload = {
+      contactId,
+      centroId,
+      productoId,
+      reservationType: formState.reservationType,
+      dateFrom: formState.dateFrom,
+      dateTo: formState.dateTo,
+      timeSlots: isPerHour
+        ? [
+            {
+              from: formState.startTime,
+              to: formState.endTime
+            }
+          ]
+        : [],
+      weekdays: showWeekdays ? orderedWeekdays : [],
+      openEnded: formState.openEnded,
+      tarifa,
+      attendees,
+      configuracion: formState.configuracion || null,
+      note: formState.note || null,
+      status: formState.status
+    };
+
+    setSubmitting(true);
+    try {
+      const response = await createReserva(payload);
+      onCreated?.(response);
+    } catch (apiError) {
+      setError(apiError.message || 'Unable to create reserva.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDialogClose = () => {
+    if (!submitting) {
+      onClose?.();
+    }
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onClose={handleDialogClose} 
+      fullWidth 
+      maxWidth="lg"
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          maxWidth: '900px'
+        }
+      }}
+    >
+      <Box component="form" onSubmit={handleSubmit} noValidate>
+        <DialogTitle 
+          sx={{ 
+            pb: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <AddRoundedIcon sx={{ color: 'white', fontSize: 20 }} />
+            </Box>
+            <Stack>
+              <Typography variant="h5" fontWeight={700} color="text.primary">
+                Create reserva
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Add a new reservation to the system
+              </Typography>
+            </Stack>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={3}>
+            {error ? <Alert severity="error">{error}</Alert> : null}
+            {lookupError ? <Alert severity="warning">{lookupError}</Alert> : null}
+            {contactFetchError ? <Alert severity="warning">{contactFetchError}</Alert> : null}
+            <Paper
+              elevation={0}
+              variant="outlined"
+              sx={{ 
+                p: { xs: 2, md: 3 }, 
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                '&:hover': {
+                  borderColor: '#fb923c',
+                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.1)'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              <Stack spacing={2.25}>
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                  sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)'
+                    }}
+                  />
+                  <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                    Who &amp; where
+                  </Typography>
+                </Stack>
+                <Grid container spacing={3} sx={{ width: '100%' }}>
+                  {/* Contact field - full width */}
+                  <Grid item xs={12} sx={{ display: 'block' }}>
+                    <Autocomplete
+                      options={filteredContactOptions}
+                      value={formState.contact}
+                      loading={contactsLoading}
+                      onChange={(_event, newValue) =>
+                        setFormState((prev) => ({
+                          ...prev,
+                          contact: newValue || null,
+                          userType: prev.userType || newValue?.tenantType || ''
+                        }))
+                      }
+                      onInputChange={(_event, newInputValue) => setContactInputValue(newInputValue)}
+                      getOptionLabel={(option) => option?.name || option?.code || ''}
+                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                      noOptionsText={formState.userType ? 'No contacts for this user type' : 'No contacts found'}
+                      clearOnEscape
+                      fullWidth
+                      ListboxProps={{
+                        style: {
+                          maxHeight: '300px',
+                          minWidth: '100%'
+                        }
+                      }}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.id} style={{ 
+                          whiteSpace: 'nowrap', 
+                          overflow: 'visible',
+                          padding: '12px 16px',
+                          minHeight: '48px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}>
+                          <Typography variant="body2" sx={{ 
+                            overflow: 'visible',
+                            whiteSpace: 'nowrap',
+                            width: '100%',
+                            fontWeight: 500,
+                            color: '#1a1a1a'
+                          }}>
+                            {option.name || option.code || '—'}
+                          </Typography>
+                        </li>
+                      )}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Contact"
+                          placeholder="Search contact"
+                          required
+                          sx={{
+                            ...fieldStyles,
+                            '& .MuiOutlinedInput-root': {
+                              ...fieldStyles['& .MuiOutlinedInput-root'],
+                              fontSize: '16px',
+                              minHeight: '56px'
+                            }
+                          }}
+                          InputProps={{
+                            ...params.InputProps,
+                            startAdornment: (
+                              <>
+                                <InputAdornment position="start">
+                                  <SearchRoundedIcon fontSize="small" />
+                                </InputAdornment>
+                                {params.InputProps.startAdornment}
+                              </>
+                            ),
+                            endAdornment: (
+                              <>
+                                {contactsLoading ? <CircularProgress color="inherit" size={18} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            )
+                          }}
+                        />
+                      )}
+                      disabled={submitting}
+                    />
+                  </Grid>
+                  
+                  {/* Centro field - full width */}
+                  <Grid item xs={12} sx={{ display: 'block' }}>
+                    <Autocomplete
+                      fullWidth
+                      options={centroOptions}
+                      value={formState.centro}
+                      loading={lookupsLoading}
+                      onChange={(_event, newValue) => setFormState((prev) => ({ ...prev, centro: newValue || null }))}
+                      getOptionLabel={(option) => option?.name || ''}
+                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                      openOnFocus
+                      autoHighlight
+                      loadingText="Loading centros..."
+                      noOptionsText="No centros found"
+                      ListboxProps={{
+                        style: {
+                          maxHeight: '300px',
+                          minWidth: '100%'
+                        }
+                      }}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.id} style={{ 
+                          whiteSpace: 'nowrap', 
+                          overflow: 'visible',
+                          padding: '12px 16px',
+                          minHeight: '48px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}>
+                          <Typography variant="body2" sx={{ 
+                            overflow: 'visible',
+                            whiteSpace: 'nowrap',
+                            width: '100%',
+                            fontWeight: 500,
+                            color: '#1a1a1a'
+                          }}>
+                            {option.code ? `${option.code} · ` : ''}
+                            {option.name || option.code || '—'}
+                          </Typography>
+                        </li>
+                      )}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Centro"
+                          fullWidth
+                          required
+                          sx={{
+                            ...fieldStyles,
+                            '& .MuiOutlinedInput-root': {
+                              ...fieldStyles['& .MuiOutlinedInput-root'],
+                              minHeight: '56px'
+                            }
+                          }}
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {lookupsLoading ? <CircularProgress color="inherit" size={18} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            )
+                          }}
+                        />
+                      )}
+                      disabled={submitting}
+                    />
+                  </Grid>
+                  
+                  {/* Other fields in 2-column layout */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      select
+                      label="User type"
+                      value={formState.userType}
+                      onChange={handleUserTypeChange}
+                      fullWidth
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    >
+                      <MenuItem value="">All user types</MenuItem>
+                      {userTypeOptions.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Autocomplete
+                      fullWidth
+                      options={availableProducts}
+                      value={formState.producto}
+                      loading={lookupsLoading}
+                      onChange={(_event, newValue) => setFormState((prev) => ({ ...prev, producto: newValue || null }))}
+                      getOptionLabel={(option) => option?.name || ''}
+                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                      openOnFocus
+                      autoHighlight
+                      loadingText="Loading productos..."
+                      noOptionsText="No productos found"
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.id}>
+                          <Typography variant="body2">
+                            {option.name || '—'}
+                            {option.type ? ` · ${option.type}` : ''}
+                          </Typography>
+                        </li>
+                      )}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Producto"
+                          fullWidth
+                          required
+                          sx={fieldStyles}
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {lookupsLoading ? <CircularProgress color="inherit" size={18} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            )
+                          }}
+                        />
+                      )}
+                      disabled={submitting}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      select
+                      label="Reservation type"
+                      value={formState.reservationType}
+                      onChange={handleFieldChange('reservationType')}
+                      fullWidth
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    >
+                      {RESERVATION_TYPE_OPTIONS.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      select
+                      label="Status"
+                      value={formState.status}
+                      onChange={handleFieldChange('status')}
+                      fullWidth
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    >
+                      {STATUS_FORM_OPTIONS.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                </Grid>
+              </Stack>
+            </Paper>
+
+            <Paper
+              elevation={0}
+              variant="outlined"
+              sx={{ 
+                p: { xs: 2, md: 3 }, 
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                '&:hover': {
+                  borderColor: '#3b82f6',
+                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.1)'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              <Stack spacing={2.25}>
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+                    }}
+                  />
+                  <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                  Schedule &amp; status
+                </Typography>
+                </Stack>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      type="date"
+                      label="Date from"
+                      value={formState.dateFrom}
+                      onChange={handleFieldChange('dateFrom')}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      required
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      type="date"
+                      label="Date to"
+                      value={formState.dateTo}
+                      onChange={handleFieldChange('dateTo')}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      required
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    />
+                  </Grid>
+                  {isPerHour ? (
+                    <>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          type="time"
+                          label="Start time"
+                          value={formState.startTime}
+                          onChange={handleFieldChange('startTime')}
+                          InputLabelProps={{ shrink: true }}
+                          fullWidth
+                          required
+                          disabled={submitting}
+                          inputProps={{ step: 3600 }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              minHeight: '48px'
+                            }
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          type="time"
+                          label="End time"
+                          value={formState.endTime}
+                          onChange={handleFieldChange('endTime')}
+                          InputLabelProps={{ shrink: true }}
+                          fullWidth
+                          required
+                          disabled={submitting}
+                          inputProps={{ step: 3600 }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              minHeight: '48px'
+                            }
+                          }}
+                        />
+                      </Grid>
+                    </>
+                  ) : null}
+                  <Grid item xs={12} md={isPerHour ? 4 : 6}>
+                    <TextField
+                      label="Tarifa (€)"
+                      value={formState.tarifa}
+                      onChange={handleFieldChange('tarifa')}
+                      fullWidth
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    />
+                  </Grid>
+                </Grid>
+
+                {showWeekdays ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
+                    <Typography variant="overline" color="text.secondary">
+                      Weekdays
+                    </Typography>
+                    <FormGroup
+                      row
+                      sx={{
+                        gap: 1,
+                        flexWrap: 'wrap'
+                      }}
+                    >
+                      {WEEKDAY_OPTIONS.map((day) => (
+                        <FormControlLabel
+                          key={day.value}
+                          control={
+                            <Checkbox
+                              size="small"
+                              checked={formState.weekdays.includes(day.value)}
+                              onChange={handleWeekdayToggle(day.value)}
+                              disabled={submitting}
+                            />
+                          }
+                          label={day.shortLabel}
+                        />
+                      ))}
+                    </FormGroup>
+                    <Box sx={{ flexGrow: 1 }} />
+                    <FormControlLabel
+                      sx={{ ml: 'auto' }}
+                      control={
+                        <Switch
+                          size="small"
+                          checked={formState.openEnded}
+                          onChange={handleToggleOpenEnded}
+                          disabled={submitting}
+                        />
+                      }
+                      label="Open ended"
+                    />
+                  </Box>
+                ) : null}
+              </Stack>
+            </Paper>
+
+            <Paper
+              elevation={0}
+              variant="outlined"
+              sx={{ 
+                p: { xs: 2, md: 3 }, 
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                '&:hover': {
+                  borderColor: '#10b981',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.1)'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              <Stack spacing={2.25}>
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                    }}
+                  />
+                  <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                  Additional details
+                </Typography>
+                </Stack>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Attendees"
+                      value={formState.attendees}
+                      onChange={handleFieldChange('attendees')}
+                      fullWidth
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Configuración"
+                      value={formState.configuracion}
+                      onChange={handleFieldChange('configuracion')}
+                      fullWidth
+                      disabled={submitting}
+                      sx={fieldStyles}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Note"
+                      value={formState.note}
+                      onChange={handleFieldChange('note')}
+                      fullWidth
+                      disabled={submitting}
+                      multiline
+                      minRows={2}
+                      sx={fieldStyles}
+                    />
+                  </Grid>
+                </Grid>
+              </Stack>
+            </Paper>
+          </Stack>
+        </DialogContent>
+        <DialogActions 
+          sx={{ 
+            px: 3, 
+            py: 3,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+          }}
+        >
+          <Button 
+            onClick={handleDialogClose} 
+            disabled={submitting}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              color: 'text.secondary',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                color: 'text.primary'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            disabled={submitting}
+            sx={{
+              px: 3,
+              py: 1,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3)'
+              },
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
+            {submitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : 'Create reserva'}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
   );
 };
 
@@ -814,6 +1855,7 @@ const initialDateISO = () => {
 
 const Booking = ({ mode = 'user' }) => {
   const isAdmin = mode === 'admin';
+  const defaultAgendaUserType = '';
   const [view, setView] = useState('calendar');
   const [calendarDate, setCalendarDate] = useState(initialDateISO());
   const [agendaDate, setAgendaDate] = useState(initialDateISO());
@@ -825,7 +1867,75 @@ const Booking = ({ mode = 'user' }) => {
   const [filterCenter, setFilterCenter] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
   const [filterEmail, setFilterEmail] = useState('');
-  const [filterUserType, setFilterUserType] = useState('');
+  const [filterUserType, setFilterUserType] = useState(defaultAgendaUserType);
+  const [deletingBloqueoId, setDeletingBloqueoId] = useState(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null });
+
+  const handleOpenCreateDialog = useCallback(() => {
+    setCreateDialogOpen(true);
+  }, []);
+
+  const handleCloseCreateDialog = useCallback(() => {
+    setCreateDialogOpen(false);
+  }, []);
+
+  const handleReservaCreated = useCallback(
+    (result) => {
+      if (result?.bloqueos?.length) {
+        setBloqueos((prev) => {
+          const previous = Array.isArray(prev) ? prev : [];
+          const existingIds = new Set(previous.map((entry) => entry?.id));
+          const appended = result.bloqueos.filter((entry) => entry && !existingIds.has(entry.id));
+          if (appended.length === 0) {
+            return previous;
+          }
+          return [...previous, ...appended];
+        });
+
+        const primaryDate = result.bloqueos[0]?.fechaIni?.split?.('T')?.[0];
+        if (primaryDate) {
+          setCalendarDate(primaryDate);
+          setAgendaDate(primaryDate);
+        }
+      }
+      setCreateDialogOpen(false);
+    },
+    [setAgendaDate, setCalendarDate, setBloqueos]
+  );
+
+  const handleDeleteBloqueo = useCallback(
+    (bloqueoId) => {
+      if (!isAdmin || !bloqueoId) {
+        return;
+      }
+      setConfirmDialog({ open: true, bloqueoId });
+    },
+    [isAdmin]
+  );
+
+  const handleConfirmDelete = useCallback(async () => {
+    const bloqueoId = confirmDialog.bloqueoId;
+    if (!bloqueoId) {
+      setConfirmDialog({ open: false, bloqueoId: null });
+      return;
+    }
+    setDeletingBloqueoId(bloqueoId);
+    try {
+      await deleteBloqueo(bloqueoId);
+      setBloqueos((prev) => (Array.isArray(prev) ? prev.filter((item) => item?.id !== bloqueoId) : prev));
+    } catch (deleteError) {
+      console.error('Failed to delete bloqueo', deleteError);
+      setError(deleteError.message || 'Unable to delete bloqueo');
+    } finally {
+      setDeletingBloqueoId(null);
+      setConfirmDialog({ open: false, bloqueoId: null });
+    }
+  }, [confirmDialog, setBloqueos, setError]);
+
+  const handleCloseConfirm = useCallback(() => {
+    setConfirmDialog({ open: false, bloqueoId: null });
+  }, []);
 
   const monthKey = useMemo(() => calendarDate.slice(0, 7), [calendarDate]);
 
@@ -910,8 +2020,8 @@ const Booking = ({ mode = 'user' }) => {
   const calendarBloqueos = useMemo(() => {
     try {
       return (filteredBloqueos || []).filter((bloqueo) => {
-        const tenantType = resolveTenantType(bloqueo).toLowerCase();
-        if (tenantType !== 'usuario aulas') {
+        const productName = bloqueo?.producto?.nombre || '';
+        if (!ALLOWED_PRODUCT_NAMES.has(productName)) {
           return false;
         }
         return bloqueoAppliesToDate(bloqueo, calendarDate);
@@ -1031,15 +2141,47 @@ const Booking = ({ mode = 'user' }) => {
 
   return (
     <Stack spacing={4}>
-      <Stack spacing={1}>
-        <Typography variant="h5" fontWeight="bold" color="text.primary">
-          {isAdmin ? 'Workspace bloqueos' : 'My bloqueos'}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {isAdmin
-            ? 'Browse every bloqueo across BeWorking locations. Switch between calendar and agenda views to review occupancy, statuses, and tenants.'
-            : 'Track your bloqueos, check upcoming slots, and review bloqueo details from the calendar or agenda views.'}
-        </Typography>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        justifyContent="space-between"
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+      >
+        <Stack spacing={1}>
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
+            {isAdmin ? 'Workspace bloqueos' : 'My bloqueos'}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            {isAdmin
+              ? 'Browse every bloqueo across BeWorking locations. Switch between calendar and agenda views to review occupancy, statuses, and tenants.'
+              : 'Track your bloqueos, check upcoming slots, and review bloqueo details from the calendar or agenda views.'}
+          </Typography>
+        </Stack>
+        {isAdmin ? (
+          <Button
+            variant="contained"
+            startIcon={<AddRoundedIcon />}
+            onClick={handleOpenCreateDialog}
+            disableElevation
+            sx={{
+              minWidth: 160,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3)'
+              },
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
+            New reserva
+          </Button>
+        ) : null}
       </Stack>
 
       <Tabs value={view} onChange={handleViewChange} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -1264,6 +2406,7 @@ const Booking = ({ mode = 'user' }) => {
           <Typography variant="body2" color="text.secondary">
             {agendaRangeLabel}
           </Typography>
+          <Legend />
 
           {loading ? (
             <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
@@ -1272,14 +2415,49 @@ const Booking = ({ mode = 'user' }) => {
               </Box>
             </Paper>
           ) : (
-            <AgendaTable bloqueos={agendaBloqueos} onSelect={handleSelectBloqueo} />
+            <AgendaTable
+              bloqueos={agendaBloqueos}
+              onSelect={handleSelectBloqueo}
+              onDelete={isAdmin ? handleDeleteBloqueo : undefined}
+              deletingId={deletingBloqueoId}
+            />
           )}
         </Stack>
       )}
+      {isAdmin ? (
+        <CreateReservaDialog
+          open={createDialogOpen}
+          onClose={handleCloseCreateDialog}
+          onCreated={handleReservaCreated}
+          defaultDate={calendarDate}
+        />
+      ) : null}
 
       <BloqueoDetailsDialog bloqueo={selectedBloqueo} onClose={() => setSelectedBloqueo(null)} />
+      <Dialog
+        open={confirmDialog.open}
+        onClose={handleCloseConfirm}
+        aria-labelledby="delete-bloqueo-title"
+      >
+        <DialogTitle id="delete-bloqueo-title">Delete bloqueo</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will remove the bloqueo from the agenda. This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirm}>Cancel</Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+            disabled={Boolean(deletingBloqueoId)}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };
-
 export default Booking;

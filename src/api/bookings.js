@@ -48,3 +48,36 @@ export const fetchBloqueos = (params = {}, options = {}) => {
   const query = search.toString();
   return apiFetch(`/bloqueos${query ? `?${query}` : ''}`, options);
 };
+
+export const createReserva = (payload, options = {}) =>
+  apiFetch('/bookings', {
+    method: 'POST',
+    body: payload,
+    ...options
+  });
+
+const buildQueryString = (params = {}) => {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, value);
+    }
+  });
+  const query = search.toString();
+  return query ? `?${query}` : '';
+};
+
+export const fetchBookingContacts = (params = {}, options = {}) =>
+  apiFetch(`/bookings/lookups/contacts${buildQueryString(params)}`, options);
+
+export const fetchBookingCentros = (params = {}, options = {}) =>
+  apiFetch(`/bookings/lookups/centros${buildQueryString(params)}`, options);
+
+export const fetchBookingProductos = (params = {}, options = {}) =>
+  apiFetch(`/bookings/lookups/productos${buildQueryString(params)}`, options);
+
+export const deleteBloqueo = (bloqueoId, options = {}) =>
+  apiFetch(`/bloqueos/${bloqueoId}`, {
+    method: 'DELETE',
+    ...options
+  });
