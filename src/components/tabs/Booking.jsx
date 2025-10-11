@@ -4,6 +4,7 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -34,9 +35,25 @@ import Switch from '@mui/material/Switch';
 import IconButton from '@mui/material/IconButton';
 
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import EventRepeatRoundedIcon from '@mui/icons-material/EventRepeatRounded';
+import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
+import CalendarViewWeekRoundedIcon from '@mui/icons-material/CalendarViewWeekRounded';
+import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import FlagRoundedIcon from '@mui/icons-material/FlagRounded';
+import SettingsSuggestRoundedIcon from '@mui/icons-material/SettingsSuggestRounded';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
+import EuroRoundedIcon from '@mui/icons-material/EuroRounded';
+import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
 
 import {
   createReserva,
@@ -44,8 +61,10 @@ import {
   fetchBookingContacts,
   fetchBookingCentros,
   fetchBookingProductos,
-  deleteBloqueo
+  deleteBloqueo,
+  updateBloqueo
 } from '../../api/bookings.js';
+import { createInvoice, fetchInvoicePdfUrl } from '../../api/invoices.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 
 const DEFAULT_START_HOUR = 6;
@@ -193,6 +212,23 @@ const formatDate = (isoDate) => {
   }).format(date);
 };
 
+const formatDateTime = (isoString) => {
+  if (!isoString) {
+    return '—';
+  }
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) {
+    return isoString;
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+};
+
 const formatDateRange = (from, to) => {
   if (!from && !to) {
     return '—';
@@ -201,6 +237,40 @@ const formatDateRange = (from, to) => {
     return `${formatDate(from)} – ${formatDate(to)}`;
   }
   return formatDate(from ?? to);
+};
+
+const formatEuro = (value) => {
+  if (value == null) {
+    return '—';
+  }
+  const number = Number(value);
+  if (Number.isNaN(number)) {
+    return String(value);
+  }
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(number);
+};
+
+const buildInvoiceDescription = (bloqueo) => {
+  if (!bloqueo) {
+    return '';
+  }
+  const parts = [];
+  if (bloqueo.producto?.nombre) {
+    parts.push(bloqueo.producto.nombre);
+  }
+  if (bloqueo.centro?.nombre) {
+    parts.push(bloqueo.centro.nombre);
+  }
+  const startDate = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
+  const endDate = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : startDate;
+  if (startDate) {
+    if (endDate && endDate !== startDate) {
+      parts.push(`${startDate} – ${endDate}`);
+    } else {
+      parts.push(startDate);
+    }
+  }
+  return parts.filter(Boolean).join(' · ');
 };
 
 const formatTimeRange = (from, to) => {
@@ -240,8 +310,10 @@ const timeStringToMinutes = (value) => {
 
 const buildDefaultSlots = () => {
   const slots = [];
-  for (let hour = DEFAULT_START_HOUR; hour <= DEFAULT_END_HOUR; hour += 1) {
-    const label = `${hour.toString().padStart(2, '0')}:00`;
+  for (let minutes = DEFAULT_START_HOUR * 60; minutes <= DEFAULT_END_HOUR * 60; minutes += 30) {
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
+    const label = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     slots.push({ id: label, label });
   }
   return slots;
@@ -251,23 +323,23 @@ const buildTimeSlots = (bloqueos) => {
   if (!Array.isArray(bloqueos) || bloqueos.length === 0) {
     return buildDefaultSlots();
   }
-  let minHour = DEFAULT_START_HOUR;
-  let maxHour = DEFAULT_END_HOUR;
+  let minMinutes = DEFAULT_START_HOUR * 60;
+  let maxMinutes = DEFAULT_END_HOUR * 60;
   let hasTimeData = false;
 
   bloqueos.forEach((bloqueo) => {
     const startTime = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : null;
     const endTime = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[1] : null;
-    
+
     const start = timeStringToMinutes(startTime);
     const end = timeStringToMinutes(endTime);
     if (start != null) {
       hasTimeData = true;
-      minHour = Math.min(minHour, Math.floor(start / 60));
+      minMinutes = Math.min(minMinutes, start);
     }
     if (end != null) {
       hasTimeData = true;
-      maxHour = Math.max(maxHour, Math.ceil(end / 60));
+      maxMinutes = Math.max(maxMinutes, end);
     }
   });
 
@@ -275,17 +347,21 @@ const buildTimeSlots = (bloqueos) => {
     return buildDefaultSlots();
   }
 
-  if (maxHour <= minHour) {
-    maxHour = Math.min(23, minHour + 8);
+  if (maxMinutes <= minMinutes) {
+    maxMinutes = Math.min(23 * 60 + 30, minMinutes + 8 * 60);
   }
 
-  minHour = Math.max(DEFAULT_START_HOUR, Math.min(minHour, 23));
-  maxHour = Math.max(minHour + 1, Math.min(maxHour, 23));
+  minMinutes = Math.max(DEFAULT_START_HOUR * 60, Math.min(minMinutes, 23 * 60 + 30));
+  maxMinutes = Math.max(minMinutes + 30, Math.min(maxMinutes, 23 * 60 + 30));
 
-  return buildDefaultSlots().filter((slot) => {
-    const hourValue = Number.parseInt(slot.id.split(':')[0], 10);
-    return hourValue >= minHour && hourValue <= maxHour;
-  });
+  const slots = [];
+  for (let minutes = minMinutes; minutes <= maxMinutes; minutes += 30) {
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
+    const label = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    slots.push({ id: label, label });
+  }
+  return slots;
 };
 
 const bloqueoAppliesToDate = (bloqueo, isoDate) => {
@@ -340,6 +416,19 @@ const describeBloqueo = (bloqueo) => {
 };
 
 const ALLOWED_PRODUCT_NAMES = new Set(['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5']);
+
+const isAulaProduct = (bloqueo) => {
+  const productName = bloqueo?.producto?.nombre || '';
+  return ALLOWED_PRODUCT_NAMES.has(productName);
+};
+
+const resolveDisplayTenantType = (bloqueo) => {
+  const tenantType = resolveTenantType(bloqueo);
+  if (isAulaProduct(bloqueo)) {
+    return 'Usuario Aulas';
+  }
+  return tenantType;
+};
 
 const composeRooms = (bloqueos) => {
   const map = new Map();
@@ -710,7 +799,16 @@ const DEFAULT_TIME_RANGE = { start: '09:00', end: '10:00' };
 const DEFAULT_USER_TYPE = 'Usuario Aulas';
 const ALLOWED_CENTRO_IDS = new Set([1, 8]);
 
-const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
+const ReservaDialog = ({
+  open,
+  mode = 'create',
+  onClose,
+  onCreated,
+  onUpdated,
+  defaultDate,
+  initialBloqueo
+}) => {
+  const isEditMode = mode === 'edit';
     const fieldStyles = {
       '& .MuiOutlinedInput-root': {
         minHeight: '48px',
@@ -730,26 +828,156 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
         }
       }
     };
-  const buildInitialState = () => ({
-    contact: null,
-    centro: null,
-    producto: null,
-    userType: DEFAULT_USER_TYPE,
-    reservationType: DEFAULT_RESERVATION_TYPE,
-    dateFrom: defaultDate || initialDateISO(),
-    dateTo: defaultDate || initialDateISO(),
-    startTime: DEFAULT_TIME_RANGE.start,
-    endTime: DEFAULT_TIME_RANGE.end,
-    weekdays: [],
-    openEnded: false,
-    tarifa: '',
-    attendees: '',
-    configuracion: '',
-    note: '',
-    status: STATUS_FORM_OPTIONS[0]
-  });
+  const dialogTitle = isEditMode ? 'Edit bloqueo' : 'Create reserva';
+  const dialogSubtitle = isEditMode
+    ? 'Update the bloqueo details before saving.'
+    : 'Add a new reservation to the system';
+  const primaryActionLabel = isEditMode ? 'Save changes' : 'Create reserva';
+  const DialogIcon = isEditMode ? EditRoundedIcon : AddRoundedIcon;
 
-  const [formState, setFormState] = useState(buildInitialState);
+  const buildInitialState = useCallback(() => {
+    const fallbackDate = defaultDate || initialDateISO();
+    const extractDate = (isoString, fallback) => {
+      if (!isoString) {
+        return fallback;
+      }
+      const [datePart] = isoString.split('T');
+      return datePart || fallback;
+    };
+    const extractTime = (isoString) => {
+      if (!isoString) {
+        return '';
+      }
+      const timePart = isoString.split('T')[1] || '';
+      return timePart.slice(0, 5);
+    };
+
+    if (isEditMode && initialBloqueo) {
+      const startDate = extractDate(initialBloqueo.fechaIni, fallbackDate);
+      const endDate = extractDate(initialBloqueo.fechaFin, startDate);
+      const startTimeRaw = extractTime(initialBloqueo.fechaIni);
+      const endTimeRaw = extractTime(initialBloqueo.fechaFin);
+
+      const contact = initialBloqueo.cliente
+        ? {
+            id: initialBloqueo.cliente.id,
+            name: initialBloqueo.cliente.nombre || initialBloqueo.cliente.name || '',
+            email: initialBloqueo.cliente.email || '',
+            tenantType:
+              initialBloqueo.cliente.tipoTenant ||
+              initialBloqueo.cliente.tenantType ||
+              resolveDisplayTenantType(initialBloqueo)
+          }
+        : null;
+
+      const centro = initialBloqueo.centro
+        ? {
+            id: initialBloqueo.centro.id,
+            name: initialBloqueo.centro.nombre || initialBloqueo.centro.name || '',
+            code:
+              initialBloqueo.centro.code ||
+              initialBloqueo.centro.codigo ||
+              initialBloqueo.centro.centroCode ||
+              initialBloqueo.centro.codeCenter ||
+              ''
+          }
+        : null;
+
+      const reservationTypeRaw =
+        initialBloqueo.tipoReserva ||
+        initialBloqueo.reservationType ||
+        initialBloqueo.tipo ||
+        DEFAULT_RESERVATION_TYPE;
+
+      const reservationType =
+        RESERVATION_TYPE_OPTIONS.find(
+          (option) => option.toLowerCase() === String(reservationTypeRaw || '').toLowerCase()
+        ) || DEFAULT_RESERVATION_TYPE;
+      const normalizedReservationType = reservationType.toLowerCase();
+
+      const producto = initialBloqueo.producto
+        ? {
+            id: initialBloqueo.producto.id,
+            name: initialBloqueo.producto.nombre || initialBloqueo.producto.name || '',
+            type: initialBloqueo.producto.tipo || initialBloqueo.producto.type,
+            centerCode:
+              initialBloqueo.producto.centerCode ||
+              initialBloqueo.producto.centroCodigo ||
+              initialBloqueo.producto.centroCode ||
+              (centro?.code ? centro.code.toLowerCase() : undefined)
+          }
+        : null;
+
+      const weekSources =
+        initialBloqueo.weekdays || initialBloqueo.dias || initialBloqueo.days || initialBloqueo.semana;
+      const weekdays = Array.isArray(weekSources)
+        ? weekSources
+            .map((day) => (typeof day === 'string' ? day.toLowerCase() : day?.value || ''))
+            .filter(Boolean)
+        : [];
+
+      const statusOption = (() => {
+        const rawStatus = initialBloqueo.estado;
+        if (STATUS_FORM_OPTIONS.includes(rawStatus)) {
+          return rawStatus;
+        }
+        const key = mapStatusKey(rawStatus);
+        if (key === 'paid') {
+          return 'Paid';
+        }
+        if (key === 'invoiced') {
+          return 'Invoiced';
+        }
+        return 'Created';
+      })();
+
+      return {
+        contact,
+        centro,
+        producto,
+        userType: contact?.tenantType || DEFAULT_USER_TYPE,
+        reservationType,
+        dateFrom: startDate,
+        dateTo: endDate,
+        startTime: startTimeRaw || (normalizedReservationType === 'por horas' ? DEFAULT_TIME_RANGE.start : ''),
+        endTime: endTimeRaw || (normalizedReservationType === 'por horas' ? DEFAULT_TIME_RANGE.end : ''),
+        weekdays,
+        openEnded: Boolean(initialBloqueo.openEnded),
+        tarifa:
+          initialBloqueo.tarifa != null && initialBloqueo.tarifa !== ''
+            ? String(initialBloqueo.tarifa)
+            : '',
+        attendees:
+          initialBloqueo.asistentes != null && initialBloqueo.asistentes !== ''
+            ? String(initialBloqueo.asistentes)
+            : '',
+        configuracion: initialBloqueo.configuracion ?? '',
+        note: initialBloqueo.nota ?? '',
+        status: statusOption
+      };
+    }
+
+    return {
+      contact: null,
+      centro: null,
+      producto: null,
+      userType: DEFAULT_USER_TYPE,
+      reservationType: DEFAULT_RESERVATION_TYPE,
+      dateFrom: fallbackDate,
+      dateTo: fallbackDate,
+      startTime: DEFAULT_TIME_RANGE.start,
+      endTime: DEFAULT_TIME_RANGE.end,
+      weekdays: [],
+      openEnded: false,
+      tarifa: '',
+      attendees: '',
+      configuracion: '',
+      note: '',
+      status: STATUS_FORM_OPTIONS[0]
+    };
+  }, [defaultDate, initialBloqueo, isEditMode]);
+
+  const [formState, setFormState] = useState(() => buildInitialState());
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -770,7 +998,7 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
     setFormState(buildInitialState());
     setError('');
     setContactInputValue('');
-  }, [open, defaultDate]);
+  }, [open, buildInitialState]);
 
   useEffect(() => {
     if (!open) {
@@ -788,8 +1016,44 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
           ? centers.filter((center) => ALLOWED_CENTRO_IDS.has(Number(center?.id)))
           : [];
 
+        if (isEditMode && initialBloqueo?.centro?.id) {
+          const exists = filteredCenters.some((center) => center?.id === initialBloqueo.centro.id);
+          if (!exists) {
+            filteredCenters.push({
+              id: initialBloqueo.centro.id,
+              name: initialBloqueo.centro.nombre || initialBloqueo.centro.name || '',
+              code:
+                initialBloqueo.centro.code ||
+                initialBloqueo.centro.codigo ||
+                initialBloqueo.centro.centroCode ||
+                initialBloqueo.centro.codeCenter ||
+                ''
+            });
+          }
+        }
+
+        const productList = Array.isArray(products) ? products.slice() : [];
+        if (isEditMode && initialBloqueo?.producto?.id) {
+          const exists = productList.some((product) => product?.id === initialBloqueo.producto.id);
+          if (!exists) {
+            productList.push({
+              id: initialBloqueo.producto.id,
+              name: initialBloqueo.producto.nombre || initialBloqueo.producto.name || '',
+              type: initialBloqueo.producto.tipo || initialBloqueo.producto.type,
+              centerCode:
+                initialBloqueo.producto.centerCode ||
+                initialBloqueo.producto.centroCodigo ||
+                initialBloqueo.producto.centroCode ||
+                (initialBloqueo.centro?.code ||
+                  initialBloqueo.centro?.codigo ||
+                  initialBloqueo.centro?.centroCode ||
+                  '')
+            });
+          }
+        }
+
         setCentroOptions(filteredCenters);
-        setProductOptions(Array.isArray(products) ? products : []);
+        setProductOptions(productList);
       })
       .catch((lookupErr) => {
         if (active) {
@@ -804,7 +1068,7 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
     return () => {
       active = false;
     };
-  }, [open]);
+  }, [open, initialBloqueo, isEditMode]);
 
   useEffect(() => {
     if (!open) {
@@ -827,7 +1091,22 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
           if (!active) {
             return;
           }
-          setContactOptions(Array.isArray(contacts) ? contacts : []);
+          const list = Array.isArray(contacts) ? contacts.slice() : [];
+          if (isEditMode && initialBloqueo?.cliente?.id) {
+            const exists = list.some((contact) => contact?.id === initialBloqueo.cliente.id);
+            if (!exists) {
+              list.push({
+                id: initialBloqueo.cliente.id,
+                name: initialBloqueo.cliente.nombre || initialBloqueo.cliente.name || '',
+                email: initialBloqueo.cliente.email || '',
+                tenantType:
+                  initialBloqueo.cliente.tipoTenant ||
+                  initialBloqueo.cliente.tenantType ||
+                  resolveDisplayTenantType(initialBloqueo)
+              });
+            }
+          }
+          setContactOptions(list);
         })
         .catch((fetchError) => {
           if (active) {
@@ -845,7 +1124,7 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
       active = false;
       clearTimeout(handler);
     };
-  }, [open, contactInputValue, formState.userType]);
+  }, [open, contactInputValue, formState.userType, initialBloqueo, isEditMode]);
 
   const userTypeOptions = useMemo(() => {
     const next = new Set([DEFAULT_USER_TYPE, ...CANONICAL_USER_TYPES]);
@@ -958,29 +1237,10 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
     }
 
     if (formState.dateFrom > formState.dateTo) {
-      setError('Start date must be before or equal to end date.');
+      setError('Start date must be before end date.');
       return;
     }
 
-    if (isPerHour) {
-      if (!formState.startTime || !formState.endTime) {
-        setError('Both start and end times are required for hourly bookings.');
-        return;
-      }
-      if (formState.startTime >= formState.endTime) {
-        setError('End time must be after start time.');
-        return;
-      }
-    }
-
-    const tarifaValue = String(formState.tarifa ?? '').trim();
-    const tarifa = tarifaValue === '' ? null : Number(tarifaValue);
-    if (tarifaValue !== '' && Number.isNaN(tarifa)) {
-      setError('Tarifa must be a valid number.');
-      return;
-    }
-
-    const attendeesValue = String(formState.attendees ?? '').trim();
     const attendees = attendeesValue === '' ? null : Number(attendeesValue);
     if (attendeesValue !== '' && !Number.isInteger(attendees)) {
       setError('Attendees must be a whole number.');
@@ -1026,10 +1286,17 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
 
     setSubmitting(true);
     try {
-      const response = await createReserva(payload);
-      onCreated?.(response);
+      if (isEditMode && initialBloqueo?.id) {
+        const response = await updateBloqueo(initialBloqueo.id, payload);
+        onUpdated?.(response);
+      } else {
+        const response = await createReserva(payload);
+        onCreated?.(response);
+      }
     } catch (apiError) {
-      setError(apiError.message || 'Unable to create reserva.');
+      setError(
+        apiError.message || (isEditMode ? 'Unable to update bloqueo.' : 'Unable to create reserva.')
+      );
     } finally {
       setSubmitting(false);
     }
@@ -1076,14 +1343,14 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
                 justifyContent: 'center'
               }}
             >
-              <AddRoundedIcon sx={{ color: 'white', fontSize: 20 }} />
+              <DialogIcon sx={{ color: 'white', fontSize: 20 }} />
             </Box>
             <Stack>
               <Typography variant="h5" fontWeight={700} color="text.primary">
-                Create reserva
+                {dialogTitle}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Add a new reservation to the system
+                {dialogSubtitle}
               </Typography>
             </Stack>
           </Stack>
@@ -1649,7 +1916,7 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
               transition: 'all 0.2s ease-in-out'
             }}
           >
-            {submitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : 'Create reserva'}
+            {submitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : primaryActionLabel}
           </Button>
         </DialogActions>
       </Box>
@@ -1657,186 +1924,639 @@ const CreateReservaDialog = ({ open, onClose, onCreated, defaultDate }) => {
   );
 };
 
-const BookingDetailsDialog = ({ booking, onClose }) => {
-  const open = Boolean(booking);
-  const daysLabel = useMemo(() => {
-    if (!booking?.days || booking.days.length === 0) {
-      return '—';
-    }
-    return booking.days
-      .map((day) => day.charAt(0).toUpperCase() + day.slice(1))
-      .join(', ');
-  }, [booking]);
+const DetailTile = ({ icon, label, primary, secondary, children }) => {
+  const shouldShowDash =
+    primary === undefined ||
+    primary === null ||
+    (typeof primary === 'string' && primary.trim() === '');
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Booking details</DialogTitle>
-      <DialogContent dividers>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        height: '100%',
+        borderColor: 'rgba(148, 163, 184, 0.3)',
+        backgroundColor: '#fff',
+        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
+      }}
+    >
+      <Stack spacing={1.5}>
+        <Stack direction="row" spacing={1.75} alignItems="center">
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: 1.5,
+              display: 'grid',
+              placeItems: 'center',
+              bgcolor: 'rgba(29, 78, 216, 0.1)',
+              color: '#1d4ed8'
+            }}
+          >
+            {icon}
+          </Box>
+          <Stack spacing={0.25}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 600, letterSpacing: 0.6 }}
+            >
+              {label}
+            </Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {shouldShowDash ? '—' : primary}
+            </Typography>
+          </Stack>
+        </Stack>
+        {secondary ? (
+          <Typography variant="body2" color="text.secondary">
+            {secondary}
+          </Typography>
+        ) : null}
+        {children}
+      </Stack>
+    </Paper>
+  );
+};
+
+const BookingDetailsDialog = ({ booking, onClose }) => {
+  const open = Boolean(booking);
+  const statusKey = mapStatusKey(booking?.status);
+  const statusColor = statusStyles[statusKey] || statusStyles.created;
+  const statusLabel = statusLabels[statusKey] || booking?.status || 'Created';
+  const clientInitials = useMemo(() => getInitials(booking?.clientName), [booking]);
+  const attendees =
+    typeof booking?.attendees === 'number' ? booking.attendees : booking?.attendees || '—';
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          overflow: 'hidden',
+          boxShadow: '0 40px 80px rgba(15, 23, 42, 0.25)'
+        }
+      }}
+    >
+      <DialogTitle sx={{ p: 0 }}>
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 2,
+            background: 'linear-gradient(135deg, rgba(30, 64, 175, 0.16) 0%, rgba(14, 116, 144, 0.12) 100%)',
+            borderBottom: '1px solid rgba(148, 163, 184, 0.25)'
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar
+                sx={{
+                  bgcolor: '#1d4ed8',
+                  color: '#fff',
+                  width: 48,
+                  height: 48,
+                  fontWeight: 600,
+                  textTransform: 'uppercase'
+                }}
+              >
+                {clientInitials}
+              </Avatar>
+              <Stack spacing={0.5}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {booking?.clientName || 'Booking details'}
+                </Typography>
+                {booking?.clientEmail ? (
+                  <Typography variant="body2" color="text.secondary">
+                    {booking.clientEmail}
+                  </Typography>
+                ) : null}
+              </Stack>
+            </Stack>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              {booking ? (
+                <Chip
+                  label={statusLabel}
+                  size="small"
+                  sx={{
+                    bgcolor: statusColor.bgcolor,
+                    color: statusColor.color,
+                    borderRadius: 1.5,
+                    fontWeight: 600,
+                    border: '1px solid',
+                    borderColor: statusColor.borderColor
+                  }}
+                />
+              ) : null}
+              <IconButton
+                aria-label="Close booking details"
+                edge="end"
+                onClick={onClose}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.6)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.9)'
+                  }
+                }}
+              >
+                <CloseRoundedIcon />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Box>
+      </DialogTitle>
+      <DialogContent
+        dividers
+        sx={{
+          px: 3,
+          py: 3,
+          backgroundColor: 'rgba(248, 250, 252, 0.9)'
+        }}
+      >
         {booking ? (
-          <Stack spacing={2}>
-            <Grid container spacing={2}>
+          <Stack spacing={2.5}>
+            <Grid container spacing={2.5}>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Client
-                </Typography>
-                <Typography variant="body2">{booking.clientName || '—'}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {booking.clientEmail || ''}
-                </Typography>
+                <DetailTile
+                  icon={<LocationOnRoundedIcon fontSize="small" />}
+                  label="Center / Room"
+                  primary={booking.centerName || booking.centerCode}
+                  secondary={booking.productName || booking.productType || '—'}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Center / Room
-                </Typography>
-                <Typography variant="body2">
-                  {booking.centerName || booking.centerCode || '—'}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {booking.productName || booking.productType || '—'}
-                </Typography>
+                <DetailTile
+                  icon={<CalendarMonthRoundedIcon fontSize="small" />}
+                  label="Date range"
+                  primary={formatDateRange(booking.dateFrom, booking.dateTo)}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Date range
-                </Typography>
-                <Typography variant="body2">
-                  {formatDateRange(booking.dateFrom, booking.dateTo)}
-                </Typography>
+                <DetailTile
+                  icon={<AccessTimeRoundedIcon fontSize="small" />}
+                  label="Time"
+                  primary={formatTimeRange(booking.timeFrom, booking.timeTo)}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Time
-                </Typography>
-                <Typography variant="body2">
-                  {formatTimeRange(booking.timeFrom, booking.timeTo)}
-                </Typography>
+                <DetailTile
+                  icon={<EventRepeatRoundedIcon fontSize="small" />}
+                  label="Reservation type"
+                  primary={booking.reservationType}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Reservation type
-                </Typography>
-                <Typography variant="body2">{booking.reservationType || '—'}</Typography>
+                <DetailTile
+                  icon={<CalendarViewWeekRoundedIcon fontSize="small" />}
+                  label="Days"
+                  primary={
+                    booking.days && booking.days.length
+                      ? `${booking.days.length} selected`
+                      : 'No days selected'
+                  }
+                >
+                  {booking.days && booking.days.length ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 1,
+                        flexWrap: 'wrap'
+                      }}
+                    >
+                      {booking.days.map((day) => {
+                        const chipLabel = day.charAt(0).toUpperCase() + day.slice(1);
+                        return (
+                          <Chip
+                            key={day}
+                            label={chipLabel}
+                            size="small"
+                            sx={{
+                              bgcolor: 'rgba(79, 70, 229, 0.16)',
+                              color: '#4338ca',
+                              fontWeight: 600
+                            }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  ) : null}
+                </DetailTile>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Status
-                </Typography>
-                <Typography variant="body2">{statusLabels[mapStatusKey(booking.status)]}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Days
-                </Typography>
-                <Typography variant="body2">{daysLabel}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Attendees
-                </Typography>
-                <Typography variant="body2">
-                  {typeof booking.attendees === 'number' ? booking.attendees : '—'}
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Notes
-                </Typography>
-                <Typography variant="body2">{booking.notes || '—'}</Typography>
+                <DetailTile
+                  icon={<PeopleAltRoundedIcon fontSize="small" />}
+                  label="Attendees"
+                  primary={attendees}
+                />
               </Grid>
             </Grid>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2.5,
+                borderRadius: 2,
+                borderColor: 'rgba(148, 163, 184, 0.3)',
+                backgroundColor: '#fff',
+                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
+              }}
+            >
+              <Stack spacing={1.5}>
+                <Stack direction="row" spacing={1.75} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: 'grid',
+                      placeItems: 'center',
+                      bgcolor: 'rgba(14, 116, 144, 0.1)',
+                      color: '#0e7490'
+                    }}
+                  >
+                    <StickyNote2RoundedIcon fontSize="small" />
+                  </Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Notes
+                  </Typography>
+                </Stack>
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {booking.notes && booking.notes.trim()
+                    ? booking.notes
+                    : 'No notes have been added for this booking.'}
+                </Typography>
+              </Stack>
+            </Paper>
           </Stack>
         ) : null}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2.5,
+          bgcolor: 'rgba(241, 245, 249, 0.8)'
+        }}
+      >
+        {canEdit ? (
+          <Button
+            onClick={() => {
+              if (bloqueo) {
+                onEdit?.(bloqueo);
+              }
+              onClose?.();
+            }}
+            variant="outlined"
+            startIcon={<EditRoundedIcon fontSize="small" />}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Edit bloqueo
+          </Button>
+        ) : null}
+        <Button onClick={onClose} variant="contained" sx={{ textTransform: 'none', fontWeight: 600 }}>
+          Close
+        </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-const BloqueoDetailsDialog = ({ bloqueo, onClose }) => {
+const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
   const open = Boolean(bloqueo);
+  const canEdit = Boolean(onEdit);
+  const statusKey = mapStatusKey(bloqueo?.estado);
+  const statusColor = statusStyles[statusKey] || statusStyles.created;
+  const statusLabel = bloqueo?.estado || statusLabels[statusKey] || 'Created';
+  const canInvoice = Boolean(onInvoice) && statusKey !== 'invoiced';
+  const infoChips = useMemo(() => {
+    if (!bloqueo) {
+      return [];
+    }
+    const items = [];
+    if (bloqueo.tarifa != null && bloqueo.tarifa !== '') {
+      items.push({ label: `Rate €${bloqueo.tarifa}`, color: statusStyles.paid });
+    }
+    if (Number.isFinite(bloqueo.asistentes)) {
+      items.push({ label: `${bloqueo.asistentes} attendees`, color: statusStyles.available });
+    }
+    if (bloqueo.configuracion) {
+      items.push({ label: `Setup ${bloqueo.configuracion}`, color: statusStyles.invoiced });
+    }
+    return items;
+  }, [bloqueo]);
+  const clientInitials = useMemo(
+    () => getInitials(bloqueo?.cliente?.nombre || bloqueo?.producto?.nombre || 'B'),
+    [bloqueo]
+  );
+  const attendeesLabel =
+    bloqueo && (Number.isFinite(bloqueo.asistentes) || bloqueo.asistentes === 0)
+      ? bloqueo.asistentes
+      : bloqueo?.asistentes || '—';
+  const tarifaLabel = useMemo(() => {
+    if (!bloqueo || bloqueo.tarifa == null || bloqueo.tarifa === '') {
+      return '—';
+    }
+    const numeric = Number(bloqueo.tarifa);
+    if (!Number.isNaN(numeric)) {
+      return `€${numeric.toLocaleString()}`;
+    }
+    return bloqueo.tarifa;
+  }, [bloqueo]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Bloqueo details</DialogTitle>
-      <DialogContent dividers>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          overflow: 'hidden',
+          boxShadow: '0 40px 80px rgba(15, 23, 42, 0.22)'
+        }
+      }}
+    >
+      <DialogTitle sx={{ p: 0 }}>
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 2,
+            background: 'linear-gradient(135deg, rgba(30, 64, 175, 0.18) 0%, rgba(56, 189, 248, 0.18) 100%)',
+            borderBottom: '1px solid rgba(148, 163, 184, 0.25)'
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar
+                sx={{
+                  bgcolor: '#1d4ed8',
+                  color: '#fff',
+                  width: 48,
+                  height: 48,
+                  fontWeight: 600,
+                  textTransform: 'uppercase'
+                }}
+              >
+                {clientInitials}
+              </Avatar>
+              <Stack spacing={0.5}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {bloqueo?.cliente?.nombre || bloqueo?.producto?.nombre || 'Bloqueo details'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {[bloqueo?.centro?.nombre, bloqueo?.producto?.nombre].filter(Boolean).join(' · ') || '—'}
+                </Typography>
+                {bloqueo?.cliente?.email ? (
+                  <Typography variant="caption" color="text.secondary">
+                    {bloqueo.cliente.email}
+                  </Typography>
+                ) : null}
+              </Stack>
+            </Stack>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              {bloqueo ? (
+                <Chip
+                  label={statusLabel}
+                  size="small"
+                  sx={{
+                    bgcolor: statusColor.bgcolor,
+                    color: statusColor.color,
+                    borderRadius: 1.5,
+                    fontWeight: 600,
+                    border: '1px solid',
+                    borderColor: statusColor.borderColor
+                  }}
+                />
+              ) : null}
+              <IconButton
+                aria-label="Close bloqueo details"
+                edge="end"
+                onClick={onClose}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.6)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.9)'
+                  }
+                }}
+              >
+                <CloseRoundedIcon />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Box>
+      </DialogTitle>
+      <DialogContent
+        dividers
+        sx={{
+          px: 3,
+          py: 3,
+          backgroundColor: 'rgba(248, 250, 252, 0.9)'
+        }}
+      >
         {bloqueo ? (
-          <Stack spacing={2}>
-            <Grid container spacing={2}>
+          <Stack spacing={2.5}>
+            {infoChips.length ? (
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {infoChips.map((chip) => (
+                  <Chip
+                    key={chip.label}
+                    label={chip.label}
+                    size="small"
+                    sx={{
+                      bgcolor: chip.color.bgcolor,
+                      color: chip.color.color,
+                      borderRadius: 1.5,
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: chip.color.borderColor
+                    }}
+                  />
+                ))}
+              </Stack>
+            ) : null}
+            <Grid container spacing={2.5}>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Cliente
-                </Typography>
-                <Typography variant="body2">{bloqueo.cliente?.nombre || '—'}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {bloqueo.cliente?.email || ''}
-                </Typography>
+                <DetailTile
+                  icon={<PersonRoundedIcon fontSize="small" />}
+                  label="Client"
+                  primary={bloqueo.cliente?.nombre}
+                  secondary={bloqueo.cliente?.email}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Centro / Producto
-                </Typography>
-                <Typography variant="body2">
-                  {bloqueo.centro?.nombre || '—'}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {bloqueo.producto?.nombre || '—'}
-                </Typography>
+                <DetailTile
+                  icon={<LocationOnRoundedIcon fontSize="small" />}
+                  label="Center / Product"
+                  primary={bloqueo.centro?.nombre}
+                  secondary={bloqueo.producto?.nombre}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Fecha inicio
-                </Typography>
-                <Typography variant="body2">
-                  {bloqueo.fechaIni ? new Date(bloqueo.fechaIni).toLocaleString() : '—'}
-                </Typography>
+                <DetailTile
+                  icon={<PlayArrowRoundedIcon fontSize="small" />}
+                  label="Start"
+                  primary={formatDateTime(bloqueo.fechaIni)}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Fecha fin
-                </Typography>
-                <Typography variant="body2">
-                  {bloqueo.fechaFin ? new Date(bloqueo.fechaFin).toLocaleString() : '—'}
-                </Typography>
+                <DetailTile
+                  icon={<FlagRoundedIcon fontSize="small" />}
+                  label="End"
+                  primary={formatDateTime(bloqueo.fechaFin)}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Estado
-                </Typography>
-                <Typography variant="body2">{bloqueo.estado || '—'}</Typography>
+                <DetailTile
+                  icon={<SettingsSuggestRoundedIcon fontSize="small" />}
+                  label="Configuration"
+                  primary={bloqueo.configuracion}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Asistentes
-                </Typography>
-                <Typography variant="body2">
-                  {bloqueo.asistentes || '—'}
-                </Typography>
+                <DetailTile
+                  icon={<GroupRoundedIcon fontSize="small" />}
+                  label="Attendees"
+                  primary={attendeesLabel}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Tarifa
-                </Typography>
-                <Typography variant="body2">
-                  {bloqueo.tarifa ? `€${bloqueo.tarifa}` : '—'}
-                </Typography>
+                <DetailTile
+                  icon={<EuroRoundedIcon fontSize="small" />}
+                  label="Rate"
+                  primary={tarifaLabel}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Configuración
-                </Typography>
-                <Typography variant="body2">{bloqueo.configuracion || '—'}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Nota
-                </Typography>
-                <Typography variant="body2">{bloqueo.nota || '—'}</Typography>
+                <DetailTile
+                  icon={<CalendarTodayRoundedIcon fontSize="small" />}
+                  label="Created"
+                  primary={formatDateTime(bloqueo.creacionFecha)}
+                />
               </Grid>
             </Grid>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2.5,
+                borderRadius: 2,
+                borderColor: 'rgba(148, 163, 184, 0.3)',
+                backgroundColor: '#fff',
+                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
+              }}
+            >
+              <Stack spacing={1.5}>
+                <Stack direction="row" spacing={1.75} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: 'grid',
+                      placeItems: 'center',
+                      bgcolor: 'rgba(14, 116, 144, 0.1)',
+                      color: '#0e7490'
+                    }}
+                  >
+                    <StickyNote2RoundedIcon fontSize="small" />
+                  </Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Note
+                  </Typography>
+                </Stack>
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {bloqueo.nota && bloqueo.nota.trim()
+                    ? bloqueo.nota
+                    : 'No notes have been added for this bloqueo.'}
+                </Typography>
+              </Stack>
+            </Paper>
           </Stack>
         ) : null}
+      </DialogContent>
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2.5,
+          bgcolor: 'rgba(241, 245, 249, 0.8)'
+        }}
+      >
+        {canInvoice ? (
+          <Button
+            onClick={() => {
+              if (bloqueo) {
+                onInvoice?.(bloqueo);
+              }
+            }}
+            variant="contained"
+            color="primary"
+            disabled={invoiceLoading}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Invoice bloqueo
+          </Button>
+        ) : null}
+        {canEdit ? (
+          <Button
+            onClick={() => {
+              if (bloqueo) {
+                onEdit?.(bloqueo);
+              }
+              onClose?.();
+            }}
+            variant="outlined"
+            startIcon={<EditRoundedIcon fontSize="small" />}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Edit bloqueo
+          </Button>
+        ) : null}
+        <Button onClick={onClose} variant="contained">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const InvoicePreviewDialog = ({ open, invoice, pdfUrl, loading, onClose }) => {
+  return (
+    <Dialog open={Boolean(open)} onClose={onClose} maxWidth="lg" fullWidth>
+      <DialogTitle>Invoice preview</DialogTitle>
+      <DialogContent sx={{ minHeight: 480 }}>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress />
+          </Box>
+        ) : pdfUrl ? (
+          <iframe title="Invoice PDF" src={pdfUrl} style={{ width: '100%', height: '600px', border: 'none' }} />
+        ) : (
+          <Stack spacing={2}>
+            <Typography variant="body1">Invoice has been created.</Typography>
+            <Typography variant="body2" color="text.secondary">
+              No preview available. Use the Invoices tab to download or open the PDF.
+            </Typography>
+            {invoice?.id ? (
+              <Button
+                variant="contained"
+                onClick={() => {
+                  // open the invoice page in a new tab
+                  const url = `/admin/invoices/${invoice.id}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                Open invoice page
+              </Button>
+            ) : null}
+          </Stack>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
@@ -1870,7 +2590,13 @@ const Booking = ({ mode = 'user' }) => {
   const [filterUserType, setFilterUserType] = useState(defaultAgendaUserType);
   const [deletingBloqueoId, setDeletingBloqueoId] = useState(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editBloqueo, setEditBloqueo] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null });
+  const [invoiceDialog, setInvoiceDialog] = useState({ open: false, bloqueo: null });
+  const [invoicePreview, setInvoicePreview] = useState({ open: false, invoice: null, pdfUrl: null, loading: false });
+  const [invoiceForm, setInvoiceForm] = useState({ description: '', vat: '21', reference: '' });
+  const [invoiceSubmitting, setInvoiceSubmitting] = useState(false);
+  const [invoiceError, setInvoiceError] = useState('');
 
   const handleOpenCreateDialog = useCallback(() => {
     setCreateDialogOpen(true);
@@ -1878,6 +2604,130 @@ const Booking = ({ mode = 'user' }) => {
 
   const handleCloseCreateDialog = useCallback(() => {
     setCreateDialogOpen(false);
+  }, []);
+
+  const handleStartEditBloqueo = useCallback(
+    (bloqueo) => {
+      if (!bloqueo) {
+        return;
+      }
+      setSelectedBloqueo(null);
+      setEditBloqueo(bloqueo);
+    },
+    [setSelectedBloqueo]
+  );
+
+  const handleStartInvoice = useCallback(
+    (bloqueo) => {
+      if (!bloqueo) {
+        return;
+      }
+      setSelectedBloqueo(null);
+      setInvoiceDialog({ open: true, bloqueo });
+      setInvoiceForm({
+        description: buildInvoiceDescription(bloqueo),
+        vat: '21',
+        reference: ''
+      });
+      setInvoiceError('');
+    },
+    []
+  );
+
+  const handleCloseInvoiceDialog = useCallback(() => {
+    if (invoiceSubmitting) {
+      return;
+    }
+    setInvoiceDialog({ open: false, bloqueo: null });
+    setInvoiceForm({ description: '', vat: '21', reference: '' });
+    setInvoiceError('');
+  }, [invoiceSubmitting]);
+
+  const handleInvoiceFieldChange = useCallback(
+    (field) => (event) => {
+      const value = event.target.value;
+      setInvoiceForm((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
+  function handleBloqueoUpdated(result) {
+    const updated =
+      (Array.isArray(result?.bloqueos) && result.bloqueos[0]) ||
+      result?.bloqueo ||
+      result;
+
+    if (updated?.id) {
+      setBloqueos((prev) => {
+        if (!Array.isArray(prev)) {
+          return prev;
+        }
+        let matched = false;
+        const next = prev.map((entry) => {
+          if (entry?.id === updated.id) {
+            matched = true;
+            return { ...entry, ...updated };
+          }
+          return entry;
+        });
+        return matched ? next : [...next, updated];
+      });
+      setSelectedBloqueo(updated);
+    }
+    setEditBloqueo(null);
+  }
+
+
+  const handleInvoiceSubmit = useCallback(async () => {
+    if (!invoiceDialog.bloqueo || invoiceSubmitting) return;
+    setInvoiceSubmitting(true);
+    setInvoiceError('');
+    try {
+      const payload = { bloqueoIds: [invoiceDialog.bloqueo.id] };
+      const vatValueRaw = invoiceForm.vat?.trim();
+      if (vatValueRaw) {
+        const parsed = Number(vatValueRaw.replace(',', '.'));
+        if (!Number.isNaN(parsed)) payload.vatPercent = parsed;
+      }
+      if (invoiceForm.description && invoiceForm.description.trim()) {
+        payload.description = invoiceForm.description.trim();
+      }
+      if (invoiceForm.reference && invoiceForm.reference.trim()) {
+        payload.reference = invoiceForm.reference.trim();
+      }
+
+      console.log('Creating invoice payload:', payload);
+      const response = await createInvoice(payload);
+
+      // Update bloqueo state to reflect invoiced status
+      const updatedBloqueo = {
+        ...invoiceDialog.bloqueo,
+        estado: 'Invoiced',
+        edicionFecha: response?.issuedAt ?? new Date().toISOString()
+      };
+      handleBloqueoUpdated(updatedBloqueo);
+
+      // Reset invoice form and close dialog
+      setInvoiceForm({ description: '', vat: '21', reference: '' });
+      setInvoiceDialog({ open: false, bloqueo: null });
+
+      // Open invoice preview dialog and try to fetch PDF url
+      try {
+        setInvoicePreview((p) => ({ ...p, loading: true, open: true, invoice: response }));
+        const url = await fetchInvoicePdfUrl(response.id);
+        setInvoicePreview({ open: true, invoice: response, pdfUrl: url, loading: false });
+      } catch (err) {
+        console.error('Failed to fetch invoice PDF url:', err);
+        setInvoicePreview({ open: true, invoice: response, pdfUrl: null, loading: false });
+      }
+    } catch (err) {
+      setInvoiceError(err.message || 'Unable to create invoice.');
+    } finally {
+      setInvoiceSubmitting(false);
+    }
+  }, [invoiceDialog, invoiceForm, invoiceSubmitting, handleBloqueoUpdated]);
+
+  const handleCloseEditDialog = useCallback(() => {
+    setEditBloqueo(null);
   }, []);
 
   const handleReservaCreated = useCallback(
@@ -1903,6 +2753,8 @@ const Booking = ({ mode = 'user' }) => {
     },
     [setAgendaDate, setCalendarDate, setBloqueos]
   );
+
+  
 
   const handleDeleteBloqueo = useCallback(
     (bloqueoId) => {
@@ -1997,9 +2849,12 @@ const Booking = ({ mode = 'user' }) => {
           return false;
         }
 
-        const tenantType = resolveTenantType(bloqueo);
-        if (filterUserType && tenantType !== filterUserType) {
-          return false;
+        if (filterUserType) {
+          const tenantType = resolveTenantType(bloqueo);
+          const displayType = resolveDisplayTenantType(bloqueo);
+          if (tenantType !== filterUserType && displayType !== filterUserType) {
+            return false;
+          }
         }
 
         if (filterEmail) {
@@ -2069,6 +2924,10 @@ const Booking = ({ mode = 'user' }) => {
       const resolvedType = resolveTenantType(bloqueo);
       if (resolvedType) {
         userTypes.add(resolvedType);
+      }
+      const displayType = resolveDisplayTenantType(bloqueo);
+      if (displayType) {
+        userTypes.add(displayType);
       }
     });
 
@@ -2222,12 +3081,35 @@ const Booking = ({ mode = 'user' }) => {
               </Typography>
             </Paper>
           ) : (
-            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-              <TableContainer>
-                <Table size="small">
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflowX: 'auto' }}>
+              <TableContainer sx={{ minWidth: 800 }}>
+                <Table
+                  size="small"
+                  stickyHeader
+                  sx={{
+                    '& .MuiTableCell-root': {
+                      borderRight: '1px solid rgba(148, 163, 184, 0.12)'
+                    },
+                    '& .MuiTableRow-root': {
+                      borderBottom: '1px solid rgba(148, 163, 184, 0.12)'
+                    }
+                  }}
+                >
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ width: 220 }}>Room</TableCell>
+                      <TableCell
+                        sx={{
+                          width: 220,
+                          position: 'sticky',
+                          left: 0,
+                          backgroundColor: 'background.paper',
+                          zIndex: 2,
+                          borderRight: '1px solid rgba(148, 163, 184, 0.32)',
+                          boxShadow: '4px 0 12px rgba(15, 23, 42, 0.06)'
+                        }}
+                      >
+                        Room
+                      </TableCell>
                       {timeSlots.map((slot) => (
                         <TableCell key={slot.id} align="center">
                           <Typography variant="subtitle2" fontWeight="bold">
@@ -2240,7 +3122,16 @@ const Booking = ({ mode = 'user' }) => {
                   <TableBody>
                     {rooms.map((room) => (
                       <TableRow key={room.id} hover>
-                        <TableCell>
+                        <TableCell
+                          sx={{
+                            position: 'sticky',
+                            left: 0,
+                            backgroundColor: 'background.paper',
+                            zIndex: 1,
+                            borderRight: '1px solid rgba(148, 163, 184, 0.24)',
+                            boxShadow: '2px 0 8px rgba(15, 23, 42, 0.04)'
+                          }}
+                        >
                           <Stack spacing={0.5}>
                             <Typography variant="body2" fontWeight="medium">
                               {room.label}
@@ -2425,15 +3316,40 @@ const Booking = ({ mode = 'user' }) => {
         </Stack>
       )}
       {isAdmin ? (
-        <CreateReservaDialog
+        <ReservaDialog
           open={createDialogOpen}
+          mode="create"
           onClose={handleCloseCreateDialog}
           onCreated={handleReservaCreated}
           defaultDate={calendarDate}
         />
       ) : null}
 
-      <BloqueoDetailsDialog bloqueo={selectedBloqueo} onClose={() => setSelectedBloqueo(null)} />
+      {isAdmin ? (
+        <ReservaDialog
+          open={Boolean(editBloqueo)}
+          mode="edit"
+          onClose={handleCloseEditDialog}
+          onUpdated={handleBloqueoUpdated}
+          initialBloqueo={editBloqueo}
+          defaultDate={calendarDate}
+        />
+      ) : null}
+
+      <BloqueoDetailsDialog
+        bloqueo={selectedBloqueo}
+        onClose={() => setSelectedBloqueo(null)}
+        onEdit={isAdmin ? handleStartEditBloqueo : undefined}
+        onInvoice={isAdmin ? handleStartInvoice : undefined}
+        invoiceLoading={invoiceSubmitting}
+      />
+      <InvoicePreviewDialog
+        open={invoicePreview.open}
+        invoice={invoicePreview.invoice}
+        pdfUrl={invoicePreview.pdfUrl}
+        loading={invoicePreview.loading}
+        onClose={() => setInvoicePreview({ open: false, invoice: null, pdfUrl: null, loading: false })}
+      />
       <Dialog
         open={confirmDialog.open}
         onClose={handleCloseConfirm}

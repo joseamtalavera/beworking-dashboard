@@ -81,3 +81,10 @@ export const deleteBloqueo = (bloqueoId, options = {}) =>
     method: 'DELETE',
     ...options
   });
+
+export const updateBloqueo = (bloqueoId, payload, options = {}) =>
+  apiFetch(`/bloqueos/${bloqueoId}`, {
+    method: 'PUT',
+    body: payload,
+    ...options
+  });
