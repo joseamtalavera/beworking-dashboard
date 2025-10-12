@@ -48,16 +48,16 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp }) 
               '& .MuiListItemIcon-root': { color: accentColor },
               '&:hover': { backgroundColor: activeHover, color: activeColor },
               '&.Mui-selected': {
-                backgroundColor: activeColor,
-                color: 'common.white',
+                backgroundColor: activeHover,
+                color: activeColor,
                 boxShadow: 2
               },
               '&.Mui-selected .MuiListItemIcon-root': {
-                color: 'common.white'
+                color: accentColor
               },
               '&.Mui-selected:hover': {
-                backgroundColor: activeColor,
-                color: 'common.white'
+                backgroundColor: activeHover,
+                color: activeColor
               }
             }}
           >

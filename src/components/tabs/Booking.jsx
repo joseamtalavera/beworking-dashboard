@@ -395,7 +395,8 @@ const mapStatusKey = (status) => {
   if (normalized.includes('pag') || normalized.includes('paid')) {
     return 'paid';
   }
-  if (normalized.includes('fact')) {
+  // recognize both legacy spanish 'fact' and english 'invoice' / 'invoiced'
+  if (normalized.includes('fact') || normalized.includes('invoice') || normalized.includes('invoiced')) {
     return 'invoiced';
   }
   return 'created';
@@ -2203,28 +2204,75 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
           bgcolor: 'rgba(241, 245, 249, 0.8)'
         }}
       >
-        {canEdit ? (
-          <Button
-            onClick={() => {
-              if (bloqueo) {
-                onEdit?.(bloqueo);
-              }
-              onClose?.();
-            }}
-            variant="outlined"
-            startIcon={<EditRoundedIcon fontSize="small" />}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
-          >
-            Edit bloqueo
-          </Button>
-        ) : null}
-        <Button onClick={onClose} variant="contained" sx={{ textTransform: 'none', fontWeight: 600 }}>
-          Close
-        </Button>
+            {canInvoice ? (
+              <Button
+                onClick={() => {
+                  // start invoice flow (parent provided handler will set invoiceDialog state)
+                  onInvoice?.(bloqueo);
+                }}
+                variant="contained"
+                color="primary"
+                disableElevation
+                sx={{ textTransform: 'none', fontWeight: 600, mr: 1 }}
+                startIcon={<EuroRoundedIcon fontSize="small" />}
+                disabled={invoiceLoading}
+              >
+                Invoice bloqueo
+              </Button>
+            ) : null}
+            {canEdit ? (
+              <Button
+                onClick={() => {
+                  if (bloqueo) {
+                    onEdit?.(bloqueo);
+                  }
+                  onClose?.();
+                }}
+                variant="outlined"
+                startIcon={<EditRoundedIcon fontSize="small" />}
+                sx={{ textTransform: 'none', fontWeight: 600, mr: 1 }}
+              >
+                Edit bloqueo
+              </Button>
+            ) : null}
+            <Button onClick={onClose} variant="contained" sx={{ textTransform: 'none', fontWeight: 600 }}>
+              Close
+            </Button>
       </DialogActions>
     </Dialog>
   );
 };
+
+    const InvoiceFormDialog = ({ open, bloqueo, form, onFieldChange, onClose, onSubmit, submitting, error }) => {
+      const tarifaLabel = bloqueo?.tarifa ? `€${Number(bloqueo.tarifa).toLocaleString()}` : '—';
+      return (
+        <Dialog open={Boolean(open)} onClose={onClose} maxWidth="md" fullWidth>
+          <DialogTitle>Confirm invoice for bloqueo</DialogTitle>
+          <DialogContent dividers>
+            <Stack spacing={2}>
+              <Typography variant="subtitle1">Client: {bloqueo?.cliente?.nombre || '—'}</Typography>
+              <Typography variant="body2" color="text.secondary">Center / Product: {bloqueo?.producto?.nombre || bloqueo?.producto?.centerCode || '—'}</Typography>
+              <Typography variant="body2">Start: {bloqueo ? formatDateTime(bloqueo.fechaInicio || bloqueo.start) : '—'}</Typography>
+              <Typography variant="body2">End: {bloqueo ? formatDateTime(bloqueo.fechaFin || bloqueo.end) : '—'}</Typography>
+              <Typography variant="body2">Rate: {tarifaLabel}</Typography>
+              <TextField label="Description" fullWidth multiline minRows={2} value={form.description} onChange={onFieldChange('description')} />
+              <TextField label="Reference" fullWidth value={form.reference} onChange={onFieldChange('reference')} />
+              <TextField label="VAT %" value={form.vat} onChange={onFieldChange('vat')} sx={{ width: 140 }} />
+              <Alert severity="warning">
+                Once you create an invoice the invoice cannot be deleted for legal reasons. If you need to correct it you must create a credit (rectification).
+              </Alert>
+              {error ? <Alert severity="error">{error}</Alert> : null}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onSubmit} variant="contained" disabled={submitting}>
+              {submitting ? <CircularProgress size={18} /> : 'Create invoice'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      );
+    };
 
 const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
   const open = Boolean(bloqueo);
@@ -3349,6 +3397,16 @@ const Booking = ({ mode = 'user' }) => {
         pdfUrl={invoicePreview.pdfUrl}
         loading={invoicePreview.loading}
         onClose={() => setInvoicePreview({ open: false, invoice: null, pdfUrl: null, loading: false })}
+      />
+      <InvoiceFormDialog
+        open={invoiceDialog.open}
+        bloqueo={invoiceDialog.bloqueo}
+        form={invoiceForm}
+        onFieldChange={handleInvoiceFieldChange}
+        onClose={handleCloseInvoiceDialog}
+        onSubmit={handleInvoiceSubmit}
+        submitting={invoiceSubmitting}
+        error={invoiceError}
       />
       <Dialog
         open={confirmDialog.open}

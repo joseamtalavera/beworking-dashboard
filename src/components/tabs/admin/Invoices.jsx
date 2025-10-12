@@ -16,7 +16,10 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 
-import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob } from '../../../api/invoices.js';
+import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, creditInvoice } from '../../../api/invoices.js';
+import InvoiceEditor from './InvoiceEditor.jsx';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 const formatCurrency = (value) => {
   if (value == null) return '—';
@@ -27,7 +30,9 @@ const formatCurrency = (value) => {
 
 const statusColor = (estado) => {
   const key = (estado || '').toLowerCase();
-  if (key.includes('pagado')) return 'success';
+  if (key.includes('pag') || key.includes('paid') || key.includes('pagado')) return 'success';
+  // invoice/facturas should be shown as warning (yellow) until paid
+  if (key.includes('fact') || key.includes('invoice') || key.includes('invoiced')) return 'warning';
   if (key.includes('pend') || key.includes('confir')) return 'warning';
   if (key.includes('cancel')) return 'default';
   return 'default';
@@ -48,6 +53,9 @@ const Invoices = () => {
     product: ''
   });
   const [queryFilters, setQueryFilters] = useState(filters);
+  const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
+  const [newInvoiceForm, setNewInvoiceForm] = useState({ bloqueoIds: '', description: '', reference: '', vatPercent: 21 });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -161,6 +169,9 @@ const Invoices = () => {
           </Grid>
           <Grid item xs={12}>
             <Stack direction="row" spacing={1} justifyContent="flex-end">
+              <Button onClick={() => setNewInvoiceOpen(true)} variant="contained" size="small">
+                New invoice
+              </Button>
               <Button onClick={handleClearFilters} variant="text" size="small">
                 Clear filters
               </Button>
@@ -196,7 +207,7 @@ const Invoices = () => {
             </TableHead>
             <TableBody>
               {rows.map((inv) => (
-                <TableRow key={inv.id} hover>
+          <TableRow key={inv.id} hover>
                   <TableCell>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                   <TableCell>{inv.clientName || '—'}</TableCell>
                   <TableCell>{inv.tenantType || '—'}</TableCell>
@@ -232,6 +243,31 @@ const Invoices = () => {
                       Open
                     </Link>
                   </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={async () => {
+                        // open credit dialog in a new window/tab (simple flow for now)
+                        const shouldCredit = window.confirm('Create a credit (rectification) for this invoice? This action is irreversible.');
+                        if (!shouldCredit) return;
+                        try {
+                          await creditInvoice(inv.id, {});
+                          alert('Credit created successfully. Refreshing list.');
+                          // Refresh the list quickly
+                          setLoading(true);
+                          const refreshed = await fetchInvoices({ page, size: rowsPerPage, ...queryFilters });
+                          setData({ content: refreshed.content || [], totalElements: refreshed.totalElements || 0 });
+                        } catch (e) {
+                          alert(e.message || 'Failed to create credit.');
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                    >
+                      Credit
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
               {rows.length === 0 && (
@@ -254,6 +290,34 @@ const Invoices = () => {
           />
         </>
       )}
+
+      <InvoiceEditor
+        open={newInvoiceOpen}
+        onClose={() => setNewInvoiceOpen(false)}
+        onCreate={async (payload) => {
+            try {
+              setLoading(true);
+              const created = await createInvoice(payload);
+              setSnackbar({ open: true, message: 'Invoice created', severity: 'success' });
+              setNewInvoiceOpen(false);
+              const refreshed = await fetchInvoices({ page, size: rowsPerPage, ...queryFilters });
+              setData({ content: refreshed.content || [], totalElements: refreshed.totalElements || 0 });
+              try {
+                const url = await fetchInvoicePdfUrl(created.id || created.idFactura || created.id);
+                if (url) window.open(url, '_blank', 'noopener');
+              } catch {}
+            } catch (e) {
+              setSnackbar({ open: true, message: e.message || 'Failed to create invoice', severity: 'error' });
+            } finally {
+              setLoading(false);
+            }
+        }}
+      />
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
+        <Alert onClose={() => setSnackbar((s) => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 };
