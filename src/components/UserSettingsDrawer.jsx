@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { updateUserAvatar } from '../api/auth.js';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -16,10 +18,36 @@ import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
+import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 
 const accentColor = '#fb923c';
 
 const UserSettingsDrawer = ({ open, onClose, user }) => {
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        setAvatarPreview(dataUrl);
+        
+        try {
+          // Update the avatar in the backend
+          await updateUserAvatar(dataUrl);
+          console.log('Avatar updated successfully');
+          // You might want to refresh the user profile or show a success message
+        } catch (error) {
+          console.error('Failed to update avatar:', error);
+          // You might want to show an error message to the user
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -63,6 +91,53 @@ const UserSettingsDrawer = ({ open, onClose, user }) => {
                 {user.address.line1}
                 <br />
                 {user.address.city}, {user.address.country} {user.address.postal}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Stack spacing={2}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Profile Photo
+          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Avatar 
+              src={avatarPreview || user.avatar} 
+              alt={user.name} 
+              sx={{ width: 64, height: 64, border: '2px solid #e2e8f0' }}
+            >
+              {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
+            </Avatar>
+            <Stack spacing={1}>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="avatar-upload"
+                type="file"
+                onChange={handlePhotoUpload}
+              />
+              <label htmlFor="avatar-upload">
+                <Button 
+                  component="span"
+                  variant="outlined" 
+                  size="small" 
+                  startIcon={<PhotoCameraRoundedIcon />}
+                  sx={{ 
+                    borderColor: accentColor, 
+                    color: accentColor,
+                    '&:hover': { 
+                      borderColor: accentColor, 
+                      backgroundColor: `${accentColor}10` 
+                    } 
+                  }}
+                >
+                  Change Photo
+                </Button>
+              </label>
+              <Typography variant="caption" color="text.secondary">
+                Click to upload a new profile photo
               </Typography>
             </Stack>
           </Stack>

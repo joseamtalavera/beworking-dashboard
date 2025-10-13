@@ -23,7 +23,7 @@ import Typography from '@mui/material/Typography';
 
 const accentColor = '#fb923c';
 
-const Header = ({ activeTab }) => {
+const Header = ({ activeTab, userProfile }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -94,8 +94,6 @@ const Header = ({ activeTab }) => {
                   borderRadius: 1, 
                   borderColor: '#16a34a', 
                   color: '#16a34a',
-                  minWidth: 120,
-                  height: 36,
                   '&:hover': { 
                     borderColor: '#15803d', 
                     backgroundColor: 'rgba(22, 163, 74, 0.08)',
@@ -164,7 +162,13 @@ const Header = ({ activeTab }) => {
               <IconButton sx={{ color: accentColor, bgcolor: 'rgba(251,146,60,0.12)', '&:hover': { bgcolor: 'rgba(251,146,60,0.2)' } }}>
                 <NotificationsRoundedIcon />
               </IconButton>
-              <Avatar src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=80" alt="John Doe" sx={{ width: 44, height: 44, border: '2px solid #f1f5f9' }} />
+              <Avatar 
+                src={userProfile?.avatar || userProfile?.photo} 
+                alt={userProfile?.name || userProfile?.email || 'User'} 
+                sx={{ width: 44, height: 44, border: '2px solid #f1f5f9', bgcolor: accentColor }}
+              >
+                {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('') : 'U'}
+              </Avatar>
             </Stack>
           </Stack>
         </Stack>

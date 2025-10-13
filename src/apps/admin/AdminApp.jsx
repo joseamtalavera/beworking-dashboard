@@ -46,6 +46,9 @@ const AdminApp = ({ userProfile }) => {
       return <Booking mode="admin" />;
     }
     const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
+    if (activeTab === 'Overview') {
+      return <Component userType="admin" />;
+    }
     return <Component />;
   }, [activeTab]);
 
@@ -59,7 +62,7 @@ const AdminApp = ({ userProfile }) => {
         onOpenHelp={() => setHelpOpen(true)}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header activeTab={activeTab} />
+        <Header activeTab={activeTab} userProfile={userProfile} />
         <Box component="main" sx={{ flex: 1, p: { xs: 3, lg: 4 }, overflowY: 'auto' }}>
           <React.Suspense
             fallback={(

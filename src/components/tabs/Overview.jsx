@@ -27,6 +27,12 @@ const quickStats = [
   { id: 'automations', label: 'Active users', value: '12' }
 ];
 
+const userQuickStats = [
+  { id: 'active-bookings', label: 'Active Bookings', value: '3' },
+  { id: 'mail-received', label: 'Mail Received', value: '12' },
+  { id: 'monthly-spending', label: 'This Month', value: '€450' }
+];
+
 const metricCards = [
   {
     id: 'income-ytd',
@@ -67,6 +73,49 @@ const metricCards = [
     helper: '5 invoices pending',
     icon: <TrendingUpRoundedIcon />,
     color: '#f59e0b'
+  }
+];
+
+const userMetricCards = [
+  {
+    id: 'total-spent-ytd',
+    label: 'Total Spent YTD',
+    value: '€2.4k',
+    helper: '+12.5% vs last year',
+    icon: <TrendingUpRoundedIcon />,
+    color: '#ef4444'
+  },
+  {
+    id: 'upcoming-payments',
+    label: 'Upcoming Payments',
+    value: '€180',
+    helper: '2 invoices pending',
+    icon: <TrendingUpRoundedIcon />,
+    color: '#f59e0b'
+  },
+  {
+    id: 'last-payment',
+    label: 'Last Payment',
+    value: '€120',
+    helper: 'Paid 3 days ago',
+    icon: <TrendingUpRoundedIcon />,
+    color: '#22c55e'
+  },
+  {
+    id: 'overdue-invoices',
+    label: 'Overdue Invoices',
+    value: '€85',
+    helper: '1 invoice overdue',
+    icon: <TrendingUpRoundedIcon />,
+    color: '#ef4444'
+  },
+  {
+    id: 'account-status',
+    label: 'Account Status',
+    value: 'Active',
+    helper: 'All payments current',
+    icon: <TrendingUpRoundedIcon />,
+    color: '#22c55e'
   }
 ];
 
@@ -240,7 +289,7 @@ const LineChart = ({ data, loading, title, color, maxValue }) => {
   );
 };
 
-const Overview = () => {
+const Overview = ({ userType = 'admin' }) => {
   const [revenueData, setRevenueData] = useState([]);
   const [expenditureData, setExpenditureData] = useState([]);
   const [overdueData, setOverdueData] = useState([]);
@@ -517,7 +566,7 @@ const Overview = () => {
           }
         }}
       >
-        {quickStats.map((stat) => (
+        {(userType === 'user' ? userQuickStats : quickStats).map((stat) => (
           <Paper key={stat.id} elevation={0} sx={{ borderRadius: 4, p: 2.5, border: '1px solid #e2e8f0', minHeight: 120 }}>
             <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 0.6 }}>
               {stat.label}
@@ -541,7 +590,7 @@ const Overview = () => {
           }
         }}
       >
-        {metricCards.map((card) => (
+        {(userType === 'user' ? userMetricCards : metricCards).map((card) => (
           <Paper key={card.id} elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0', minHeight: 150 }}>
             <Stack spacing={2} direction="row" alignItems="center">
               <Avatar sx={{ bgcolor: `${card.color}1A`, color: card.color }}>{card.icon}</Avatar>
@@ -650,7 +699,8 @@ const Overview = () => {
         </Paper>
       </Box>
 
-      {/* Workspace Occupancy */}
+      {/* Workspace Occupancy - Admin Only */}
+      {userType === 'admin' && (
         <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
             <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
               Workspace occupancy
@@ -675,6 +725,7 @@ const Overview = () => {
               ))}
             </Stack>
           </Paper>
+      )}
 
     </Stack>
   );

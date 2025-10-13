@@ -72,9 +72,10 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp }) 
                     <Chip 
                       label="Soon" 
                       size="small" 
+                      variant="outlined"
                       sx={{ 
-                        bgcolor: '#fb923c', 
-                        color: 'white', 
+                        borderColor: '#fb923c', 
+                        color: '#fb923c', 
                         fontSize: '0.6rem',
                         height: 16,
                         minWidth: 'auto',
@@ -111,9 +112,10 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp }) 
                 <Chip 
                   label="Soon" 
                   size="small" 
+                  variant="outlined"
                   sx={{ 
-                    bgcolor: '#fb923c', 
-                    color: 'white', 
+                    borderColor: '#fb923c', 
+                    color: '#fb923c', 
                     fontSize: '0.6rem',
                     height: 16,
                     minWidth: 'auto',

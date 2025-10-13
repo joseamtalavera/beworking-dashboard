@@ -13,6 +13,7 @@ import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -185,7 +186,13 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
       >
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center" justifyContent="space-between">
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
-            <Avatar sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#f97316' }}>{initials.slice(0, 2)}</Avatar>
+            <Avatar 
+              src={contact?.avatar || contact?.photo} 
+              alt={contact?.name || 'Contact'} 
+              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#f97316' }}
+            >
+              {initials.slice(0, 2)}
+            </Avatar>
             <Box>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Typography variant="h4" fontWeight={700}>
@@ -389,6 +396,68 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
                   </Stack>
                 </Box>
                 <Box sx={{ p: 3 }}>
+                  {/* Profile Photo Section */}
+                  <Box sx={{ 
+                    p: 3, 
+                    border: '2px dashed #10b981', 
+                    borderRadius: 2, 
+                    bgcolor: '#f0fdf4',
+                    mb: 3 
+                  }}>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: '#10b981' }}>
+                      📸 Profile Photo
+                    </Typography>
+                    <Stack direction="row" spacing={3} alignItems="center">
+                      <Avatar 
+                        src={draft?.avatar} 
+                        alt={draft?.name} 
+                        sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32 }}
+                      >
+                        {draft?.name ? draft.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
+                      </Avatar>
+                      <Stack spacing={2}>
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="user-avatar-upload"
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                const dataUrl = event.target.result;
+                                handleChange('avatar')({ target: { value: dataUrl } });
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        <label htmlFor="user-avatar-upload">
+                          <Button 
+                            component="span"
+                            variant="outlined" 
+                            size="medium" 
+                            startIcon={<PhotoCameraRoundedIcon />}
+                            sx={{ 
+                              borderColor: '#10b981', 
+                              color: '#10b981',
+                              '&:hover': { 
+                                borderColor: '#10b981', 
+                                backgroundColor: '#10b98110' 
+                              } 
+                            }}
+                          >
+                            Change Photo
+                          </Button>
+                        </label>
+                        <Typography variant="caption" color="text.secondary">
+                          Click to upload a profile photo
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Box>
+                  
                   <Grid container spacing={3}>
                     <Grid item xs={12} sm={6}>
                       <TextField 
