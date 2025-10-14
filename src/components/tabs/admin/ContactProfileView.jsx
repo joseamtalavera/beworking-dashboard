@@ -33,7 +33,7 @@ import Alert from '@mui/material/Alert';
 
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 
-const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
+const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile }) => {
   const mapContactToDraft = (value) => {
     if (!value) {
       return value;
@@ -116,8 +116,22 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
     try {
       setSaving(true);
       setSaveError('');
+      console.log('DEBUG: Saving draft with avatar:', draft?.avatar);
+      console.log('DEBUG: Full draft object:', draft);
       await onSave(draft);
       setEditorOpen(false);
+      // Refresh the user profile if this is the current user's contact
+      console.log('DEBUG: Contact email:', contact?.email);
+      console.log('DEBUG: Draft email:', draft?.email);
+      console.log('DEBUG: refreshProfile available:', !!refreshProfile);
+      
+      // Always call refreshProfile when avatar is updated, regardless of email match
+      if (refreshProfile) {
+        console.log('DEBUG: Calling refreshProfile() - avatar was updated');
+        refreshProfile();
+      } else {
+        console.log('DEBUG: refreshProfile not available');
+      }
     } catch (error) {
       console.error('[ContactProfileView] Failed to save contact:', error);
       setSaveError(error?.message || 'No se pudieron guardar los cambios.');
@@ -153,7 +167,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
           Back to contacts
         </Button>
         <Button 
-          variant="contained" 
+          variant="outlined" 
           startIcon={<EditRoundedIcon />}
           onClick={() => setEditorOpen(true)}
           sx={{
@@ -162,11 +176,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
             fontWeight: 600,
             px: 3,
             py: 1,
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            borderColor: '#10b981',
+            color: '#10b981',
             '&:hover': {
-              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              borderColor: '#059669',
+              color: '#059669',
+              backgroundColor: 'rgba(16, 185, 129, 0.08)',
               transform: 'translateY(-1px)',
-              boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
             },
             transition: 'all 0.2s ease-in-out'
           }}
@@ -208,14 +225,6 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
               </Typography>
             </Box>
           </Stack>
-          <Stack direction="row" spacing={2}>
-            <MetricCard title="Plan" value={contact.plan || '—'} />
-            <MetricCard title="Seats" value={Number.isFinite(contact.seats) ? contact.seats : '—'} />
-            <MetricCard
-              title="Adoption"
-              value={`${Number.isFinite(contact.usage) ? (contact.usage * 100).toFixed(0) : 0}%`}
-            />
-          </Stack>
         </Stack>
       </Paper>
 
@@ -239,10 +248,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions }) => {
                 }
               }}
             >
-              <HighlightCard label="Annual contract" value="$28,400" trend="+12% YoY" />
-              <HighlightCard label="Satisfaction" value="4.7/5" trend="CSAT" />
-              <HighlightCard label="Last invoice" value="Oct 03 2025" trend="INV-005" />
-              <HighlightCard label="Channel" value={contact.channel} trend="Lead source" />
+              <HighlightCard label="Bookings" value={contact.bookings || '0'} trend="Total bookings" />
+              <HighlightCard label="Expenditure" value={`€${contact.expenditure || '0'}`} trend="Bookings amount" />
+              <HighlightCard label="Storage used" value={`${contact.storageUsed || '0'}GB`} trend={`${contact.storagePercentage || '0'}%`} />
+              <HighlightCard label="Unread messages" value={contact.unreadMessages || '0'} trend="Communications" />
             </Box>
           </InfoCard>
         </Box>

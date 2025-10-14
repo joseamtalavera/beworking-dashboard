@@ -22,7 +22,7 @@ import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 
 const accentColor = '#fb923c';
 
-const UserSettingsDrawer = ({ open, onClose, user }) => {
+const UserSettingsDrawer = ({ open, onClose, user, refreshProfile }) => {
   const [avatarPreview, setAvatarPreview] = useState(null);
 
   const handlePhotoUpload = async (event) => {
@@ -38,7 +38,10 @@ const UserSettingsDrawer = ({ open, onClose, user }) => {
           // Update the avatar in the backend
           await updateUserAvatar(dataUrl);
           console.log('Avatar updated successfully');
-          // You might want to refresh the user profile or show a success message
+          // Refresh the user profile to update the avatar in the header and other components
+          if (refreshProfile) {
+            refreshProfile();
+          }
         } catch (error) {
           console.error('Failed to update avatar:', error);
           // You might want to show an error message to the user

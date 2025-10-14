@@ -91,14 +91,21 @@ const Header = ({ activeTab, userProfile }) => {
                 startIcon={<AddRoundedIcon />} 
                 onClick={handleClick}
                 sx={{ 
-                  borderRadius: 1, 
-                  borderColor: '#16a34a', 
-                  color: '#16a34a',
-                  '&:hover': { 
-                    borderColor: '#15803d', 
-                    backgroundColor: 'rgba(22, 163, 74, 0.08)',
-                    color: '#15803d'
-                  } 
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderColor: '#10b981',
+                  color: '#10b981',
+                  '&:hover': {
+                    borderColor: '#059669',
+                    color: '#059669',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                  },
+                  transition: 'all 0.2s ease-in-out'
                 }}
               >
                 New action

@@ -45,6 +45,23 @@ const composeProfile = (apiProfile = {}) => ({
 export const useAuthProfile = () => {
   const [state, setState] = useState({ status: 'loading', profile: null, error: '' });
 
+  const fetchProfile = async () => {
+    try {
+      console.log('DEBUG: fetchProfile called - fetching current user');
+      const apiProfile = await fetchCurrentUser();
+      console.log('DEBUG: API profile received:', apiProfile);
+      console.log('DEBUG: Current user email:', apiProfile?.email);
+      const composedProfile = composeProfile(apiProfile);
+      console.log('DEBUG: Composed profile:', composedProfile);
+      setState(prev => ({ ...prev, status: 'authenticated', profile: composedProfile, error: '' }));
+      console.log('DEBUG: Profile state updated');
+    } catch (error) {
+      console.error('Failed to fetch current user', error);
+      setStoredToken(null);
+      setState({ status: 'unauthenticated', profile: null, error: error.message || 'Authentication required.' });
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenFromUrl = params.get('token');
@@ -62,23 +79,7 @@ export const useAuthProfile = () => {
       return;
     }
 
-    let active = true;
-    (async () => {
-      try {
-        const apiProfile = await fetchCurrentUser();
-        if (!active) return;
-        setState({ status: 'authenticated', profile: composeProfile(apiProfile), error: '' });
-      } catch (error) {
-        if (!active) return;
-        console.error('Failed to fetch current user', error);
-        setStoredToken(null);
-        setState({ status: 'unauthenticated', profile: null, error: error.message || 'Authentication required.' });
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
+    fetchProfile();
   }, []);
 
   const logout = () => {
@@ -86,5 +87,10 @@ export const useAuthProfile = () => {
     window.location.href = LOGIN_URL;
   };
 
-  return { ...state, profile: state.profile ?? composeProfile(), logout, loginUrl: LOGIN_URL };
+  const refreshProfile = () => {
+    console.log('DEBUG: refreshProfile() called');
+    fetchProfile();
+  };
+
+  return { ...state, profile: state.profile ?? composeProfile(), logout, loginUrl: LOGIN_URL, refreshProfile };
 };

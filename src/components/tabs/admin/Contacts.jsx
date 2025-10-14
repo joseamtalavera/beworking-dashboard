@@ -38,6 +38,7 @@ import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
@@ -86,6 +87,7 @@ const ADD_USER_DEFAULT = {
   center: 'MA1 MALAGA DUMAS',
   seats: '',
   channel: '',
+  avatar: '',
   billingCompany: '',
   billingEmail: '',
   billingAddress: '',
@@ -148,6 +150,7 @@ const normalizeContact = (entry = {}) => {
     channel: entry.channel ?? '—',
     created_at: entry.created_at ?? null,
     phone_primary: entry.phone_primary ?? null,
+    avatar: entry.avatar ?? null,
     contact: {
       name: fallbackContactName ?? '—',
       email: fallbackContactEmail ?? '—'
@@ -166,7 +169,7 @@ const MemoizedTextField = memo(({ label, value, onChange, ...props }) => (
   />
 ));
 
-const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
+const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile }) => {
   const [form, setForm] = useState(ADD_USER_DEFAULT);
 
   useEffect(() => {
@@ -280,6 +283,68 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses }) => {
                 </Stack>
               </Box>
               <Box sx={{ p: 3 }}>
+                {/* Profile Photo Section */}
+                <Box sx={{ 
+                  p: 3, 
+                  border: '2px dashed #10b981', 
+                  borderRadius: 2, 
+                  bgcolor: '#f0fdf4',
+                  mb: 3 
+                }}>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: '#10b981' }}>
+                    📸 Profile Photo
+                  </Typography>
+                  <Stack direction="row" spacing={3} alignItems="center">
+                    <Avatar 
+                      src={form.avatar} 
+                      alt={form.name || 'New User'} 
+                      sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32 }}
+                    >
+                      {form.name ? form.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'NU'}
+                    </Avatar>
+                    <Stack spacing={2}>
+                      <input
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="new-user-avatar-upload"
+                        type="file"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              const dataUrl = event.target.result;
+                              setForm(prev => ({ ...prev, avatar: dataUrl }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <label htmlFor="new-user-avatar-upload">
+                        <Button 
+                          component="span"
+                          variant="outlined" 
+                          size="medium" 
+                          startIcon={<PhotoCameraRoundedIcon />}
+                          sx={{ 
+                            borderColor: '#10b981', 
+                            color: '#10b981',
+                            '&:hover': { 
+                              borderColor: '#10b981', 
+                              backgroundColor: '#10b98110' 
+                            } 
+                          }}
+                        >
+                          Add Photo
+                        </Button>
+                      </label>
+                      <Typography variant="caption" color="text.secondary">
+                        Click to upload a profile photo
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Box>
+                
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
                     <MemoizedTextField 
@@ -667,7 +732,7 @@ const buildQueryString = ({ page, search, status, email, userType }) => {
   return params.toString();
 };
 
-const Contacts = () => {
+const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [emailFilter, setEmailFilter] = useState('all');
   const [userTypeFilter, setUserTypeFilter] = useState('all');
@@ -686,6 +751,13 @@ const Contacts = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  // Reset view when component mounts (when Contacts tab is clicked)
+  // This will reset the view back to list when switching to Contacts tab
+  useEffect(() => {
+    setViewMode('list');
+    setSelectedContact(null);
+  }, []);
 
   useEffect(() => {
     if (statusFilter !== 'all' && !statusOptions.includes(statusFilter)) {
@@ -742,7 +814,21 @@ const Contacts = () => {
       
         const normalized = rawItems.map((entry) => normalizeContact(entry));
 
-        setContacts(normalized);
+        console.log('DEBUG: Raw items from backend:', rawItems);
+        console.log('DEBUG: Normalized contacts:', normalized);
+        console.log('DEBUG: First contact avatar:', normalized[0]?.avatar);
+
+        // Filter contacts based on user type
+        let filteredContacts = normalized;
+        if (userType === 'user') {
+          // For users, they should only see their own contact
+          // This will be handled by the backend API based on the user's tenantId
+          // The backend should already filter to only return the user's own contact
+          filteredContacts = normalized;
+        }
+        // For admins, show all contacts (no filtering needed)
+
+        setContacts(filteredContacts);
       setTotal(Number.isFinite(data?.totalElements) ? data.totalElements :
         Number.isFinite(data?.total) ? data.total : normalized.length);
 
@@ -785,6 +871,8 @@ const Contacts = () => {
 
   const handleSaveProfile = useCallback(
     async (updatedProfile) => {
+      console.log('DEBUG: handleSaveProfile called with:', updatedProfile);
+      console.log('DEBUG: Avatar in updatedProfile:', updatedProfile?.avatar);
       if (!updatedProfile?.id) {
         return;
       }
@@ -812,6 +900,7 @@ const Contacts = () => {
         tenantType: normalizedUserType ?? null,
         center: normalizeString(updatedProfile.center) ?? null,
         channel: normalizeString(updatedProfile.channel) ?? null,
+        avatar: updatedProfile.avatar ?? null,
         billingCompany: normalizeString(updatedProfile.billing?.company) ?? null,
         billingEmail: normalizeString(updatedProfile.billing?.email) ?? null,
         billingAddress: normalizeString(updatedProfile.billing?.address) ?? null,
@@ -820,6 +909,9 @@ const Contacts = () => {
         billingCountry: normalizeString(updatedProfile.billing?.country) ?? null,
         billingTaxId: normalizeString(updatedProfile.billing?.tax_id) ?? null
       };
+
+      console.log('DEBUG: Payload being sent to backend:', payload);
+      console.log('DEBUG: Avatar in payload:', payload.avatar);
 
       try {
         setLoading(true);
@@ -837,6 +929,7 @@ const Contacts = () => {
           center: payload.center ?? updatedProfile.center,
           channel: payload.channel ?? updatedProfile.channel,
           phone_primary: payload.phone ?? updatedProfile.phone_primary,
+          avatar: payload.avatar ?? updatedProfile.avatar ?? null,
           contact: {
             ...(updatedProfile.contact || {}),
             name: payload.primaryContact ?? updatedProfile.contact?.name ?? null,
@@ -854,12 +947,16 @@ const Contacts = () => {
           }
         });
 
+        console.log('DEBUG: Merged contact after save:', merged);
+        console.log('DEBUG: Avatar in merged contact:', merged.avatar);
+
         setContacts((prev) =>
           prev.map((tenant) => (tenant.id === String(updatedProfile.id) ? merged : tenant))
         );
 
         setSelectedContact(merged);
 
+        console.log('DEBUG: Calling fetchContacts to refresh the list');
         await fetchContacts();
 
         return merged;
@@ -908,6 +1005,11 @@ const Contacts = () => {
       // Refresh the contacts list to show the new user
       fetchContacts();
       setAddDialogOpen(false);
+      
+      // If this is the current user being created, refresh the profile
+      if (refreshProfile && values.email === userProfile?.email) {
+        refreshProfile();
+      }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('[Contacts] Error creating user:', error);
@@ -947,6 +1049,7 @@ const Contacts = () => {
         }}
         onSave={handleSaveProfile}
         userTypeOptions={userTypeOptions}
+        refreshProfile={refreshProfile}
       />
     );
   }
@@ -978,28 +1081,33 @@ const Contacts = () => {
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }}>
-            <Button
-              startIcon={<AddRoundedIcon />}
-              variant="contained"
-              sx={{
-                minWidth: 170,
-                borderRadius: 2,
-            textTransform: 'none',
-            fontWeight: 600,
-            px: 3,
-            py: 1,
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-              transform: 'translateY(-1px)',
-              boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
-            },
-            transition: 'all 0.2s ease-in-out'
-              }}
-              onClick={() => setAddDialogOpen(true)}
-            >
-              Add new user
-            </Button>
+            {userType === 'admin' && (
+              <Button
+                startIcon={<AddRoundedIcon />}
+                variant="outlined"
+                sx={{
+                  minWidth: 170,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderColor: '#10b981',
+                  color: '#10b981',
+                  '&:hover': {
+                    borderColor: '#059669',
+                    color: '#059669',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
+                onClick={() => setAddDialogOpen(true)}
+              >
+                Add new user
+              </Button>
+            )}
             <Button variant="outlined" color="inherit" sx={{ borderRadius: 2 }}>
               Export CSV
             </Button>
@@ -1143,7 +1251,13 @@ const Contacts = () => {
                 >
                   <TableCell sx={{ pl: 4 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
-                      <Avatar sx={{ bgcolor: '#f97316' }}>{initials.slice(0, 2)}</Avatar>
+                      <Avatar 
+                        src={tenant.avatar || tenant.photo} 
+                        alt={tenant.name || 'Contact'} 
+                        sx={{ bgcolor: '#f97316' }}
+                      >
+                        {initials.slice(0, 2)}
+                      </Avatar>
                       <Box>
                         <Typography fontWeight={600}>{tenant.name}</Typography>
                         <Stack direction="row" spacing={0.5} alignItems="center" color="text.secondary">
@@ -1236,12 +1350,15 @@ const Contacts = () => {
         </Stack>
       </Box>
 
-      <AddUserDialog
-        open={addDialogOpen}
-        onClose={() => setAddDialogOpen(false)}
-        onSave={handleAddUser}
-        existingStatuses={statusOptions}
-      />
+      {userType === 'admin' && (
+        <AddUserDialog
+          open={addDialogOpen}
+          onClose={() => setAddDialogOpen(false)}
+          onSave={handleAddUser}
+          existingStatuses={statusOptions}
+          refreshProfile={refreshProfile}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog

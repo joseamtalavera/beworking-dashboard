@@ -11,6 +11,7 @@ const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
 const Mailbox = React.lazy(() => import('../../components/tabs/user/MailboxUser.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
+const Agent = React.lazy(() => import('../../components/tabs/Agent.jsx'));
 const Integrations = React.lazy(() => import('../../components/tabs/Integrations.jsx'));
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));
 const Community = React.lazy(() => import('../../components/tabs/Community.jsx'));
@@ -25,6 +26,7 @@ const TAB_COMPONENTS = {
   Overview,
   Contacts,
   Mailbox,
+  Booking,
   Invoices,
   Integrations,
   Automation,
@@ -36,10 +38,20 @@ const TAB_COMPONENTS = {
   Marketplace
 };
 
-const UserApp = ({ userProfile }) => {
+const UserApp = ({ userProfile, refreshProfile }) => {
   const [activeTab, setActiveTab] = useState('Overview');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
+  const [contactsKey, setContactsKey] = useState(0);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    // Force remount of Contacts component when Contacts tab is clicked
+    if (tabId === 'Contacts') {
+      setContactsKey(prev => prev + 1);
+    }
+  };
 
   const TabContent = useMemo(() => {
     if (activeTab === 'Booking') {
@@ -49,17 +61,21 @@ const UserApp = ({ userProfile }) => {
     if (activeTab === 'Overview') {
       return <Component userType="user" />;
     }
+    if (activeTab === 'Contacts') {
+      return <Component key={contactsKey} userType="user" refreshProfile={refreshProfile} userProfile={userProfile} />;
+    }
     return <Component />;
-  }, [activeTab]);
+  }, [activeTab, contactsKey]);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f8fafc' }}>
       <Sidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         tabs={DEFAULT_TABS}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
+        onOpenAgent={() => setAgentOpen(true)}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <Header activeTab={activeTab} userProfile={userProfile} />
@@ -77,8 +93,28 @@ const UserApp = ({ userProfile }) => {
           </React.Suspense>
         </Box>
       </Box>
-      <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} />
+      <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} />
       <HelpSupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
+      {agentOpen && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: '33.333%',
+            minWidth: '400px',
+            bgcolor: 'white',
+            borderLeft: '1px solid #e2e8f0',
+            zIndex: 1300,
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '-4px 0 12px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <Agent onClose={() => setAgentOpen(false)} />
+        </Box>
+      )}
     </Box>
   );
 };

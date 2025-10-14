@@ -15,6 +15,7 @@ import InvoicesIcon from '@mui/icons-material/ReceiptLongOutlined';
 import TicketsIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import ReportsIcon from '@mui/icons-material/AssessmentOutlined';
 import MarketplaceIcon from '@mui/icons-material/StoreOutlined';
+import AgentIcon from '@mui/icons-material/SupportAgentOutlined';
 
 export {
   OverviewIcon,
@@ -33,5 +34,6 @@ export {
   InvoicesIcon,
   TicketsIcon,
   ReportsIcon,
-  MarketplaceIcon
+  MarketplaceIcon,
+  AgentIcon
 };

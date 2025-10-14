@@ -4,7 +4,7 @@ import UserApp from './apps/user/UserApp.jsx';
 import { useAuthProfile } from './components/hooks/useAuthProfile.js';
 
 const App = () => {
-  const { status, profile, error, loginUrl } = useAuthProfile();
+  const { status, profile, error, loginUrl, refreshProfile } = useAuthProfile();
 
   if (status === 'loading') {
     return (
@@ -26,7 +26,7 @@ const App = () => {
   }
 
   const isAdmin = profile.role?.toUpperCase() === 'ADMIN';
-  return isAdmin ? <AdminApp userProfile={profile} /> : <UserApp userProfile={profile} />;
+  return isAdmin ? <AdminApp userProfile={profile} refreshProfile={refreshProfile} /> : <UserApp userProfile={profile} refreshProfile={refreshProfile} />;
 };
 
 export default App;
