@@ -9,7 +9,7 @@ import { ADMIN_TABS } from '../../constants.js';
 
 const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
-const Mailbox = React.lazy(() => import('../../components/tabs/admin/MailboxAdmin.jsx'));
+const VirtualOffice = React.lazy(() => import('../../components/tabs/VirtualOffice.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
 const Agent = React.lazy(() => import('../../components/tabs/Agent.jsx'));
 const Integrations = React.lazy(() => import('../../components/tabs/Integrations.jsx'));
@@ -18,6 +18,7 @@ const Community = React.lazy(() => import('../../components/tabs/Community.jsx')
 const Events = React.lazy(() => import('../../components/tabs/Events.jsx'));
 const Contacts = React.lazy(() => import('../../components/tabs/admin/Contacts.jsx'));
 const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.jsx'));
+const Expenses = React.lazy(() => import('../../components/tabs/Expenses.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
 const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
 import Marketplace from '../../components/tabs/Marketplace.jsx';
@@ -25,9 +26,10 @@ import Marketplace from '../../components/tabs/Marketplace.jsx';
 const TAB_COMPONENTS = {
   Overview,
   Contacts,
-  Mailbox,
+  Mailbox: VirtualOffice,
   Booking,
   Invoices,
+  Expenses,
   Integrations,
   Automation,
   Community,
@@ -64,6 +66,9 @@ const AdminApp = ({ userProfile, refreshProfile }) => {
     if (activeTab === 'Contacts') {
       return <Component key={contactsKey} userType="admin" refreshProfile={refreshProfile} userProfile={userProfile} />;
     }
+    if (activeTab === 'Mailbox') {
+      return <Component userType="admin" />;
+    }
     return <Component />;
   }, [activeTab, contactsKey]);
 
@@ -74,11 +79,10 @@ const AdminApp = ({ userProfile, refreshProfile }) => {
         setActiveTab={handleTabChange}
         tabs={ADMIN_TABS}
         onOpenSettings={() => setSettingsOpen(true)}
-        onOpenHelp={() => setHelpOpen(true)}
         onOpenAgent={() => setAgentOpen(true)}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header activeTab={activeTab} userProfile={userProfile} />
+        <Header activeTab={activeTab} userProfile={userProfile} onOpenHelp={() => setHelpOpen(true)} />
         <Box component="main" sx={{ flex: 1, p: { xs: 3, lg: 4 }, overflowY: 'auto' }}>
           <React.Suspense
             fallback={(
@@ -89,7 +93,9 @@ const AdminApp = ({ userProfile, refreshProfile }) => {
               </Box>
             )}
           >
-            {TabContent}
+            <Box key={`${activeTab}-${contactsKey}`}>
+              {TabContent}
+            </Box>
           </React.Suspense>
         </Box>
       </Box>

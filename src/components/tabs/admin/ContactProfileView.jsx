@@ -206,7 +206,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <Avatar 
               src={contact?.avatar || contact?.photo} 
               alt={contact?.name || 'Contact'} 
-              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#f97316' }}
+              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#22c55e' }}
             >
               {initials.slice(0, 2)}
             </Avatar>
@@ -917,13 +917,13 @@ const InfoCard = ({ title, icon: Icon, children }) => (
             width: 36,
             height: 36,
             borderRadius: '50%',
-            bgcolor: '#fed7aa',
+            bgcolor: '#dcfce7',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}
         >
-          <Icon fontSize="small" sx={{ color: '#f97316' }} />
+          <Icon fontSize="small" sx={{ color: '#22c55e' }} />
         </Box>
       )}
       <Typography variant="subtitle1" fontWeight={600}>

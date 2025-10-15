@@ -16,6 +16,7 @@ import TicketsIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import ReportsIcon from '@mui/icons-material/AssessmentOutlined';
 import MarketplaceIcon from '@mui/icons-material/StoreOutlined';
 import AgentIcon from '@mui/icons-material/SupportAgentOutlined';
+import ExpensesIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 
 export {
   OverviewIcon,
@@ -35,5 +36,6 @@ export {
   TicketsIcon,
   ReportsIcon,
   MarketplaceIcon,
-  AgentIcon
+  AgentIcon,
+  ExpensesIcon
 };

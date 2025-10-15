@@ -15,6 +15,10 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
@@ -89,16 +93,6 @@ const Invoices = () => {
     const value = event.target.value;
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
-  const handleClearFilters = () => {
-    setFilters({
-      name: '',
-      email: '',
-      idFactura: '',
-      status: '',
-      tenantType: '',
-      product: ''
-    });
-  };
 
   return (
     <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
@@ -111,74 +105,163 @@ const Invoices = () => {
         </Typography>
       </Stack>
 
-      <Box sx={{ mb: 3 }}>
+      {/* Filters Section */}
+      <Paper sx={{ p: 3, mb: 3, borderRadius: 2, border: '1px solid #e5e7eb' }}>
+        <Typography variant="h6" sx={{ mb: 2, color: '#374151', fontWeight: 600 }}>
+          Filters
+        </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={2}>
             <TextField
-              label="Client name"
+              label="Client Name"
               value={filters.name}
               onChange={handleFilterChange('name')}
               fullWidth
               size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#22c55e',
+                },
+              }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={2}>
             <TextField
               label="Email"
               value={filters.email}
               onChange={handleFilterChange('email')}
               fullWidth
               size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#22c55e',
+                },
+              }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={2}>
             <TextField
               label="Invoice ID"
               value={filters.idFactura}
               onChange={handleFilterChange('idFactura')}
               fullWidth
               size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#22c55e',
+                },
+              }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              label="Status"
-              value={filters.status}
-              onChange={handleFilterChange('status')}
-              fullWidth
-              size="small"
-            />
+          <Grid item xs={12} md={2}>
+            <FormControl fullWidth size="small">
+              <InputLabel sx={{ '&.Mui-focused': { color: '#22c55e' } }}>Status</InputLabel>
+              <Select
+                value={filters.status}
+                onChange={handleFilterChange('status')}
+                label="Status"
+                sx={{
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#22c55e',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#22c55e',
+                  },
+                }}
+              >
+                <MenuItem value="">All Status</MenuItem>
+                <MenuItem value="pagado">Paid</MenuItem>
+                <MenuItem value="facturado">Invoiced</MenuItem>
+                <MenuItem value="pendiente">Pending</MenuItem>
+                <MenuItem value="cancelado">Cancelled</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              label="User type"
-              value={filters.tenantType}
-              onChange={handleFilterChange('tenantType')}
-              fullWidth
-              size="small"
-            />
+          <Grid item xs={12} md={2}>
+            <FormControl fullWidth size="small">
+              <InputLabel sx={{ '&.Mui-focused': { color: '#22c55e' } }}>User Type</InputLabel>
+              <Select
+                value={filters.tenantType}
+                onChange={handleFilterChange('tenantType')}
+                label="User Type"
+                sx={{
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#22c55e',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#22c55e',
+                  },
+                }}
+              >
+                <MenuItem value="">All Types</MenuItem>
+                <MenuItem value="USER">User</MenuItem>
+                <MenuItem value="ADMIN">Admin</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={2}>
             <TextField
               label="Product"
               value={filters.product}
               onChange={handleFilterChange('product')}
               fullWidth
               size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#22c55e',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#22c55e',
+                },
+              }}
             />
           </Grid>
-          <Grid item xs={12}>
-            <Stack direction="row" spacing={1} justifyContent="flex-end">
-              <Button onClick={() => setNewInvoiceOpen(true)} variant="contained" size="small">
-                New invoice
-              </Button>
-              <Button onClick={handleClearFilters} variant="text" size="small">
-                Clear filters
-              </Button>
-            </Stack>
-          </Grid>
         </Grid>
-      </Box>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button 
+            onClick={() => setNewInvoiceOpen(true)} 
+            variant="contained" 
+            size="small"
+            sx={{
+              backgroundColor: '#22c55e',
+              '&:hover': {
+                backgroundColor: '#16a34a',
+              },
+            }}
+          >
+            New Invoice
+          </Button>
+        </Box>
+      </Paper>
 
       {error && (
         <Box sx={{ mb: 2 }}>

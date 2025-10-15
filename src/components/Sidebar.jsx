@@ -12,12 +12,12 @@ import Typography from '@mui/material/Typography';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 
 const drawerWidth = 260;
-const accentColor = '#fb923c';
+const accentColor = '#22c55e';
 const activeColor = '#16a34a';
-const accentHover = 'rgba(251, 146, 60, 0.12)';
+const accentHover = 'rgba(34, 197, 94, 0.12)';
 const activeHover = 'rgba(22, 163, 74, 0.12)';
 
-const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp, onOpenAgent }) => (
+const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent }) => (
   <Drawer
     variant="permanent"
     anchor="left"
@@ -75,8 +75,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp, on
                         size="small" 
                         variant="outlined"
                         sx={{ 
-                          borderColor: '#fb923c', 
-                          color: '#fb923c', 
+                          borderColor: '#22c55e', 
+                          color: '#22c55e', 
                           fontSize: '0.6rem',
                           height: 16,
                           minWidth: 'auto',
@@ -108,8 +108,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp, on
                   size="small" 
                   variant="outlined"
                   sx={{ 
-                    borderColor: '#fb923c', 
-                    color: '#fb923c', 
+                    borderColor: '#22c55e', 
+                    color: '#22c55e', 
                     fontSize: '0.6rem',
                     height: 16,
                     minWidth: 'auto',
@@ -127,33 +127,6 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenHelp, on
             <SettingsIcon sx={{ fontSize: 20 }} />
           </ListItemIcon>
           <ListItemText primary="Settings" />
-        </ListItemButton>
-      </ListItem>
-      <ListItem disablePadding>
-        <ListItemButton sx={{ borderRadius: 2 }} onClick={onOpenHelp}>
-          <ListItemIcon>
-            <HelpIcon sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary={
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography variant="body2">Help & Support</Typography>
-                <Chip 
-                  label="Soon" 
-                  size="small" 
-                  variant="outlined"
-                  sx={{ 
-                    borderColor: '#fb923c', 
-                    color: '#fb923c', 
-                    fontSize: '0.6rem',
-                    height: 16,
-                    minWidth: 'auto',
-                    '& .MuiChip-label': { px: 0.5, py: 0 }
-                  }} 
-                />
-              </Stack>
-            } 
-          />
         </ListItemButton>
       </ListItem>
     </List>

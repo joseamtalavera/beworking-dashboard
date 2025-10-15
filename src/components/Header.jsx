@@ -17,13 +17,14 @@ import EventNoteRoundedIcon from '@mui/icons-material/EventNoteRounded';
 import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 const accentColor = '#fb923c';
 
-const Header = ({ activeTab, userProfile }) => {
+const Header = ({ activeTab, userProfile, onOpenHelp }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -154,7 +155,8 @@ const Header = ({ activeTab, userProfile }) => {
               <Button
                 variant="outlined"
                 size="small"
-                startIcon={<CalendarMonthRoundedIcon />}
+                startIcon={<HelpOutlineIcon />}
+                onClick={onOpenHelp}
                 sx={{ 
                   borderRadius: 1, 
                   borderColor: '#e2e8f0', 
@@ -164,7 +166,7 @@ const Header = ({ activeTab, userProfile }) => {
                   '&:hover': { borderColor: accentColor, color: accentColor } 
                 }}
               >
-                Schedule
+                Help & Support
               </Button>
               <IconButton sx={{ color: accentColor, bgcolor: 'rgba(251,146,60,0.12)', '&:hover': { bgcolor: 'rgba(251,146,60,0.2)' } }}>
                 <NotificationsRoundedIcon />

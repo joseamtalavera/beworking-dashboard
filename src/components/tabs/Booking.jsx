@@ -33,6 +33,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
 import Switch from '@mui/material/Switch';
 import IconButton from '@mui/material/IconButton';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
 
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -52,6 +55,7 @@ import EuroRoundedIcon from '@mui/icons-material/EuroRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 
@@ -330,7 +334,7 @@ const buildTimeSlots = (bloqueos) => {
   bloqueos.forEach((bloqueo) => {
     const startTime = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : null;
     const endTime = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[1] : null;
-
+    
     const start = timeStringToMinutes(startTime);
     const end = timeStringToMinutes(endTime);
     if (start != null) {
@@ -750,23 +754,23 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                   onClick={() => onSelect(bloqueo)}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 320
-                    }}
-                  >
-                    {bloqueo.cliente?.nombre || '—'}
-                  </TableCell>
-                  <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
-                  <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
-                  <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
-                  <TableCell align="right" sx={{ width: 90 }}>{attendees ?? '—'}</TableCell>
-                  <TableCell align="right" sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    {chipContent}
-                  </TableCell>
+              <TableCell
+                sx={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 320
+                }}
+              >
+                {bloqueo.cliente?.nombre || '—'}
+              </TableCell>
+              <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
+              <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
+              <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
+              <TableCell align="right" sx={{ width: 90 }}>{attendees ?? '—'}</TableCell>
+              <TableCell align="right" sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {chipContent}
+              </TableCell>
                   {onDelete ? (
                     <TableCell align="right" sx={{ width: 72 }}>
                       <Tooltip title="Delete bloqueo">
@@ -959,22 +963,22 @@ const ReservaDialog = ({
     }
 
     return {
-      contact: null,
-      centro: null,
-      producto: null,
-      userType: DEFAULT_USER_TYPE,
-      reservationType: DEFAULT_RESERVATION_TYPE,
+    contact: null,
+    centro: null,
+    producto: null,
+    userType: DEFAULT_USER_TYPE,
+    reservationType: DEFAULT_RESERVATION_TYPE,
       dateFrom: fallbackDate,
       dateTo: fallbackDate,
-      startTime: DEFAULT_TIME_RANGE.start,
-      endTime: DEFAULT_TIME_RANGE.end,
-      weekdays: [],
-      openEnded: false,
-      tarifa: '',
-      attendees: '',
-      configuracion: '',
-      note: '',
-      status: STATUS_FORM_OPTIONS[0]
+    startTime: DEFAULT_TIME_RANGE.start,
+    endTime: DEFAULT_TIME_RANGE.end,
+    weekdays: [],
+    openEnded: false,
+    tarifa: '',
+    attendees: '',
+    configuracion: '',
+    note: '',
+    status: STATUS_FORM_OPTIONS[0]
     };
   }, [defaultDate, initialBloqueo, isEditMode]);
 
@@ -1291,8 +1295,8 @@ const ReservaDialog = ({
         const response = await updateBloqueo(initialBloqueo.id, payload);
         onUpdated?.(response);
       } else {
-        const response = await createReserva(payload);
-        onCreated?.(response);
+      const response = await createReserva(payload);
+      onCreated?.(response);
       }
     } catch (apiError) {
       setError(
@@ -1965,16 +1969,16 @@ const DetailTile = ({ icon, label, primary, secondary, children }) => {
               sx={{ fontWeight: 600, letterSpacing: 0.6 }}
             >
               {label}
-            </Typography>
+                </Typography>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
               {shouldShowDash ? '—' : primary}
-            </Typography>
+                </Typography>
           </Stack>
         </Stack>
         {secondary ? (
           <Typography variant="body2" color="text.secondary">
             {secondary}
-          </Typography>
+                </Typography>
         ) : null}
         {children}
       </Stack>
@@ -2036,7 +2040,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                 {booking?.clientEmail ? (
                   <Typography variant="body2" color="text.secondary">
                     {booking.clientEmail}
-                  </Typography>
+                </Typography>
                 ) : null}
               </Stack>
             </Stack>
@@ -2184,8 +2188,8 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                     <StickyNote2RoundedIcon fontSize="small" />
                   </Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Notes
-                  </Typography>
+                  Notes
+                </Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
                   {booking.notes && booking.notes.trim()
@@ -2263,16 +2267,16 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
               </Alert>
               {error ? <Alert severity="error">{error}</Alert> : null}
             </Stack>
-          </DialogContent>
-          <DialogActions>
+      </DialogContent>
+      <DialogActions>
             <Button onClick={onClose}>Cancel</Button>
             <Button onClick={onSubmit} variant="contained" disabled={submitting}>
               {submitting ? <CircularProgress size={18} /> : 'Create invoice'}
             </Button>
-          </DialogActions>
-        </Dialog>
-      );
-    };
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
   const open = Boolean(bloqueo);
@@ -2362,9 +2366,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                   {[bloqueo?.centro?.nombre, bloqueo?.producto?.nombre].filter(Boolean).join(' · ') || '—'}
                 </Typography>
                 {bloqueo?.cliente?.email ? (
-                  <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary">
                     {bloqueo.cliente.email}
-                  </Typography>
+                </Typography>
                 ) : null}
               </Stack>
             </Stack>
@@ -2489,7 +2493,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                   primary={formatDateTime(bloqueo.creacionFecha)}
                 />
               </Grid>
-            </Grid>
+              </Grid>
             <Paper
               variant="outlined"
               sx={{
@@ -2637,6 +2641,14 @@ const Booking = ({ mode = 'user' }) => {
   const [filterEmail, setFilterEmail] = useState('');
   const [filterUserType, setFilterUserType] = useState(defaultAgendaUserType);
   const [deletingBloqueoId, setDeletingBloqueoId] = useState(null);
+
+  const clearFilters = () => {
+    setFilterUser('');
+    setFilterCenter('');
+    setFilterProduct('');
+    setFilterEmail('');
+    setFilterUserType(defaultAgendaUserType);
+  };
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editBloqueo, setEditBloqueo] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null });
@@ -2882,9 +2894,14 @@ const Booking = ({ mode = 'user' }) => {
   const filteredBloqueos = useMemo(() => {
     try {
       return (bloqueos || []).filter((bloqueo) => {
-        const userLabel = bloqueo?.cliente?.nombre || '';
-        if (filterUser && userLabel !== filterUser) {
-          return false;
+        // Filter by name search (partial matching like Contacts)
+        if (filterUser && filterUser.trim()) {
+          const searchTerm = filterUser.toLowerCase();
+          const userName = (bloqueo?.cliente?.nombre || '').toLowerCase();
+          const productName = (bloqueo?.producto?.nombre || '').toLowerCase();
+          if (!userName.includes(searchTerm) && !productName.includes(searchTerm)) {
+            return false;
+          }
         }
 
         const centerLabel = bloqueo?.centro?.nombre || '';
@@ -2898,10 +2915,10 @@ const Booking = ({ mode = 'user' }) => {
         }
 
         if (filterUserType) {
-          const tenantType = resolveTenantType(bloqueo);
+        const tenantType = resolveTenantType(bloqueo);
           const displayType = resolveDisplayTenantType(bloqueo);
           if (tenantType !== filterUserType && displayType !== filterUserType) {
-            return false;
+          return false;
           }
         }
 
@@ -3239,109 +3256,122 @@ const Booking = ({ mode = 'user' }) => {
         </Stack>
       ) : (
         <Stack spacing={3}>
-          <Box
-            sx={{
-              display: 'grid',
-              gap: 3,
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(2, minmax(0, 1fr))',
-                lg: 'repeat(3, minmax(0, 1fr))'
-              }
-            }}
-          >
-            <TextField
-              type="date"
-              label="Agenda date"
-              value={agendaDate}
-              onChange={handleAgendaDateChange}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
-            <Autocomplete
-              options={filterOptions.users || []}
-              value={filterUser || null}
-              onChange={(_event, newValue) => setFilterUser(newValue || '')}
-              isOptionEqualToValue={(option, value) => option === value}
-              noOptionsText="No contacts found"
-              clearOnEscape
-              fullWidth
-              renderInput={(params) => (
+          {/* Filters - Always visible like Contacts/MailboxAdmin */}
+          <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
+            <Typography variant="h6" gutterBottom>
+              Filters
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6} md={2}>
                 <TextField
-                  {...params}
-                  label="Contact"
-                  placeholder="Search contact"
+                  fullWidth
+                  label="Agenda Date"
+                  type="date"
+                  value={agendaDate}
+                  onChange={handleAgendaDateChange}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <TextField
+                  fullWidth
+                  label="Search by Name"
+                  value={filterUser}
+                  onChange={(event) => setFilterUser(event.target.value)}
+                  placeholder="Search by name"
+                  size="small"
                   InputProps={{
-                    ...params.InputProps,
                     startAdornment: (
-                      <>
-                        <InputAdornment position="start">
-                          <SearchRoundedIcon fontSize="small" />
-                        </InputAdornment>
-                        {params.InputProps.startAdornment}
-                      </>
-                    )
+                      <InputAdornment position="start">
+                        <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
+                      </InputAdornment>
+                    ),
                   }}
                 />
-              )}
-            />
-            <TextField
-              label="Filter by email"
-              value={filterEmail}
-              onChange={(event) => setFilterEmail(event.target.value)}
-              placeholder="Search by email"
-              fullWidth
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon fontSize="small" />
-                  </InputAdornment>
-                )
-              }}
-            />
-            <TextField
-              select
-              label="Centro"
-              value={filterCenter}
-              onChange={(event) => setFilterCenter(event.target.value)}
-              fullWidth
-            >
-              <MenuItem value="">All centros</MenuItem>
-              {(filterOptions.centers || []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="User type"
-              value={filterUserType}
-              onChange={(event) => setFilterUserType(event.target.value)}
-              fullWidth
-            >
-              <MenuItem value="">All user types</MenuItem>
-              {(filterOptions.userTypes || []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Producto"
-              value={filterProduct}
-              onChange={(event) => setFilterProduct(event.target.value)}
-              fullWidth
-            >
-              <MenuItem value="">All productos</MenuItem>
-              {(filterOptions.products || []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <TextField
+                  fullWidth
+                  label="Search by Email"
+                  value={filterEmail}
+                  onChange={(event) => setFilterEmail(event.target.value)}
+                  placeholder="Search by email"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Centro</InputLabel>
+                  <Select
+                    value={filterCenter}
+                    onChange={(event) => setFilterCenter(event.target.value)}
+                    label="Centro"
+                  >
+                    <MenuItem value="">All centros</MenuItem>
+                    {(filterOptions.centers || []).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>User Type</InputLabel>
+                  <Select
+                    value={filterUserType}
+                    onChange={(event) => setFilterUserType(event.target.value)}
+                    label="User Type"
+                  >
+                    <MenuItem value="">All user types</MenuItem>
+                    {(filterOptions.userTypes || []).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Producto</InputLabel>
+                  <Select
+                    value={filterProduct}
+                    onChange={(event) => setFilterProduct(event.target.value)}
+                    label="Producto"
+                  >
+                    <MenuItem value="">All productos</MenuItem>
+                    {(filterOptions.products || []).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </Button>
+              <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                Showing {filteredBloqueos.length} of {bloqueos.length} bookings
+              </Typography>
+            </Stack>
+          </Paper>
           <Typography variant="body2" color="text.secondary">
             {agendaRangeLabel}
           </Typography>

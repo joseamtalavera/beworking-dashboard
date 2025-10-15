@@ -10,8 +10,10 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
+import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import InputLabel from '@mui/material/InputLabel';
 import LinearProgress from '@mui/material/LinearProgress';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -26,6 +28,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import Pagination from '@mui/material/Pagination';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -67,7 +70,7 @@ const ACTIVITY_STATUS = {
   Potencial: { color: 'default', label: 'Potencial', variant: 'outlined' }
 };
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10; // Client-side pagination like MailboxAdmin
 const DEFAULT_STATUSES = ['Activo', 'Convertido', 'Potencial', 'Trial', 'Suspended', 'Inactive'];
 const ADD_USER_STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
@@ -711,8 +714,8 @@ AddUserDialog.defaultProps = {
 
 const buildQueryString = ({ page, search, status, email, userType }) => {
   const params = new URLSearchParams({
-    page: String(page),
-    size: String(PAGE_SIZE),
+    page: '0', // Always fetch from first page
+    size: '10000', // Fetch a large number to get all contacts (7000+)
     sort: 'lastActive,desc'
   });
 
@@ -743,12 +746,16 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const [viewMode, setViewMode] = useState('list');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [statusOptions, setStatusOptions] = useState([]);
   const [emailOptions, setEmailOptions] = useState([]);
   const [userTypeOptions, setUserTypeOptions] = useState(() => [...CANONICAL_USER_TYPES]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [dateFilters, setDateFilters] = useState({
+    startDate: '',
+    endDate: ''
+  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
@@ -787,7 +794,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   }, [search]);
 
   useEffect(() => {
-    setPage(0);
+    setPage(1);
   }, [debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
 
   const fetchContacts = useCallback(async () => {
@@ -796,7 +803,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
       try {
         const query = buildQueryString({
-          page,
+          page: 1, // Not used anymore since we fetch all
           search: debouncedSearch,
           status: statusFilter,
         email: emailFilter,
@@ -858,7 +865,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       } finally {
           setLoading(false);
         }
-  }, [page, debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
+  }, [debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
 
   useEffect(() => {
     fetchContacts();
@@ -975,7 +982,16 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
     setStatusFilter('all');
     setEmailFilter('all');
     setUserTypeFilter('all');
-    setPage(0);
+    setDateFilters({ startDate: '', endDate: '' });
+    setPage(1);
+  };
+
+  const handleDateFilterChange = (field, value) => {
+    setDateFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setPage(1); // Reset to first page when filters change
   };
 
   const handleAddUser = async (values) => {
@@ -1054,10 +1070,40 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
     );
   }
 
-  const rangeStart = total === 0 ? 0 : page * PAGE_SIZE + 1;
-  const rangeEnd = total === 0 ? 0 : Math.min(rangeStart + contacts.length - 1, total);
-  const hasPreviousPage = page > 0;
-  const hasNextPage = rangeEnd < total;
+  // Client-side filtering for date range (since backend doesn't support date filtering yet)
+  const filteredContacts = useMemo(() => {
+    let filtered = contacts;
+    
+    // Filter by date range
+    if (dateFilters.startDate) {
+      const startDate = new Date(dateFilters.startDate);
+      filtered = filtered.filter((contact) => {
+        const contactDate = new Date(contact.createdAt || contact.lastActive || contact.updatedAt);
+        return contactDate >= startDate;
+      });
+    }
+    
+    if (dateFilters.endDate) {
+      const endDate = new Date(dateFilters.endDate);
+      endDate.setHours(23, 59, 59, 999); // End of day
+      filtered = filtered.filter((contact) => {
+        const contactDate = new Date(contact.createdAt || contact.lastActive || contact.updatedAt);
+        return contactDate <= endDate;
+      });
+    }
+    
+    return filtered;
+  }, [contacts, dateFilters]);
+
+  // Pagination logic (client-side like MailboxAdmin)
+  const totalPages = Math.ceil(filteredContacts.length / PAGE_SIZE);
+  const startIndex = (page - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const paginatedContacts = filteredContacts.slice(startIndex, endIndex);
+  
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
   return (
     <Paper
@@ -1114,77 +1160,112 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           </Stack>
         </Stack>
 
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 3 }}>
-          {/* 1. Search user */}
-          <OutlinedInput
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search user or contact"
-            startAdornment={
-              <InputAdornment position="start">
-                <SearchRoundedIcon fontSize="small" />
-              </InputAdornment>
-            }
-            sx={{ maxWidth: 320, borderRadius: 2, bgcolor: 'white' }}
-          />
-          {/* 2. Search email */}
-          <OutlinedInput
-            size="small"
-            value={emailFilter === 'all' ? '' : emailFilter}
-            onChange={(event) => setEmailFilter(event.target.value || 'all')}
-            placeholder="Search by email"
-            startAdornment={
-              <InputAdornment position="start">
-                <MailOutlinedIcon fontSize="small" />
-              </InputAdornment>
-            }
-            sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 200 }}
-          />
-          {/* 3. User type */}
-          <Select
-            size="small"
-            value={userTypeFilter}
-            onChange={(event) => setUserTypeFilter(event.target.value)}
-            sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 140 }}
-          >
-            <MenuItem value="all">All user types</MenuItem>
-            {userTypeOptions.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-          {/* 4. Status */}
-          <Select
-            size="small"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            sx={{ borderRadius: 2, bgcolor: 'white', minWidth: 140 }}
-          >
-            <MenuItem value="all">All statuses</MenuItem>
-            <MenuItem value="Activo">Activo</MenuItem>
-            <MenuItem value="Inactivo">Inactivo</MenuItem>
-            <MenuItem value="Potencial">Potencial</MenuItem>
-          </Select>
-          <Stack 
-            direction="row" 
-            alignItems="center" 
-            spacing={0.5}
-            onClick={handleResetFilters}
-            sx={{ 
-              cursor: 'pointer',
-              color: 'text.secondary',
-              '&:hover': {
-                color: 'primary.main'
-              }
-            }}
-          >
-            <RefreshRoundedIcon fontSize="small" />
-            <Typography variant="body2" fontWeight={500}>
-              Reset
+        {/* Filters - Always visible like MailboxAdmin */}
+        <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
+          <Typography variant="h6" gutterBottom>
+            Filters
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                label="Search by Name"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                label="Search by Email"
+                value={emailFilter === 'all' ? '' : emailFilter}
+                onChange={(event) => setEmailFilter(event.target.value || 'all')}
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                label="Start Date"
+                type="date"
+                value={dateFilters.startDate}
+                onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                label="End Date"
+                type="date"
+                value={dateFilters.endDate}
+                onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>User Type</InputLabel>
+                <Select
+                  value={userTypeFilter}
+                  onChange={(event) => setUserTypeFilter(event.target.value)}
+                  label="User Type"
+                >
+                  <MenuItem value="all">All user types</MenuItem>
+                  {userTypeOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  label="Status"
+                >
+                  <MenuItem value="all">All statuses</MenuItem>
+                  <MenuItem value="Activo">Activo</MenuItem>
+                  <MenuItem value="Inactivo">Inactivo</MenuItem>
+                  <MenuItem value="Potencial">Potencial</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleResetFilters}
+            >
+              Clear Filters
+            </Button>
+            <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+              Showing {filteredContacts.length} of {contacts.length} contacts
             </Typography>
           </Stack>
-        </Stack>
+        </Paper>
       </Box>
 
       <Divider />
@@ -1224,7 +1305,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               </TableRow>
             )}
 
-            {!loading && !error && contacts.length === 0 && (
+            {!loading && !error && paginatedContacts.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
@@ -1234,7 +1315,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               </TableRow>
             )}
 
-            {!loading && !error && contacts.map((tenant) => {
+            {!loading && !error && paginatedContacts.map((tenant) => {
               const statusMeta = ACTIVITY_STATUS[tenant.status] || { color: 'default', label: 'Unknown' };
               const initials = tenant.name
                 .split(' ')
@@ -1254,7 +1335,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                       <Avatar 
                         src={tenant.avatar || tenant.photo} 
                         alt={tenant.name || 'Contact'} 
-                        sx={{ bgcolor: '#f97316' }}
+                        sx={{ bgcolor: '#22c55e' }}
                       >
                         {initials.slice(0, 2)}
                       </Avatar>
@@ -1326,27 +1407,45 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         </Table>
       </TableContainer>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 2 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="success"
+            size="large"
+            showFirstButton
+            showLastButton
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: '#22c55e',
+                '&.Mui-selected': {
+                  backgroundColor: '#22c55e',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#16a34a',
+                  },
+                },
+                '&:hover': {
+                  backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                },
+              },
+            }}
+          />
+        </Box>
+      )}
+      
+      {/* Pagination Info */}
       <Box sx={{ px: 4, py: 2, borderTop: '1px solid #eef2f6', bgcolor: 'rgba(248,250,252,0.6)' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="body2" color="text.secondary">
-            {total === 0 ? '0 results' : `${rangeStart}-${rangeEnd} of ${total}`}
+            {filteredContacts.length === 0 ? '0 results' : `${startIndex + 1}-${Math.min(endIndex, filteredContacts.length)} of ${filteredContacts.length}`}
           </Typography>
-          <Stack direction="row" spacing={1}>
-            <IconButton
-              size="small"
-              onClick={() => hasPreviousPage && !loading && setPage((prev) => Math.max(prev - 1, 0))}
-              disabled={!hasPreviousPage || loading}
-            >
-              <ChevronLeftRoundedIcon />
-            </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => hasNextPage && !loading && setPage((prev) => prev + 1)}
-              disabled={!hasNextPage || loading || total === 0}
-            >
-              <ChevronRightRoundedIcon />
-            </IconButton>
-          </Stack>
+          <Typography variant="body2" color="text.secondary">
+            Page {page} of {totalPages}
+          </Typography>
         </Stack>
       </Box>
 

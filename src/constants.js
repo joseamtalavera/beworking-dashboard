@@ -12,7 +12,8 @@ import {
   TicketsIcon,
   ReportsIcon,
   MarketplaceIcon,
-  AgentIcon
+  AgentIcon,
+  ExpensesIcon
 } from './components/icons/Icons.js';
 
 const BASE_TABS = [
@@ -21,6 +22,7 @@ const BASE_TABS = [
   { id: 'Mailbox', label: 'Virtual Office', icon: MailboxIcon },
   { id: 'Booking', label: 'Meeting Rooms', icon: BookingIcon },
   { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
+  { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon },
   { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, soon: true },
   { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true },
   { id: 'Community', label: 'Community', icon: CommunityIcon, soon: true },
