@@ -159,7 +159,7 @@ const IntegrationRow = ({ integration }) => {
         <Avatar
           src={integration.logoUrl}
           alt={integration.name}
-          sx={{ width: 48, height: 48, border: '1px solid #e2e8f0' }}
+          sx={{ width: 48, height: 48, border: '3px solid #fde7d2' }}
           imgProps={{ referrerPolicy: 'no-referrer' }}
         />
         <Box>
@@ -245,7 +245,7 @@ const AvailableCard = ({ name, description, logoUrl }) => (
       <Avatar
         src={logoUrl}
         alt={name}
-        sx={{ width: 44, height: 44, border: '1px solid #e2e8f0' }}
+        sx={{ width: 44, height: 44, border: '3px solid #fde7d2' }}
         imgProps={{ referrerPolicy: 'no-referrer' }}
       />
       <Typography variant="subtitle1" fontWeight="bold">

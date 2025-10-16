@@ -111,7 +111,6 @@ export async function apiFetch(path, options = {}) {
   }
 
   const url = resolveApiUrl(path);
-  console.log('API Request URL:', url);
   const response = await fetch(url, requestInit);
 
   if (!response.ok) {

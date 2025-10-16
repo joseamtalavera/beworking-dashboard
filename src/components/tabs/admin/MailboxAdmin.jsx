@@ -864,7 +864,7 @@ const MailboxAdmin = () => {
                                     }
                                   }}
                                 >
-                                  <DeleteOutlineIcon fontSize="small" />
+                                  <DeleteOutlineIcon fontSize="small" sx={{ color: '#6b7280' }} />
                                 </IconButton>
                               </span>
                             </Tooltip>
@@ -1061,7 +1061,7 @@ const MailboxAdmin = () => {
                         onClick={() => handleSelectContact(contact)}
                       >
                         <Stack direction="row" spacing={2} alignItems="center">
-                          <Avatar sx={{ width: 32, height: 32, bgcolor: '#22c55e', color: 'white', fontSize: '0.875rem' }}>
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: '#22c55e', color: 'white', fontSize: '0.875rem', border: '3px solid #fde7d2' }}>
                             {contact.name.split(' ').map(n => n[0]).join('')}
                           </Avatar>
                           <Box>

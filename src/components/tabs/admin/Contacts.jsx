@@ -301,7 +301,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     <Avatar 
                       src={form.avatar} 
                       alt={form.name || 'New User'} 
-                      sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32 }}
+                      sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32, border: '3px solid #fde7d2' }}
                     >
                       {form.name ? form.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'NU'}
                     </Avatar>
@@ -762,8 +762,14 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   // Reset view when component mounts (when Contacts tab is clicked)
   // This will reset the view back to list when switching to Contacts tab
   useEffect(() => {
-    setViewMode('list');
-    setSelectedContact(null);
+    const selectedContactId = localStorage.getItem('selectedContactId');
+    if (selectedContactId) {
+      console.log('Contacts mounted with selectedContactId:', selectedContactId);
+      // Don't reset to list mode if we have a selected contact ID
+    } else {
+      setViewMode('list');
+      setSelectedContact(null);
+    }
   }, []);
 
   useEffect(() => {
@@ -870,6 +876,51 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   useEffect(() => {
     fetchContacts();
   }, [fetchContacts]);
+
+  // Check for selected contact ID from search
+  useEffect(() => {
+    const handleSelectedContact = async () => {
+      const selectedContactId = localStorage.getItem('selectedContactId');
+      console.log('Contacts useEffect - selectedContactId:', selectedContactId, 'contacts.length:', contacts.length);
+      if (selectedContactId && contacts.length > 0) {
+        console.log('Looking for contact with ID:', selectedContactId, 'Type:', typeof selectedContactId);
+        console.log('Available contact IDs (first 10):', contacts.slice(0, 10).map(c => ({ id: c.id, name: c.name, idType: typeof c.id })));
+        console.log('Searching for exact match...');
+        // Use string comparison since contact IDs are strings
+        const contact = contacts.find(c => c.id === selectedContactId);
+        console.log('Found contact with string match:', contact);
+        
+        if (contact) {
+          console.log('Setting selected contact and view mode to profile');
+          setSelectedContact(contact);
+          setViewMode('profile');
+          // Clear the stored ID
+          localStorage.removeItem('selectedContactId');
+        } else {
+          console.log('Contact not found with ID:', selectedContactId);
+          // Try to fetch the contact directly by ID as a fallback
+          try {
+            console.log('Attempting to fetch contact directly by ID...');
+            const directContact = await apiFetch(`/contact-profiles/${selectedContactId}`);
+            if (directContact) {
+              console.log('Found contact via direct fetch:', directContact);
+              setSelectedContact(directContact);
+              setViewMode('profile');
+              localStorage.removeItem('selectedContactId');
+            } else {
+              console.log('Contact not found even with direct fetch');
+              localStorage.removeItem('selectedContactId');
+            }
+          } catch (error) {
+            console.error('Error fetching contact directly:', error);
+            localStorage.removeItem('selectedContactId');
+          }
+        }
+      }
+    };
+
+    handleSelectedContact();
+  }, [contacts]);
 
   const handleRowClick = (tenant) => {
     setSelectedContact(tenant);
@@ -1055,21 +1106,6 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
     setDeleteDialogOpen(true);
   };
 
-  if (viewMode === 'profile' && selectedContact) {
-    return (
-      <ContactProfileView
-        contact={selectedContact}
-        onBack={() => {
-          setViewMode('list');
-          setSelectedContact(null);
-        }}
-        onSave={handleSaveProfile}
-        userTypeOptions={userTypeOptions}
-        refreshProfile={refreshProfile}
-      />
-    );
-  }
-
   // Client-side filtering for date range (since backend doesn't support date filtering yet)
   const filteredContacts = useMemo(() => {
     let filtered = contacts;
@@ -1105,6 +1141,21 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
     setPage(newPage);
   };
 
+  if (viewMode === 'profile' && selectedContact) {
+    return (
+      <ContactProfileView
+        contact={selectedContact}
+        onBack={() => {
+          setViewMode('list');
+          setSelectedContact(null);
+        }}
+        onSave={handleSaveProfile}
+        userTypeOptions={userTypeOptions}
+        refreshProfile={refreshProfile}
+      />
+    );
+  }
+
   return (
     <Paper
       elevation={0}
@@ -1120,7 +1171,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={3}>
           <Stack spacing={1}>
             <Typography variant="h5" fontWeight={700}>
-              User contacts
+              Contacts
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Track onboarding progress, ownership, and engagement health across every user.
@@ -1129,33 +1180,43 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }}>
             {userType === 'admin' && (
               <Button
-                startIcon={<AddRoundedIcon />}
                 variant="outlined"
                 sx={{
-                  minWidth: 170,
-                  borderRadius: 2,
+                  minWidth: 120,
+                  height: 36,
                   textTransform: 'none',
                   fontWeight: 600,
-                  px: 3,
-                  py: 1,
-                  borderColor: '#10b981',
-                  color: '#10b981',
+                  borderColor: '#fb923c',
+                  color: '#fb923c',
                   '&:hover': {
-                    borderColor: '#059669',
-                    color: '#059669',
-                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    borderColor: '#f97316',
+                    color: '#f97316',
+                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                    boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
                 onClick={() => setAddDialogOpen(true)}
               >
-                Add new user
+                + NEW USER
               </Button>
             )}
-            <Button variant="outlined" color="inherit" sx={{ borderRadius: 2 }}>
-              Export CSV
+            <Button 
+              variant="contained"
+              sx={{
+                minWidth: 120,
+                height: 36,
+                  textTransform: 'none',
+                fontWeight: 600,
+                backgroundColor: '#fb923c',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#f97316'
+                }
+              }}
+            >
+              EXPORT CSV
             </Button>
           </Stack>
         </Stack>
@@ -1335,7 +1396,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                       <Avatar 
                         src={tenant.avatar || tenant.photo} 
                         alt={tenant.name || 'Contact'} 
-                        sx={{ bgcolor: '#22c55e' }}
+                        sx={{ bgcolor: '#22c55e', border: '3px solid #fde7d2' }}
                       >
                         {initials.slice(0, 2)}
                       </Avatar>
@@ -1395,7 +1456,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                           }}
                           sx={{ color: 'error.main' }}
                         >
-                          <DeleteRoundedIcon fontSize="inherit" />
+                          <DeleteRoundedIcon fontSize="inherit" sx={{ color: '#6b7280' }} />
                         </IconButton>
                       </Tooltip>
                     </Stack>
@@ -1548,7 +1609,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           </Button>
           <Button 
             variant="contained" 
-            startIcon={<DeleteRoundedIcon />}
+            startIcon={<DeleteRoundedIcon sx={{ color: '#6b7280' }} />}
             onClick={() => handleDeleteUser(userToDelete?.id)}
             sx={{
               borderRadius: 2,

@@ -18,13 +18,16 @@ import EventSeatRoundedIcon from '@mui/icons-material/EventSeatRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import { useEffect, useState } from 'react';
 import { fetchInvoices } from '../../api/invoices.js';
+import { fetchBloqueos } from '../../api/bookings.js';
+import { apiFetch } from '../../api/client.js';
 
 const accentColor = '#fb923c';
 
 const quickStats = [
-  { id: 'bookings', label: 'Bookings today', value: '24' },
-  { id: 'messages', label: 'New contacts', value: '8' },
-  { id: 'automations', label: 'Active users', value: '12' }
+  { id: 'bookings', label: 'Meeting Room bookings', sublabel: 'Today', value: '24' },
+  { id: 'desk-bookings', label: 'Desk bookings', sublabel: 'Today', value: '0' },
+  { id: 'messages', label: 'New contacts', sublabel: 'Today', value: '8' },
+  { id: 'automations', label: 'Active users', sublabel: 'Today', value: '12' }
 ];
 
 const userQuickStats = [
@@ -161,7 +164,6 @@ const locations = [
 
 // Line Chart Component
 const LineChart = ({ data, loading, title, color, maxValue }) => {
-  console.log('LineChart props:', { data, loading, title, color, maxValue });
   
   if (loading) {
     return (
@@ -296,15 +298,90 @@ const Overview = ({ userType = 'admin' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [todayBookings, setTodayBookings] = useState(0);
+  const [todayDeskBookings, setTodayDeskBookings] = useState(0);
+  const [todayNewContacts, setTodayNewContacts] = useState(0);
+  const [activeUsersToday, setActiveUsersToday] = useState(0);
   
-  console.log('Overview component state:', { revenueData, expenditureData, overdueData, loading, error, selectedYear });
+  // console.log('Overview component state:', { revenueData, expenditureData, overdueData, loading, error, selectedYear, todayBookings });
+
+  const fetchTodayBookings = async () => {
+    try {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      // Fetch today's bookings for meeting room and desk counts
+      const todayBookings = await fetchBloqueos({
+        from: todayStr,
+        to: todayStr
+      });
+      
+      // Fetch ALL future bookings for active users count
+      const allFutureBookings = await fetchBloqueos({
+        from: todayStr,
+        to: '2030-12-31' // Far future date to get all future bookings
+      });
+      
+      // Filter to only include aula type bookings (Meeting Rooms)
+      
+      const meetingRoomBookings = Array.isArray(todayBookings) 
+        ? todayBookings.filter(booking => {
+            // Check if the product name starts with 'MA1A' (Meeting Room codes)
+            const productName = booking.producto?.nombre || '';
+            return productName.includes('MA1A');
+          })
+        : [];
+      
+      const deskBookings = Array.isArray(todayBookings) 
+        ? todayBookings.filter(booking => {
+            // Check if the product name starts with 'MA1O' (Desk codes) or contains 'desk'
+            const productName = booking.producto?.nombre || '';
+            const productType = booking.producto?.tipo || '';
+            return productName.includes('MA1O') || 
+                   productName.toLowerCase().includes('desk') ||
+                   productType.toLowerCase().includes('desk');
+          })
+        : [];
+      
+      // Fetch today's new contacts
+      const contactsResponse = await apiFetch(`/contact-profiles?page=0&size=10000&sort=createdAt,desc`);
+      const todayNewContacts = Array.isArray(contactsResponse?.items) 
+        ? contactsResponse.items.filter(contact => {
+            const contactDate = new Date(contact.createdAt || contact.created_at);
+            const contactDateStr = contactDate.toISOString().split('T')[0];
+            return contactDateStr === todayStr;
+          }).length
+        : 0;
+      
+      // Count active users with future bookings (any type: desks, aulas, oficinas virtuales)
+      // Use allFutureBookings which already contains all future bookings
+      const futureBookings = Array.isArray(allFutureBookings) ? allFutureBookings : [];
+      
+      // Get unique user IDs from future bookings (all types)
+      const activeUserIds = new Set();
+      futureBookings.forEach(booking => {
+        if (booking.cliente?.id) {
+          activeUserIds.add(booking.cliente.id);
+        }
+      });
+      setTodayBookings(meetingRoomBookings.length);
+      setTodayDeskBookings(deskBookings.length);
+      setTodayNewContacts(todayNewContacts);
+      setActiveUsersToday(activeUserIds.size);
+    } catch (error) {
+      console.error('Error fetching today\'s bookings:', error);
+      setTodayBookings(0);
+      setTodayDeskBookings(0);
+      setTodayNewContacts(0);
+      setActiveUsersToday(0);
+    }
+  };
 
   const loadChartData = async (year) => {
     setLoading(true);
     setError('');
     
     try {
-      console.log(`Loading chart data for year: ${year}`);
       
       // Fetch all invoices for the selected year
       const response = await fetchInvoices({ 
@@ -313,7 +390,6 @@ const Overview = ({ userType = 'admin' }) => {
         // Don't filter by status - we need all invoices
       });
       
-      console.log('API response:', response);
       
       if (response && response.content) {
         // Initialize all 12 months for the selected year
@@ -375,7 +451,6 @@ const Overview = ({ userType = 'admin' }) => {
           return parseInt(monthA) - parseInt(monthB);
         });
         
-        console.log('Processed chart data for year', year, ':', { revenueArray, expenditureArray, overdueArray });
         
         // Check if we have any real data
         const hasRevenueData = revenueArray.some(month => month.value > 0);
@@ -383,12 +458,10 @@ const Overview = ({ userType = 'admin' }) => {
         const hasOverdueData = overdueArray.some(month => month.value > 0);
         
         if (hasRevenueData || hasExpenditureData || hasOverdueData) {
-          console.log('Using real invoice data');
           setRevenueData(revenueArray);
           setExpenditureData(expenditureArray);
           setOverdueData(overdueArray);
         } else {
-          console.log('No real data found, using sample data for demonstration');
           // Use sample data for demonstration when no real data is available
           const sampleRevenueData = [
             { month: 'Jan', value: 8500 },
@@ -551,6 +624,7 @@ const Overview = ({ userType = 'admin' }) => {
 
   useEffect(() => {
     loadChartData(selectedYear);
+    fetchTodayBookings();
   }, [selectedYear]);
 
   return (
@@ -558,24 +632,42 @@ const Overview = ({ userType = 'admin' }) => {
       <Box
         sx={{
           display: 'grid',
-          gap: { xs: 2, lg: 3 },
+          gap: { xs: 2, lg: 2 },
           gridTemplateColumns: {
             xs: 'repeat(1, minmax(0, 1fr))',
             sm: 'repeat(2, minmax(0, 1fr))',
-            xl: 'repeat(3, minmax(0, 1fr))'
+            md: 'repeat(4, minmax(0, 1fr))'
           }
         }}
       >
-        {(userType === 'user' ? userQuickStats : quickStats).map((stat) => (
-          <Paper key={stat.id} elevation={0} sx={{ borderRadius: 4, p: 2.5, border: '1px solid #e2e8f0', minHeight: 120 }}>
+        {(userType === 'user' ? userQuickStats : quickStats).map((stat) => {
+          // Use dynamic data for bookings today
+          let displayValue = stat.value;
+          if (stat.id === 'bookings') {
+            displayValue = todayBookings.toString();
+          } else if (stat.id === 'desk-bookings') {
+            displayValue = todayDeskBookings.toString();
+          } else if (stat.id === 'messages') {
+            displayValue = todayNewContacts.toString();
+          } else if (stat.id === 'automations') {
+            displayValue = activeUsersToday.toString();
+          }
+          return (
+            <Paper key={stat.id} elevation={0} sx={{ borderRadius: 4, p: 2, border: '1px solid #e2e8f0', minHeight: 100 }}>
             <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 0.6 }}>
               {stat.label}
             </Typography>
+              {stat.sublabel && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  {stat.sublabel}
+                </Typography>
+              )}
             <Typography variant="h4" fontWeight={700}>
-              {stat.value}
+                {displayValue}
             </Typography>
           </Paper>
-        ))}
+          );
+        })}
       </Box>
 
       <Box
@@ -648,7 +740,7 @@ const Overview = ({ userType = 'admin' }) => {
             <Chip 
               label={loading ? "Loading..." : "Updated now"} 
               size="small" 
-              sx={{ bgcolor: 'rgba(251,146,60,0.12)', color: accentColor }} 
+              sx={{ bgcolor: 'rgba(34,197,94,0.12)', color: '#22c55e' }} 
             />
           </Stack>
             </Stack>

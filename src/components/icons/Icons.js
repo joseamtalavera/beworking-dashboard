@@ -17,6 +17,10 @@ import ReportsIcon from '@mui/icons-material/AssessmentOutlined';
 import MarketplaceIcon from '@mui/icons-material/StoreOutlined';
 import AgentIcon from '@mui/icons-material/SupportAgentOutlined';
 import ExpensesIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
+import BankReconciliationIcon from '@mui/icons-material/AccountBalanceOutlined';
+import CryptWalletIcon from '@mui/icons-material/CurrencyBitcoinOutlined';
+import PasswordManagementIcon from '@mui/icons-material/LockOutlined';
+import DigitalSignatureIcon from '@mui/icons-material/EditOutlined';
 
 export {
   OverviewIcon,
@@ -37,5 +41,9 @@ export {
   ReportsIcon,
   MarketplaceIcon,
   AgentIcon,
-  ExpensesIcon
+  ExpensesIcon,
+  BankReconciliationIcon,
+  CryptWalletIcon,
+  PasswordManagementIcon,
+  DigitalSignatureIcon
 };

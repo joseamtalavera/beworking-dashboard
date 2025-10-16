@@ -136,7 +136,7 @@ const Agent = ({ onClose }) => {
                 </Typography>
               </Box>
               {msg.sender === 'user' && (
-                <Avatar sx={{ bgcolor: '#3b82f6', width: 32, height: 32, mt: 0.5 }}>
+                <Avatar sx={{ bgcolor: '#3b82f6', width: 32, height: 32, mt: 0.5, border: '3px solid #fde7d2' }}>
                   <ChatBubbleOutline sx={{ fontSize: 16 }} />
                 </Avatar>
               )}

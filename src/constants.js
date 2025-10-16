@@ -13,7 +13,11 @@ import {
   ReportsIcon,
   MarketplaceIcon,
   AgentIcon,
-  ExpensesIcon
+  ExpensesIcon,
+  BankReconciliationIcon,
+  CryptWalletIcon,
+  PasswordManagementIcon,
+  DigitalSignatureIcon
 } from './components/icons/Icons.js';
 
 const BASE_TABS = [
@@ -22,7 +26,11 @@ const BASE_TABS = [
   { id: 'Mailbox', label: 'Virtual Office', icon: MailboxIcon },
   { id: 'Booking', label: 'Meeting Rooms', icon: BookingIcon },
   { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
-  { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon },
+  { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
+  { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },
+  { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true },
+  { id: 'PasswordManagement', label: 'Passwords', icon: PasswordManagementIcon, soon: true },
+  { id: 'DigitalSignature', label: 'Signature', icon: DigitalSignatureIcon, soon: true },
   { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, soon: true },
   { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true },
   { id: 'Community', label: 'Community', icon: CommunityIcon, soon: true },

@@ -5,10 +5,10 @@ import { getStoredToken, setStoredToken } from '../../api/client.js';
 const LOGIN_URL = import.meta.env.VITE_LOGIN_URL || 'http://localhost:3020/main/login';
 
 const BASE_PROFILE = {
-  name: 'John Doe',
+  name: 'User',
   role: 'ADMIN',
   tenantId: null,
-  email: 'john.doe@beworking.io',
+  email: 'user@beworking.io',
   phone: '+34 600 123 456',
   status: 'Active tenant',
   plan: 'Scale plan',
@@ -47,14 +47,9 @@ export const useAuthProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      console.log('DEBUG: fetchProfile called - fetching current user');
       const apiProfile = await fetchCurrentUser();
-      console.log('DEBUG: API profile received:', apiProfile);
-      console.log('DEBUG: Current user email:', apiProfile?.email);
       const composedProfile = composeProfile(apiProfile);
-      console.log('DEBUG: Composed profile:', composedProfile);
       setState(prev => ({ ...prev, status: 'authenticated', profile: composedProfile, error: '' }));
-      console.log('DEBUG: Profile state updated');
     } catch (error) {
       console.error('Failed to fetch current user', error);
       setStoredToken(null);
@@ -88,7 +83,6 @@ export const useAuthProfile = () => {
   };
 
   const refreshProfile = () => {
-    console.log('DEBUG: refreshProfile() called');
     fetchProfile();
   };
 

@@ -14,8 +14,8 @@ import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 const drawerWidth = 260;
 const accentColor = '#22c55e';
 const activeColor = '#16a34a';
-const accentHover = 'rgba(34, 197, 94, 0.12)';
-const activeHover = 'rgba(22, 163, 74, 0.12)';
+const accentHover = 'rgba(255, 140, 0, 0.3)';
+const activeHover = 'rgba(255, 140, 0, 0.3)';
 
 const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent }) => (
   <Drawer
@@ -102,7 +102,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent })
           <ListItemText 
             primary={
               <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography variant="body2">AI Agent</Typography>
+                <Typography variant="body2">BeCopilot</Typography>
                 <Chip 
                   label="Soon" 
                   size="small" 

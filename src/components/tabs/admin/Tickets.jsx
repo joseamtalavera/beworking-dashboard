@@ -30,8 +30,27 @@ const Tickets = () => (
           Track tenant requests and SLA across the workspace.
         </Typography>
       </Stack>
-      <Button variant="outlined" size="small" sx={{ borderRadius: 2, borderColor: '#16a34a', color: '#16a34a', '&:hover': { borderColor: '#15803d', color: '#15803d' } }}>
-        Open ticket
+      <Button 
+        variant="outlined" 
+        size="small" 
+        sx={{ 
+          minWidth: 120,
+          height: 36,
+          textTransform: 'none',
+          fontWeight: 600,
+          borderColor: '#fb923c', 
+          color: '#fb923c', 
+          '&:hover': { 
+            borderColor: '#f97316', 
+            color: '#f97316',
+            backgroundColor: 'rgba(251, 146, 60, 0.08)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+          },
+          transition: 'all 0.2s ease-in-out'
+        }}
+      >
+        OPEN TICKET
       </Button>
     </Stack>
     <List disablePadding>

@@ -15,17 +15,20 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import PreviewRoundedIcon from '@mui/icons-material/PreviewRounded';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Chip from '@mui/material/Chip';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { fetchBookingContacts } from '../../../api/bookings.js';
+import { fetchNextInvoiceNumber } from '../../../api/invoices.js';
 
 // A reasonably complete invoice editor UI in a Dialog.
 // onCreate(payload, { openPreview }) should be provided by the caller.
@@ -33,6 +36,7 @@ const DEFAULT_LINE = { concept: '', description: '', quantity: 1, price: 0, vatP
 
 const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   const [client, setClient] = useState(initial.client || null);
+  const [clientSearch, setClientSearch] = useState('');
   const [invoiceNum, setInvoiceNum] = useState(initial.invoiceNum || '');
   const [date, setDate] = useState(initial.date || new Date().toISOString().slice(0, 10));
   const [dueDate, setDueDate] = useState(initial.dueDate || '');
@@ -40,7 +44,6 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   const [note, setNote] = useState(initial.note || '');
   const [contactOptions, setContactOptions] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState(null);
 
   const addLine = () => setLines((s) => [...s, { ...DEFAULT_LINE }]);
   const updateLine = (idx, patch) => setLines((s) => s.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
@@ -58,7 +61,6 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   }, [lines]);
   const totalVat = useMemo(() => Object.values(vatTotals).reduce((a, b) => a + b, 0), [vatTotals]);
   const total = useMemo(() => subtotal + totalVat, [subtotal, totalVat]);
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   const handleCreate = async (status = 'approved') => {
     // Build a payload that backend may accept. We'll include lineItems but backend may expect bloqueoIds instead.
@@ -80,143 +82,339 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n);
   };
 
-  const openPreview = () => setPreviewOpen(true);
-
-  const printPreview = () => {
-    // Render a simple printable HTML document and open in new window
-    const html = `
-      <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Invoice preview</title>
-        <style>body{font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding:24px} table{width:100%;border-collapse:collapse} th,td{padding:8px;border-bottom:1px solid #eee;text-align:left} .right{text-align:right}</style>
-      </head>
-      <body>
-        <h2>Invoice ${invoiceNum || ''}</h2>
-        <div>Client: ${(client && (client.label || client)) || ''}</div>
-        <div>Date: ${date}</div>
-        <table>
-          <thead><tr><th>Concept</th><th>Description</th><th class="right">Qty</th><th class="right">Price</th><th class="right">VAT</th><th class="right">Line total</th></tr></thead>
-          <tbody>
-            ${lines.map(l => `<tr><td>${(l.concept||'')}</td><td>${(l.description||'')}</td><td class="right">${l.quantity}</td><td class="right">${formatCurrency(l.price)}</td><td class="right">${l.vatPercent}%</td><td class="right">${formatCurrency((Number(l.quantity||0)*Number(l.price||0))*(1+Number(l.vatPercent||0)/100))}</td></tr>`).join('')}
-          </tbody>
-        </table>
-        <h3>Total: ${formatCurrency(total)}</h3>
-      </body>
-      </html>
-    `;
-    const w = window.open('', '_blank');
-    if (!w) return;
-    w.document.write(html);
-    w.document.close();
-  };
 
   useEffect(() => {
     let active = true;
     const load = async (q = '') => {
+      if (!q.trim()) {
+        setContactOptions([]);
+        return;
+      }
+      console.log('Searching for contacts with query:', q);
       setContactsLoading(true);
       try {
         const res = await fetchBookingContacts({ q, size: 10 });
+        console.log('Search response:', res);
         if (!active) return;
         // map to label/value for autocomplete
-        const opts = (res?.content || []).map((c) => ({ label: c.nombre || c.name || c.email || String(c.id), value: c.id, raw: c }));
-        setContactOptions(opts);
+        // The response might be directly an array, not wrapped in content
+        const contacts = res?.content || res || [];
+        console.log('Contacts array:', contacts);
+        const opts = contacts.map((c) => {
+          console.log('Contact object:', c);
+          // Use name as primary label, fallback to email, then id
+          const label = c.name || c.nombre || c.email || `Contact ${c.id}`;
+          return { 
+            label: label, 
+            value: c.id, 
+            raw: c 
+          };
+        });
+        console.log('Mapped options:', opts);
+        
+        // Filter options client-side to match the search query
+        const filteredOpts = opts.filter(option => {
+          const searchLower = clientSearch.toLowerCase();
+          const labelLower = option.label.toLowerCase();
+          return labelLower.includes(searchLower);
+        });
+        
+        console.log('Filtered options:', filteredOpts);
+        setContactOptions(filteredOpts);
       } catch (e) {
-        // ignore
+        console.error('Search error:', e);
       } finally {
         setContactsLoading(false);
       }
     };
-    load('');
+    
+    // Debounce the search
+    const timeoutId = setTimeout(() => {
+      load(clientSearch);
+    }, 300);
+    
     return () => {
       active = false;
+      clearTimeout(timeoutId);
     };
-  }, []);
+  }, [clientSearch]);
+
+  // Fetch next invoice number when dialog opens
+  useEffect(() => {
+    if (open && !invoiceNum) {
+      fetchNextInvoiceNumber()
+        .then(response => {
+          if (response.nextNumber) {
+            setInvoiceNum(response.nextNumber);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to fetch next invoice number:', error);
+        });
+    }
+  }, [open, invoiceNum]);
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span>New invoice</span>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Button startIcon={<PreviewRoundedIcon />} onClick={openPreview} size="small">
-            Preview
-          </Button>
-          <Button onClick={printPreview} size="small">Print</Button>
-          <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} size="small"><MoreVertIcon /></IconButton>
-        </Stack>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="xl"
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: 'divider'
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        pb: 2,
+        borderBottom: '1px solid',
+        borderColor: 'divider'
+      }}>
+        <Box>
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
+            New Invoice
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+            Create and manage your invoice details
+          </Typography>
+        </Box>
       </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2}>
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={7}>
+            {/* Invoice Details Card */}
+            <Paper sx={{ 
+              mb: 3, 
+              mt: 3,
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              p: 3
+            }}>
+              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+                Invoice Details
+              </Typography>
+              <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 2, mb: 2 }} elevation={0}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Autocomplete
-                    freeSolo
-                    value={client}
-                    onChange={(_e, v) => setClient(v)}
-                    options={contactOptions}
-                    loading={contactsLoading}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Client" size="small" fullWidth InputProps={{ ...params.InputProps, endAdornment: (<>{contactsLoading ? <CircularProgress size={16} /> : null}{params.InputProps.endAdornment}</>) }} />
-                    )}
+                  <Box sx={{ position: 'relative' }}>
+                    <TextField 
+                      label="Search by Name" 
+                      size="small" 
+                      fullWidth 
+                      placeholder="Search by name"
+                      value={clientSearch}
+                      onChange={(e) => setClientSearch(e.target.value)}
+                      InputProps={{ 
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchRoundedIcon sx={{ color: 'text.secondary' }} />
+                          </InputAdornment>
+                        )
+                      }} 
+                    />
+                    {contactOptions.length > 0 && clientSearch.trim() && (() => {
+                      console.log('Rendering dropdown with', contactOptions.length, 'options');
+                      return (
+                      <Paper sx={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        zIndex: 1000,
+                        mt: 1,
+                        maxHeight: 200,
+                        overflow: 'auto',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 2
+                      }}>
+                        {contactOptions.map((option) => (
+                          <Box
+                            key={option.value}
+                            sx={{
+                              p: 2,
+                              cursor: 'pointer',
+                              borderBottom: '1px solid',
+                              borderColor: 'divider',
+                              '&:hover': {
+                                backgroundColor: 'action.hover'
+                              },
+                              '&:last-child': {
+                                borderBottom: 'none'
+                              }
+                            }}
+                            onClick={() => {
+                              setClient(option);
+                              setClientSearch(option.label);
+                              setContactOptions([]);
+                            }}
+                          >
+                            <Typography variant="body2" fontWeight={600}>
+                              {option.label}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Paper>
+                      );
+                    })()}
+                  </Box>
+                </Grid>
+                <Grid item xs={6} md={2}>
+                  <TextField 
+                    label="Invoice #" 
+                    value={invoiceNum} 
+                    onChange={(e) => setInvoiceNum(e.target.value)} 
+                    fullWidth 
+                    size="small" 
                   />
                 </Grid>
-                <Grid item xs={6} md={3}>
-                  <TextField label="Invoice #" value={invoiceNum} onChange={(e) => setInvoiceNum(e.target.value)} fullWidth size="small" />
-                </Grid>
-                <Grid item xs={6} md={3}>
-                  <TextField label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} fullWidth size="small" InputLabelProps={{ shrink: true }} />
+                <Grid item xs={6} md={2}>
+                  <TextField 
+                    label="Date" 
+                    type="date" 
+                    value={date} 
+                    onChange={(e) => setDate(e.target.value)} 
+                    fullWidth 
+                    size="small" 
+                    InputLabelProps={{ shrink: true }} 
+                  />
                 </Grid>
               </Grid>
             </Paper>
 
-            <Paper elevation={0} sx={{ p: 0 }}>
+            {/* Line Items Card */}
+            <Paper sx={{ 
+              mb: 3, 
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              overflow: 'hidden'
+            }}>
               <Table size="small">
                 <TableHead>
-                  <TableRow>
+                <TableRow
+                  sx={{
+                    backgroundColor: '#f5f5f5',
+                    '& .MuiTableCell-head': {
+                      position: 'relative',
+                      fontWeight: 700,
+                      textTransform: 'capitalize',
+                      letterSpacing: '0.04em',
+                      fontSize: '0.85rem',
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb',
+                      py: 1.6,
+                      px: 3,
+                      backgroundColor: '#f5f5f5'
+                    },
+                    '& .MuiTableCell-head:first-of-type': {
+                      pl: 3,
+                      pr: 4,
+                      borderTopLeftRadius: 12
+                    },
+                    '& .MuiTableCell-head:last-of-type': {
+                      pr: 3,
+                      borderTopRightRadius: 12
+                    }
+                  }}
+                >
                     <TableCell>Concept</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell align="right">Qty</TableCell>
                     <TableCell align="right">Price</TableCell>
                     <TableCell align="right">VAT %</TableCell>
                     <TableCell align="right">Line total</TableCell>
-                    <TableCell />
+                    <TableCell sx={{ width: 60 }} />
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {lines.map((l, i) => (
-                    <TableRow key={i}>
+                    <TableRow key={i} hover>
                       <TableCell>
-                        <TextField value={l.concept} onChange={(e) => updateLine(i, { concept: e.target.value })} size="small" fullWidth />
+                        <TextField 
+                          value={l.concept} 
+                          onChange={(e) => updateLine(i, { concept: e.target.value })} 
+                          size="small" 
+                          fullWidth 
+                          placeholder="Enter concept"
+                        />
                       </TableCell>
                       <TableCell>
-                        <TextField value={l.description} onChange={(e) => updateLine(i, { description: e.target.value })} size="small" fullWidth />
+                        <TextField 
+                          value={l.description} 
+                          onChange={(e) => updateLine(i, { description: e.target.value })} 
+                          size="small" 
+                          fullWidth 
+                          placeholder="Enter description"
+                        />
                       </TableCell>
                       <TableCell align="right">
-                        <TextField value={l.quantity} onChange={(e) => updateLine(i, { quantity: Number(e.target.value || 0) })} size="small" inputProps={{ inputMode: 'numeric' }} sx={{ width: 100 }} />
+                        <TextField 
+                          value={l.quantity} 
+                          onChange={(e) => updateLine(i, { quantity: Number(e.target.value || 0) })} 
+                          size="small" 
+                          inputProps={{ inputMode: 'numeric' }} 
+                          sx={{ width: 100 }} 
+                        />
                       </TableCell>
                       <TableCell align="right">
-                        <TextField value={l.price} onChange={(e) => updateLine(i, { price: Number(e.target.value || 0) })} size="small" inputProps={{ inputMode: 'decimal' }} sx={{ width: 120 }} />
+                        <TextField 
+                          value={l.price} 
+                          onChange={(e) => updateLine(i, { price: Number(e.target.value || 0) })} 
+                          size="small" 
+                          inputProps={{ inputMode: 'decimal' }} 
+                          sx={{ width: 120 }} 
+                        />
                       </TableCell>
                       <TableCell align="right">
-                        <TextField select value={l.vatPercent} onChange={(e) => updateLine(i, { vatPercent: Number(e.target.value) })} size="small" sx={{ width: 100 }}>
+                        <TextField 
+                          select 
+                          value={l.vatPercent} 
+                          onChange={(e) => updateLine(i, { vatPercent: Number(e.target.value) })} 
+                          size="small" 
+                          sx={{ width: 100 }}
+                        >
                           <MenuItem value={0}>0%</MenuItem>
                           <MenuItem value={10}>10%</MenuItem>
                           <MenuItem value={21}>21%</MenuItem>
                         </TextField>
                       </TableCell>
-                      <TableCell align="right">{((Number(l.quantity || 0) * Number(l.price || 0)) * (1 + Number(l.vatPercent || 0) / 100)).toFixed(2)}€</TableCell>
                       <TableCell align="right">
-                        <IconButton size="small" onClick={() => removeLine(i)}>
-                          <DeleteOutlineRoundedIcon fontSize="small" />
+                        <Typography variant="body2" fontWeight={600}>
+                          {formatCurrency((Number(l.quantity || 0) * Number(l.price || 0)) * (1 + Number(l.vatPercent || 0) / 100))}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton 
+                          size="small" 
+                          onClick={() => removeLine(i)}
+                        >
+                          <DeleteOutlineRoundedIcon fontSize="small" sx={{ color: '#6b7280' }} />
                         </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
                   <TableRow>
                     <TableCell colSpan={7}>
-                      <Button startIcon={<AddRoundedIcon />} onClick={addLine} size="small">
+                      <Button 
+                        startIcon={<AddRoundedIcon />} 
+                        onClick={addLine} 
+                        size="small"
+                        sx={{
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          color: '#fb923c',
+                          '&:hover': {
+                            backgroundColor: 'rgba(251, 146, 60, 0.08)'
+                          }
+                        }}
+                      >
                         Add line
                       </Button>
                     </TableCell>
@@ -225,91 +423,134 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               </Table>
             </Paper>
 
-            <Box sx={{ mt: 2 }}>
-              <TextField label="Note" value={note} onChange={(e) => setNote(e.target.value)} fullWidth multiline rows={3} size="small" />
-            </Box>
+            {/* Notes Card */}
+            <Paper sx={{ 
+              mb: 3, 
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              p: 3
+            }}>
+              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+                Additional Notes
+              </Typography>
+              <TextField 
+                label="Note" 
+                value={note} 
+                onChange={(e) => setNote(e.target.value)} 
+                fullWidth 
+                multiline 
+                rows={3} 
+                size="small"
+                placeholder="Add any additional notes or terms for this invoice..."
+              />
+            </Paper>
           </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2, position: 'sticky', top: 24 }} elevation={1}>
-              <Typography variant="subtitle1" fontWeight={700}>Summary</Typography>
-              <Divider sx={{ my: 1 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', my: 1 }}>
-                <Typography variant="body2">Subtotal</Typography>
-                <Typography variant="body2">{formatCurrency(subtotal)}</Typography>
+          <Grid item xs={12} md={5}>
+            {/* Summary Card */}
+            <Paper sx={{ 
+              position: 'sticky', 
+              top: 24,
+              borderRadius: 3,
+              border: '2px solid',
+              borderColor: '#fb923c',
+              p: 3,
+              backgroundColor: '#fafafa',
+              minHeight: '400px'
+            }}>
+              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+                Invoice Summary
+              </Typography>
+              
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                  <Typography variant="body2" fontWeight={600} color="text.primary">
+                    {formatCurrency(subtotal)}
+                  </Typography>
               </Box>
+                
               {Object.entries(vatTotals).map(([k, v]) => (
-                <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">IVA {k}%</Typography>
-                  <Typography variant="body2">{formatCurrency(v)}</Typography>
+                  <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      VAT {k}%
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600} color="text.primary">
+                      {formatCurrency(v)}
+                    </Typography>
+                  </Box>
+                ))}
+                
+                <Divider sx={{ my: 2 }} />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">Total</Typography>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    {formatCurrency(total)}
+                  </Typography>
                 </Box>
-              ))}
-              <Divider sx={{ my: 1 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                <Typography variant="h6" fontWeight={700}>Total</Typography>
-                <Typography variant="h6" fontWeight={700}>{formatCurrency(total)}</Typography>
               </Box>
-              <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                <Button variant="outlined" fullWidth onClick={() => handleCreate('draft')}>Save draft</Button>
-                <Button variant="contained" fullWidth onClick={() => handleCreate('approved')}>Approve</Button>
+              
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Button 
+                  variant="contained" 
+                  fullWidth 
+                  onClick={() => handleCreate('approved')}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    py: 1.5,
+                    px: 2,
+                    backgroundColor: '#fb923c',
+                    color: 'white',
+                    borderRadius: 1,
+                    boxShadow: '0 2px 8px rgba(251, 146, 60, 0.2)',
+                    minHeight: '40px',
+                    border: 'none',
+                    '&:hover': {
+                      backgroundColor: '#f97316',
+                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.3)',
+                      transform: 'translateY(-1px)'
+                    },
+                    '&:active': {
+                      transform: 'translateY(0)',
+                      boxShadow: '0 2px 8px rgba(251, 146, 60, 0.2)'
+                    }
+                  }}
+                >
+                  Approve & Send Invoice
+                </Button>
               </Box>
             </Paper>
           </Grid>
         </Grid>
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
-
-      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)}>
-        <MenuItem onClick={() => { setMenuAnchor(null); openPreview(); }}>Preview</MenuItem>
-        <MenuItem onClick={() => { setMenuAnchor(null); printPreview(); }}>Print</MenuItem>
-      </Menu>
-
-      <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>Invoice preview</DialogTitle>
-        <DialogContent>
-          <Box sx={{ p: 2 }}>
-            <Typography variant="h6">{invoiceNum || 'Invoice'}</Typography>
-            <Typography variant="subtitle2">Client: {(client && (client.label || client)) || ''}</Typography>
-            <Box sx={{ mt: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Concept</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Qty</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                    <TableCell align="right">VAT</TableCell>
-                    <TableCell align="right">Total</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {lines.map((l, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{l.concept}</TableCell>
-                      <TableCell>{l.description}</TableCell>
-                      <TableCell align="right">{l.quantity}</TableCell>
-                      <TableCell align="right">{formatCurrency(l.price)}</TableCell>
-                      <TableCell align="right">{l.vatPercent}%</TableCell>
-                      <TableCell align="right">{formatCurrency((Number(l.quantity || 0) * Number(l.price || 0)) * (1 + Number(l.vatPercent || 0) / 100))}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="subtitle1">Total</Typography>
-              <Typography variant="subtitle1">{formatCurrency(total)}</Typography>
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPreviewOpen(false)}>Close</Button>
-          <Button variant="contained" onClick={printPreview}>Print</Button>
+      <DialogActions sx={{ 
+        p: 3, 
+        borderTop: '1px solid', 
+        borderColor: 'divider'
+      }}>
+          <Button 
+          onClick={onClose}
+          variant="outlined"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+            borderColor: '#6b7280',
+            color: '#6b7280',
+              '&:hover': {
+              borderColor: '#4b5563',
+              backgroundColor: 'rgba(107, 114, 128, 0.08)'
+            }
+          }}
+        >
+          Close
+          </Button>
         </DialogActions>
-      </Dialog>
+
     </Dialog>
   );
 };

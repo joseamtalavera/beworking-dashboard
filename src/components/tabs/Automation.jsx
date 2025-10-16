@@ -252,21 +252,51 @@ const Automation = () => {
                         variant="outlined"
                         size="small"
                         startIcon={<ContentCopyRoundedIcon fontSize="small" />}
-                        sx={{ borderRadius: 2 }}
+                        sx={{ 
+                          minWidth: 120,
+                          height: 36,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          borderColor: accentColor,
+                          color: accentColor,
+                          '&:hover': {
+                            borderColor: '#f97316',
+                            color: '#f97316',
+                            backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                          },
+                          transition: 'all 0.2s ease-in-out'
+                        }}
                         onClick={() => handleDuplicateNode(selectedNode.id)}
                       >
-                        Duplicate
+                        DUPLICATE
                       </Button>
                     </Tooltip>
                     <Tooltip title="Delete node">
                       <Button
                         variant="outlined"
                         size="small"
-                        startIcon={<DeleteOutlineRoundedIcon fontSize="small" />}
-                        sx={{ borderRadius: 2, borderColor: '#f97316', color: '#f97316', '&:hover': { borderColor: '#ea580c', color: '#ea580c' } }}
+                        startIcon={<DeleteOutlineRoundedIcon fontSize="small" sx={{ color: '#6b7280' }} />}
+                        sx={{ 
+                          minWidth: 120,
+                          height: 36,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          borderColor: '#f97316', 
+                          color: '#f97316', 
+                          '&:hover': { 
+                            borderColor: '#ea580c', 
+                            color: '#ea580c',
+                            backgroundColor: 'rgba(249, 115, 22, 0.08)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.2)'
+                          },
+                          transition: 'all 0.2s ease-in-out'
+                        }}
                         onClick={() => handleDeleteNode(selectedNode.id)}
                       >
-                        Delete
+                        DELETE
                       </Button>
                     </Tooltip>
                   </Stack>
@@ -323,8 +353,23 @@ const Automation = () => {
                   })}
                 </Stack>
                 <Divider />
-                <Button variant="contained" size="small" sx={{ borderRadius: 2, bgcolor: accentColor, '&:hover': { bgcolor: '#f97316' } }} startIcon={<PlayArrowRoundedIcon />}>
-                  Test node
+                <Button 
+                  variant="contained" 
+                  size="small" 
+                  sx={{ 
+                    minWidth: 120,
+                    height: 36,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    backgroundColor: accentColor, 
+                    color: 'white',
+                    '&:hover': { 
+                      backgroundColor: '#f97316' 
+                    } 
+                  }} 
+                  startIcon={<PlayArrowRoundedIcon />}
+                >
+                  TEST NODE
                 </Button>
               </Stack>
             ) : (

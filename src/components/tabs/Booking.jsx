@@ -784,7 +784,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                               onDelete(bloqueo.id);
                             }}
                           >
-                            <DeleteOutlineRoundedIcon fontSize="small" />
+                            <DeleteOutlineRoundedIcon fontSize="small" sx={{ color: '#6b7280' }} />
                           </IconButton>
                         </span>
                       </Tooltip>
@@ -1887,41 +1887,43 @@ const ReservaDialog = ({
           <Button 
             onClick={handleDialogClose} 
             disabled={submitting}
+            variant="outlined"
             sx={{
-              px: 3,
-              py: 1,
-              borderRadius: 2,
+              minWidth: 120,
+              height: 36,
               textTransform: 'none',
-              fontWeight: 500,
-              color: 'text.secondary',
+              fontWeight: 600,
+              borderColor: '#fb923c',
+              color: '#fb923c',
               '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                color: 'text.primary'
-              }
+                borderColor: '#f97316',
+                color: '#f97316',
+                backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+              },
+              transition: 'all 0.2s ease-in-out'
             }}
           >
-            Cancel
+            CANCEL
           </Button>
           <Button 
             type="submit" 
             variant="contained" 
             disabled={submitting}
             sx={{
-              px: 3,
-              py: 1,
-              borderRadius: 2,
+              minWidth: 120,
+              height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
+              backgroundColor: '#fb923c',
+              color: 'white',
               '&:hover': {
-                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3)'
-              },
-              transition: 'all 0.2s ease-in-out'
+                backgroundColor: '#f97316'
+              }
             }}
           >
-            {submitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : primaryActionLabel}
+            {submitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : primaryActionLabel.toUpperCase()}
           </Button>
         </DialogActions>
       </Box>
@@ -2900,7 +2902,7 @@ const Booking = ({ mode = 'user' }) => {
           const userName = (bloqueo?.cliente?.nombre || '').toLowerCase();
           const productName = (bloqueo?.producto?.nombre || '').toLowerCase();
           if (!userName.includes(searchTerm) && !productName.includes(searchTerm)) {
-            return false;
+          return false;
           }
         }
 
@@ -3088,22 +3090,18 @@ const Booking = ({ mode = 'user' }) => {
             onClick={handleOpenCreateDialog}
             disableElevation
             sx={{
-              minWidth: 160,
-              borderRadius: 2,
+              minWidth: 120,
+              height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              px: 3,
-              py: 1,
-              background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
+              backgroundColor: '#fb923c',
+              color: 'white',
               '&:hover': {
-                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3)'
-              },
-              transition: 'all 0.2s ease-in-out'
+                backgroundColor: '#f97316'
+              }
             }}
           >
-            New reserva
+            NEW RESERVA
           </Button>
         ) : null}
       </Stack>
@@ -3263,13 +3261,13 @@ const Booking = ({ mode = 'user' }) => {
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6} md={2}>
-                <TextField
+            <TextField
                   fullWidth
                   label="Agenda Date"
-                  type="date"
-                  value={agendaDate}
-                  onChange={handleAgendaDateChange}
-                  InputLabelProps={{ shrink: true }}
+              type="date"
+              value={agendaDate}
+              onChange={handleAgendaDateChange}
+              InputLabelProps={{ shrink: true }}
                   size="small"
                 />
               </Grid>
@@ -3283,26 +3281,26 @@ const Booking = ({ mode = 'user' }) => {
                   size="small"
                   InputProps={{
                     startAdornment: (
-                      <InputAdornment position="start">
+                        <InputAdornment position="start">
                         <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
+                        </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
-                <TextField
+            <TextField
                   fullWidth
                   label="Search by Email"
-                  value={filterEmail}
-                  onChange={(event) => setFilterEmail(event.target.value)}
-                  placeholder="Search by email"
+              value={filterEmail}
+              onChange={(event) => setFilterEmail(event.target.value)}
+              placeholder="Search by email"
                   size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
                         <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
+                  </InputAdornment>
                     ),
                   }}
                 />
@@ -3311,16 +3309,16 @@ const Booking = ({ mode = 'user' }) => {
                 <FormControl fullWidth size="small">
                   <InputLabel>Centro</InputLabel>
                   <Select
-                    value={filterCenter}
-                    onChange={(event) => setFilterCenter(event.target.value)}
+              value={filterCenter}
+              onChange={(event) => setFilterCenter(event.target.value)}
                     label="Centro"
-                  >
-                    <MenuItem value="">All centros</MenuItem>
-                    {(filterOptions.centers || []).map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
+            >
+              <MenuItem value="">All centros</MenuItem>
+              {(filterOptions.centers || []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -3328,16 +3326,16 @@ const Booking = ({ mode = 'user' }) => {
                 <FormControl fullWidth size="small">
                   <InputLabel>User Type</InputLabel>
                   <Select
-                    value={filterUserType}
-                    onChange={(event) => setFilterUserType(event.target.value)}
+              value={filterUserType}
+              onChange={(event) => setFilterUserType(event.target.value)}
                     label="User Type"
-                  >
-                    <MenuItem value="">All user types</MenuItem>
-                    {(filterOptions.userTypes || []).map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
+            >
+              <MenuItem value="">All user types</MenuItem>
+              {(filterOptions.userTypes || []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -3345,16 +3343,16 @@ const Booking = ({ mode = 'user' }) => {
                 <FormControl fullWidth size="small">
                   <InputLabel>Producto</InputLabel>
                   <Select
-                    value={filterProduct}
-                    onChange={(event) => setFilterProduct(event.target.value)}
+              value={filterProduct}
+              onChange={(event) => setFilterProduct(event.target.value)}
                     label="Producto"
-                  >
-                    <MenuItem value="">All productos</MenuItem>
-                    {(filterOptions.products || []).map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
+            >
+              <MenuItem value="">All productos</MenuItem>
+              {(filterOptions.products || []).map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
                   </Select>
                 </FormControl>
               </Grid>

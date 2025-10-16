@@ -168,27 +168,26 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         </Button>
         <Button 
           variant="outlined" 
-          startIcon={<EditRoundedIcon />}
+          startIcon={<EditRoundedIcon sx={{ color: '#fb923c' }} />}
           onClick={() => setEditorOpen(true)}
           sx={{
-            borderRadius: 2,
+            minWidth: 120,
+            height: 36,
             textTransform: 'none',
             fontWeight: 600,
-            px: 3,
-            py: 1,
-            borderColor: '#10b981',
-            color: '#10b981',
+            borderColor: '#fb923c',
+            color: '#fb923c',
             '&:hover': {
-              borderColor: '#059669',
-              color: '#059669',
-              backgroundColor: 'rgba(16, 185, 129, 0.08)',
+              borderColor: '#f97316',
+              color: '#f97316',
+              backgroundColor: 'rgba(251, 146, 60, 0.08)',
               transform: 'translateY(-1px)',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+              boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
             },
             transition: 'all 0.2s ease-in-out'
           }}
         >
-          Edit profile
+          EDIT PROFILE
         </Button>
       </Stack>
 
@@ -206,7 +205,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <Avatar 
               src={contact?.avatar || contact?.photo} 
               alt={contact?.name || 'Contact'} 
-              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#22c55e' }}
+              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#22c55e', border: '3px solid #fde7d2' }}
             >
               {initials.slice(0, 2)}
             </Avatar>
@@ -356,7 +355,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       >
         <DialogTitle sx={{ 
           pb: 0,
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
           color: 'white',
           borderRadius: '12px 12px 0 0',
           p: 3
@@ -420,7 +419,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       <Avatar 
                         src={draft?.avatar} 
                         alt={draft?.name} 
-                        sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32 }}
+                        sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32, border: '3px solid #fde7d2' }}
                       >
                         {draft?.name ? draft.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
                       </Avatar>
@@ -792,47 +791,47 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           borderRadius: '0 0 12px 12px'
         }}>
           <Button
-            startIcon={<CloseRoundedIcon />}
+            startIcon={<CloseRoundedIcon sx={{ color: '#fb923c' }} />}
             onClick={() => setEditorOpen(false)}
             disabled={saving}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              color: 'text.secondary',
-              borderColor: '#e2e8f0',
-              '&:hover': {
-                borderColor: '#cbd5e1',
-                backgroundColor: '#f8fafc'
-              }
-            }}
             variant="outlined"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained" 
-            startIcon={<SaveRoundedIcon />}
-            onClick={handleSave}
-            disabled={saving}
             sx={{
-              borderRadius: 2,
+              minWidth: 120,
+              height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              px: 3,
-              py: 1,
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              borderColor: '#fb923c',
+              color: '#fb923c',
               '&:hover': {
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                borderColor: '#f97316',
+                color: '#f97316',
+                backgroundColor: 'rgba(251, 146, 60, 0.08)',
                 transform: 'translateY(-1px)',
-                boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+                boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
               },
               transition: 'all 0.2s ease-in-out'
             }}
           >
-            Save changes
+            CANCEL
+          </Button>
+          <Button
+            variant="contained" 
+            startIcon={<SaveRoundedIcon sx={{ color: 'white' }} />}
+            onClick={handleSave}
+            disabled={saving}
+            sx={{
+              minWidth: 120,
+              height: 36,
+              textTransform: 'none',
+              fontWeight: 600,
+              backgroundColor: '#fb923c',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#f97316'
+              }
+            }}
+          >
+            SAVE CHANGES
           </Button>
         </DialogActions>
       </Dialog>
@@ -998,13 +997,13 @@ const SectionCard = ({ icon: Icon, title, children }) => (
           width: 40,
           height: 40,
           borderRadius: '50%',
-          bgcolor: '#fed7aa',
+          bgcolor: '#dcfce7',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}
       >
-        <Icon fontSize="small" sx={{ color: '#f97316' }} />
+        <Icon fontSize="small" sx={{ color: '#22c55e' }} />
       </Box>
       <Typography variant="subtitle2" fontWeight={600}>
         {title}

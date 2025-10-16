@@ -8,3 +8,10 @@ export const updateUserAvatar = (avatarUrl, options = {}) =>
     body: { avatar: avatarUrl },
     ...options
   });
+
+export const updateUserProfile = (profileData, options = {}) => 
+  apiFetch('/auth/me', {
+    method: 'PUT',
+    body: profileData,
+    ...options
+  });

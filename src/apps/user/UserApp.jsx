@@ -82,7 +82,7 @@ const UserApp = ({ userProfile, refreshProfile }) => {
         onOpenAgent={() => setAgentOpen(true)}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header activeTab={activeTab} userProfile={userProfile} onOpenHelp={() => setHelpOpen(true)} />
+        <Header activeTab={activeTab} userProfile={userProfile} onOpenHelp={() => setHelpOpen(true)} setActiveTab={setActiveTab} />
         <Box component="main" sx={{ flex: 1, p: { xs: 3, lg: 4 }, overflowY: 'auto' }}>
           <React.Suspense
             fallback={(

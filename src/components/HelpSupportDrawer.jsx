@@ -83,11 +83,45 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                 Our support engineers respond within a few minutes during business hours.
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
-                <Button variant="contained" size="small" sx={{ borderRadius: 2, bgcolor: accentColor, '&:hover': { bgcolor: '#f97316' } }} startIcon={<ChatBubbleRoundedIcon fontSize="small" />}>
-                  Start chat
+                <Button 
+                  variant="contained" 
+                  size="small" 
+                  sx={{ 
+                    minWidth: 120,
+                    height: 36,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    backgroundColor: accentColor, 
+                    color: 'white',
+                    '&:hover': { 
+                      backgroundColor: '#f97316' 
+                    } 
+                  }} 
+                  startIcon={<ChatBubbleRoundedIcon fontSize="small" />}
+                >
+                  START CHAT
                 </Button>
-                <Button variant="outlined" size="small" sx={{ borderRadius: 2 }}>
-                  Book call
+                <Button 
+                  variant="outlined" 
+                  size="small" 
+                  sx={{ 
+                    minWidth: 120,
+                    height: 36,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: accentColor,
+                    color: accentColor,
+                    '&:hover': {
+                      borderColor: '#f97316',
+                      color: '#f97316',
+                      backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                >
+                  BOOK CALL
                 </Button>
               </Stack>
             </Box>
@@ -206,8 +240,23 @@ const HelpSupportDrawer = ({ open, onClose }) => {
             variant="outlined"
             size="small"
           />
-          <Button variant="contained" size="small" sx={{ mt: 1.5, borderRadius: 2, bgcolor: accentColor, '&:hover': { bgcolor: '#f97316' } }}>
-            Send message
+          <Button 
+            variant="contained" 
+            size="small" 
+            sx={{ 
+              mt: 1.5,
+              minWidth: 120,
+              height: 36,
+              textTransform: 'none',
+              fontWeight: 600,
+              backgroundColor: accentColor, 
+              color: 'white',
+              '&:hover': { 
+                backgroundColor: '#f97316' 
+              } 
+            }}
+          >
+            SEND MESSAGE
           </Button>
         </Paper>
       </Box>

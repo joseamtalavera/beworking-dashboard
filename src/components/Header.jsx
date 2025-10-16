@@ -1,15 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '../api/client.js';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
@@ -24,8 +23,19 @@ import Typography from '@mui/material/Typography';
 
 const accentColor = '#fb923c';
 
-const Header = ({ activeTab, userProfile, onOpenHelp }) => {
+// Add CSS animation for loading spinner
+const spinAnimation = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const open = Boolean(anchorEl);
 
   const greeting = useMemo(() => {
@@ -43,6 +53,108 @@ const Header = ({ activeTab, userProfile, onOpenHelp }) => {
     setAnchorEl(null);
   };
 
+  // Search functionality
+  const performSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    console.log('Searching for:', query);
+    console.log('Current token:', localStorage.getItem('beworking_token'));
+    setIsSearching(true);
+    try {
+      // Search multiple endpoints in parallel
+      const [contactsData, centrosData, productosData] = await Promise.allSettled([
+        // Search contacts/tenants - use same endpoint as main contacts list
+        apiFetch(`/contact-profiles?search=${encodeURIComponent(query)}&size=10000&sort=lastActive,desc`),
+        // Search centros (rooms/locations)
+        apiFetch(`/bookings/lookups/centros`),
+        // Search productos (automations/services)
+        apiFetch(`/bookings/lookups/productos`)
+      ]);
+
+      console.log('Search results:', { contactsData, centrosData, productosData });
+
+      const results = [];
+
+      // Process contacts/tenants
+      if (contactsData.status === 'fulfilled' && contactsData.value?.items) {
+        console.log('Processing contacts:', contactsData.value.items);
+        contactsData.value.items.forEach(contact => {
+          const result = {
+            type: 'tenant',
+            name: contact.name || contact.contactName || 'Unknown',
+            id: contact.id,
+            email: contact.emailPrimary,
+            avatar: contact.avatar
+          };
+          console.log('Adding contact result:', result);
+          console.log('Full contact object from search:', contact);
+          results.push(result);
+        });
+      } else {
+        console.log('Contacts search failed or no items:', contactsData);
+      }
+
+      // Process centros (rooms)
+      if (centrosData.status === 'fulfilled' && centrosData.value) {
+        centrosData.value
+          .filter(centro => centro.name.toLowerCase().includes(query.toLowerCase()))
+          .forEach(centro => {
+            results.push({
+              type: 'room',
+              name: centro.name,
+              id: centro.id,
+              code: centro.code
+            });
+          });
+      }
+
+      // Process productos (automations/services)
+      if (productosData.status === 'fulfilled' && productosData.value) {
+        productosData.value
+          .filter(producto => producto.name.toLowerCase().includes(query.toLowerCase()))
+          .forEach(producto => {
+            results.push({
+              type: 'automation',
+              name: producto.name,
+              id: producto.id,
+              productType: producto.type,
+              centerCode: producto.centerCode
+            });
+          });
+      }
+
+      console.log('Final search results:', results);
+      setSearchResults(results.slice(0, 10)); // Limit to 10 results
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, performSearch]);
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleSearchSubmit = (event) => {
+    if (event.key === 'Enter') {
+      performSearch(searchQuery);
+    }
+  };
+
   const actionOptions = [
     { label: 'Add bloqueo', icon: <EventNoteRoundedIcon />, action: () => console.log('Add bloqueo') },
     { label: 'Create invoice', icon: <ReceiptRoundedIcon />, action: () => console.log('Create invoice') },
@@ -52,6 +164,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp }) => {
 
   return (
     <Box component="header" sx={{ bgcolor: '#ffffff', borderBottom: '1px solid #e2e8f0', px: { xs: 3, lg: 4 }, py: 3 }}>
+      <style>{spinAnimation}</style>
       <Stack spacing={2.5}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
           <Stack spacing={0.75}>
@@ -59,32 +172,142 @@ const Header = ({ activeTab, userProfile, onOpenHelp }) => {
               <Typography variant="h4" fontWeight={700} color="text.primary">
                 {activeTab}
               </Typography>
-              <Chip label="Workspace" size="small" sx={{ bgcolor: 'rgba(251,146,60,0.12)', color: accentColor, borderRadius: 1.5 }} />
             </Stack>
             <Typography variant="body1" color="text.secondary">
-              {greeting}, John. Here’s the latest across your spaces.
+              {greeting}, {userProfile?.name || 'User'}. Here's the latest across your spaces.
             </Typography>
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <Box sx={{ position: 'relative', width: { xs: '100%', sm: 260, md: 320 } }}>
             <TextField
               placeholder="Search tenants, rooms, automations…"
               size="small"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyPress={handleSearchSubmit}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
                     <SearchRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
+                  endAdornment: isSearching && (
+                    <InputAdornment position="end">
+                      <Box sx={{ width: 16, height: 16, border: '2px solid #e0e0e0', borderTop: '2px solid #fb923c', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                  </InputAdornment>
+                ),
                 sx: {
-                  borderRadius: 2,
                   backgroundColor: '#f8fafc',
                   '& fieldset': { borderColor: '#e2e8f0' },
-                  '&:hover fieldset': { borderColor: accentColor }
-                }
-              }}
-              sx={{ width: { xs: '100%', sm: 260, md: 320 } }}
-            />
+                 '&:hover fieldset': { borderColor: accentColor },
+                 '&:focus-within fieldset': { borderColor: accentColor },
+                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
+                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
+               }
+                }}
+                sx={{ width: '100%' }}
+              />
+              
+              {/* Search Results Dropdown */}
+              {searchQuery && searchResults.length > 0 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    mt: 1,
+                    bgcolor: 'white',
+                    borderRadius: 2,
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    border: '1px solid #e2e8f0',
+                    maxHeight: 300,
+                    overflow: 'auto'
+                  }}
+                >
+                  {searchResults.map((result, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        borderBottom: index < searchResults.length - 1 ? '1px solid #f1f5f9' : 'none',
+                        '&:hover': {
+                          bgcolor: '#f8fafc'
+                        }
+                      }}
+                      onClick={() => {
+                        console.log('Selected:', result);
+                        
+                        // Navigate to the appropriate section based on result type
+                        if (result.type === 'tenant') {
+                          console.log('Navigate to specific contact:', result.name, 'ID:', result.id, 'Type:', typeof result.id);
+                          setActiveTab('Contacts');
+                          // Store contact ID for Contacts component to pick up
+                          localStorage.setItem('selectedContactId', result.id.toString());
+                          console.log('Stored selectedContactId:', result.id.toString());
+                        } else if (result.type === 'room') {
+                          console.log('Navigate to Booking tab for:', result.name);
+                          setActiveTab('Booking');
+                          // TODO: Could filter to specific room
+                        } else if (result.type === 'automation') {
+                          console.log('Navigate to Automation tab for:', result.name);
+                          setActiveTab('Automation');
+                          // TODO: Could filter to specific automation
+                        }
+                        
+                        setSearchQuery('');
+                        setSearchResults([]);
+                      }}
+                    >
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        {result.avatar ? (
+                          <Avatar 
+                            src={result.avatar} 
+                            sx={{ width: 24, height: 24 }}
+                          >
+                            {result.name.charAt(0)}
+                          </Avatar>
+                        ) : (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              bgcolor: result.type === 'tenant' ? '#10b981' : 
+                                      result.type === 'room' ? '#3b82f6' :
+                                      result.type === 'automation' ? '#8b5cf6' : '#f59e0b'
+                            }}
+                          />
+                        )}
+                        <Stack spacing={0.5}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {result.name}
+                          </Typography>
+                          {result.email && (
+                            <Typography variant="caption" color="text.secondary">
+                              {result.email}
+                            </Typography>
+                          )}
+                          {result.code && (
+                            <Typography variant="caption" color="text.secondary">
+                              Code: {result.code}
+                            </Typography>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                          {result.type}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Box>
+            
             <Stack direction="row" spacing={1} alignItems="center">
               <Button 
                 variant="outlined" 
@@ -92,24 +315,25 @@ const Header = ({ activeTab, userProfile, onOpenHelp }) => {
                 startIcon={<AddRoundedIcon />} 
                 onClick={handleClick}
                 sx={{ 
-                  borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 600,
                   px: 3,
                   py: 1,
-                  borderColor: '#10b981',
-                  color: '#10b981',
+                  minWidth: 120,
+                  height: 36,
+                  borderColor: accentColor,
+                  color: accentColor,
                   '&:hover': {
-                    borderColor: '#059669',
-                    color: '#059669',
-                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    borderColor: '#f97316',
+                    color: '#f97316',
+                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                    boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
               >
-                New action
+                ACTION
               </Button>
               <Menu
                 anchorEl={anchorEl}
@@ -153,28 +377,24 @@ const Header = ({ activeTab, userProfile, onOpenHelp }) => {
                 ))}
               </Menu>
               <Button
-                variant="outlined"
+                variant="contained"
                 size="small"
                 startIcon={<HelpOutlineIcon />}
                 onClick={onOpenHelp}
                 sx={{ 
-                  borderRadius: 1, 
-                  borderColor: '#e2e8f0', 
-                  color: 'text.primary', 
+                  bgcolor: accentColor,
+                  color: 'white',
                   minWidth: 120,
                   height: 36,
-                  '&:hover': { borderColor: accentColor, color: accentColor } 
+                  '&:hover': { bgcolor: '#f97316' } 
                 }}
               >
                 Help & Support
               </Button>
-              <IconButton sx={{ color: accentColor, bgcolor: 'rgba(251,146,60,0.12)', '&:hover': { bgcolor: 'rgba(251,146,60,0.2)' } }}>
-                <NotificationsRoundedIcon />
-              </IconButton>
               <Avatar 
                 src={userProfile?.avatar || userProfile?.photo} 
                 alt={userProfile?.name || userProfile?.email || 'User'} 
-                sx={{ width: 44, height: 44, border: '2px solid #f1f5f9', bgcolor: accentColor }}
+                sx={{ width: 44, height: 44, border: '3px solid #fde7d2', bgcolor: accentColor }}
               >
                 {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('') : 'U'}
               </Avatar>
