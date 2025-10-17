@@ -142,11 +142,28 @@ const MailboxAdmin = () => {
   }, []);
 
   const normalizeDocuments = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.items)) return payload.items;
-    if (Array.isArray(payload?.content)) return payload.content;
-    if (Array.isArray(payload?.data)) return payload.data;
-    return payload ? [payload] : [];
+    let list;
+    if (Array.isArray(payload)) {
+      list = payload;
+    } else if (Array.isArray(payload?.items)) {
+      list = payload.items;
+    } else if (Array.isArray(payload?.content)) {
+      list = payload.content;
+    } else if (Array.isArray(payload?.data)) {
+      list = payload.data;
+    } else {
+      list = payload ? [payload] : [];
+    }
+
+    return list.map((doc) => {
+      const recipient = doc.recipient || doc.contactEmail || doc.sender || '';
+      return {
+        ...doc,
+        recipient,
+        contactEmail: doc.contactEmail || recipient,
+        contactName: doc.contactName || recipient
+      };
+    });
   };
 
   const refreshDocuments = useCallback(async () => {
@@ -214,7 +231,7 @@ const MailboxAdmin = () => {
     if (mainSearchForm.nameSearch.trim()) {
       const searchTerm = mainSearchForm.nameSearch.toLowerCase();
       filtered = filtered.filter((doc) => {
-        const contactName = (doc.contactName || doc.sender || '').toLowerCase();
+        const contactName = (doc.contactName || doc.recipient || '').toLowerCase();
         const title = (doc.title || '').toLowerCase();
         return contactName.includes(searchTerm) || title.includes(searchTerm);
       });
@@ -224,7 +241,7 @@ const MailboxAdmin = () => {
     if (mainSearchForm.emailSearch.trim()) {
       const searchTerm = mainSearchForm.emailSearch.toLowerCase();
       filtered = filtered.filter((doc) => {
-        const contactEmail = (doc.contactEmail || doc.sender || '').toLowerCase();
+        const contactEmail = (doc.contactEmail || doc.recipient || '').toLowerCase();
         return contactEmail.includes(searchTerm);
       });
     }
@@ -540,6 +557,7 @@ const MailboxAdmin = () => {
           ...payloadAsList[0],
           contactName: uploadForm.contactName,
           contactEmail: uploadForm.contactEmail,
+          recipient: uploadForm.contactEmail,
           sender: uploadForm.contactName
         };
         setDocuments([documentWithContact, ...documents]);
@@ -548,6 +566,7 @@ const MailboxAdmin = () => {
           ...createdDocument,
           contactName: uploadForm.contactName,
           contactEmail: uploadForm.contactEmail,
+          recipient: uploadForm.contactEmail,
           sender: uploadForm.contactName
         };
         setDocuments((prev) => [documentWithContact, ...prev]);
@@ -725,12 +744,12 @@ const MailboxAdmin = () => {
         <TableContainer>
           <Table size="medium">
             <TableHead>
-              <TableRow>
-                <TableCell>Document</TableCell>
-                <TableCell>Contact</TableCell>
-                <TableCell>Received</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
+              <TableRow sx={{ backgroundColor: 'grey.100' }}>
+                <TableCell sx={{ fontWeight: 'bold' }}>Document</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Contact</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Received</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -751,7 +770,7 @@ const MailboxAdmin = () => {
                 <>
                   {paginatedDocuments.map((doc, index) => {
                     const status = statusConfig[doc.status] || null;
-                    const contactName = doc.contactName || doc.sender || 'Unknown contact';
+                    const contactName = doc.contactName || doc.recipient || 'Unknown contact';
                     const avatarSeed = (contactName || doc.title || doc.id || '?').slice(0, 2).toUpperCase();
                     const pageCountLabel = doc.pages ?? '—';
                     const docActionStates = actionStates[doc.id] || {};
@@ -760,7 +779,7 @@ const MailboxAdmin = () => {
                     }
 
                     return (
-                      <TableRow hover key={doc.id ?? doc.title ?? doc.sender ?? index}>
+                      <TableRow hover key={doc.id ?? doc.title ?? doc.recipient ?? index}>
                         <TableCell>
                           <Stack direction="row" spacing={2} alignItems="center">
                             <Badge

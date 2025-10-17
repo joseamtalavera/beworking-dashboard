@@ -37,6 +37,13 @@ export const createInvoice = (payload, options = {}) =>
     ...options
   });
 
+export const createManualInvoice = (payload, options = {}) =>
+  apiFetch('/invoices/manual', {
+    method: 'POST',
+    body: payload,
+    ...options
+  });
+
 export const creditInvoice = (id, payload = {}, options = {}) =>
   apiFetch(`/invoices/${String(id)}/credit`, {
     method: 'POST',

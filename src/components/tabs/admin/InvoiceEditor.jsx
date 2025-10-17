@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -27,12 +27,19 @@ import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import PersonIcon from '@mui/icons-material/Person';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import BusinessIcon from '@mui/icons-material/Business';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import { fetchBookingContacts } from '../../../api/bookings.js';
 import { fetchNextInvoiceNumber } from '../../../api/invoices.js';
+import { fetchCuentas, fetchNextInvoiceNumberByCodigo } from '../../../api/cuentas.js';
 
 // A reasonably complete invoice editor UI in a Dialog.
 // onCreate(payload, { openPreview }) should be provided by the caller.
-const DEFAULT_LINE = { concept: '', description: '', quantity: 1, price: 0, vatPercent: 21 };
+const DEFAULT_LINE = { description: '', quantity: 1, price: 0, vatPercent: 21 };
 
 const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   const [client, setClient] = useState(initial.client || null);
@@ -44,6 +51,12 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   const [note, setNote] = useState(initial.note || '');
   const [contactOptions, setContactOptions] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [userType, setUserType] = useState(initial.userType || '');
+  const [center, setCenter] = useState(initial.center || '');
+  const [cuenta, setCuenta] = useState(initial.cuenta || '');
+  const [cuentaOptions, setCuentaOptions] = useState([]);
+  const searchContainerRef = useRef(null);
 
   const addLine = () => setLines((s) => [...s, { ...DEFAULT_LINE }]);
   const updateLine = (idx, patch) => setLines((s) => s.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
@@ -62,19 +75,39 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   const totalVat = useMemo(() => Object.values(vatTotals).reduce((a, b) => a + b, 0), [vatTotals]);
   const total = useMemo(() => subtotal + totalVat, [subtotal, totalVat]);
 
-  const handleCreate = async (status = 'approved') => {
-    // Build a payload that backend may accept. We'll include lineItems but backend may expect bloqueoIds instead.
+  const handleCreate = async (status = 'Pendiente') => {
+    // Build a payload for manual invoice creation
     const payload = {
       clientName: client?.label || client || '',
+      clientId: client?.value || client?.id || undefined,
+      userType: userType || undefined,
+      center: center || undefined,
+      cuenta: cuenta || undefined,
       invoiceNum: invoiceNum || undefined,
       date,
       dueDate: dueDate || undefined,
       status,
       note: note || undefined,
-      lineItems: lines.map((l) => ({ concept: l.concept || l.description || 'Item', description: l.description, quantity: Number(l.quantity || 0), price: Number(l.price || 0), vatPercent: Number(l.vatPercent || 0) })),
+      lineItems: lines.map((l) => ({ 
+        description: l.description || 'Item', 
+        quantity: Number(l.quantity || 0), 
+        price: Number(l.price || 0), 
+        vatPercent: Number(l.vatPercent || 0) 
+      })),
       computed: { subtotal, totalVat, total }
     };
-    if (onCreate) await onCreate(payload);
+    console.log('Creating manual invoice with payload:', payload);
+    console.log('Selected client:', client);
+    
+    try {
+      if (!onCreate) {
+        throw new Error('No create handler provided');
+      }
+      const created = await onCreate(payload);
+      console.log('Invoice created successfully:', created);
+    } catch (error) {
+      console.error('Failed to create invoice:', error);
+    }
   };
 
   const formatCurrency = (v) => {
@@ -85,44 +118,42 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
 
   useEffect(() => {
     let active = true;
-    const load = async (q = '') => {
-      if (!q.trim()) {
+    const load = async (searchQuery = '') => {
+      if (!searchQuery.trim()) {
         setContactOptions([]);
+        setShowDropdown(false);
         return;
       }
-      console.log('Searching for contacts with query:', q);
+      console.log('Searching for contacts with query:', searchQuery);
       setContactsLoading(true);
       try {
-        const res = await fetchBookingContacts({ q, size: 10 });
+        // Backend expects 'search' parameter, not 'q'
+        const res = await fetchBookingContacts({ search: searchQuery });
         console.log('Search response:', res);
         if (!active) return;
-        // map to label/value for autocomplete
-        // The response might be directly an array, not wrapped in content
-        const contacts = res?.content || res || [];
+        
+        // Backend returns a direct array, not wrapped in content
+        const contacts = res || [];
         console.log('Contacts array:', contacts);
+        
         const opts = contacts.map((c) => {
           console.log('Contact object:', c);
-          // Use name as primary label, fallback to email, then id
-          const label = c.name || c.nombre || c.email || `Contact ${c.id}`;
+          // Backend returns: { id, name, email, tenantType, avatar }
+          const label = c.name || c.email || `Contact ${c.id}`;
           return { 
             label: label, 
             value: c.id, 
             raw: c 
           };
         });
+        
         console.log('Mapped options:', opts);
-        
-        // Filter options client-side to match the search query
-        const filteredOpts = opts.filter(option => {
-          const searchLower = clientSearch.toLowerCase();
-          const labelLower = option.label.toLowerCase();
-          return labelLower.includes(searchLower);
-        });
-        
-        console.log('Filtered options:', filteredOpts);
-        setContactOptions(filteredOpts);
+        setContactOptions(opts);
+        setShowDropdown(true);
       } catch (e) {
         console.error('Search error:', e);
+        setContactOptions([]);
+        setShowDropdown(false);
       } finally {
         setContactsLoading(false);
       }
@@ -153,6 +184,90 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
         });
     }
   }, [open, invoiceNum]);
+
+  // Load cuentas when dialog opens
+  useEffect(() => {
+    if (open && cuentaOptions.length === 0) {
+      const loadCuentas = async () => {
+        try {
+          const cuentas = await fetchCuentas();
+          setCuentaOptions(cuentas || []);
+        } catch (e) {
+          console.error('Failed to load cuentas:', e);
+        }
+      };
+      loadCuentas();
+    }
+  }, [open, cuentaOptions.length]);
+
+  // Update invoice number when cuenta changes
+  useEffect(() => {
+    if (cuenta && open) {
+      const updateInvoiceNumber = async () => {
+        try {
+          const response = await fetchNextInvoiceNumberByCodigo(cuenta);
+          if (response.nextNumber) {
+            setInvoiceNum(response.nextNumber);
+          }
+        } catch (e) {
+          console.error('Failed to fetch next invoice number for cuenta:', e);
+        }
+      };
+      updateInvoiceNumber();
+    }
+  }, [cuenta, open]);
+
+  // Reset states when dialog opens
+  useEffect(() => {
+    if (open) {
+      setClient(null);
+      setClientSearch('');
+      setContactOptions([]);
+      setShowDropdown(false);
+      setUserType(''); // This will show the placeholder "Select user type"
+      setCenter(''); // This will show the placeholder "Select center"
+      setCuenta(''); // This will show the placeholder "Select cuenta"
+    }
+  }, [open]);
+
+  // Load initial contacts when dialog opens
+  useEffect(() => {
+    if (open && contactOptions.length === 0) {
+      const loadInitialContacts = async () => {
+        try {
+          // Load first 20 contacts without search query
+          const res = await fetchBookingContacts({});
+          const contacts = res || [];
+          const opts = contacts.map((c) => ({
+            label: c.name || c.email || `Contact ${c.id}`,
+            value: c.id,
+            raw: c
+          }));
+          setContactOptions(opts);
+          setShowDropdown(false); // Don't show dropdown initially
+        } catch (e) {
+          console.error('Failed to load initial contacts:', e);
+        }
+      };
+      loadInitialContacts();
+    }
+  }, [open, contactOptions.length]);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showDropdown]);
 
   return (
     <Dialog 
@@ -186,40 +301,60 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
         </Box>
       </DialogTitle>
       <DialogContent sx={{ p: 3 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={7}>
-            {/* Invoice Details Card */}
-            <Paper sx={{ 
-              mb: 3, 
-              mt: 3,
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              p: 3
-            }}>
+        <Box>
+          {/* Invoice Details Card */}
+          <Paper sx={{ 
+            mb: 3, 
+            mt: 3,
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            p: 3
+          }}>
               <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
                 Invoice Details
               </Typography>
               <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-                  <Box sx={{ position: 'relative' }}>
+                <Grid item xs={12} md={6}>
+                  <Box ref={searchContainerRef} sx={{ position: 'relative' }}>
                     <TextField 
                       label="Search by Name" 
                       size="small" 
                       fullWidth 
                       placeholder="Search by name"
                       value={clientSearch}
-                      onChange={(e) => setClientSearch(e.target.value)}
+                      onChange={(e) => {
+                        setClientSearch(e.target.value);
+                        // If user starts typing again, clear the selected client and show dropdown
+                        if (client && e.target.value !== client.label) {
+                          setClient(null);
+                          setShowDropdown(true);
+                        }
+                      }}
                       InputProps={{ 
                         startAdornment: (
                           <InputAdornment position="start">
                             <SearchRoundedIcon sx={{ color: 'text.secondary' }} />
                           </InputAdornment>
+                        ),
+                        endAdornment: client && (
+                          <InputAdornment position="end">
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1,
+                              color: 'success.main',
+                              fontSize: '0.75rem'
+                            }}>
+                              ✓ Selected
+                            </Box>
+                          </InputAdornment>
                         )
                       }} 
                     />
-                    {contactOptions.length > 0 && clientSearch.trim() && (() => {
+                    {showDropdown && contactOptions.length > 0 && clientSearch.trim() && !client && (() => {
                       console.log('Rendering dropdown with', contactOptions.length, 'options');
+                      console.log('showDropdown:', showDropdown, 'client:', client, 'clientSearch:', clientSearch);
                       return (
                       <Paper sx={{
                         position: 'absolute',
@@ -250,9 +385,15 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                               }
                             }}
                             onClick={() => {
+                              console.log('Selected contact:', option);
                               setClient(option);
                               setClientSearch(option.label);
+                              // Auto-populate user type from selected client
+                              if (option.raw?.tenantType) {
+                                setUserType(option.raw.tenantType);
+                              }
                               setContactOptions([]);
+                              setShowDropdown(false);
                             }}
                           >
                             <Typography variant="body2" fontWeight={600}>
@@ -264,6 +405,85 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                       );
                     })()}
                   </Box>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="user-type-label">User Type</InputLabel>
+                    <Select
+                      labelId="user-type-label"
+                      value={userType}
+                      onChange={(e) => setUserType(e.target.value)}
+                      label="User Type"
+                      displayEmpty
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <PersonIcon sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="">
+                        <span style={{ color: '#999' }}>Select user type</span>
+                      </MenuItem>
+                      <MenuItem value="Distribuidor">Distribuidor</MenuItem>
+                      <MenuItem value="Imported">Imported</MenuItem>
+                      <MenuItem value="Proveedor">Proveedor</MenuItem>
+                      <MenuItem value="Servicios">Servicios</MenuItem>
+                      <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+                      <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
+                      <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
+                      <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
+                      <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="center-label">Center</InputLabel>
+                    <Select
+                      labelId="center-label"
+                      value={center}
+                      onChange={(e) => setCenter(e.target.value)}
+                      label="Center"
+                      displayEmpty
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <LocationOnIcon sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="">
+                        <span style={{ color: '#999' }}>Select center</span>
+                      </MenuItem>
+                      <MenuItem value="1">MALAGA DUMAS (MA1)</MenuItem>
+                      <MenuItem value="8">Oficina Virtual (MAOV)</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="cuenta-label">Company</InputLabel>
+                    <Select
+                      labelId="cuenta-label"
+                      value={cuenta}
+                      onChange={(e) => setCuenta(e.target.value)}
+                      label="Company"
+                      displayEmpty
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <BusinessIcon sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      }
+                    >
+                      <MenuItem value="">
+                        <span style={{ color: '#999' }}>Select company</span>
+                      </MenuItem>
+                      {cuentaOptions.map((cuentaOption) => (
+                        <MenuItem key={cuentaOption.id} value={cuentaOption.codigo}>
+                          {cuentaOption.nombre} ({cuentaOption.codigo})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={6} md={2}>
                   <TextField 
@@ -324,7 +544,6 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                     }
                   }}
                 >
-                    <TableCell>Concept</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell align="right">Qty</TableCell>
                     <TableCell align="right">Price</TableCell>
@@ -336,15 +555,6 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 <TableBody>
                   {lines.map((l, i) => (
                     <TableRow key={i} hover>
-                      <TableCell>
-                        <TextField 
-                          value={l.concept} 
-                          onChange={(e) => updateLine(i, { concept: e.target.value })} 
-                          size="small" 
-                          fullWidth 
-                          placeholder="Enter concept"
-                        />
-                      </TableCell>
                       <TableCell>
                         <TextField 
                           value={l.description} 
@@ -423,6 +633,66 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               </Table>
             </Paper>
 
+            {/* Invoice Summary Card */}
+            <Paper sx={{ 
+              mb: 3, 
+              borderRadius: 3,
+              border: '2px solid',
+              borderColor: '#fb923c',
+              p: 3,
+              backgroundColor: '#fafafa'
+            }}>
+              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+                Invoice Summary
+              </Typography>
+              
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                  <Typography variant="body2" fontWeight={600} color="text.primary">
+                    {formatCurrency(subtotal)}
+                  </Typography>
+            </Box>
+                
+                {Object.entries(vatTotals).map(([k, v]) => (
+                  <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      VAT {k}%
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600} color="text.primary">
+                      {formatCurrency(v)}
+                    </Typography>
+              </Box>
+                ))}
+                
+                <Divider sx={{ my: 2 }} />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">Total</Typography>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    {formatCurrency(total)}
+                  </Typography>
+                </Box>
+              </Box>
+              
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button 
+                  variant="contained" 
+                  onClick={() => handleCreate('Pendiente')}
+                  sx={{
+                    backgroundColor: '#fb923c',
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: '#f97316'
+                    }
+                  }}
+                >
+                  APPROVE INVOICE
+                </Button>
+              </Box>
+            </Paper>
+
             {/* Notes Card */}
             <Paper sx={{ 
               mb: 3, 
@@ -438,94 +708,14 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 label="Note" 
                 value={note} 
                 onChange={(e) => setNote(e.target.value)} 
-                fullWidth 
+                  fullWidth 
                 multiline 
                 rows={3} 
                 size="small"
                 placeholder="Add any additional notes or terms for this invoice..."
               />
             </Paper>
-          </Grid>
-
-          <Grid item xs={12} md={5}>
-            {/* Summary Card */}
-            <Paper sx={{ 
-              position: 'sticky', 
-              top: 24,
-              borderRadius: 3,
-              border: '2px solid',
-              borderColor: '#fb923c',
-              p: 3,
-              backgroundColor: '#fafafa',
-              minHeight: '400px'
-            }}>
-              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
-                Invoice Summary
-              </Typography>
-              
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" color="text.secondary">Subtotal</Typography>
-                  <Typography variant="body2" fontWeight={600} color="text.primary">
-                    {formatCurrency(subtotal)}
-                  </Typography>
-              </Box>
-                
-              {Object.entries(vatTotals).map(([k, v]) => (
-                  <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      VAT {k}%
-                    </Typography>
-                    <Typography variant="body2" fontWeight={600} color="text.primary">
-                      {formatCurrency(v)}
-                    </Typography>
-                  </Box>
-                ))}
-                
-                <Divider sx={{ my: 2 }} />
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="h6" fontWeight={600} color="text.primary">Total</Typography>
-                  <Typography variant="h6" fontWeight={600} color="text.primary">
-                    {formatCurrency(total)}
-                  </Typography>
-                </Box>
-              </Box>
-              
-              <Box sx={{ mt: 3, mb: 2 }}>
-                <Button 
-                  variant="contained" 
-                  fullWidth 
-                  onClick={() => handleCreate('approved')}
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    py: 1.5,
-                    px: 2,
-                    backgroundColor: '#fb923c',
-                    color: 'white',
-                    borderRadius: 1,
-                    boxShadow: '0 2px 8px rgba(251, 146, 60, 0.2)',
-                    minHeight: '40px',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: '#f97316',
-                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.3)',
-                      transform: 'translateY(-1px)'
-                    },
-                    '&:active': {
-                      transform: 'translateY(0)',
-                      boxShadow: '0 2px 8px rgba(251, 146, 60, 0.2)'
-                    }
-                  }}
-                >
-                  Approve & Send Invoice
-                </Button>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ 
@@ -539,11 +729,11 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
             sx={{
               textTransform: 'none',
               fontWeight: 600,
-            borderColor: '#6b7280',
-            color: '#6b7280',
+              borderColor: '#fb923c',
+              color: '#fb923c',
               '&:hover': {
-              borderColor: '#4b5563',
-              backgroundColor: 'rgba(107, 114, 128, 0.08)'
+                borderColor: '#f97316',
+              backgroundColor: 'rgba(251, 146, 60, 0.08)'
             }
           }}
         >

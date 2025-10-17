@@ -1332,14 +1332,14 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       <Divider />
 
       <TableContainer sx={{ px: 1 }}>
-        <Table size="small" sx={{ '& th': { fontWeight: 600, color: 'text.secondary' } }}>
+        <Table size="small">
           <TableHead>
-            <TableRow>
-              <TableCell sx={{ pl: 4 }}>User</TableCell>
-              <TableCell>Type of user</TableCell>
-              <TableCell align="center">Status</TableCell>
-              <TableCell align="center">Last activity</TableCell>
-              <TableCell align="right" sx={{ pr: 4 }}>Actions</TableCell>
+            <TableRow sx={{ backgroundColor: 'grey.100' }}>
+              <TableCell sx={{ pl: 4, fontWeight: 'bold' }}>User</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Type of user</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Last activity</TableCell>
+              <TableCell align="right" sx={{ pr: 4, fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

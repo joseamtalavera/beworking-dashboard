@@ -76,11 +76,27 @@ const formatDateTime = (isoString) => {
 };
 
 const normalizeDocuments = (payload) => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.items)) return payload.items;
-  if (Array.isArray(payload?.content)) return payload.content;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return payload ? [payload] : [];
+  let list;
+  if (Array.isArray(payload)) {
+    list = payload;
+  } else if (Array.isArray(payload?.items)) {
+    list = payload.items;
+  } else if (Array.isArray(payload?.content)) {
+    list = payload.content;
+  } else if (Array.isArray(payload?.data)) {
+    list = payload.data;
+  } else {
+    list = payload ? [payload] : [];
+  }
+
+  return list.map((doc) => {
+    const recipient = doc.recipient || doc.contactEmail || doc.sender || '';
+    return {
+      ...doc,
+      recipient,
+      contactEmail: doc.contactEmail || recipient
+    };
+  });
 };
 
 const MailboxUser = () => {
@@ -204,7 +220,7 @@ const MailboxUser = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Document</TableCell>
-                <TableCell>Sender</TableCell>
+                <TableCell>Recipient</TableCell>
                 <TableCell>Received</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Last notified</TableCell>
@@ -227,8 +243,8 @@ const MailboxUser = () => {
               {!isLoading &&
                 filteredDocuments.map((doc, index) => {
                   const status = statusConfig[doc.status] || null;
-                  const senderName = doc.sender || 'Front desk';
-                  const avatarSeed = (doc.sender || doc.title || doc.id || '?').slice(0, 2).toUpperCase();
+                  const recipient = doc.recipient || doc.contactEmail || doc.sender || 'Front desk';
+                  const avatarSeed = (recipient || doc.title || doc.id || '?').slice(0, 2).toUpperCase();
                   const pageCountLabel = doc.pages ?? '—';
 
                   return (
@@ -247,7 +263,7 @@ const MailboxUser = () => {
                           </Badge>
                           <Box>
                             <Typography fontWeight="medium" color="text.primary">
-                              {doc.title || senderName}
+                              {doc.title || recipient}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               ID {doc.id || '—'}
@@ -255,7 +271,7 @@ const MailboxUser = () => {
                           </Box>
                         </Stack>
                       </TableCell>
-                      <TableCell>{senderName}</TableCell>
+                      <TableCell>{recipient}</TableCell>
                       <TableCell>{doc.receivedAt ? formatDateTime(doc.receivedAt) : '—'}</TableCell>
                       <TableCell>
                         <Tooltip title={status?.description} arrow>

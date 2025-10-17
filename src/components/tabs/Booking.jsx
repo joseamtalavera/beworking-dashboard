@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -56,6 +59,7 @@ import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
+import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 
@@ -310,6 +314,22 @@ const timeStringToMinutes = (value) => {
     return null;
   }
   return hour * 60 + minute;
+};
+
+// Helper functions for TimePicker
+const timeStringToDate = (timeString) => {
+  if (!timeString) return null;
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+};
+
+const dateToTimeString = (date) => {
+  if (!date) return '';
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
 };
 
 const buildDefaultSlots = () => {
@@ -656,52 +676,24 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
       <TableContainer>
         <Table size="small" sx={{ tableLayout: 'fixed' }}>
           <TableHead>
-            <TableRow
-              sx={{
-                backgroundColor: '#dcfce7',
-                '& .MuiTableCell-head': {
-                  position: 'relative',
-                  fontWeight: 700,
-                  textTransform: 'capitalize',
-                  letterSpacing: '0.04em',
-                  fontSize: '0.85rem',
-                  color: '#166534',
-                  borderBottom: '1px solid #bbf7d0',
-                  py: 1.6,
-                  px: 3,
-                  backgroundColor: '#dcfce7'
-                },
-                '& .MuiTableCell-head:first-of-type': {
-                  pl: 3,
-                  pr: 4,
-                  borderTopLeftRadius: 12
-                },
-                '& .MuiTableCell-head:nth-of-type(2)': {
-                  pl: 2.5,
-                  pr: 3
-                },
-                '& .MuiTableCell-head:last-of-type': {
-                  pr: 3,
-                  borderTopRightRadius: 12
-                }
-              }}
-            >
+            <TableRow sx={{ backgroundColor: 'grey.100' }}>
               <TableCell
                 sx={{
                   minWidth: 260,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
-                  textOverflow: 'ellipsis'
+                  textOverflow: 'ellipsis',
+                  fontWeight: 'bold'
                 }}
               >
                 User
               </TableCell>
-              <TableCell align="right" sx={{ width: 140 }}>Product</TableCell>
-              <TableCell align="right" sx={{ width: 120 }}>Start</TableCell>
-              <TableCell align="right" sx={{ width: 120 }}>Finish</TableCell>
-              <TableCell align="right" sx={{ width: 90 }}>People</TableCell>
-              <TableCell align="right" sx={{ width: 160 }}>Payment status</TableCell>
-              {onDelete ? <TableCell align="right" sx={{ width: 72 }}>Actions</TableCell> : null}
+              <TableCell align="right" sx={{ width: 140, fontWeight: 'bold' }}>Product</TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>Start</TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>Finish</TableCell>
+              <TableCell align="right" sx={{ width: 90, fontWeight: 'bold' }}>People</TableCell>
+              <TableCell align="right" sx={{ width: 160, fontWeight: 'bold' }}>Payment status</TableCell>
+              {onDelete ? <TableCell align="right" sx={{ width: 72, fontWeight: 'bold' }}>Actions</TableCell> : null}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -814,24 +806,56 @@ const ReservaDialog = ({
   initialBloqueo
 }) => {
   const isEditMode = mode === 'edit';
-    const fieldStyles = {
-      '& .MuiOutlinedInput-root': {
-        minHeight: '48px',
-        '& input': {
-          color: '#1a1a1a',
-          fontWeight: 500
-        },
-        '& input::placeholder': {
-          color: '#666666',
-          opacity: 1
-        }
+    const baseInputStyles = {
+      minHeight: 44,
+      borderRadius: 10,
+      backgroundColor: '#fff',
+      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'rgba(148, 163, 184, 0.32)'
       },
-      '& .MuiInputLabel-root': {
-        color: '#666666',
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#fb923c'
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#fb923c',
+        boxShadow: '0 0 0 2px rgba(251, 146, 60, 0.14)'
+      },
+        '& input': {
+        fontSize: 14,
+        fontWeight: 500,
+        color: '#1f2937'
+      },
+      '& .MuiSvgIcon-root': {
+        color: 'text.disabled'
+      }
+    };
+
+    const baseLabelStyles = {
+      fontSize: 13,
+      fontWeight: 600,
+      color: '#475569',
         '&.Mui-focused': {
           color: '#fb923c'
         }
-      }
+    };
+
+    const fieldStyles = {
+      '& .MuiOutlinedInput-root': baseInputStyles,
+      '& .MuiInputLabel-root': baseLabelStyles
+    };
+
+    const selectFieldStyles = {
+      '& .MuiOutlinedInput-root': {
+        ...baseInputStyles,
+        '& .MuiSelect-select': {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontWeight: 500
+        }
+      },
+      '& .MuiInputLabel-root': baseLabelStyles
     };
   const dialogTitle = isEditMode ? 'Edit bloqueo' : 'Create reserva';
   const dialogSubtitle = isEditMode
@@ -990,6 +1014,7 @@ const ReservaDialog = ({
   const [contactInputValue, setContactInputValue] = useState('');
   const [contactsLoading, setContactsLoading] = useState(false);
   const [contactFetchError, setContactFetchError] = useState('');
+  const [selectedContact, setSelectedContact] = useState(null);
 
   const [centroOptions, setCentroOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
@@ -1003,7 +1028,42 @@ const ReservaDialog = ({
     setFormState(buildInitialState());
     setError('');
     setContactInputValue('');
+    setSelectedContact(null);
   }, [open, buildInitialState]);
+
+  // Handle contact search
+  useEffect(() => {
+    if (!contactInputValue.trim()) {
+      setContactOptions([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setContactsLoading(true);
+      setContactFetchError('');
+      
+      const params = {
+        search: contactInputValue.trim()
+      };
+      if (formState.userType) {
+        params.tenantType = formState.userType;
+      }
+
+      fetchBookingContacts(params)
+        .then((contacts) => {
+          const list = Array.isArray(contacts) ? contacts.slice() : [];
+          setContactOptions(list);
+        })
+        .catch((fetchError) => {
+          setContactFetchError(fetchError.message || 'Unable to load contacts.');
+        })
+        .finally(() => {
+          setContactsLoading(false);
+        });
+    }, 300); // Debounce search
+
+    return () => clearTimeout(timeoutId);
+  }, [contactInputValue, formState.userType]);
 
   useEffect(() => {
     if (!open) {
@@ -1075,61 +1135,6 @@ const ReservaDialog = ({
     };
   }, [open, initialBloqueo, isEditMode]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    let active = true;
-    setContactsLoading(true);
-    setContactFetchError('');
-    const handler = setTimeout(() => {
-      const params = {};
-      if (contactInputValue) {
-        params.search = contactInputValue;
-      }
-      if (formState.userType) {
-        params.tenantType = formState.userType;
-      }
-
-      fetchBookingContacts(params)
-        .then((contacts) => {
-          if (!active) {
-            return;
-          }
-          const list = Array.isArray(contacts) ? contacts.slice() : [];
-          if (isEditMode && initialBloqueo?.cliente?.id) {
-            const exists = list.some((contact) => contact?.id === initialBloqueo.cliente.id);
-            if (!exists) {
-              list.push({
-                id: initialBloqueo.cliente.id,
-                name: initialBloqueo.cliente.nombre || initialBloqueo.cliente.name || '',
-                email: initialBloqueo.cliente.email || '',
-                tenantType:
-                  initialBloqueo.cliente.tipoTenant ||
-                  initialBloqueo.cliente.tenantType ||
-                  resolveDisplayTenantType(initialBloqueo)
-              });
-            }
-          }
-          setContactOptions(list);
-        })
-        .catch((fetchError) => {
-          if (active) {
-            setContactFetchError(fetchError.message || 'Unable to load contacts.');
-          }
-        })
-        .finally(() => {
-          if (active) {
-            setContactsLoading(false);
-          }
-        });
-    }, 250);
-
-    return () => {
-      active = false;
-      clearTimeout(handler);
-    };
-  }, [open, contactInputValue, formState.userType, initialBloqueo, isEditMode]);
 
   const userTypeOptions = useMemo(() => {
     const next = new Set([DEFAULT_USER_TYPE, ...CANONICAL_USER_TYPES]);
@@ -1146,25 +1151,28 @@ const ReservaDialog = ({
       .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
   }, [contactOptions, formState.userType]);
 
-  const filteredContactOptions = useMemo(() => {
-    if (!formState.userType) {
-      return contactOptions;
-    }
-    return contactOptions.filter((option) =>
-      option?.tenantType?.toLowerCase() === formState.userType.toLowerCase()
-    );
-  }, [contactOptions, formState.userType]);
 
   const availableProducts = useMemo(() => {
-    if (!formState.centro || !formState.centro.code) {
-      return productOptions;
+    let filtered = productOptions;
+    
+    // Filter by center
+    if (formState.centro && formState.centro.code) {
+      filtered = filtered.filter(
+        (product) =>
+          !product.centerCode ||
+          product.centerCode.toLowerCase() === formState.centro.code.toLowerCase()
+      );
     }
-    return productOptions.filter(
-      (product) =>
-        !product.centerCode ||
-        product.centerCode.toLowerCase() === formState.centro.code.toLowerCase()
-    );
-  }, [formState.centro, productOptions]);
+    
+    // Filter by user type - if "Usuario Aulas" is selected, only show aula products
+    if (formState.userType === 'Usuario Aulas') {
+      filtered = filtered.filter((product) => 
+        ALLOWED_PRODUCT_NAMES.has(product.name)
+      );
+    }
+    
+    return filtered;
+  }, [formState.centro, formState.userType, productOptions]);
 
   const handleFieldChange = (field) => (event) => {
     setFormState((prev) => ({ ...prev, [field]: event.target.value }));
@@ -1191,6 +1199,8 @@ const ReservaDialog = ({
       if (value && prev.contact?.tenantType && prev.contact.tenantType.toLowerCase() !== value.toLowerCase()) {
         next.contact = null;
       }
+      // Clear selected product when user type changes to ensure consistency
+      next.producto = null;
       return next;
     });
   };
@@ -1219,7 +1229,7 @@ const ReservaDialog = ({
     event.preventDefault();
     setError('');
 
-    const contactId = formState.contact?.id;
+    const contactId = selectedContact?.id;
     const centroId = formState.centro?.id;
     const productoId = formState.producto?.id;
 
@@ -1246,8 +1256,8 @@ const ReservaDialog = ({
       return;
     }
 
-    const attendees = attendeesValue === '' ? null : Number(attendeesValue);
-    if (attendeesValue !== '' && !Number.isInteger(attendees)) {
+    const attendees = formState.attendees === '' ? null : Number(formState.attendees);
+    if (formState.attendees !== '' && !Number.isInteger(attendees)) {
       setError('Attendees must be a whole number.');
       return;
     }
@@ -1333,23 +1343,9 @@ const ReservaDialog = ({
             pb: 2,
             borderBottom: '1px solid',
             borderColor: 'divider',
-            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+            backgroundColor: 'background.paper'
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 2,
-                background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <DialogIcon sx={{ color: 'white', fontSize: 20 }} />
-            </Box>
             <Stack>
               <Typography variant="h5" fontWeight={700} color="text.primary">
                 {dialogTitle}
@@ -1357,7 +1353,6 @@ const ReservaDialog = ({
               <Typography variant="body2" color="text.secondary">
                 {dialogSubtitle}
               </Typography>
-            </Stack>
           </Stack>
         </DialogTitle>
         <DialogContent dividers>
@@ -1373,12 +1368,7 @@ const ReservaDialog = ({
                 borderRadius: 3,
                 border: '1px solid',
                 borderColor: 'divider',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                '&:hover': {
-                  borderColor: '#fb923c',
-                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.1)'
-                },
-                transition: 'all 0.2s ease-in-out'
+                backgroundColor: 'background.paper'
               }}
             >
               <Stack spacing={2.25}>
@@ -1388,7 +1378,7 @@ const ReservaDialog = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)'
+                      backgroundColor: '#fb923c'
                     }}
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -1398,165 +1388,140 @@ const ReservaDialog = ({
                 <Grid container spacing={3} sx={{ width: '100%' }}>
                   {/* Contact field - full width */}
                   <Grid item xs={12} sx={{ display: 'block' }}>
-                    <Autocomplete
-                      options={filteredContactOptions}
-                      value={formState.contact}
-                      loading={contactsLoading}
-                      onChange={(_event, newValue) =>
-                        setFormState((prev) => ({
-                          ...prev,
-                          contact: newValue || null,
-                          userType: prev.userType || newValue?.tenantType || ''
-                        }))
-                      }
-                      onInputChange={(_event, newInputValue) => setContactInputValue(newInputValue)}
-                      getOptionLabel={(option) => option?.name || option?.code || ''}
-                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                      noOptionsText={formState.userType ? 'No contacts for this user type' : 'No contacts found'}
-                      clearOnEscape
-                      fullWidth
-                      ListboxProps={{
-                        style: {
-                          maxHeight: '300px',
-                          minWidth: '100%'
-                        }
-                      }}
-                      renderOption={(props, option) => (
-                        <li {...props} key={option.id} style={{ 
-                          whiteSpace: 'nowrap', 
-                          overflow: 'visible',
-                          padding: '12px 16px',
-                          minHeight: '48px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}>
-                          <Typography variant="body2" sx={{ 
-                            overflow: 'visible',
-                            whiteSpace: 'nowrap',
-                            width: '100%',
-                            fontWeight: 500,
-                            color: '#1a1a1a'
-                          }}>
-                            {option.name || option.code || '—'}
-                          </Typography>
-                        </li>
-                      )}
-                      renderInput={(params) => (
+                    <Box sx={{ position: 'relative' }}>
                         <TextField
-                          {...params}
-                          label="Contact"
-                          placeholder="Search contact"
+                        fullWidth
+                        label="Search by Name"
+                        value={contactInputValue}
+                        onChange={(e) => setContactInputValue(e.target.value)}
+                        placeholder="Search by name"
                           required
-                          sx={{
-                            ...fieldStyles,
-                            '& .MuiOutlinedInput-root': {
-                              ...fieldStyles['& .MuiOutlinedInput-root'],
-                              fontSize: '16px',
-                              minHeight: '56px'
-                            }
-                          }}
+                        size="small"
                           InputProps={{
-                            ...params.InputProps,
                             startAdornment: (
-                              <>
                                 <InputAdornment position="start">
-                                  <SearchRoundedIcon fontSize="small" />
+                              <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
                                 </InputAdornment>
-                                {params.InputProps.startAdornment}
-                              </>
-                            ),
-                            endAdornment: (
-                              <>
-                                {contactsLoading ? <CircularProgress color="inherit" size={18} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            )
+                          ),
+                          endAdornment: contactsLoading ? (
+                            <CircularProgress color="inherit" size={18} />
+                          ) : selectedContact ? (
+                            <InputAdornment position="end">
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  setSelectedContact(null);
+                                  setContactInputValue('');
+                                }}
+                                sx={{ color: 'text.disabled' }}
+                              >
+                                <CloseRoundedIcon fontSize="small" />
+                              </IconButton>
+                            </InputAdornment>
+                          ) : null
+                        }}
+                      />
+                      {contactInputValue && contactOptions.length > 0 && !selectedContact && (
+                        <Paper
+                          elevation={3}
+                          sx={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            zIndex: 1000,
+                            maxHeight: 200,
+                            overflow: 'auto',
+                            mt: 1
                           }}
-                        />
+                        >
+                          {contactOptions.map((contact) => (
+                            <Box
+                              key={contact.id}
+                              onClick={() => {
+                                setSelectedContact(contact);
+                                setContactInputValue(contact.name || contact.code || '');
+                                setFormState(prev => ({
+                                  ...prev,
+                                  userType: prev.userType || contact.tenantType || ''
+                                }));
+                              }}
+                              sx={{
+                                p: 2,
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  backgroundColor: 'grey.100'
+                                }
+                              }}
+                            >
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                {contact.name || contact.code || '—'}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Paper>
                       )}
-                      disabled={submitting}
-                    />
+                    </Box>
                   </Grid>
                   
                   {/* Centro field - full width */}
                   <Grid item xs={12} sx={{ display: 'block' }}>
-                    <Autocomplete
-                      fullWidth
-                      options={centroOptions}
-                      value={formState.centro}
-                      loading={lookupsLoading}
-                      onChange={(_event, newValue) => setFormState((prev) => ({ ...prev, centro: newValue || null }))}
-                      getOptionLabel={(option) => option?.name || ''}
-                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                      openOnFocus
-                      autoHighlight
-                      loadingText="Loading centros..."
-                      noOptionsText="No centros found"
-                      ListboxProps={{
-                        style: {
-                          maxHeight: '300px',
-                          minWidth: '100%'
-                        }
-                      }}
-                      renderOption={(props, option) => (
-                        <li {...props} key={option.id} style={{ 
-                          whiteSpace: 'nowrap', 
-                          overflow: 'visible',
-                          padding: '12px 16px',
-                          minHeight: '48px',
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}>
-                          <Typography variant="body2" sx={{ 
-                            overflow: 'visible',
-                            whiteSpace: 'nowrap',
-                            width: '100%',
-                            fontWeight: 500,
-                            color: '#1a1a1a'
-                          }}>
-                            {option.code ? `${option.code} · ` : ''}
-                            {option.name || option.code || '—'}
-                          </Typography>
-                        </li>
-                      )}
-                      renderInput={(params) => (
                         <TextField
-                          {...params}
-                          label="Centro"
                           fullWidth
+                      label="Centro"
+                      value={formState.centro?.name || ''}
+                      onChange={(e) => {
+                        const selectedCentro = centroOptions.find(c => c.name === e.target.value);
+                        setFormState((prev) => ({ ...prev, centro: selectedCentro || null }));
+                      }}
+                      placeholder="Select centro"
                           required
-                          sx={{
-                            ...fieldStyles,
-                            '& .MuiOutlinedInput-root': {
-                              ...fieldStyles['& .MuiOutlinedInput-root'],
-                              minHeight: '56px'
-                            }
+                      size="small"
+                      select
+                      SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (value) => value === '' ? 'All centros' : value
                           }}
                           InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {lookupsLoading ? <CircularProgress color="inherit" size={18} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            )
-                          }}
-                        />
-                      )}
-                      disabled={submitting}
-                    />
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LocationOnRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    >
+                      <MenuItem value="">All centros</MenuItem>
+                      {centroOptions.map((option) => (
+                        <MenuItem key={option.id} value={option.name}>
+                          {option.code ? `${option.code} · ` : ''}
+                          {option.name || option.code || '—'}
+                        </MenuItem>
+                      ))}
+                    </TextField>
                   </Grid>
                   
-                  {/* Other fields in 2-column layout */}
-                  <Grid item xs={12} md={6}>
+                  {/* User type field - full width */}
+                  <Grid item xs={12} sx={{ display: 'block' }}>
                     <TextField
-                      select
-                      label="User type"
+                      fullWidth
+                      label="User Type"
                       value={formState.userType}
                       onChange={handleUserTypeChange}
-                      fullWidth
-                      disabled={submitting}
-                      sx={fieldStyles}
+                      placeholder="Select user type"
+                      required
+                      size="small"
+                      select
+                      SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (value) => value === '' ? 'All user types' : value
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        ),
+                      }}
                     >
                       <MenuItem value="">All user types</MenuItem>
                       {userTypeOptions.map((option) => (
@@ -1566,58 +1531,65 @@ const ReservaDialog = ({
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Autocomplete
-                      fullWidth
-                      options={availableProducts}
-                      value={formState.producto}
-                      loading={lookupsLoading}
-                      onChange={(_event, newValue) => setFormState((prev) => ({ ...prev, producto: newValue || null }))}
-                      getOptionLabel={(option) => option?.name || ''}
-                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                      openOnFocus
-                      autoHighlight
-                      loadingText="Loading productos..."
-                      noOptionsText="No productos found"
-                      renderOption={(props, option) => (
-                        <li {...props} key={option.id}>
-                          <Typography variant="body2">
-                            {option.name || '—'}
-                            {option.type ? ` · ${option.type}` : ''}
-                          </Typography>
-                        </li>
-                      )}
-                      renderInput={(params) => (
+                  {/* Producto field - full width */}
+                  <Grid item xs={12} sx={{ display: 'block' }}>
                         <TextField
-                          {...params}
-                          label="Producto"
                           fullWidth
+                      label="Producto"
+                      value={formState.producto?.name || ''}
+                      onChange={(e) => {
+                        const selectedProduct = availableProducts.find(p => p.name === e.target.value);
+                        setFormState((prev) => ({ ...prev, producto: selectedProduct || null }));
+                      }}
+                      placeholder="Select product"
                           required
-                          sx={fieldStyles}
-                          InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {lookupsLoading ? <CircularProgress color="inherit" size={18} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            )
-                          }}
-                        />
-                      )}
-                      disabled={submitting}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
+                      size="small"
                       select
-                      label="Reservation type"
+                      SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (value) => value === '' ? 'All products' : value
+                      }}
+                          InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    >
+                      <MenuItem value="">All products</MenuItem>
+                      {availableProducts.map((option) => (
+                        <MenuItem key={option.id} value={option.name}>
+                          {option.name || '—'}
+                          {option.type ? ` · ${option.type}` : ''}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  {/* Reservation type field - full width */}
+                  <Grid item xs={12} sx={{ display: 'block' }}>
+                    <TextField
+                      fullWidth
+                      label="Reservation Type"
                       value={formState.reservationType}
                       onChange={handleFieldChange('reservationType')}
-                      fullWidth
-                      disabled={submitting}
-                      sx={fieldStyles}
+                      placeholder="Select reservation type"
+                      required
+                      size="small"
+                      select
+                      SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (value) => value === '' ? 'All reservation types' : value
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EventRepeatRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        ),
+                      }}
                     >
+                      <MenuItem value="">All reservation types</MenuItem>
                       {RESERVATION_TYPE_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
                           {option}
@@ -1625,22 +1597,54 @@ const ReservaDialog = ({
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  {/* Status field - full width */}
+                  <Grid item xs={12} sx={{ display: 'block' }}>
                     <TextField
-                      select
+                      fullWidth
                       label="Status"
                       value={formState.status}
                       onChange={handleFieldChange('status')}
-                      fullWidth
-                      disabled={submitting}
-                      sx={fieldStyles}
+                      placeholder="Select status"
+                      required
+                      size="small"
+                      select
+                      SelectProps={{
+                        displayEmpty: true,
+                        renderValue: (value) => value === '' ? 'All statuses' : value
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <FlagRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        ),
+                      }}
                     >
-                      {STATUS_FORM_OPTIONS.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
+                      <MenuItem value="">All statuses</MenuItem>
+                      <MenuItem value="created">Created</MenuItem>
+                      <MenuItem value="pendiente">Pendiente</MenuItem>
+                      <MenuItem value="paid">Paid</MenuItem>
                     </TextField>
+                  </Grid>
+                  
+                  {/* Tarifa field - full width */}
+                  <Grid item xs={12} sx={{ display: 'block' }}>
+                    <TextField
+                      fullWidth
+                      label="Tarifa (€)"
+                      value={formState.tarifa}
+                      onChange={handleFieldChange('tarifa')}
+                      placeholder="Enter tarifa"
+                      required
+                      size="small"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EuroRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
                   </Grid>
                 </Grid>
               </Stack>
@@ -1654,12 +1658,7 @@ const ReservaDialog = ({
                 borderRadius: 3,
                 border: '1px solid',
                 borderColor: 'divider',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                '&:hover': {
-                  borderColor: '#3b82f6',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.1)'
-                },
-                transition: 'all 0.2s ease-in-out'
+                backgroundColor: 'background.paper'
               }}
             >
               <Stack spacing={2.25}>
@@ -1669,7 +1668,7 @@ const ReservaDialog = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+                      backgroundColor: '#3b82f6'
                     }}
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -1687,7 +1686,7 @@ const ReservaDialog = ({
                       fullWidth
                       required
                       disabled={submitting}
-                      sx={fieldStyles}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={12} md={3}>
@@ -1700,59 +1699,53 @@ const ReservaDialog = ({
                       fullWidth
                       required
                       disabled={submitting}
-                      sx={fieldStyles}
+                      size="small"
                     />
                   </Grid>
                   {isPerHour ? (
-                    <>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <Grid item xs={12} md={3}>
-                        <TextField
-                          type="time"
+                        <TimePicker
                           label="Start time"
-                          value={formState.startTime}
-                          onChange={handleFieldChange('startTime')}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                          required
-                          disabled={submitting}
-                          inputProps={{ step: 3600 }}
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              minHeight: '48px'
+                          value={timeStringToDate(formState.startTime)}
+                          onChange={(newValue) => {
+                            const timeString = dateToTimeString(newValue);
+                            setFormState((prev) => ({ ...prev, startTime: timeString }));
+                          }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true,
+                              disabled: submitting,
+                              size: 'small',
+                              InputLabelProps: { shrink: true }
                             }
                           }}
+                          minutesStep={30}
                         />
                       </Grid>
                       <Grid item xs={12} md={3}>
-                        <TextField
-                          type="time"
+                        <TimePicker
                           label="End time"
-                          value={formState.endTime}
-                          onChange={handleFieldChange('endTime')}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                          required
-                          disabled={submitting}
-                          inputProps={{ step: 3600 }}
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              minHeight: '48px'
+                          value={timeStringToDate(formState.endTime)}
+                          onChange={(newValue) => {
+                            const timeString = dateToTimeString(newValue);
+                            setFormState((prev) => ({ ...prev, endTime: timeString }));
+                          }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true,
+                              disabled: submitting,
+                              size: 'small',
+                              InputLabelProps: { shrink: true }
                             }
                           }}
+                          minutesStep={30}
                         />
                       </Grid>
-                    </>
+                    </LocalizationProvider>
                   ) : null}
-                  <Grid item xs={12} md={isPerHour ? 4 : 6}>
-                    <TextField
-                      label="Tarifa (€)"
-                      value={formState.tarifa}
-                      onChange={handleFieldChange('tarifa')}
-                      fullWidth
-                      disabled={submitting}
-                      sx={fieldStyles}
-                    />
-                  </Grid>
                 </Grid>
 
                 {showWeekdays ? (
@@ -1815,12 +1808,7 @@ const ReservaDialog = ({
                 borderRadius: 3,
                 border: '1px solid',
                 borderColor: 'divider',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                '&:hover': {
-                  borderColor: '#10b981',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.1)'
-                },
-                transition: 'all 0.2s ease-in-out'
+                backgroundColor: 'background.paper'
               }}
             >
               <Stack spacing={2.25}>
@@ -1830,7 +1818,7 @@ const ReservaDialog = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                      backgroundColor: '#10b981'
                     }}
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -1838,36 +1826,38 @@ const ReservaDialog = ({
                 </Typography>
                 </Stack>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Attendees"
                       value={formState.attendees}
                       onChange={handleFieldChange('attendees')}
                       fullWidth
                       disabled={submitting}
-                      sx={fieldStyles}
+                      size="small"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        )
+                      }}
                     />
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       label="Configuración"
                       value={formState.configuracion}
                       onChange={handleFieldChange('configuracion')}
                       fullWidth
                       disabled={submitting}
-                      sx={fieldStyles}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      label="Note"
-                      value={formState.note}
-                      onChange={handleFieldChange('note')}
-                      fullWidth
-                      disabled={submitting}
-                      multiline
-                      minRows={2}
-                      sx={fieldStyles}
+                      size="small"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <MeetingRoomRoundedIcon sx={{ color: 'text.disabled' }} />
+                          </InputAdornment>
+                        )
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -1881,7 +1871,7 @@ const ReservaDialog = ({
             py: 3,
             borderTop: '1px solid',
             borderColor: 'divider',
-            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+            backgroundColor: 'background.paper'
           }}
         >
           <Button 
@@ -2629,6 +2619,7 @@ const initialDateISO = () => {
 
 const Booking = ({ mode = 'user' }) => {
   const isAdmin = mode === 'admin';
+  console.log('Booking component - mode:', mode, 'isAdmin:', isAdmin);
   const defaultAgendaUserType = '';
   const [view, setView] = useState('calendar');
   const [calendarDate, setCalendarDate] = useState(initialDateISO());
@@ -2661,6 +2652,8 @@ const Booking = ({ mode = 'user' }) => {
   const [invoiceError, setInvoiceError] = useState('');
 
   const handleOpenCreateDialog = useCallback(() => {
+    console.log('Opening create dialog...');
+    setEditBloqueo(null); // ensure edit dialog is closed
     setCreateDialogOpen(true);
   }, []);
 
@@ -3087,7 +3080,10 @@ const Booking = ({ mode = 'user' }) => {
           <Button
             variant="contained"
             startIcon={<AddRoundedIcon />}
-            onClick={handleOpenCreateDialog}
+            onClick={(e) => {
+              console.log('Button clicked!', e);
+              handleOpenCreateDialog();
+            }}
             disableElevation
             sx={{
               minWidth: 120,
@@ -3312,8 +3308,16 @@ const Booking = ({ mode = 'user' }) => {
               value={filterCenter}
               onChange={(event) => setFilterCenter(event.target.value)}
                     label="Centro"
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <LocationOnRoundedIcon sx={{ color: 'text.disabled' }} />
+                      </InputAdornment>
+                    }
             >
-              <MenuItem value="">All centros</MenuItem>
+              <MenuItem value="">
+                All centros
+              </MenuItem>
               {(filterOptions.centers || []).map((option) => (
                 <MenuItem key={option} value={option}>
                   {option}
@@ -3329,8 +3333,16 @@ const Booking = ({ mode = 'user' }) => {
               value={filterUserType}
               onChange={(event) => setFilterUserType(event.target.value)}
                     label="User Type"
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <PersonRoundedIcon sx={{ color: 'text.disabled' }} />
+                      </InputAdornment>
+                    }
             >
-              <MenuItem value="">All user types</MenuItem>
+              <MenuItem value="">
+                All user types
+              </MenuItem>
               {(filterOptions.userTypes || []).map((option) => (
                 <MenuItem key={option} value={option}>
                   {option}
@@ -3346,8 +3358,16 @@ const Booking = ({ mode = 'user' }) => {
               value={filterProduct}
               onChange={(event) => setFilterProduct(event.target.value)}
                     label="Producto"
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} />
+                      </InputAdornment>
+                    }
             >
-              <MenuItem value="">All productos</MenuItem>
+              <MenuItem value="">
+                All products
+              </MenuItem>
               {(filterOptions.products || []).map((option) => (
                 <MenuItem key={option} value={option}>
                   {option}
@@ -3362,8 +3382,16 @@ const Booking = ({ mode = 'user' }) => {
                 variant="outlined"
                 size="small"
                 onClick={clearFilters}
+                sx={{
+                  borderColor: '#fb923c',
+                  color: '#fb923c',
+                  '&:hover': {
+                    borderColor: '#f97316',
+                    backgroundColor: 'rgba(251, 146, 60, 0.08)'
+                  }
+                }}
               >
-                Clear Filters
+                RESET
               </Button>
               <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
                 Showing {filteredBloqueos.length} of {bloqueos.length} bookings
@@ -3400,6 +3428,7 @@ const Booking = ({ mode = 'user' }) => {
           defaultDate={calendarDate}
         />
       ) : null}
+      {console.log('Rendering ReservaDialog - createDialogOpen:', createDialogOpen, 'isAdmin:', isAdmin)}
 
       {isAdmin ? (
         <ReservaDialog

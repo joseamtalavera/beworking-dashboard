@@ -29,7 +29,7 @@ import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import EventRoundedIcon from '@mui/icons-material/EventRounded';
 
-import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, creditInvoice } from '../../../api/invoices.js';
+import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -194,14 +194,14 @@ const Invoices = () => {
           Filters
         </Typography>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={2}>
+          {/* Top Row - Search fields (wider) */}
+          <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
               label="Search by Name"
               value={filters.name}
               onChange={handleFilterChange('name')}
               placeholder="Search by name"
-              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -211,14 +211,13 @@ const Invoices = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
               label="Search by Email"
               value={filters.email}
               onChange={handleFilterChange('email')}
               placeholder="Search by email"
-              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -228,14 +227,13 @@ const Invoices = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
               label="Invoice ID"
               value={filters.idFactura}
               onChange={handleFilterChange('idFactura')}
               placeholder="Search by ID"
-              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -245,66 +243,56 @@ const Invoices = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              fullWidth
-              label="Status"
-              value={filters.status}
-              onChange={handleFilterChange('status')}
-              size="small"
-              select
-              SelectProps={{
-                displayEmpty: true,
-                renderValue: (value) => value === '' ? 'All Status' : value
-              }}
-              InputProps={{
-                startAdornment: (
+          <Grid item xs={12} sm={6} md={1.5}>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={filters.status}
+                onChange={handleFilterChange('status')}
+                label="Status"
+                displayEmpty
+                startAdornment={
                   <InputAdornment position="start">
                     <CheckCircleRoundedIcon sx={{ color: 'text.disabled' }} />
                   </InputAdornment>
-                ),
-              }}
-            >
-              <MenuItem value="">All Status</MenuItem>
-              <MenuItem value="pagado">Paid</MenuItem>
-              <MenuItem value="facturado">Invoiced</MenuItem>
-              <MenuItem value="pendiente">Pending</MenuItem>
-              <MenuItem value="cancelado">Cancelled</MenuItem>
-            </TextField>
+                }
+              >
+                <MenuItem value="">All Status</MenuItem>
+                <MenuItem value="pagado">Pagado</MenuItem>
+                <MenuItem value="pendiente">Pendiente</MenuItem>
+                <MenuItem value="cancelado">Cancelado</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              fullWidth
-              label="User Type"
-              value={filters.tenantType}
-              onChange={handleFilterChange('tenantType')}
-              size="small"
-              select
-              SelectProps={{
-                displayEmpty: true,
-                renderValue: (value) => value === '' ? 'All Types' : value
-              }}
-              InputProps={{
-                startAdornment: (
+          <Grid item xs={12} sm={6} md={1.5}>
+            <FormControl fullWidth>
+              <InputLabel>User Type</InputLabel>
+              <Select
+                value={filters.tenantType}
+                onChange={handleFilterChange('tenantType')}
+                label="User Type"
+                displayEmpty
+                startAdornment={
                   <InputAdornment position="start">
                     <PersonRoundedIcon sx={{ color: 'text.disabled' }} />
                   </InputAdornment>
-                ),
-              }}
-            >
-              <MenuItem value="">All Types</MenuItem>
-              <MenuItem value="USER">User</MenuItem>
-              <MenuItem value="ADMIN">Admin</MenuItem>
-            </TextField>
+                }
+              >
+                <MenuItem value="">All Types</MenuItem>
+                <MenuItem value="USER">User</MenuItem>
+                <MenuItem value="ADMIN">Admin</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          
+          {/* Bottom Row */}
+          <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
               label="Product"
               value={filters.product}
               onChange={handleFilterChange('product')}
               placeholder="Search by product"
-              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -321,15 +309,7 @@ const Invoices = () => {
               type="date"
               value={filters.startDate}
               onChange={handleFilterChange('startDate')}
-              size="small"
               InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarTodayRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
@@ -339,15 +319,7 @@ const Invoices = () => {
               type="date"
               value={filters.endDate}
               onChange={handleFilterChange('endDate')}
-              size="small"
               InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EventRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
             />
           </Grid>
         </Grid>
@@ -429,16 +401,16 @@ const Invoices = () => {
         <>
           <Table size="small">
             <TableHead>
-              <TableRow>
-                <TableCell>Invoice ID</TableCell>
-                <TableCell>Client</TableCell>
-                <TableCell>User type</TableCell>
-                <TableCell>Products</TableCell>
-                <TableCell align="right">Total</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Issued</TableCell>
-                <TableCell align="right">Document</TableCell>
-                <TableCell>Actions</TableCell>
+              <TableRow sx={{ backgroundColor: 'grey.100' }}>
+                <TableCell sx={{ fontWeight: 'bold' }}>Invoice ID</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>User type</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Products</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Issued</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Document</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -594,7 +566,9 @@ const Invoices = () => {
         onCreate={async (payload) => {
             try {
               setLoading(true);
-              const created = await createInvoice(payload);
+              const created = payload?.lineItems?.length
+                ? await createManualInvoice(payload)
+                : await createInvoice(payload);
               setSnackbar({ open: true, message: 'Invoice created', severity: 'success' });
               setNewInvoiceOpen(false);
               const refreshed = await fetchInvoices({ page, size: rowsPerPage, ...queryFilters });
@@ -603,8 +577,10 @@ const Invoices = () => {
                 const url = await fetchInvoicePdfUrl(created.id || created.idFactura || created.id);
                 if (url) window.open(url, '_blank', 'noopener');
               } catch {}
+              return created;
             } catch (e) {
               setSnackbar({ open: true, message: e.message || 'Failed to create invoice', severity: 'error' });
+              throw e;
             } finally {
               setLoading(false);
             }
