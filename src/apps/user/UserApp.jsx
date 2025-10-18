@@ -11,6 +11,7 @@ const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
 const VirtualOffice = React.lazy(() => import('../../components/tabs/VirtualOffice.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
+const BookingFlow = React.lazy(() => import('../../components/BookingFlow.jsx'));
 const Agent = React.lazy(() => import('../../components/tabs/Agent.jsx'));
 const Integrations = React.lazy(() => import('../../components/tabs/Integrations.jsx'));
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));
@@ -57,7 +58,7 @@ const UserApp = ({ userProfile, refreshProfile }) => {
 
   const TabContent = useMemo(() => {
     if (activeTab === 'Booking') {
-      return <Booking mode="user" />;
+      return <BookingFlow />;
     }
     const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
     if (activeTab === 'Overview') {

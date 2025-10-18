@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { format, parseISO } from 'date-fns';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -28,13 +29,13 @@ import TableRow from '@mui/material/TableRow';
 import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
-import Autocomplete from '@mui/material/Autocomplete';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import Switch from '@mui/material/Switch';
+import Typography from '@mui/material/Typography';
+import Autocomplete from '@mui/material/Autocomplete';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
@@ -44,20 +45,20 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
-import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import SettingsSuggestRoundedIcon from '@mui/icons-material/SettingsSuggestRounded';
 import EventRepeatRoundedIcon from '@mui/icons-material/EventRepeatRounded';
+import FlagRoundedIcon from '@mui/icons-material/FlagRounded';
+import EuroRoundedIcon from '@mui/icons-material/EuroRounded';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
+import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 import CalendarViewWeekRoundedIcon from '@mui/icons-material/CalendarViewWeekRounded';
 import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded';
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
-import FlagRoundedIcon from '@mui/icons-material/FlagRounded';
-import SettingsSuggestRoundedIcon from '@mui/icons-material/SettingsSuggestRounded';
-import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
-import EuroRoundedIcon from '@mui/icons-material/EuroRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
-
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -714,13 +715,13 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                 ? bloqueo.asistentes
                 : null;
               const chip = (
-                <Chip
-                  label={statusLabel}
-                  size="small"
-                  sx={{
-                    bgcolor: statusStyle.bgcolor,
-                    color: statusStyle.color,
-                    border: '1px solid',
+                    <Chip
+                      label={statusLabel}
+                      size="small"
+                      sx={{
+                        bgcolor: statusStyle.bgcolor,
+                        color: statusStyle.color,
+                        border: '1px solid',
                     borderColor: statusStyle.borderColor,
                     width: 108,
                     justifyContent: 'center',
@@ -755,7 +756,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                 }}
               >
                 {bloqueo.cliente?.nombre || '—'}
-              </TableCell>
+                  </TableCell>
               <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
               <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
               <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
@@ -1355,7 +1356,7 @@ const ReservaDialog = ({
               </Typography>
           </Stack>
         </DialogTitle>
-        <DialogContent dividers>
+      <DialogContent dividers>
           <Stack spacing={3}>
             {error ? <Alert severity="error">{error}</Alert> : null}
             {lookupError ? <Alert severity="warning">{lookupError}</Alert> : null}
@@ -1383,7 +1384,7 @@ const ReservaDialog = ({
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
                     Who &amp; where
-                  </Typography>
+                </Typography>
                 </Stack>
                 <Grid container spacing={3} sx={{ width: '100%' }}>
                   {/* Contact field - full width */}
@@ -1456,13 +1457,13 @@ const ReservaDialog = ({
                             >
                               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                 {contact.name || contact.code || '—'}
-                              </Typography>
+                </Typography>
                             </Box>
                           ))}
                         </Paper>
                       )}
                     </Box>
-                  </Grid>
+              </Grid>
                   
                   {/* Centro field - full width */}
                   <Grid item xs={12} sx={{ display: 'block' }}>
@@ -1759,7 +1760,7 @@ const ReservaDialog = ({
                   >
                     <Typography variant="overline" color="text.secondary">
                       Weekdays
-                    </Typography>
+                </Typography>
                     <FormGroup
                       row
                       sx={{
@@ -1842,7 +1843,7 @@ const ReservaDialog = ({
                         )
                       }}
                     />
-                  </Grid>
+              </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
                       label="Configuración"
@@ -2273,299 +2274,755 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
 const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
   const open = Boolean(bloqueo);
   const canEdit = Boolean(onEdit);
-  const statusKey = mapStatusKey(bloqueo?.estado);
-  const statusColor = statusStyles[statusKey] || statusStyles.created;
-  const statusLabel = bloqueo?.estado || statusLabels[statusKey] || 'Created';
-  const canInvoice = Boolean(onInvoice) && statusKey !== 'invoiced';
-  const infoChips = useMemo(() => {
-    if (!bloqueo) {
-      return [];
+  const canInvoice = Boolean(onInvoice);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formState, setFormState] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  // Initialize form state when bloqueo changes
+  useEffect(() => {
+    if (bloqueo) {
+      setFormState({
+        cliente: bloqueo.cliente?.nombre || '',
+        centro: bloqueo.centro?.nombre || '',
+        producto: bloqueo.producto?.nombre || '',
+        fecha: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'yyyy-MM-dd') : '',
+        horaIni: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'HH:mm') : '',
+        horaFin: bloqueo.fechaFin ? format(parseISO(bloqueo.fechaFin), 'HH:mm') : '',
+        asistentes: bloqueo.asistentes || '',
+        tarifa: bloqueo.tarifa || '',
+        configuracion: bloqueo.configuracion || '',
+        nota: bloqueo.nota || '',
+        userType: bloqueo.cliente?.tipoTenant || '',
+        reservationType: 'Por Horas', // Default value
+        status: bloqueo.estado || 'Created'
+      });
+      setIsEditMode(false);
+      setError('');
     }
-    const items = [];
-    if (bloqueo.tarifa != null && bloqueo.tarifa !== '') {
-      items.push({ label: `Rate €${bloqueo.tarifa}`, color: statusStyles.paid });
-    }
-    if (Number.isFinite(bloqueo.asistentes)) {
-      items.push({ label: `${bloqueo.asistentes} attendees`, color: statusStyles.available });
-    }
-    if (bloqueo.configuracion) {
-      items.push({ label: `Setup ${bloqueo.configuracion}`, color: statusStyles.invoiced });
-    }
-    return items;
-  }, [bloqueo]);
-  const clientInitials = useMemo(
-    () => getInitials(bloqueo?.cliente?.nombre || bloqueo?.producto?.nombre || 'B'),
-    [bloqueo]
-  );
-  const attendeesLabel =
-    bloqueo && (Number.isFinite(bloqueo.asistentes) || bloqueo.asistentes === 0)
-      ? bloqueo.asistentes
-      : bloqueo?.asistentes || '—';
-  const tarifaLabel = useMemo(() => {
-    if (!bloqueo || bloqueo.tarifa == null || bloqueo.tarifa === '') {
-      return '—';
-    }
-    const numeric = Number(bloqueo.tarifa);
-    if (!Number.isNaN(numeric)) {
-      return `€${numeric.toLocaleString()}`;
-    }
-    return bloqueo.tarifa;
   }, [bloqueo]);
 
+  const handleEditClick = () => {
+    setIsEditMode(true);
+  };
+
+  const handleSave = async () => {
+    if (!bloqueo) return;
+    
+    setSaving(true);
+    setError('');
+    try {
+      // Create the updated bloqueo object
+      const updatedBloqueo = {
+        ...bloqueo,
+        cliente: { id: formState.cliente },
+        centro: { id: formState.centro },
+        producto: { id: formState.producto },
+        fechaIni: `${formState.fecha}T${formState.horaIni}:00`,
+        fechaFin: `${formState.fecha}T${formState.horaFin}:00`,
+        asistentes: formState.asistentes,
+        tarifa: formState.tarifa,
+        configuracion: formState.configuracion,
+        nota: formState.nota
+      };
+
+      // Call the update function
+      await updateBloqueo(bloqueo.id, updatedBloqueo);
+      
+      setIsEditMode(false);
+      onClose?.();
+    } catch (error) {
+      setError(error.message || 'Unable to update bloqueo.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditMode(false);
+    setError('');
+    // Reset form state to original values
+    if (bloqueo) {
+      setFormState({
+        cliente: bloqueo.cliente?.nombre || '',
+        centro: bloqueo.centro?.nombre || '',
+        producto: bloqueo.producto?.nombre || '',
+        fecha: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'yyyy-MM-dd') : '',
+        horaIni: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'HH:mm') : '',
+        horaFin: bloqueo.fechaFin ? format(parseISO(bloqueo.fechaFin), 'HH:mm') : '',
+        asistentes: bloqueo.asistentes || '',
+        tarifa: bloqueo.tarifa || '',
+        configuracion: bloqueo.configuracion || '',
+        nota: bloqueo.nota || '',
+        userType: bloqueo.cliente?.tipoTenant || '',
+        reservationType: 'Por Horas',
+        status: bloqueo.estado || 'Created'
+      });
+    }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setFormState(prev => ({ ...prev, [field]: value }));
+  };
+
+  const baseInputStyles = {
+    minHeight: 44,
+    borderRadius: '4px !important',
+    backgroundColor: '#fff',
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'rgba(148, 163, 184, 0.32)',
+      borderRadius: '4px !important'
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#fb923c',
+      borderRadius: '4px !important'
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#fb923c',
+      boxShadow: '0 0 0 2px rgba(251, 146, 60, 0.14)',
+      borderRadius: '4px !important'
+    },
+    '& input': {
+      fontSize: 14,
+      fontWeight: 500,
+      color: '#1f2937'
+    },
+    '& .MuiSvgIcon-root': {
+      color: 'text.disabled'
+    }
+  };
+
+  const baseLabelStyles = {
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#475569',
+    '&.Mui-focused': {
+      color: '#fb923c'
+    }
+  };
+
+  const fieldStyles = {
+    '& .MuiOutlinedInput-root': baseInputStyles,
+    '& .MuiInputLabel-root': baseLabelStyles
+  };
+
+  const selectFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      ...baseInputStyles,
+      borderRadius: '4px !important',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderRadius: '4px !important'
+      },
+      '& .MuiSelect-select': {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        fontWeight: 500
+      }
+    },
+    '& .MuiInputLabel-root': baseLabelStyles
+  };
+
+  const dialogTitle = isEditMode ? 'Edit bloqueo' : 'Bloqueo details';
+  const dialogSubtitle = isEditMode
+    ? 'Update the bloqueo details before saving.'
+    : 'View and edit bloqueo information';
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="lg"
       PaperProps={{
         sx: {
           borderRadius: 3,
-          overflow: 'hidden',
-          boxShadow: '0 40px 80px rgba(15, 23, 42, 0.22)'
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          maxWidth: '900px'
         }
       }}
     >
-      <DialogTitle sx={{ p: 0 }}>
-        <Box
-          sx={{
-            px: 3,
-            pt: 3,
+      <Box component="form" noValidate>
+        <DialogTitle 
+          sx={{ 
             pb: 2,
-            background: 'linear-gradient(135deg, rgba(30, 64, 175, 0.18) 0%, rgba(56, 189, 248, 0.18) 100%)',
-            borderBottom: '1px solid rgba(148, 163, 184, 0.25)'
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            position: 'relative'
           }}
         >
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar
-                sx={{
-                  bgcolor: '#1d4ed8',
-                  color: '#fff',
-                  width: 48,
-                  height: 48,
-                  fontWeight: 600,
-                  textTransform: 'uppercase'
-                }}
-              >
-                {clientInitials}
-              </Avatar>
-              <Stack spacing={0.5}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {bloqueo?.cliente?.nombre || bloqueo?.producto?.nombre || 'Bloqueo details'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {[bloqueo?.centro?.nombre, bloqueo?.producto?.nombre].filter(Boolean).join(' · ') || '—'}
-                </Typography>
-                {bloqueo?.cliente?.email ? (
-                <Typography variant="caption" color="text.secondary">
-                    {bloqueo.cliente.email}
-                </Typography>
-                ) : null}
-              </Stack>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+            <Stack>
+              <Typography variant="h5" fontWeight={700} color="text.primary">
+                {dialogTitle}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {dialogSubtitle}
+              </Typography>
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              {bloqueo ? (
-                <Chip
-                  label={statusLabel}
-                  size="small"
-                  sx={{
-                    bgcolor: statusColor.bgcolor,
-                    color: statusColor.color,
-                    borderRadius: 1.5,
-                    fontWeight: 600,
+            <IconButton
+              onClick={onClose}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                color: 'text.secondary',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  color: 'text.primary'
+                }
+              }}
+            >
+              <CloseRoundedIcon />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={3}>
+            {error ? <Alert severity="error">{error}</Alert> : null}
+            
+            {bloqueo ? (
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <Paper
+                  elevation={0}
+                  variant="outlined"
+                  sx={{ 
+                    p: { xs: 2, md: 3 }, 
+                    borderRadius: 3,
                     border: '1px solid',
-                    borderColor: statusColor.borderColor
+                    borderColor: 'divider',
+                    backgroundColor: 'background.paper'
                   }}
-                />
-              ) : null}
-              <IconButton
-                aria-label="Close bloqueo details"
-                edge="end"
-                onClick={onClose}
-                size="small"
-                sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.6)',
+                >
+                  <Stack spacing={2.25}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: '#fb923c'
+                        }}
+                      />
+                      <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                        Who &amp; where
+                      </Typography>
+                    </Stack>
+                    <Grid container spacing={3} sx={{ width: '100%' }}>
+                      {/* Search by Name field - full width */}
+                      <Grid item xs={12} sx={{ display: 'block' }}>
+                        <TextField
+                          fullWidth
+                          label="Search by Name"
+                          value={formState.cliente || ''}
+                          onChange={(e) => handleFieldChange('cliente', e.target.value)}
+                          placeholder="Search by name"
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          sx={fieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+              </Grid>
+                      
+                      {/* Centro field - full width */}
+                      <Grid item xs={12} sx={{ display: 'block' }}>
+                        <TextField
+                          fullWidth
+                          label="Centro"
+                          value={formState.centro || ''}
+                          onChange={(e) => handleFieldChange('centro', e.target.value)}
+                          placeholder="Select centro"
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          select
+                          SelectProps={{
+                            displayEmpty: true,
+                            renderValue: (value) => value === '' ? 'All centros' : value
+                          }}
+                          sx={selectFieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <LocationOnRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        >
+                          <MenuItem value="">All centros</MenuItem>
+                        </TextField>
+                      </Grid>
+                      
+                      {/* User type field - full width */}
+                      <Grid item xs={12} sx={{ display: 'block' }}>
+                        <TextField
+                          fullWidth
+                          label="User Type"
+                          value={formState.userType || ''}
+                          onChange={(e) => handleFieldChange('userType', e.target.value)}
+                          placeholder="Select user type"
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          select
+                          SelectProps={{
+                            displayEmpty: true,
+                            renderValue: (value) => value === '' ? 'All user types' : value
+                          }}
+                          sx={selectFieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <PersonRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        >
+                          <MenuItem value="">All user types</MenuItem>
+                          <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+                        </TextField>
+                      </Grid>
+                      
+                      {/* Producto field - full width */}
+                      <Grid item xs={12} sx={{ display: 'block' }}>
+                        <TextField
+                          fullWidth
+                          label="Producto"
+                          value={formState.producto || ''}
+                          onChange={(e) => handleFieldChange('producto', e.target.value)}
+                          placeholder="Select product"
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          select
+                          SelectProps={{
+                            displayEmpty: true,
+                            renderValue: (value) => value === '' ? 'All products' : value
+                          }}
+                          sx={selectFieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        >
+                          <MenuItem value="">All products</MenuItem>
+                        </TextField>
+                      </Grid>
+                      
+                      {/* Reservation type field - full width */}
+                      <Grid item xs={12} sx={{ display: 'block' }}>
+                        <TextField
+                          fullWidth
+                          label="Reservation Type"
+                          value={formState.reservationType || 'Por Horas'}
+                          onChange={(e) => handleFieldChange('reservationType', e.target.value)}
+                          placeholder="Select reservation type"
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          select
+                          SelectProps={{
+                            displayEmpty: true,
+                            renderValue: (value) => value === '' ? 'All reservation types' : value
+                          }}
+                          sx={selectFieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <EventRepeatRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        >
+                          <MenuItem value="">All reservation types</MenuItem>
+                          <MenuItem value="Por Horas">Por Horas</MenuItem>
+                        </TextField>
+                      </Grid>
+                      
+                      {/* Status field - full width */}
+                      <Grid item xs={12} sx={{ display: 'block' }}>
+                        <TextField
+                          fullWidth
+                          label="Status"
+                          value={formState.status || 'Created'}
+                          onChange={(e) => handleFieldChange('status', e.target.value)}
+                          placeholder="Select status"
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          select
+                          SelectProps={{
+                            displayEmpty: true,
+                            renderValue: (value) => value === '' ? 'All statuses' : value
+                          }}
+                          sx={selectFieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <FlagRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        >
+                          <MenuItem value="">All statuses</MenuItem>
+                          <MenuItem value="Created">Created</MenuItem>
+                          <MenuItem value="Pendiente">Pendiente</MenuItem>
+                          <MenuItem value="Paid">Paid</MenuItem>
+                        </TextField>
+                      </Grid>
+                      
+                      {/* Tarifa field - full width */}
+                      <Grid item xs={12} sx={{ display: 'block' }}>
+                        <TextField
+                          fullWidth
+                          label="Tarifa (€)"
+                          value={formState.tarifa || ''}
+                          onChange={(e) => handleFieldChange('tarifa', e.target.value)}
+                          placeholder="Enter tarifa"
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          sx={fieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <EuroRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Stack>
+                </Paper>
+
+                <Paper
+                  elevation={0}
+                  variant="outlined"
+                  sx={{ 
+                    p: { xs: 2, md: 3 }, 
+                    borderRadius: 3,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    backgroundColor: 'background.paper'
+                  }}
+                >
+                  <Stack spacing={2.25}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: '#3b82f6'
+                        }}
+                      />
+                      <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                        Schedule &amp; status
+                </Typography>
+                    </Stack>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          type="date"
+                          label="Date from"
+                          value={formState.fecha || ''}
+                          onChange={(e) => handleFieldChange('fecha', e.target.value)}
+                          InputLabelProps={{ shrink: true }}
+                          fullWidth
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          sx={fieldStyles}
+                        />
+              </Grid>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          type="date"
+                          label="Date to"
+                          value={formState.fecha || ''}
+                          onChange={(e) => handleFieldChange('fecha', e.target.value)}
+                          InputLabelProps={{ shrink: true }}
+                          fullWidth
+                          required
+                          disabled={!isEditMode}
+                          size="small"
+                          sx={fieldStyles}
+                        />
+            </Grid>
+                      <Grid item xs={12} md={3}>
+                        <TimePicker
+                          label="Start time"
+                          value={formState.horaIni ? timeStringToDate(formState.horaIni) : null}
+                          onChange={(time) => handleFieldChange('horaIni', time ? dateToTimeString(time) : '')}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true,
+                              disabled: !isEditMode,
+                              size: 'small',
+                              InputLabelProps: { shrink: true },
+                              sx: {
+                                ...fieldStyles,
+                                '& .MuiOutlinedInput-root': {
+                                  ...baseInputStyles,
+                                  borderRadius: '4px !important',
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderRadius: '4px !important'
+                                  }
+                                }
+                              }
+                            }
+                          }}
+                          minutesStep={30}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <TimePicker
+                          label="End time"
+                          value={formState.horaFin ? timeStringToDate(formState.horaFin) : null}
+                          onChange={(time) => handleFieldChange('horaFin', time ? dateToTimeString(time) : '')}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true,
+                              disabled: !isEditMode,
+                              size: 'small',
+                              InputLabelProps: { shrink: true },
+                              sx: {
+                                ...fieldStyles,
+                                '& .MuiOutlinedInput-root': {
+                                  ...baseInputStyles,
+                                  borderRadius: '4px !important',
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderRadius: '4px !important'
+                                  }
+                                }
+                              }
+                            }
+                          }}
+                          minutesStep={30}
+                        />
+                      </Grid>
+                    </Grid>
+
+                    {/* Weekdays section */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: 1.5
+                      }}
+                    >
+                      <Typography variant="overline" color="text.secondary">
+                        Weekdays
+                      </Typography>
+                      <FormGroup
+                        row
+                        sx={{
+                          gap: 1,
+                          flexWrap: 'wrap'
+                        }}
+                      >
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                          <FormControlLabel
+                            key={day}
+                            control={
+                              <Checkbox
+                                size="small"
+                                checked={false}
+                                disabled={!isEditMode}
+                              />
+                            }
+                            label={day}
+                          />
+                        ))}
+                      </FormGroup>
+                      <Box sx={{ flexGrow: 1 }} />
+                      <FormControlLabel
+                        sx={{ ml: 'auto' }}
+                        control={
+                          <Switch
+                            size="small"
+                            checked={false}
+                            disabled={!isEditMode}
+                          />
+                        }
+                        label="Open ended"
+                      />
+                    </Box>
+          </Stack>
+                </Paper>
+
+                <Paper
+                  elevation={0}
+                  variant="outlined"
+                  sx={{ 
+                    p: { xs: 2, md: 3 }, 
+                    borderRadius: 3,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    backgroundColor: 'background.paper'
+                  }}
+                >
+                  <Stack spacing={2.25}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: '#10b981'
+                        }}
+                      />
+                      <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                        Additional details
+                      </Typography>
+                    </Stack>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Attendees"
+                          value={formState.asistentes || ''}
+                          onChange={(e) => handleFieldChange('asistentes', e.target.value)}
+                          disabled={!isEditMode}
+                          size="small"
+                          sx={fieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <GroupRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Configuración"
+                          value={formState.configuracion || ''}
+                          onChange={(e) => handleFieldChange('configuracion', e.target.value)}
+                          disabled={!isEditMode}
+                          size="small"
+                          sx={fieldStyles}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <BusinessRoundedIcon sx={{ color: 'text.disabled' }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Stack>
+                </Paper>
+              </LocalizationProvider>
+        ) : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2.5,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper'
+          }}
+        >
+          {canInvoice && !isEditMode ? (
+            <Button
+              onClick={() => {
+                if (bloqueo) {
+                  onInvoice?.(bloqueo);
+                }
+              }}
+              variant="contained"
+              disabled={invoiceLoading}
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 600,
+                backgroundColor: '#fb923c',
+                '&:hover': {
+                  backgroundColor: '#ea580c'
+                }
+              }}
+            >
+              PAY
+            </Button>
+          ) : null}
+          {canEdit && !isEditMode ? (
+            <Button
+              onClick={handleEditClick}
+              variant="outlined"
+              startIcon={<EditRoundedIcon fontSize="small" />}
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 600,
+                borderColor: '#fb923c',
+                color: '#fb923c',
+                '&:hover': {
+                  borderColor: '#ea580c',
+                  backgroundColor: 'rgba(251, 146, 60, 0.04)'
+                }
+              }}
+            >
+              EDIT
+            </Button>
+          ) : null}
+          {isEditMode ? (
+            <>
+              <Button
+                onClick={handleCancel}
+                variant="outlined"
+                sx={{ 
+                  textTransform: 'none', 
+                  fontWeight: 600,
+                  borderColor: '#fb923c',
+                  color: '#fb923c',
                   '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.9)'
+                    borderColor: '#ea580c',
+                    backgroundColor: 'rgba(251, 146, 60, 0.04)'
                   }
                 }}
               >
-                <CloseRoundedIcon />
-              </IconButton>
-            </Stack>
-          </Stack>
-        </Box>
-      </DialogTitle>
-      <DialogContent
-        dividers
-        sx={{
-          px: 3,
-          py: 3,
-          backgroundColor: 'rgba(248, 250, 252, 0.9)'
-        }}
-      >
-        {bloqueo ? (
-          <Stack spacing={2.5}>
-            {infoChips.length ? (
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                {infoChips.map((chip) => (
-                  <Chip
-                    key={chip.label}
-                    label={chip.label}
-                    size="small"
-                    sx={{
-                      bgcolor: chip.color.bgcolor,
-                      color: chip.color.color,
-                      borderRadius: 1.5,
-                      fontWeight: 600,
-                      border: '1px solid',
-                      borderColor: chip.color.borderColor
-                    }}
-                  />
-                ))}
-              </Stack>
-            ) : null}
-            <Grid container spacing={2.5}>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<PersonRoundedIcon fontSize="small" />}
-                  label="Client"
-                  primary={bloqueo.cliente?.nombre}
-                  secondary={bloqueo.cliente?.email}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<LocationOnRoundedIcon fontSize="small" />}
-                  label="Center / Product"
-                  primary={bloqueo.centro?.nombre}
-                  secondary={bloqueo.producto?.nombre}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<PlayArrowRoundedIcon fontSize="small" />}
-                  label="Start"
-                  primary={formatDateTime(bloqueo.fechaIni)}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<FlagRoundedIcon fontSize="small" />}
-                  label="End"
-                  primary={formatDateTime(bloqueo.fechaFin)}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<SettingsSuggestRoundedIcon fontSize="small" />}
-                  label="Configuration"
-                  primary={bloqueo.configuracion}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<GroupRoundedIcon fontSize="small" />}
-                  label="Attendees"
-                  primary={attendeesLabel}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<EuroRoundedIcon fontSize="small" />}
-                  label="Rate"
-                  primary={tarifaLabel}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <DetailTile
-                  icon={<CalendarTodayRoundedIcon fontSize="small" />}
-                  label="Created"
-                  primary={formatDateTime(bloqueo.creacionFecha)}
-                />
-              </Grid>
-              </Grid>
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 2.5,
-                borderRadius: 2,
-                borderColor: 'rgba(148, 163, 184, 0.3)',
-                backgroundColor: '#fff',
-                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
-              }}
-            >
-              <Stack spacing={1.5}>
-                <Stack direction="row" spacing={1.75} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 1.5,
-                      display: 'grid',
-                      placeItems: 'center',
-                      bgcolor: 'rgba(14, 116, 144, 0.1)',
-                      color: '#0e7490'
-                    }}
-                  >
-                    <StickyNote2RoundedIcon fontSize="small" />
-                  </Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Note
-                  </Typography>
-                </Stack>
-                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {bloqueo.nota && bloqueo.nota.trim()
-                    ? bloqueo.nota
-                    : 'No notes have been added for this bloqueo.'}
-                </Typography>
-              </Stack>
-            </Paper>
-          </Stack>
-        ) : null}
-      </DialogContent>
-      <DialogActions
-        sx={{
-          px: 3,
-          py: 2.5,
-          bgcolor: 'rgba(241, 245, 249, 0.8)'
-        }}
-      >
-        {canInvoice ? (
-          <Button
-            onClick={() => {
-              if (bloqueo) {
-                onInvoice?.(bloqueo);
-              }
-            }}
-            variant="contained"
-            color="primary"
-            disabled={invoiceLoading}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
-          >
-            Invoice bloqueo
-          </Button>
-        ) : null}
-        {canEdit ? (
-          <Button
-            onClick={() => {
-              if (bloqueo) {
-                onEdit?.(bloqueo);
-              }
-              onClose?.();
-            }}
-            variant="outlined"
-            startIcon={<EditRoundedIcon fontSize="small" />}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
-          >
-            Edit bloqueo
-          </Button>
-        ) : null}
-        <Button onClick={onClose} variant="contained">
-          Close
-        </Button>
-      </DialogActions>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                variant="contained"
+                disabled={saving}
+                sx={{ 
+                  textTransform: 'none', 
+                  fontWeight: 600,
+                  backgroundColor: '#fb923c',
+                  '&:hover': {
+                    backgroundColor: '#ea580c'
+                  }
+                }}
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </>
+          ) : null}
+        </DialogActions>
+      </Box>
     </Dialog>
   );
 };
@@ -2901,28 +3358,28 @@ const Booking = ({ mode = 'user' }) => {
 
         const centerLabel = bloqueo?.centro?.nombre || '';
         if (filterCenter && centerLabel !== filterCenter) {
-          return false;
-        }
+        return false;
+      }
 
         const productLabel = bloqueo?.producto?.nombre || '';
         if (filterProduct && productLabel !== filterProduct) {
-          return false;
-        }
+        return false;
+      }
 
         if (filterUserType) {
         const tenantType = resolveTenantType(bloqueo);
           const displayType = resolveDisplayTenantType(bloqueo);
           if (tenantType !== filterUserType && displayType !== filterUserType) {
-          return false;
+        return false;
           }
-        }
+      }
 
-        if (filterEmail) {
+      if (filterEmail) {
           const email = (bloqueo?.cliente?.email || '').toLowerCase();
-          if (!email.includes(filterEmail.toLowerCase())) {
-            return false;
-          }
+        if (!email.includes(filterEmail.toLowerCase())) {
+          return false;
         }
+      }
 
         return true;
       });
@@ -2937,8 +3394,8 @@ const Booking = ({ mode = 'user' }) => {
       return (filteredBloqueos || []).filter((bloqueo) => {
         const productName = bloqueo?.producto?.nombre || '';
         if (!ALLOWED_PRODUCT_NAMES.has(productName)) {
-          return false;
-        }
+        return false;
+      }
         return bloqueoAppliesToDate(bloqueo, calendarDate);
       });
     } catch (error) {
@@ -3066,15 +3523,15 @@ const Booking = ({ mode = 'user' }) => {
         justifyContent="space-between"
         alignItems={{ xs: 'flex-start', sm: 'center' }}
       >
-        <Stack spacing={1}>
-          <Typography variant="h5" fontWeight="bold" color="text.primary">
+      <Stack spacing={1}>
+        <Typography variant="h5" fontWeight="bold" color="text.primary">
             {isAdmin ? 'Workspace bloqueos' : 'My bloqueos'}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {isAdmin
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          {isAdmin
               ? 'Browse every bloqueo across BeWorking locations. Switch between calendar and agenda views to review occupancy, statuses, and tenants.'
               : 'Track your bloqueos, check upcoming slots, and review bloqueo details from the calendar or agenda views.'}
-          </Typography>
+        </Typography>
         </Stack>
         {isAdmin ? (
           <Button
@@ -3257,7 +3714,7 @@ const Booking = ({ mode = 'user' }) => {
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6} md={2}>
-            <TextField
+                    <TextField
                   fullWidth
                   label="Agenda Date"
               type="date"
@@ -3271,8 +3728,8 @@ const Booking = ({ mode = 'user' }) => {
                 <TextField
                   fullWidth
                   label="Search by Name"
-                  value={filterUser}
-                  onChange={(event) => setFilterUser(event.target.value)}
+                      value={filterUser}
+                      onChange={(event) => setFilterUser(event.target.value)}
                   placeholder="Search by name"
                   size="small"
                   InputProps={{
@@ -3286,7 +3743,7 @@ const Booking = ({ mode = 'user' }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
             <TextField
-                  fullWidth
+                      fullWidth
                   label="Search by Email"
               value={filterEmail}
               onChange={(event) => setFilterEmail(event.target.value)}
@@ -3319,10 +3776,10 @@ const Booking = ({ mode = 'user' }) => {
                 All centros
               </MenuItem>
               {(filterOptions.centers || []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -3344,10 +3801,10 @@ const Booking = ({ mode = 'user' }) => {
                 All user types
               </MenuItem>
               {(filterOptions.userTypes || []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -3355,8 +3812,8 @@ const Booking = ({ mode = 'user' }) => {
                 <FormControl fullWidth size="small">
                   <InputLabel>Producto</InputLabel>
                   <Select
-              value={filterProduct}
-              onChange={(event) => setFilterProduct(event.target.value)}
+                      value={filterProduct}
+                      onChange={(event) => setFilterProduct(event.target.value)}
                     label="Producto"
                     displayEmpty
                     startAdornment={
@@ -3369,16 +3826,16 @@ const Booking = ({ mode = 'user' }) => {
                 All products
               </MenuItem>
               {(filterOptions.products || []).map((option) => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               </Grid>
             </Grid>
             <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-              <Button
+                    <Button
                 variant="outlined"
                 size="small"
                 onClick={clearFilters}
@@ -3392,15 +3849,15 @@ const Booking = ({ mode = 'user' }) => {
                 }}
               >
                 RESET
-              </Button>
+                    </Button>
               <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
                 Showing {filteredBloqueos.length} of {bloqueos.length} bookings
               </Typography>
             </Stack>
           </Paper>
-          <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary">
             {agendaRangeLabel}
-          </Typography>
+                </Typography>
           <Legend />
 
           {loading ? (
