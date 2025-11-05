@@ -21,6 +21,7 @@ import BankReconciliationIcon from '@mui/icons-material/AccountBalanceOutlined';
 import CryptWalletIcon from '@mui/icons-material/CurrencyBitcoinOutlined';
 import PasswordManagementIcon from '@mui/icons-material/LockOutlined';
 import DigitalSignatureIcon from '@mui/icons-material/EditOutlined';
+import SpaceCatalogIcon from '@mui/icons-material/WorkspacesOutlined';
 
 export {
   OverviewIcon,
@@ -45,5 +46,6 @@ export {
   BankReconciliationIcon,
   CryptWalletIcon,
   PasswordManagementIcon,
-  DigitalSignatureIcon
+  DigitalSignatureIcon,
+  SpaceCatalogIcon
 };

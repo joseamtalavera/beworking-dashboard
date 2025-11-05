@@ -21,6 +21,7 @@ const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.j
 const Expenses = React.lazy(() => import('../../components/tabs/Expenses.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
 const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
+const SpaceCatalog = React.lazy(() => import('../../components/tabs/admin/SpaceCatalog.jsx'));
 import Marketplace from '../../components/tabs/Marketplace.jsx';
 
 const TAB_COMPONENTS = {
@@ -37,6 +38,7 @@ const TAB_COMPONENTS = {
   Storage,
   Tickets,
   Reports,
+  SpaceCatalog,
   Marketplace
 };
 

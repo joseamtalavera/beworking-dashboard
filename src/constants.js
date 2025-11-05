@@ -17,7 +17,8 @@ import {
   BankReconciliationIcon,
   CryptWalletIcon,
   PasswordManagementIcon,
-  DigitalSignatureIcon
+  DigitalSignatureIcon,
+  SpaceCatalogIcon
 } from './components/icons/Icons.js';
 
 const BASE_TABS = [
@@ -38,7 +39,8 @@ const BASE_TABS = [
   { id: 'Storage', label: 'Storage', icon: StorageIcon, soon: true },
   { id: 'Tickets', label: 'Tickets', icon: TicketsIcon, soon: true },
   { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
-  { id: 'Marketplace', label: 'Marketplace', icon: MarketplaceIcon, soon: true }
+  { id: 'Marketplace', label: 'Marketplace', icon: MarketplaceIcon, soon: true },
+  { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon },
 ];
 
 export const DEFAULT_TABS = BASE_TABS;

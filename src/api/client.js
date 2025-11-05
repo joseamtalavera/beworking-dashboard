@@ -1,9 +1,15 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8080/api' : '/api')).replace(/\/$/, '');
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ??
+  (import.meta.env.DEV ? 'http://localhost:8080/api' : '/api')
+).replace(/\/$/, '');
+
 const TOKEN_STORAGE_KEY = 'beworking_token';
 
 export const getStoredToken = () => {
   try {
-    return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+    return typeof window !== 'undefined'
+      ? window.localStorage.getItem(TOKEN_STORAGE_KEY)
+      : null;
   } catch (error) {
     console.error('Failed to read auth token from storage', error);
     return null;
@@ -12,6 +18,9 @@ export const getStoredToken = () => {
 
 export const setStoredToken = (token) => {
   try {
+    if (typeof window === 'undefined') {
+      return;
+    }
     if (token) {
       window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
     } else {
@@ -22,100 +31,56 @@ export const setStoredToken = (token) => {
   }
 };
 
-const ensureLeadingSlash = (path) => (path.startsWith('/') ? path : `/${path}`);
-
-export const resolveApiUrl = (path = '') => {
-  if (!path) {
-    return API_BASE_URL || '';
-  }
-  return `${API_BASE_URL}${ensureLeadingSlash(path)}`;
+const toAbsoluteUrl = (path = '') => {
+  const cleaned = path.replace(/^\/+/, '');
+  return cleaned ? `${API_BASE_URL}/${cleaned}` : API_BASE_URL;
 };
 
-const extractErrorMessage = async (response) => {
-  const contentType = response.headers.get('content-type') || '';
+export const resolveApiUrl = toAbsoluteUrl;
 
-  if (contentType.includes('application/json')) {
-    try {
-      const data = await response.json();
-      if (typeof data === 'object' && data !== null) {
-        return data.message || data.error || JSON.stringify(data);
-      }
-      if (typeof data === 'string') {
-        return data;
-      }
-    } catch (error) {
-      console.error('Failed to parse error response as JSON', error);
-    }
-  }
-
-  try {
-    const text = await response.text();
-    if (text) return text;
-  } catch (error) {
-    console.error('Failed to read error response body', error);
-  }
-
-  return response.statusText || 'Request failed';
-};
-
-const parseResponse = async (response, mode) => {
-  if (mode === 'raw') return response;
-  if (mode === 'blob') return response.blob();
-  if (mode === 'text') return response.text();
-
-  if (response.status === 204) return null;
-  return response.json();
-};
-
-export async function apiFetch(path, options = {}) {
+export const apiFetch = async (path, options = {}) => {
   const {
     method = 'GET',
-    headers,
+    headers = {},
     body,
     credentials = 'include',
-    parse: parseMode = 'json',
     signal
   } = options;
 
-  const requestInit = {
+  const init = {
     method,
     credentials,
-    headers: new Headers(headers || {}),
-    signal
+    signal,
+    headers: new Headers(headers)
   };
 
-  if (!requestInit.headers.has('Authorization')) {
-    const token = typeof window !== 'undefined' ? getStoredToken() : null;
-    if (token) {
-      requestInit.headers.set('Authorization', `Bearer ${token}`);
-    }
+  const token = getStoredToken();
+  if (token && !init.headers.has('Authorization')) {
+    init.headers.set('Authorization', `Bearer ${token}`);
   }
 
   if (body !== undefined && body !== null) {
-    if (body instanceof FormData) {
-      requestInit.body = body;
-    } else if (
-      typeof Blob !== 'undefined' && body instanceof Blob
-    ) {
-      requestInit.body = body;
-    } else if (
-      typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams
-    ) {
-      requestInit.body = body;
+    if (body instanceof FormData || body instanceof Blob || body instanceof URLSearchParams) {
+      init.body = body;
     } else if (typeof body === 'string' || body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
-      requestInit.body = body;
+      init.body = body;
     } else {
-      requestInit.headers.set('Content-Type', 'application/json');
-      requestInit.body = JSON.stringify(body);
+      init.headers.set('Content-Type', 'application/json');
+      init.body = JSON.stringify(body);
     }
   }
 
-  const url = resolveApiUrl(path);
-  const response = await fetch(url, requestInit);
+  const response = await fetch(toAbsoluteUrl(path), init);
 
   if (!response.ok) {
-    throw new Error(await extractErrorMessage(response));
+    const message = await response.text().catch(() => '');
+    throw new Error(message || response.statusText || 'Request failed');
   }
 
-  return parseResponse(response, parseMode);
-}
+  if (response.status === 204) {
+    return null;
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  return contentType.includes('application/json') ? response.json() : response.text();
+};
