@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
@@ -32,6 +32,7 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import { listSpaces, upsertSpace, deleteSpace } from '../../../api/spaceCatalog.js';
 
 const BRAND_PRIMARY = '#fb923c';
 const BRAND_PRIMARY_HOVER = '#ea580c';
@@ -178,11 +179,33 @@ const createEmptyForm = () => ({
 });
 
 const SpaceCatalog = () => {
-  const [rows, setRows] = useState(MOCK_ROWS);
+  const [rows, setRows] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formValues, setFormValues] = useState(createEmptyForm());
   const [editingIndex, setEditingIndex] = useState(null);
   const [activeTab, setActiveTab] = useState('general');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadSpaces = async () => {
+      try {
+        const data = await listSpaces();
+        if (!active) {
+          return;
+        }
+        setRows(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to load spaces', error);
+      }
+    };
+
+    loadSpaces();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const orderedRows = useMemo(
     () => [...rows].sort((a, b) => a.displayName.localeCompare(b.displayName)),
@@ -291,7 +314,7 @@ const SpaceCatalog = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const payload = {
       ...formValues,
       tags: normaliseTags(formValues.tags),
@@ -302,27 +325,38 @@ const SpaceCatalog = () => {
       payload.heroImage = payload.images[0].url;
     }
 
-    if (!payload.id) {
-      payload.id = payload.productCode || `${payload.displayName}-${Date.now()}`;
-    }
-
-    if (editingIndex != null) {
+    setSubmitting(true);
+    try {
+      const saved = await upsertSpace(payload);
       setRows((prev) => {
-        const copy = [...prev];
-        copy[editingIndex] = payload;
-        return copy;
+        const next = [...prev];
+        const idx = next.findIndex((item) => item.id === saved.id);
+        if (idx >= 0) {
+          next[idx] = saved;
+        } else {
+          next.push(saved);
+        }
+        return next;
       });
-    } else {
-      setRows((prev) => [...prev, payload]);
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Failed to save space', error);
+    } finally {
+      setSubmitting(false);
     }
-
-    // TODO: Replace local state with API mutation once endpoints are available.
-    handleCloseDialog();
   };
 
-  const handleDelete = (index) => {
-    setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index));
-    // TODO: Replace local delete with API call.
+
+  const handleDelete = async (index) => {
+    const target = orderedRows[index];
+    if (!target) return;
+
+    try {
+      await deleteSpace(target.id);
+      setRows((prev) => prev.filter((item) => item.id !== target.id));
+    } catch (error) {
+      console.error('Failed to delete space', error);
+    }
   };
 
   return (
@@ -879,12 +913,13 @@ const SpaceCatalog = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleCloseDialog} sx={{ fontWeight: 600 }}>
+          <Button onClick={handleCloseDialog} disabled={submitting} sx={{ fontWeight: 600 }}>
             Cancel
           </Button>
           <Button
             variant="contained"
             onClick={handleSave}
+            disabled={submitting}
             sx={{
               backgroundColor: BRAND_PRIMARY,
               '&:hover': { backgroundColor: BRAND_PRIMARY_HOVER },
