@@ -43,6 +43,7 @@ const EMPTY_FORM = {
   id: '',
   centroCode: '',
   displayName: '',
+  code: '',
   productCode: '',
   type: '',
   status: '',
@@ -227,11 +228,12 @@ const SpaceCatalog = () => {
   };
 
   const handleEdit = (index) => {
-    const row = rows[index];
+    const row = orderedRows[index];
     setFormValues({
       id: row.id ?? '',
       centroCode: row.centroCode ?? '',
       displayName: row.displayName ?? '',
+      code: row.code ?? '',
       productCode: row.productCode ?? '',
       type: row.type ?? '',
       status: row.status ?? '',
@@ -317,6 +319,7 @@ const SpaceCatalog = () => {
   const handleSave = async () => {
     const payload = {
       ...formValues,
+      code: formValues.code || formValues.productCode || formValues.displayName,
       tags: normaliseTags(formValues.tags),
       images: normaliseImages(formValues.images)
     };
@@ -554,6 +557,17 @@ const SpaceCatalog = () => {
                       onChange={handleChange}
                       fullWidth
                       size="small"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Código"
+                      name="code"
+                      value={formValues.code}
+                      onChange={handleChange}
+                      fullWidth
+                      size="small"
+                      helperText="Identificador único (ej. MA1A1)"
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>

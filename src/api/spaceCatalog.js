@@ -20,9 +20,16 @@ export const fetchSpace = (id, options = {}) =>
   apiFetch(`${BASE_PATH}/${encodeURIComponent(id)}`, options);
 
 export const upsertSpace = (payload, options = {}) => {
-  const method = payload?.id ? 'PUT' : 'POST';
+  if (payload?.id) {
+    return apiFetch(`${BASE_PATH}/${encodeURIComponent(payload.id)}`, {
+      method: 'PUT',
+      body: payload,
+      ...options
+    });
+  }
+
   return apiFetch(BASE_PATH, {
-    method,
+    method: 'POST',
     body: payload,
     ...options
   });
