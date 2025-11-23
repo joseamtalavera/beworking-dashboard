@@ -33,6 +33,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { listSpaces, upsertSpace, deleteSpace } from '../../../api/spaceCatalog.js';
+import { apiFetch } from '../../../api/client.js';
 
 const BRAND_PRIMARY = '#fb923c';
 const BRAND_PRIMARY_HOVER = '#ea580c';
@@ -186,6 +187,7 @@ const SpaceCatalog = () => {
   const [editingIndex, setEditingIndex] = useState(null);
   const [activeTab, setActiveTab] = useState('general');
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -316,6 +318,41 @@ const SpaceCatalog = () => {
     }));
   };
 
+  const handleFileSelect = async (event) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await apiFetch('/uploads', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response?.url) {
+          // Convert relative URL (/uploads/...) to absolute so the image renders
+          let uploadedUrl = response.url;
+          if (uploadedUrl.startsWith('/')) {
+            uploadedUrl = new URL(uploadedUrl, import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin).href;
+          }
+          setFormValues((prev) => ({
+            ...prev,
+            images: [...prev.images, { url: uploadedUrl, caption: file.name }]
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Image upload failed', error);
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
   const handleSave = async () => {
     const payload = {
       ...formValues,
@@ -404,8 +441,9 @@ const SpaceCatalog = () => {
               <TableCell>Type</TableCell>
               <TableCell>Capacity</TableCell>
               <TableCell>Price</TableCell>
-              <TableCell>Rating</TableCell>
-              <TableCell>Tags</TableCell>
+              <TableCell>
+                <Stack alignItems="flex-start">Instant booking</Stack>
+              </TableCell>
               <TableCell>Photos</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -416,9 +454,25 @@ const SpaceCatalog = () => {
                 <TableCell>
                   <Stack spacing={0.5}>
                     <Typography fontWeight={600}>{row.displayName}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {row.heroImage}
-                    </Typography>
+                    {row.heroImage ? (
+                      <Box
+                        component="img"
+                        src={row.heroImage}
+                        alt={row.displayName || 'Hero image'}
+                        sx={{
+                          width: 96,
+                          height: 64,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: BRAND_BORDER
+                        }}
+                      />
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">
+                        No hero image
+                      </Typography>
+                    )}
                   </Stack>
                 </TableCell>
                 <TableCell>{row.centroCode || '—'}</TableCell>
@@ -428,35 +482,17 @@ const SpaceCatalog = () => {
                   {row.priceFrom} {row.priceUnit}
                 </TableCell>
                 <TableCell>
-                  {row.rating} ({row.reviewCount})
                   {row.instantBooking && (
                     <Chip
                       label="Instant"
                       size="small"
                       sx={{
-                        ml: 1,
                         backgroundColor: BRAND_PRIMARY,
                         color: '#fff',
                         fontWeight: 600
                       }}
                     />
                   )}
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {row.tags?.map((tag) => (
-                      <Chip
-                        key={tag}
-                        label={tag}
-                        size="small"
-                        sx={{
-                          backgroundColor: BRAND_MUTED_BG,
-                          color: BRAND_PRIMARY_HOVER,
-                          fontWeight: 600
-                        }}
-                      />
-                    ))}
-                  </Stack>
                 </TableCell>
                 <TableCell>{row.images?.length ?? 0}</TableCell>
                 <TableCell align="right">
@@ -831,7 +867,8 @@ const SpaceCatalog = () => {
                 <Button
                   variant="outlined"
                   startIcon={<AddPhotoAlternateOutlinedIcon />}
-                  onClick={handleAddImage}
+                  component="label"
+                  disabled={uploading}
                   sx={{
                     borderColor: BRAND_PRIMARY,
                     color: BRAND_PRIMARY_HOVER,
@@ -842,7 +879,8 @@ const SpaceCatalog = () => {
                     }
                   }}
                 >
-                  Añadir foto
+                  {uploading ? 'Uploading…' : 'Añadir fotos'}
+                  <input type="file" hidden accept="image/*" multiple onChange={handleFileSelect} />
                 </Button>
               </Stack>
               <Grid container spacing={2}>
@@ -855,7 +893,8 @@ const SpaceCatalog = () => {
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        borderColor: BRAND_BORDER
+                        borderColor: BRAND_BORDER,
+                        overflow: 'hidden'
                       }}
                     >
                       {image.url ? (
@@ -874,14 +913,18 @@ const SpaceCatalog = () => {
                           Vista previa
                         </Box>
                       )}
-                      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <TextField
-                          label="URL de la imagen"
-                          value={image.url}
-                          onChange={updateImageField(index, 'url')}
-                          size="small"
-                          fullWidth
-                        />
+                      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: 2 }}>
+                        <Stack spacing={0.5}>
+                          <Typography variant="caption" color="text.secondary">
+                            URL de la imagen
+                          </Typography>
+                          <TextField
+                            value={image.url}
+                            onChange={updateImageField(index, 'url')}
+                            size="small"
+                            fullWidth
+                          />
+                        </Stack>
                         <TextField
                           label="Descripción"
                           value={image.caption ?? ''}
@@ -889,15 +932,27 @@ const SpaceCatalog = () => {
                           size="small"
                           fullWidth
                         />
-                        <Button
-                          color="error"
-                          variant="text"
-                          onClick={handleRemoveImage(index)}
-                          startIcon={<DeleteOutlineRoundedIcon />}
-                          sx={{ alignSelf: 'flex-start', fontWeight: 600 }}
-                        >
-                          Eliminar
-                        </Button>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Button
+                            size="small"
+                            variant="text"
+                            href={image.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            sx={{ fontWeight: 600, color: BRAND_PRIMARY_HOVER }}
+                          >
+                            Abrir
+                          </Button>
+                          <Button
+                            color="error"
+                            variant="text"
+                            onClick={handleRemoveImage(index)}
+                            startIcon={<DeleteOutlineRoundedIcon />}
+                            sx={{ fontWeight: 600 }}
+                          >
+                            Eliminar
+                          </Button>
+                        </Stack>
                       </CardContent>
                     </Card>
                   </Grid>
