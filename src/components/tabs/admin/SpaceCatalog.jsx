@@ -40,6 +40,17 @@ const BRAND_PRIMARY_HOVER = '#ea580c';
 const BRAND_MUTED_BG = '#fff7ed';
 const BRAND_BORDER = '#fed7aa';
 
+const COLUMN_WIDTHS = {
+  displayName: 260,
+  centro: 120,
+  type: 120,
+  capacity: 90,
+  price: 120,
+  instant: 140,
+  photos: 90,
+  actions: 120
+};
+
 const EMPTY_FORM = {
   id: '',
   centroCode: '',
@@ -61,7 +72,7 @@ const EMPTY_FORM = {
   instantBooking: true,
   tags: '',
   amenities: [],
-  title: '',
+  subtitle: '',
   description: '',
   images: []
 };
@@ -84,7 +95,7 @@ const MOCK_ROWS = [
     instantBooking: true,
     tags: ['Screen', 'Whiteboard'],
     amenities: ['Acceso 24h', 'Internet 600Mb', 'Pizarra y papelógrafo'],
-    title: 'Calle Alejandro Dumas 17, 29004',
+    subtitle: 'Calle Alejandro Dumas 17, 29004',
     description:
       'Nuestra Aula/Sala 1 de Alejandro Dumas es perfecta para reuniones o formaciones. Conexión de 600Mb simétricos, pizarra, proyector y mobiliario.',
     images: [
@@ -115,7 +126,7 @@ const MOCK_ROWS = [
     instantBooking: true,
     tags: ['Coworking', 'Flexible'],
     amenities: ['Acceso 24h', 'Internet 600Mb', 'Mesa Coworking'],
-    title: 'Zona coworking MA1',
+    subtitle: 'Zona coworking MA1',
     description: 'Espacio flexible con puestos individuales, preparado para freelancers y nómadas digitales.',
     images: [
       {
@@ -252,7 +263,7 @@ const SpaceCatalog = () => {
       instantBooking: Boolean(row.instantBooking),
       tags: toTagString(row.tags),
       amenities: Array.isArray(row.amenities) ? row.amenities : [],
-      title: row.title ?? '',
+      subtitle: row.subtitle ?? '',
       description: row.description ?? '',
       images: normaliseImages(row.images)
     });
@@ -433,19 +444,28 @@ const SpaceCatalog = () => {
           borderColor: BRAND_BORDER
         }}
       >
-        <Table>
+        <Table
+          sx={{
+            tableLayout: 'fixed',
+            minWidth: 900
+          }}
+        >
           <TableHead>
             <TableRow>
-              <TableCell>Display name</TableCell>
-              <TableCell>Centro</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Capacity</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>
-                <Stack alignItems="flex-start">Instant booking</Stack>
+              <TableCell sx={{ width: COLUMN_WIDTHS.displayName }}>Display name</TableCell>
+              <TableCell sx={{ width: COLUMN_WIDTHS.centro }}>Centro</TableCell>
+              <TableCell sx={{ width: COLUMN_WIDTHS.type }}>Type</TableCell>
+              <TableCell align="right" sx={{ width: COLUMN_WIDTHS.capacity }}>Capacity</TableCell>
+              <TableCell align="right" sx={{ width: COLUMN_WIDTHS.price }}>Price</TableCell>
+              <TableCell align="center" sx={{ width: COLUMN_WIDTHS.instant }}>
+                <Stack alignItems="center">Instant booking</Stack>
               </TableCell>
-              <TableCell>Photos</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell align="center" sx={{ width: COLUMN_WIDTHS.photos }}>
+                Photos
+              </TableCell>
+              <TableCell align="right" sx={{ width: COLUMN_WIDTHS.actions }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -477,11 +497,11 @@ const SpaceCatalog = () => {
                 </TableCell>
                 <TableCell>{row.centroCode || '—'}</TableCell>
                 <TableCell>{row.type || '—'}</TableCell>
-                <TableCell>{row.capacity || '—'}</TableCell>
-                <TableCell>
+                <TableCell align="right">{row.capacity || '—'}</TableCell>
+                <TableCell align="right">
                   {row.priceFrom} {row.priceUnit}
                 </TableCell>
-                <TableCell>
+                <TableCell align="center">
                   {row.instantBooking && (
                     <Chip
                       label="Instant"
@@ -494,7 +514,7 @@ const SpaceCatalog = () => {
                     />
                   )}
                 </TableCell>
-                <TableCell>{row.images?.length ?? 0}</TableCell>
+                <TableCell align="center">{row.images?.length ?? 0}</TableCell>
                 <TableCell align="right">
                   <Stack direction="row" spacing={1} justifyContent="flex-end">
                     <IconButton
@@ -830,8 +850,8 @@ const SpaceCatalog = () => {
                 <Stack spacing={2}>
                   <TextField
                     label="Título"
-                    name="title"
-                    value={formValues.title}
+                    name="subtitle"
+                    value={formValues.subtitle}
                     onChange={handleChange}
                     fullWidth
                     size="small"
