@@ -199,6 +199,7 @@ const SpaceCatalog = () => {
   const [activeTab, setActiveTab] = useState('general');
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [draggingImageIndex, setDraggingImageIndex] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -329,6 +330,36 @@ const SpaceCatalog = () => {
     }));
   };
 
+  const moveImage = (fromIndex, toIndex) => {
+    setFormValues((prev) => {
+      const images = [...prev.images];
+      if (toIndex < 0 || toIndex >= images.length) {
+        return prev;
+      }
+      const [moved] = images.splice(fromIndex, 1);
+      images.splice(toIndex, 0, moved);
+      return { ...prev, images };
+    });
+  };
+
+  const handleImageDragStart = (index) => (event) => {
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggingImageIndex(index);
+  };
+
+  const handleImageDragOver = (index) => (event) => {
+    event.preventDefault();
+    if (draggingImageIndex === null || draggingImageIndex === index) {
+      return;
+    }
+    moveImage(draggingImageIndex, index);
+    setDraggingImageIndex(index);
+  };
+
+  const handleImageDragEnd = () => {
+    setDraggingImageIndex(null);
+  };
+
   const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
@@ -372,7 +403,7 @@ const SpaceCatalog = () => {
       images: normaliseImages(formValues.images)
     };
 
-    if (!payload.heroImage && payload.images.length > 0) {
+    if (payload.images.length > 0) {
       payload.heroImage = payload.images[0].url;
     }
 
@@ -882,7 +913,7 @@ const SpaceCatalog = () => {
             <Stack spacing={2}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography variant="subtitle1" fontWeight={600}>
-                  Galería de fotos
+                  Galería de fotos (la primera imagen será la hero)
                 </Typography>
                 <Button
                   variant="outlined"
@@ -905,7 +936,14 @@ const SpaceCatalog = () => {
               </Stack>
               <Grid container spacing={2}>
                 {formValues.images.map((image, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={`${image.url}-${index}`}>
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md={4}
+                    key={`${image.url}-${index}`}
+                    onDragOver={handleImageDragOver(index)}
+                  >
                     <Card
                       variant="outlined"
                       sx={{
@@ -914,8 +952,17 @@ const SpaceCatalog = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         borderColor: BRAND_BORDER,
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        opacity: draggingImageIndex === index ? 0.85 : 1,
+                        outline:
+                          draggingImageIndex === index
+                            ? `2px dashed ${BRAND_PRIMARY}`
+                            : 'none',
+                        cursor: 'grab'
                       }}
+                      draggable
+                      onDragStart={handleImageDragStart(index)}
+                      onDragEnd={handleImageDragEnd}
                     >
                       {image.url ? (
                         <CardMedia component="img" height="160" image={image.url} alt={image.caption || 'Space'} />
@@ -952,7 +999,7 @@ const SpaceCatalog = () => {
                           size="small"
                           fullWidth
                         />
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
                           <Button
                             size="small"
                             variant="text"
