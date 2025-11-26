@@ -70,7 +70,8 @@ import {
   fetchBookingCentros,
   fetchBookingProductos,
   deleteBloqueo,
-  updateBloqueo
+  updateBloqueo,
+  fetchPublicAvailability
 } from '../../api/bookings.js';
 import { createInvoice, fetchInvoicePdfUrl } from '../../api/invoices.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
@@ -3318,11 +3319,26 @@ const Booking = ({ mode = 'user' }) => {
     setLoading(true);
     setError('');
 
-    fetchBloqueos({ from, to }, { signal: controller.signal })
-      .then((data) => {
-        setBloqueos(Array.isArray(data) ? data : []);
-      })
-      .catch((fetchError) => {
+    const load = async () => {
+      try {
+        let data = await fetchBloqueos({ from, to }, { signal: controller.signal });
+        let rows = Array.isArray(data) ? data : [];
+        if (!rows.length && calendarDate) {
+          try {
+            const fallback = await fetchPublicAvailability({
+              date: calendarDate,
+              products: Array.from(ALLOWED_PRODUCT_NAMES)
+            });
+            if (Array.isArray(fallback) && fallback.length) {
+              rows = fallback;
+            }
+          } catch (fallbackError) {
+            console.warn('Fallback availability load failed', fallbackError);
+          }
+        }
+        setBloqueos(rows);
+      }
+      catch (fetchError) {
         if (fetchError.name === 'AbortError') {
           return;
         }
@@ -3334,13 +3350,16 @@ const Booking = ({ mode = 'user' }) => {
           setError(fetchError.message || 'Unable to load bloqueos');
         }
         setBloqueos([]);
-      })
-      .finally(() => {
+      }
+      finally {
         setLoading(false);
-      });
+      }
+    };
+
+    load();
 
     return () => controller.abort();
-  }, [monthKey, mode]);
+  }, [monthKey, mode, calendarDate]);
 
   const filteredBloqueos = useMemo(() => {
     try {

@@ -82,6 +82,29 @@ export const deleteBloqueo = (bloqueoId, options = {}) =>
     ...options
   });
 
+export const fetchPublicAvailability = (params = {}, options = {}) => {
+  const search = new URLSearchParams();
+  if (params.date) {
+    search.set('date', params.date);
+  }
+  if (Array.isArray(params.products)) {
+    params.products.forEach((product) => {
+      if (product) {
+        search.append('products', product);
+      }
+    });
+  }
+  if (Array.isArray(params.centers)) {
+    params.centers.forEach((center) => {
+      if (center) {
+        search.append('centers', center);
+      }
+    });
+  }
+  const query = search.toString();
+  return apiFetch(`/public/availability${query ? `?${query}` : ''}`, options);
+};
+
 export const updateBloqueo = (bloqueoId, payload, options = {}) =>
   apiFetch(`/bloqueos/${bloqueoId}`, {
     method: 'PUT',
