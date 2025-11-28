@@ -76,6 +76,8 @@ export const fetchBookingCentros = (params = {}, options = {}) =>
 export const fetchBookingProductos = (params = {}, options = {}) =>
   apiFetch(`/bookings/lookups/productos${buildQueryString(params)}`, options);
 
+export const fetchPublicCentros = (options = {}) => apiFetch('/public/centros', options);
+
 export const deleteBloqueo = (bloqueoId, options = {}) =>
   apiFetch(`/bloqueos/${bloqueoId}`, {
     method: 'DELETE',

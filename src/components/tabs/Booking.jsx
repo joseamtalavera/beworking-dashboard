@@ -71,7 +71,8 @@ import {
   fetchBookingProductos,
   deleteBloqueo,
   updateBloqueo,
-  fetchPublicAvailability
+  fetchPublicAvailability,
+  fetchPublicCentros
 } from '../../api/bookings.js';
 import { createInvoice, fetchInvoicePdfUrl } from '../../api/invoices.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
@@ -1074,13 +1075,33 @@ const ReservaDialog = ({
     setLookupsLoading(true);
     setLookupError('');
     Promise.all([fetchBookingCentros(), fetchBookingProductos()])
-      .then(([centers, products]) => {
+      .then(async ([centers, products]) => {
         if (!active) {
           return;
         }
         const filteredCenters = Array.isArray(centers)
           ? centers.filter((center) => ALLOWED_CENTRO_IDS.has(Number(center?.id)))
           : [];
+
+        // Fallback to public centros if none returned
+        if (filteredCenters.length === 0) {
+          try {
+            const publicCenters = await fetchPublicCentros();
+            if (Array.isArray(publicCenters)) {
+              filteredCenters.push(
+                ...publicCenters
+                  .filter((center) => ALLOWED_CENTRO_IDS.has(Number(center?.id)))
+                  .map((c) => ({
+                    id: c.id,
+                    name: c.name || c.nombre || '',
+                    code: c.code || c.codigo || ''
+                  }))
+              );
+            }
+          } catch (fallbackErr) {
+            console.warn('Fallback centros load failed', fallbackErr);
+          }
+        }
 
         if (isEditMode && initialBloqueo?.centro?.id) {
           const exists = filteredCenters.some((center) => center?.id === initialBloqueo.centro.id);
