@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+
+// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -342,8 +345,8 @@ const Invoices = () => {
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: '#fb923c',
-              color: '#fb923c',
+              borderColor: 'secondary.main',
+              color: 'secondary.main',
               '&:hover': {
                 borderColor: '#f97316',
                 color: '#f97316',
@@ -365,10 +368,10 @@ const Invoices = () => {
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              backgroundColor: '#fb923c',
+              backgroundColor: 'primary.main',
               color: 'white',
               '&:hover': {
-                backgroundColor: '#f97316'
+                backgroundColor: 'primary.dark'
               }
             }}
           >
@@ -389,7 +392,7 @@ const Invoices = () => {
 
       {error && (
         <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" color="error">{error}</Typography>
+          <Typography variant="body2" sx={{ color: 'secondary.main' }}>{error}</Typography>
         </Box>
       )}
 
@@ -456,7 +459,7 @@ const Invoices = () => {
                           } catch {}
                         }
                       }}
-                      color="#16a34a"
+                      color="secondary.main"
                       underline="hover"
                     >
                       Open
@@ -488,12 +491,12 @@ const Invoices = () => {
                         height: 28,
                         textTransform: 'none',
                         fontWeight: 600,
-                        borderColor: '#22c55e',
-                        color: '#22c55e',
+                        borderColor: 'secondary.main',
+                        color: 'secondary.main',
                         '&:hover': {
-                          borderColor: '#16a34a',
-                          color: '#16a34a',
-                          backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                          borderColor: 'secondary.main',
+                          color: 'secondary.main',
+                          backgroundColor: (theme) => `${theme.palette.secondary.main}14`,
                           transform: 'translateY(-1px)',
                           boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)'
                         },
@@ -529,12 +532,12 @@ const Invoices = () => {
                 showLastButton
                 sx={{
                   '& .MuiPaginationItem-root': {
-                    color: '#22c55e',
+                    color: 'secondary.main',
                     '&.Mui-selected': {
-                      backgroundColor: '#22c55e',
-                      color: 'white',
+                      backgroundColor: 'secondary.main',
+                      color: 'secondary.contrastText',
                       '&:hover': {
-                        backgroundColor: '#16a34a',
+                        backgroundColor: 'secondary.main',
                       },
                     },
                     '&:hover': {

@@ -24,7 +24,7 @@ import {
 const BASE_TABS = [
   { id: 'Overview', label: 'Overview', icon: OverviewIcon },
   { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
-  { id: 'Mailbox', label: 'Virtual Office', icon: MailboxIcon },
+  { id: 'Mailbox', label: 'Business Address', icon: MailboxIcon },
   { id: 'Booking', label: 'Meeting Rooms', icon: BookingIcon },
   { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
   { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
@@ -45,4 +45,6 @@ const BASE_TABS = [
 
 export const DEFAULT_TABS = BASE_TABS;
 
-export const ADMIN_TABS = BASE_TABS;
+export const ADMIN_TABS = BASE_TABS.filter(tab => !tab.soon);
+
+export const USER_TABS = BASE_TABS.filter(tab => !tab.soon && tab.id !== 'SpaceCatalog');

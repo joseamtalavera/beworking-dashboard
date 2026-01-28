@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -23,8 +24,7 @@ import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 
 import { getMailboxDocumentDownloadUrl, listMailboxDocuments } from '../../../api/mailbox.js';
 
-const accentColor = '#fb923c';
-const accentHover = 'rgba(251, 146, 60, 0.12)';
+// accentColor and accentHover are defined inside component using theme.palette.brand
 
 const statusConfig = {
   scanned: { label: 'Awaiting review', color: 'warning', description: 'New document available.' },
@@ -100,6 +100,9 @@ const normalizeDocuments = (payload) => {
 };
 
 const MailboxUser = () => {
+  const theme = useTheme();
+  const accentColor = theme.palette.brand.orange;
+  const accentHover = theme.palette.brand.orangeSoft;
   const [documents, setDocuments] = useState([]);
   const [filter, setFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(false);

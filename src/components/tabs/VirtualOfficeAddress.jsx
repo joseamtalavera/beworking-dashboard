@@ -10,6 +10,7 @@ import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import BusinessIcon from '@mui/icons-material/Business';
 import DirectionsIcon from '@mui/icons-material/Directions';
@@ -20,9 +21,6 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import PublicIcon from '@mui/icons-material/Public';
 import WifiIcon from '@mui/icons-material/Wifi';
-
-const accentColor = '#22c55e';
-const accentHover = 'rgba(34, 197, 94, 0.12)';
 
 // Mock office data - in a real app, this would come from an API
 const officeData = {
@@ -63,25 +61,27 @@ const officeData = {
   ]
 };
 
-const InfoCard = ({ icon, title, content, action }) => (
-  <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
-    <CardContent sx={{ p: 3 }}>
-      <Stack spacing={2}>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              bgcolor: accentHover,
-              color: accentColor
-            }}
-          >
-            {icon}
-          </Box>
+const InfoCard = ({ icon, title, content, action }) => {
+  const theme = useTheme();
+  return (
+    <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+      <CardContent sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                bgcolor: (theme) => `${theme.palette.secondary.main}1F`,
+                color: 'secondary.main'
+              }}
+            >
+              {icon}
+            </Box>
           <Typography variant="h6" fontWeight="bold" color="text.primary">
             {title}
           </Typography>
@@ -97,7 +97,8 @@ const InfoCard = ({ icon, title, content, action }) => (
       </Stack>
     </CardContent>
   </Card>
-);
+  );
+};
 
 const AmenityChip = ({ amenity }) => (
   <Chip
@@ -105,10 +106,10 @@ const AmenityChip = ({ amenity }) => (
     variant="outlined"
     size="small"
     sx={{
-      borderColor: accentColor,
-      color: accentColor,
+      borderColor: 'secondary.main',
+      color: 'secondary.main',
       '&:hover': {
-        backgroundColor: accentHover
+        backgroundColor: (theme) => `${theme.palette.secondary.main}1F`
       }
     }}
   />
@@ -124,8 +125,8 @@ const TransportItem = ({ transport }) => (
         width: 32,
         height: 32,
         borderRadius: '50%',
-        bgcolor: '#22c55e',
-        color: 'white',
+        bgcolor: 'secondary.main',
+        color: 'secondary.contrastText',
         fontSize: '0.75rem',
         fontWeight: 'bold'
       }}
@@ -144,6 +145,7 @@ const TransportItem = ({ transport }) => (
 );
 
 const VirtualOfficeAddress = () => {
+  const theme = useTheme();
   const handleGetDirections = () => {
     const { lat, lng } = officeData.coordinates;
     const address = `${officeData.address.street}, ${officeData.address.city}`;
@@ -222,7 +224,7 @@ const VirtualOfficeAddress = () => {
               onClick={handleGetDirections}
               sx={{
                 bgcolor: accentColor,
-                '&:hover': { bgcolor: '#16a34a' },
+                '&:hover': { bgcolor: 'secondary.main' },
                 borderRadius: 2
               }}
             >

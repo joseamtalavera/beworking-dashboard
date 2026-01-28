@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
+
+// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -54,8 +57,7 @@ import {
 } from '../../../api/mailbox.js';
 import { fetchBookingContacts } from '../../../api/bookings.js';
 
-const accentColor = '#22c55e';
-const accentHover = 'rgba(34, 197, 94, 0.12)';
+// Using theme.secondary.main for all green colors
 
 const statusConfig = {
   scanned: { label: 'New upload', color: 'warning', description: 'Ready to notify the user.' },
@@ -75,7 +77,7 @@ const SummaryCard = ({ icon, title, value, helper, color }) => (
           height: 48,
           borderRadius: '50%',
           bgcolor: color || accentHover,
-          color: color ? 'common.white' : accentColor
+          color: color ? 'common.white' : 'secondary.main'
         }}
       >
         {icon}
@@ -107,6 +109,9 @@ const formatDateTime = (isoString) => {
 };
 
 const MailboxAdmin = () => {
+  const theme = useTheme();
+  const accentColor = theme.palette.secondary.main;
+  const accentHover = `${theme.palette.secondary.main}1F`;
   const [documents, setDocuments] = useState([]);
   const [filter, setFilter] = useState('all');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -618,7 +623,7 @@ const MailboxAdmin = () => {
           title="Viewed online"
           value={summary.viewed}
           helper="Tenant confirmed access"
-          color={accentColor}
+          color="secondary.main"
         />
       </Stack>
 
@@ -644,12 +649,12 @@ const MailboxAdmin = () => {
               onClick={handleUploadScan}
               sx={{ 
                 borderRadius: 2,
-                borderColor: '#22c55e',
-                color: '#22c55e',
+                borderColor: 'secondary.main',
+                color: 'secondary.main',
                 '&:hover': { 
-                  borderColor: '#16a34a',
-                  color: '#16a34a',
-                  backgroundColor: 'rgba(34, 197, 94, 0.08)'
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main',
+                  backgroundColor: (theme) => `${theme.palette.secondary.main}14`
                 }
               }}
             >
@@ -786,7 +791,7 @@ const MailboxAdmin = () => {
                               color="secondary"
                               overlap="circular"
                               badgeContent={<Typography variant="caption">{pageCountLabel}</Typography>}
-                              sx={{ '& .MuiBadge-badge': { bgcolor: accentColor, color: 'common.white' } }}
+                              sx={{ '& .MuiBadge-badge': { bgcolor: 'secondary.main', color: 'secondary.contrastText' } }}
                             >
                               <Avatar sx={{ bgcolor: doc.avatarColor || accentHover, color: 'grey.900', fontWeight: 600 }}>
                                 {avatarSeed}
@@ -834,7 +839,7 @@ const MailboxAdmin = () => {
                                   onClick={() => doc.id && handlePreviewDocument(doc.id)}
                                   disabled={!doc.id}
                                   sx={{
-                                    color: docActionStates.previewed ? '#22c55e' : accentColor
+                                    color: 'secondary.main'
                                   }}
                                 >
                                   <RemoveRedEyeOutlinedIcon fontSize="small" />
@@ -848,7 +853,7 @@ const MailboxAdmin = () => {
                                   onClick={() => doc.id && handleNotifyUser(doc.id)}
                                   disabled={!doc.id || doc.status === 'notified' || doc.status === 'viewed'}
                                   sx={{
-                                    color: (docActionStates.emailed || doc.status === 'notified') ? '#22c55e' : accentColor
+                                    color: 'secondary.main'
                                   }}
                                   title={`Email state: ${docActionStates.emailed || doc.status === 'notified' ? 'sent' : 'not sent'}`}
                                 >
@@ -863,7 +868,7 @@ const MailboxAdmin = () => {
                                   onClick={() => doc.id && handleMarkViewed(doc.id)}
                                   disabled={!doc.id || doc.status === 'viewed'}
                                   sx={{
-                                    color: docActionStates.viewed ? '#22c55e' : accentColor
+                                    color: 'secondary.main'
                                   }}
                                 >
                                   <CheckCircleOutlineOutlinedIcon fontSize="small" />
@@ -877,13 +882,14 @@ const MailboxAdmin = () => {
                                   onClick={() => doc.id && handleDeleteDocument(doc.id)}
                                   disabled={!doc.id}
                                   sx={{
-                                    color: 'error.main',
+                                    color: 'secondary.main',
                                     '&:hover': {
-                                      backgroundColor: 'rgba(239, 68, 68, 0.08)'
+                                      color: 'secondary.dark',
+                                      backgroundColor: (theme) => theme.palette.brand.orangeSoft
                                     }
                                   }}
                                 >
-                                  <DeleteOutlineIcon fontSize="small" sx={{ color: '#6b7280' }} />
+                                  <DeleteOutlineIcon fontSize="small" />
                                 </IconButton>
                               </span>
                             </Tooltip>
@@ -958,8 +964,8 @@ const MailboxAdmin = () => {
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                bgcolor: 'rgba(34, 197, 94, 0.12)',
-                color: '#22c55e'
+                bgcolor: (theme) => `${theme.palette.secondary.main}1F`,
+                color: 'secondary.main'
               }}
             >
               <UploadFileOutlinedIcon />
@@ -993,8 +999,8 @@ const MailboxAdmin = () => {
                           sx={{
                             width: 16,
                             height: 16,
-                            border: '2px solid #e2e8f0',
-                            borderTop: '2px solid #22c55e',
+                            border: `2px solid ${theme.palette.grey[200]}`,
+                            borderTop: `2px solid ${theme.palette.secondary.main}`,
                             borderRadius: '50%',
                             animation: 'spin 1s linear infinite',
                             '@keyframes spin': {
@@ -1007,10 +1013,10 @@ const MailboxAdmin = () => {
                     ),
                     sx: {
                       borderRadius: 2,
-                      backgroundColor: '#f8fafc',
-                      '& fieldset': { borderColor: '#e2e8f0' },
-                      '&:hover fieldset': { borderColor: '#22c55e' },
-                      '&.Mui-focused fieldset': { borderColor: '#22c55e' }
+                      backgroundColor: 'background.default',
+                      '& fieldset': { borderColor: 'grey.200' },
+                      '&:hover fieldset': { borderColor: 'secondary.main' },
+                      '&.Mui-focused fieldset': { borderColor: 'secondary.main' }
                     }
                   }}
                   sx={{ flex: 1 }}
@@ -1031,8 +1037,8 @@ const MailboxAdmin = () => {
                           sx={{
                             width: 16,
                             height: 16,
-                            border: '2px solid #e2e8f0',
-                            borderTop: '2px solid #22c55e',
+                            border: `2px solid ${theme.palette.grey[200]}`,
+                            borderTop: `2px solid ${theme.palette.secondary.main}`,
                             borderRadius: '50%',
                             animation: 'spin 1s linear infinite',
                             '@keyframes spin': {
@@ -1045,10 +1051,10 @@ const MailboxAdmin = () => {
                     ),
                     sx: {
                       borderRadius: 2,
-                      backgroundColor: '#f8fafc',
-                      '& fieldset': { borderColor: '#e2e8f0' },
-                      '&:hover fieldset': { borderColor: '#22c55e' },
-                      '&.Mui-focused fieldset': { borderColor: '#22c55e' }
+                      backgroundColor: 'background.default',
+                      '& fieldset': { borderColor: 'grey.200' },
+                      '&:hover fieldset': { borderColor: 'secondary.main' },
+                      '&.Mui-focused fieldset': { borderColor: 'secondary.main' }
                     }
                   }}
                   sx={{ flex: 1 }}
@@ -1073,14 +1079,14 @@ const MailboxAdmin = () => {
                           borderRadius: 2,
                           cursor: 'pointer',
                           '&:hover': {
-                            borderColor: '#22c55e',
+                            borderColor: 'secondary.main',
                             backgroundColor: 'rgba(34, 197, 94, 0.04)'
                           }
                         }}
                         onClick={() => handleSelectContact(contact)}
                       >
                         <Stack direction="row" spacing={2} alignItems="center">
-                          <Avatar sx={{ width: 32, height: 32, bgcolor: '#22c55e', color: 'white', fontSize: '0.875rem', border: '3px solid #fde7d2' }}>
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', color: 'secondary.contrastText', fontSize: '0.875rem', border: (theme) => `3px solid ${theme.palette.primary.light}80` }}>
                             {contact.name.split(' ').map(n => n[0]).join('')}
                           </Avatar>
                           <Box>
@@ -1139,12 +1145,12 @@ const MailboxAdmin = () => {
                 component="label"
                 startIcon={<UploadFileOutlinedIcon />}
                 sx={{
-                  borderColor: '#22c55e',
-                  color: '#22c55e',
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main',
                   '&:hover': {
-                    borderColor: '#16a34a',
-                    color: '#16a34a',
-                    backgroundColor: 'rgba(34, 197, 94, 0.08)'
+                    borderColor: 'secondary.main',
+                    color: 'secondary.main',
+                    backgroundColor: (theme) => `${theme.palette.secondary.main}14`
                   }
                 }}
               >
@@ -1172,8 +1178,8 @@ const MailboxAdmin = () => {
             onClick={handleUploadSubmit}
             variant="contained"
             sx={{
-              bgcolor: '#22c55e',
-              '&:hover': { bgcolor: '#16a34a' },
+              bgcolor: 'secondary.main',
+              '&:hover': { bgcolor: 'secondary.main' },
               borderRadius: 2
             }}
           >

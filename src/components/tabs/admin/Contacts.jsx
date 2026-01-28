@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 
 import { apiFetch } from '../../../api/client';
 
+// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+
 import PropTypes from 'prop-types';
 
 import Avatar from '@mui/material/Avatar';
@@ -56,17 +58,17 @@ import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants
 const STATUS_COLOR = {
   Activo: { color: 'success', label: 'Activo' },
   Convertido: { color: 'success', label: 'Convertido' },
-  Inactivo: { color: 'error', label: 'Inactivo' },
+  Inactivo: { color: 'warning', label: 'Inactivo' },
   Potencial: { color: 'warning', label: 'Potencial' },
   Trial: { color: 'warning', label: 'Trial' },
-  Suspended: { color: 'error', label: 'Suspended' },
+  Suspended: { color: 'warning', label: 'Suspended' },
   Inactive: { color: 'default', label: 'Inactive' }
 };
 
 // Activity status based on bookings and invoices
 const ACTIVITY_STATUS = {
   Activo: { color: 'success', label: 'Active', variant: 'outlined' },
-  Inactivo: { color: 'error', label: 'Inactive', variant: 'outlined' },
+  Inactivo: { color: 'warning', label: 'Inactive', variant: 'outlined' },
   Potencial: { color: 'default', label: 'Potencial', variant: 'outlined' }
 };
 
@@ -277,7 +279,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                 borderBottom: '1px solid #e2e8f0'
               }}>
                 <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar sx={{ bgcolor: '#10b981', width: 36, height: 36 }}>
+                  <Avatar sx={{ bgcolor: 'success.light', width: 36, height: 36 }}>
                     <PersonRoundedIcon />
                   </Avatar>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -289,19 +291,20 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                 {/* Profile Photo Section */}
                 <Box sx={{ 
                   p: 3, 
-                  border: '2px dashed #10b981', 
-                  borderRadius: 2, 
-                  bgcolor: '#f0fdf4',
+                  border: '2px dashed',
+                  borderColor: 'success.light',
+                  borderRadius: 2,
+                  bgcolor: (theme) => `${theme.palette.success.main}0D`,
                   mb: 3 
                 }}>
-                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: '#10b981' }}>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: 'success.light' }}>
                     📸 Profile Photo
                   </Typography>
                   <Stack direction="row" spacing={3} alignItems="center">
                     <Avatar 
                       src={form.avatar} 
                       alt={form.name || 'New User'} 
-                      sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32, border: '3px solid #fde7d2' }}
+                      sx={{ width: 80, height: 80, bgcolor: 'success.light', fontSize: 32, border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
                     >
                       {form.name ? form.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'NU'}
                     </Avatar>
@@ -330,11 +333,11 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           size="medium" 
                           startIcon={<PhotoCameraRoundedIcon />}
                           sx={{ 
-                            borderColor: '#10b981', 
-                            color: '#10b981',
-                            '&:hover': { 
-                              borderColor: '#10b981', 
-                              backgroundColor: '#10b98110' 
+                            borderColor: 'success.light', 
+                            color: 'success.light',
+                            '&:hover': {
+                              borderColor: 'success.light', 
+                              backgroundColor: (theme) => `${theme.palette.success.light}10`
                             } 
                           }}
                         >
@@ -362,7 +365,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#10b981'
+                            borderColor: 'success.light'
                           }
                         }
                       }}
@@ -381,7 +384,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#10b981'
+                            borderColor: 'success.light'
                           }
                         }
                       }}
@@ -405,7 +408,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#10b981'
+                            borderColor: 'success.light'
                           }
                         }
                       }}
@@ -425,7 +428,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#10b981'
+                            borderColor: 'success.light'
                           }
                         }
                       }}
@@ -443,7 +446,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#10b981'
+                            borderColor: 'success.light'
                           }
                         }
                       }}
@@ -462,7 +465,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#10b981'
+                            borderColor: 'success.light'
                           }
                         }
                       }}
@@ -487,7 +490,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#10b981'
+                            borderColor: 'success.light'
                           }
                         }
                       }}
@@ -1186,8 +1189,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   height: 36,
                   textTransform: 'none',
                   fontWeight: 600,
-                  borderColor: '#fb923c',
-                  color: '#fb923c',
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main',
                   '&:hover': {
                     borderColor: '#f97316',
                     color: '#f97316',
@@ -1207,12 +1210,12 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               sx={{
                 minWidth: 120,
                 height: 36,
-                  textTransform: 'none',
+                textTransform: 'none',
                 fontWeight: 600,
-                backgroundColor: '#fb923c',
+                backgroundColor: 'primary.main',
                 color: 'white',
                 '&:hover': {
-                  backgroundColor: '#f97316'
+                  backgroundColor: 'primary.dark'
                 }
               }}
             >
@@ -1359,7 +1362,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             {!loading && error && (
               <TableRow>
                 <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                  <Typography variant="body2" color="error">
+                  <Typography variant="body2" sx={{ color: 'secondary.main' }}>
                     {error}
                   </Typography>
                 </TableCell>
@@ -1396,7 +1399,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                       <Avatar 
                         src={tenant.avatar || tenant.photo} 
                         alt={tenant.name || 'Contact'} 
-                        sx={{ bgcolor: '#22c55e', border: '3px solid #fde7d2' }}
+                        sx={{ bgcolor: 'secondary.main', border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
                       >
                         {initials.slice(0, 2)}
                       </Avatar>
@@ -1454,9 +1457,9 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                             event.stopPropagation();
                             openDeleteDialog(tenant);
                           }}
-                          sx={{ color: 'error.main' }}
+                          sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
                         >
-                          <DeleteRoundedIcon fontSize="inherit" sx={{ color: '#6b7280' }} />
+                          <DeleteRoundedIcon fontSize="inherit" />
                         </IconButton>
                       </Tooltip>
                     </Stack>
@@ -1481,16 +1484,16 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             showLastButton
             sx={{
               '& .MuiPaginationItem-root': {
-                color: '#22c55e',
+                color: 'secondary.main',
                 '&.Mui-selected': {
-                  backgroundColor: '#22c55e',
-                  color: 'white',
+                  backgroundColor: 'secondary.main',
+                  color: 'secondary.contrastText',
                   '&:hover': {
-                    backgroundColor: '#16a34a',
+                    backgroundColor: 'secondary.main',
                   },
                 },
                 '&:hover': {
-                  backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                  backgroundColor: (theme) => `${theme.palette.secondary.main}1F`,
                 },
               },
             }}
@@ -1536,7 +1539,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       >
         <DialogTitle sx={{
           pb: 0,
-          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+          background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orange} 0%, ${theme.palette.brand.orangeHover} 100%)`,
           color: 'white',
           borderRadius: '12px 12px 0 0',
           p: 3
@@ -1617,11 +1620,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               fontWeight: 600,
               px: 3,
               py: 1,
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+              background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orange} 0%, ${theme.palette.brand.orangeHover} 100%)`,
               '&:hover': {
-                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orangeHover} 0%, #c2410c 100%)`,
                 transform: 'translateY(-1px)',
-                boxShadow: '0 8px 25px rgba(239, 68, 68, 0.3)'
+                boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3)'
               },
               transition: 'all 0.2s ease-in-out'
             }}

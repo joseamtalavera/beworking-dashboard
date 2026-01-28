@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useTheme } from '@mui/material/styles';
 import { apiFetch } from '../api/client.js';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -21,7 +22,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-const accentColor = '#fb923c';
+// accentColor is defined inside component using theme.palette.brand.orange
 
 // Add CSS animation for loading spinner
 const spinAnimation = `
@@ -32,6 +33,8 @@ const spinAnimation = `
 `;
 
 const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
+  const theme = useTheme();
+  const accentColor = theme.palette.brand.orange;
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -194,7 +197,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                 ),
                   endAdornment: isSearching && (
                     <InputAdornment position="end">
-                      <Box sx={{ width: 16, height: 16, border: '2px solid #e0e0e0', borderTop: '2px solid #fb923c', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                      <Box sx={{ width: 16, height: 16, border: '2px solid #e0e0e0', borderTop: (theme) => `2px solid ${theme.palette.brand.orange}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                   </InputAdornment>
                 ),
                 sx: {
@@ -359,11 +362,11 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                       py: 1.5, 
                       px: 2,
                       '&:hover': {
-                        backgroundColor: 'rgba(22, 163, 74, 0.08)'
+                        backgroundColor: (theme) => `${theme.palette.secondary.main}14`
                       }
                     }}
                   >
-                    <ListItemIcon sx={{ color: '#16a34a', minWidth: 36 }}>
+                    <ListItemIcon sx={{ color: 'secondary.main', minWidth: 36 }}>
                       {option.icon}
                     </ListItemIcon>
                     <ListItemText 

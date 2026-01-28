@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import Sidebar from '../../components/Sidebar.jsx';
 import Header from '../../components/Header.jsx';
 import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
@@ -42,7 +43,8 @@ const TAB_COMPONENTS = {
   Marketplace
 };
 
-const AdminApp = ({ userProfile, refreshProfile }) => {
+const AdminApp = ({ userProfile, refreshProfile, logout }) => {
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState('Overview');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -75,13 +77,14 @@ const AdminApp = ({ userProfile, refreshProfile }) => {
   }, [activeTab, contactsKey]);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f1f5f9' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         tabs={ADMIN_TABS}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAgent={() => setAgentOpen(true)}
+        onLogout={logout}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <Header activeTab={activeTab} userProfile={userProfile} onOpenHelp={() => setHelpOpen(true)} setActiveTab={setActiveTab} />
@@ -101,7 +104,7 @@ const AdminApp = ({ userProfile, refreshProfile }) => {
           </React.Suspense>
         </Box>
       </Box>
-      <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} />
+      <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} onLogout={logout} />
       <HelpSupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
       {agentOpen && (
         <Box
@@ -112,8 +115,8 @@ const AdminApp = ({ userProfile, refreshProfile }) => {
             bottom: 0,
             width: '33.333%',
             minWidth: '400px',
-            bgcolor: 'white',
-            borderLeft: '1px solid #e2e8f0',
+            bgcolor: theme.palette.background.paper,
+            borderLeft: `1px solid ${theme.palette.divider}`,
             zIndex: 1300,
             display: 'flex',
             flexDirection: 'column',

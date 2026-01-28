@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -15,8 +16,7 @@ import Switch from '@mui/material/Switch';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-const accentColor = '#fb923c';
-const accentHover = 'rgba(251, 146, 60, 0.12)';
+// accentColor and accentHover are defined inside component using theme.palette.brand
 
 const ACTIVE_INTEGRATIONS = [
   {
@@ -266,6 +266,9 @@ const AvailableCard = ({ name, description, logoUrl }) => (
 );
 
 const Integrations = () => {
+  const theme = useTheme();
+  const accentColor = theme.palette.brand.orange;
+  const accentHover = theme.palette.brand.orangeSoft;
   const connectedCount = ACTIVE_INTEGRATIONS.filter((item) => item.status === 'connected').length;
   const totalFeeds = ACTIVE_INTEGRATIONS.reduce((acc, item) => acc + item.dataFeeds.length, 0);
 

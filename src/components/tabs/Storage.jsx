@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -16,7 +17,7 @@ import MovieIcon from '@mui/icons-material/MovieOutlined';
 import ArchiveIcon from '@mui/icons-material/ArchiveOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVertOutlined';
 
-const accentColor = '#fb923c';
+// accentColor is defined inside component using theme.palette.brand.orange
 
 
 const StatCard = ({ title, value, icon }) => (
@@ -64,7 +65,10 @@ const FileRow = ({ name, size, date, typeIcon }) => (
   </TableRow>
 );
 
-const Storage = () => (
+const Storage = () => {
+  const theme = useTheme();
+  const accentColor = theme.palette.brand.orange;
+  return (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
       <StatCard title="Total Space" value="500 GB" icon={<FolderIcon sx={{ color: accentColor, fontSize: 32 }} />} />
@@ -148,5 +152,6 @@ const Storage = () => (
     </Card>
   </Box>
 );
+};
 
 export default Storage;

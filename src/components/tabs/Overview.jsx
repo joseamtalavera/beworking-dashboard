@@ -21,7 +21,7 @@ import { fetchInvoices } from '../../api/invoices.js';
 import { fetchBloqueos } from '../../api/bookings.js';
 import { apiFetch } from '../../api/client.js';
 
-const accentColor = '#fb923c';
+// accentColor removed - using theme.primary.main instead
 
 const quickStats = [
   { id: 'bookings', label: 'Meeting Room bookings', sublabel: 'Today', value: '24' },
@@ -43,7 +43,7 @@ const metricCards = [
     value: '€45.2k',
     helper: '+12.5% vs last year',
     icon: <TrendingUpRoundedIcon />,
-    color: '#22c55e'
+    color: 'secondary.main'
   },
   {
     id: 'expenditure-ytd',
@@ -51,7 +51,7 @@ const metricCards = [
     value: '€28.7k',
     helper: '+8.3% vs last year',
     icon: <TrendingUpRoundedIcon />,
-    color: '#ef4444'
+    color: 'secondary.main'
   },
   {
     id: 'income-month',
@@ -59,7 +59,7 @@ const metricCards = [
     value: '€8.4k',
     helper: '+15.2% vs last month',
     icon: <TrendingUpRoundedIcon />,
-    color: '#22c55e'
+    color: 'secondary.main'
   },
   {
     id: 'expenditure-month',
@@ -67,7 +67,7 @@ const metricCards = [
     value: '€4.2k',
     helper: '+5.1% vs last month',
     icon: <TrendingUpRoundedIcon />,
-    color: '#ef4444'
+    color: 'secondary.main'
   },
   {
     id: 'overdue-invoices',
@@ -75,7 +75,7 @@ const metricCards = [
     value: '€3.2k',
     helper: '5 invoices pending',
     icon: <TrendingUpRoundedIcon />,
-    color: '#f59e0b'
+    color: 'warning.main'
   }
 ];
 
@@ -86,7 +86,7 @@ const userMetricCards = [
     value: '€2.4k',
     helper: '+12.5% vs last year',
     icon: <TrendingUpRoundedIcon />,
-    color: '#ef4444'
+    color: 'secondary.main'
   },
   {
     id: 'upcoming-payments',
@@ -94,7 +94,7 @@ const userMetricCards = [
     value: '€180',
     helper: '2 invoices pending',
     icon: <TrendingUpRoundedIcon />,
-    color: '#f59e0b'
+    color: 'warning.main'
   },
   {
     id: 'last-payment',
@@ -102,7 +102,7 @@ const userMetricCards = [
     value: '€120',
     helper: 'Paid 3 days ago',
     icon: <TrendingUpRoundedIcon />,
-    color: '#22c55e'
+    color: 'secondary.main'
   },
   {
     id: 'overdue-invoices',
@@ -110,7 +110,7 @@ const userMetricCards = [
     value: '€85',
     helper: '1 invoice overdue',
     icon: <TrendingUpRoundedIcon />,
-    color: '#ef4444'
+    color: 'secondary.main'
   },
   {
     id: 'account-status',
@@ -118,7 +118,7 @@ const userMetricCards = [
     value: 'Active',
     helper: 'All payments current',
     icon: <TrendingUpRoundedIcon />,
-    color: '#22c55e'
+    color: 'secondary.main'
   }
 ];
 
@@ -715,7 +715,7 @@ const Overview = ({ userType = 'admin' }) => {
                 </Box>
           <Stack direction="row" spacing={2} alignItems="center">
             <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel sx={{ '&.Mui-focused': { color: '#16a34a' } }}>Year</InputLabel>
+              <InputLabel sx={{ '&.Mui-focused': { color: 'secondary.main' } }}>Year</InputLabel>
               <Select
                 value={selectedYear}
                 label="Year"
@@ -723,7 +723,7 @@ const Overview = ({ userType = 'admin' }) => {
                 disabled={loading}
                 sx={{
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#16a34a'
+                    borderColor: 'secondary.main'
                   }
                 }}
               >
@@ -740,7 +740,7 @@ const Overview = ({ userType = 'admin' }) => {
             <Chip 
               label={loading ? "Loading..." : "Updated now"} 
               size="small" 
-              sx={{ bgcolor: 'rgba(34,197,94,0.12)', color: '#22c55e' }} 
+              sx={{ bgcolor: (theme) => `${theme.palette.secondary.main}1F`, color: 'secondary.main' }} 
             />
           </Stack>
             </Stack>
@@ -763,7 +763,7 @@ const Overview = ({ userType = 'admin' }) => {
             data={revenueData} 
             loading={loading} 
             title="Revenue" 
-            color="#22c55e"
+            color="secondary.main"
             maxValue={Math.max(...revenueData.map(d => d.value || 0), 1000)}
           />
         </Paper>
@@ -774,7 +774,7 @@ const Overview = ({ userType = 'admin' }) => {
             data={expenditureData} 
             loading={loading} 
             title="Expenditure" 
-            color="#ef4444"
+            color="secondary.main"
             maxValue={Math.max(...expenditureData.map(d => d.value || 0), 1000)}
           />
         </Paper>
@@ -785,7 +785,7 @@ const Overview = ({ userType = 'admin' }) => {
             data={overdueData} 
             loading={loading} 
             title="Overdue Invoices" 
-            color="#f59e0b"
+            color="warning.main"
             maxValue={Math.max(...overdueData.map(d => d.value || 0), 1000)}
           />
         </Paper>
@@ -811,7 +811,7 @@ const Overview = ({ userType = 'admin' }) => {
                   <LinearProgress
                     variant="determinate"
                     value={location.occupancy}
-                sx={{ height: 6, borderRadius: 999, bgcolor: '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#22c55e' } }}
+                sx={{ height: 6, borderRadius: 999, bgcolor: 'grey.100', '& .MuiLinearProgress-bar': { bgcolor: 'secondary.main' } }}
                   />
                 </Box>
               ))}

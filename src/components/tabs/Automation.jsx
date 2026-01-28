@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -6,6 +7,8 @@ import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Paper from '@mui/material/Paper';
+
+// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
@@ -24,7 +27,7 @@ import ReactFlow, {
   useNodesState
 } from 'reactflow';
 
-const accentColor = '#fb923c';
+// accentColor is defined inside component using theme.palette.brand.orange
 
 const palette = [
   { type: 'input', label: 'Trigger', description: 'Start the flow from schedule, webhook, or app event.' },
@@ -74,6 +77,8 @@ const initialEdges = [
 ];
 
 const Automation = () => {
+  const theme = useTheme();
+  const accentColor = theme.palette.brand.orange;
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNodeId, setSelectedNodeId] = useState(initialNodes[0].id);
@@ -286,8 +291,8 @@ const Automation = () => {
                           borderColor: '#f97316', 
                           color: '#f97316', 
                           '&:hover': { 
-                            borderColor: '#ea580c', 
-                            color: '#ea580c',
+                            borderColor: 'secondary.dark', 
+                            color: 'secondary.dark',
                             backgroundColor: 'rgba(249, 115, 22, 0.08)',
                             transform: 'translateY(-1px)',
                             boxShadow: '0 4px 12px rgba(249, 115, 22, 0.2)'
@@ -341,8 +346,8 @@ const Automation = () => {
                             <Button
                               variant="text"
                               size="small"
-                              color="error"
                               onClick={() => handleRemoveEdge(edge.id)}
+                              sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
                             >
                               Remove
                             </Button>

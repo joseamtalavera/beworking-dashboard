@@ -38,8 +38,8 @@ const Tickets = () => (
           height: 36,
           textTransform: 'none',
           fontWeight: 600,
-          borderColor: '#fb923c', 
-          color: '#fb923c', 
+          borderColor: 'secondary.main', 
+          color: 'secondary.main', 
           '&:hover': { 
             borderColor: '#f97316', 
             color: '#f97316',

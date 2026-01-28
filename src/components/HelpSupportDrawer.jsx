@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -20,7 +21,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PlayCircleRoundedIcon from '@mui/icons-material/PlayCircleRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 
-const accentColor = '#fb923c';
+// accentColor is defined inside component using theme.palette.brand.orange
 
 const helpArticles = [
   {
@@ -51,6 +52,8 @@ const quickAnswers = [
 ];
 
 const HelpSupportDrawer = ({ open, onClose }) => {
+  const theme = useTheme();
+  const accentColor = theme.palette.brand.orange;
   return (
     <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', md: 420 } } }}>
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>

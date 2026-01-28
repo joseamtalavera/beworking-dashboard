@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import Sidebar from '../../components/Sidebar.jsx';
 import Header from '../../components/Header.jsx';
 import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
-import { DEFAULT_TABS } from '../../constants.js';
+import { USER_TABS } from '../../constants.js';
 
 const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
@@ -41,7 +42,8 @@ const TAB_COMPONENTS = {
   Marketplace
 };
 
-const UserApp = ({ userProfile, refreshProfile }) => {
+const UserApp = ({ userProfile, refreshProfile, logout }) => {
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState('Overview');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -58,7 +60,7 @@ const UserApp = ({ userProfile, refreshProfile }) => {
 
   const TabContent = useMemo(() => {
     if (activeTab === 'Booking') {
-      return <BookingFlow />;
+      return <Booking mode="user" />;
     }
     const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
     if (activeTab === 'Overview') {
@@ -74,13 +76,14 @@ const UserApp = ({ userProfile, refreshProfile }) => {
   }, [activeTab, contactsKey]);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f8fafc' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
-        tabs={DEFAULT_TABS}
+        tabs={USER_TABS}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAgent={() => setAgentOpen(true)}
+        onLogout={logout}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <Header activeTab={activeTab} userProfile={userProfile} onOpenHelp={() => setHelpOpen(true)} setActiveTab={setActiveTab} />
@@ -100,7 +103,7 @@ const UserApp = ({ userProfile, refreshProfile }) => {
           </React.Suspense>
         </Box>
       </Box>
-      <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} />
+      <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} onLogout={logout} />
       <HelpSupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
       {agentOpen && (
         <Box
@@ -111,8 +114,8 @@ const UserApp = ({ userProfile, refreshProfile }) => {
             bottom: 0,
             width: '33.333%',
             minWidth: '400px',
-            bgcolor: 'white',
-            borderLeft: '1px solid #e2e8f0',
+            bgcolor: theme.palette.background.paper,
+            borderLeft: `1px solid ${theme.palette.divider}`,
             zIndex: 1300,
             display: 'flex',
             flexDirection: 'column',

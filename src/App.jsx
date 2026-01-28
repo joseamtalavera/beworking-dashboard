@@ -4,7 +4,7 @@ import UserApp from './apps/user/UserApp.jsx';
 import { useAuthProfile } from './components/hooks/useAuthProfile.js';
 
 const App = () => {
-  const { status, profile, error, loginUrl, refreshProfile } = useAuthProfile();
+  const { status, profile, error, loginUrl, refreshProfile, logout } = useAuthProfile();
   
   // Force component remount when switching between admin and user
   const appKey = `${profile?.role || 'unknown'}-${Date.now()}`;
@@ -29,7 +29,7 @@ const App = () => {
   }
 
   const isAdmin = profile.role?.toUpperCase() === 'ADMIN';
-  return isAdmin ? <AdminApp key={appKey} userProfile={profile} refreshProfile={refreshProfile} /> : <UserApp key={appKey} userProfile={profile} refreshProfile={refreshProfile} />;
+  return isAdmin ? <AdminApp key={appKey} userProfile={profile} refreshProfile={refreshProfile} logout={logout} /> : <UserApp key={appKey} userProfile={profile} refreshProfile={refreshProfile} logout={logout} />;
 };
 
 export default App;

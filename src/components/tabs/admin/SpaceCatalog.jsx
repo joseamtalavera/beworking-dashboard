@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+
+// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
@@ -32,13 +34,9 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import { useTheme } from '@mui/material/styles';
 import { listSpaces, upsertSpace, deleteSpace } from '../../../api/spaceCatalog.js';
 import { apiFetch } from '../../../api/client.js';
-
-const BRAND_PRIMARY = '#fb923c';
-const BRAND_PRIMARY_HOVER = '#ea580c';
-const BRAND_MUTED_BG = '#fff7ed';
-const BRAND_BORDER = '#fed7aa';
 
 const COLUMN_WIDTHS = {
   displayName: 260,
@@ -458,8 +456,8 @@ const SpaceCatalog = () => {
           variant="contained"
           onClick={handleAdd}
           sx={{
-            backgroundColor: BRAND_PRIMARY,
-            '&:hover': { backgroundColor: BRAND_PRIMARY_HOVER },
+            backgroundColor: 'primary.main',
+            '&:hover': { backgroundColor: 'primary.dark' },
             fontWeight: 600
           }}
         >
@@ -472,7 +470,7 @@ const SpaceCatalog = () => {
         sx={{
           borderRadius: 3,
           border: '1px solid',
-          borderColor: BRAND_BORDER
+          borderColor: (theme) => theme.palette.primary.light + '80'
         }}
       >
         <Table
@@ -516,7 +514,7 @@ const SpaceCatalog = () => {
                           objectFit: 'cover',
                           borderRadius: 1,
                           border: '1px solid',
-                          borderColor: BRAND_BORDER
+                          borderColor: (theme) => theme.palette.primary.light + '80'
                         }}
                       />
                     ) : (
@@ -538,8 +536,8 @@ const SpaceCatalog = () => {
                       label="Instant"
                       size="small"
                       sx={{
-                        backgroundColor: BRAND_PRIMARY,
-                        color: '#fff',
+                        backgroundColor: 'primary.main',
+                        color: 'primary.contrastText',
                         fontWeight: 600
                       }}
                     />
@@ -556,7 +554,7 @@ const SpaceCatalog = () => {
                     </IconButton>
                     <IconButton
                       onClick={() => handleDelete(index)}
-                      sx={{ color: '#b91c1c' }}
+                      sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
                     >
                       <DeleteOutlineRoundedIcon />
                     </IconButton>
@@ -590,7 +588,7 @@ const SpaceCatalog = () => {
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
-                '&.Mui-selected': { color: BRAND_PRIMARY }
+                '&.Mui-selected': { color: 'primary.main' }
               }}
             />
             <Tab
@@ -599,7 +597,7 @@ const SpaceCatalog = () => {
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
-                '&.Mui-selected': { color: BRAND_PRIMARY }
+                '&.Mui-selected': { color: 'primary.main' }
               }}
             />
           </Tabs>
@@ -611,8 +609,8 @@ const SpaceCatalog = () => {
                 sx={{
                   p: 2,
                   borderRadius: 3,
-                  borderColor: BRAND_BORDER,
-                  backgroundColor: BRAND_MUTED_BG
+                  borderColor: (theme) => theme.palette.primary.light + '80',
+                  backgroundColor: (theme) => theme.palette.primary.light + '15'
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
@@ -837,7 +835,7 @@ const SpaceCatalog = () => {
                 sx={{
                   p: 2,
                   borderRadius: 3,
-                  borderColor: BRAND_BORDER
+                  borderColor: (theme) => theme.palette.primary.light + '80'
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
@@ -854,7 +852,7 @@ const SpaceCatalog = () => {
                               onChange={handleAmenityToggle(amenity)}
                               sx={{
                                 '&.Mui-checked': {
-                                  color: BRAND_PRIMARY
+                                  color: 'primary.main'
                                 }
                               }}
                             />
@@ -872,7 +870,7 @@ const SpaceCatalog = () => {
                 sx={{
                   p: 2,
                   borderRadius: 3,
-                  borderColor: BRAND_BORDER
+                  borderColor: (theme) => theme.palette.primary.light + '80'
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
@@ -926,7 +924,7 @@ const SpaceCatalog = () => {
                     fontWeight: 600,
                     '&:hover': {
                       borderColor: BRAND_PRIMARY_HOVER,
-                      backgroundColor: BRAND_MUTED_BG
+                      backgroundColor: (theme) => theme.palette.primary.light + '15'
                     }
                   }}
                 >
@@ -951,7 +949,7 @@ const SpaceCatalog = () => {
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        borderColor: BRAND_BORDER,
+                        borderColor: (theme) => theme.palette.primary.light + '80',
                         overflow: 'hidden',
                         opacity: draggingImageIndex === index ? 0.85 : 1,
                         outline:
@@ -1011,11 +1009,10 @@ const SpaceCatalog = () => {
                             Abrir
                           </Button>
                           <Button
-                            color="error"
                             variant="text"
                             onClick={handleRemoveImage(index)}
                             startIcon={<DeleteOutlineRoundedIcon />}
-                            sx={{ fontWeight: 600 }}
+                            sx={{ fontWeight: 600, color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
                           >
                             Eliminar
                           </Button>
@@ -1034,8 +1031,8 @@ const SpaceCatalog = () => {
                         borderRadius: 3,
                         borderStyle: 'dashed',
                         color: 'text.secondary',
-                        borderColor: BRAND_BORDER,
-                        backgroundColor: BRAND_MUTED_BG
+                        borderColor: (theme) => theme.palette.primary.light + '80',
+                        backgroundColor: (theme) => theme.palette.primary.light + '15'
                       }}
                     >
                       <Typography variant="body2">

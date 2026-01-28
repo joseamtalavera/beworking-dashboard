@@ -1,4 +1,7 @@
 import { useState, useMemo } from 'react';
+
+// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+
 import {
   Box,
   Typography,
@@ -145,7 +148,7 @@ const BookingFlow = () => {
   }, [location, people]);
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       {/* Header */}
       <Box sx={{ 
         backgroundColor: 'white', 
@@ -301,9 +304,9 @@ const BookingFlow = () => {
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 600,
-                  backgroundColor: '#fb923c',
+                  backgroundColor: 'primary.main',
                   '&:hover': {
-                    backgroundColor: '#ea580c'
+                    backgroundColor: 'primary.dark'
                   }
                 }}
               >
@@ -324,8 +327,8 @@ const BookingFlow = () => {
                 borderColor: '#e2e8f0',
                 color: 'text.secondary',
                 '&:hover': {
-                  borderColor: '#fb923c',
-                  color: '#fb923c'
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main'
                 }
               }}
             >
@@ -341,8 +344,8 @@ const BookingFlow = () => {
                 borderColor: '#e2e8f0',
                 color: 'text.secondary',
                 '&:hover': {
-                  borderColor: '#fb923c',
-                  color: '#fb923c'
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main'
                 }
               }}
             >
@@ -358,8 +361,8 @@ const BookingFlow = () => {
                 borderColor: '#e2e8f0',
                 color: 'text.secondary',
                 '&:hover': {
-                  borderColor: '#fb923c',
-                  color: '#fb923c'
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main'
                 }
               }}
             >
@@ -375,8 +378,8 @@ const BookingFlow = () => {
                 borderColor: '#e2e8f0',
                 color: 'text.secondary',
                 '&:hover': {
-                  borderColor: '#fb923c',
-                  color: '#fb923c'
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main'
                 }
               }}
             >
@@ -392,8 +395,8 @@ const BookingFlow = () => {
                 borderColor: '#e2e8f0',
                 color: 'text.secondary',
                 '&:hover': {
-                  borderColor: '#fb923c',
-                  color: '#fb923c'
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main'
                 }
               }}
             >
@@ -554,9 +557,9 @@ const BookingFlow = () => {
                       sx={{
                         textTransform: 'none',
                         fontWeight: 600,
-                        backgroundColor: '#fb923c',
+                        backgroundColor: 'primary.main',
                         '&:hover': {
-                          backgroundColor: '#ea580c'
+                          backgroundColor: 'primary.dark'
                         }
                       }}
                     >

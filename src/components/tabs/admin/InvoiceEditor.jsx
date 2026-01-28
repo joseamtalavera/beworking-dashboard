@@ -1,4 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+
+// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
@@ -619,7 +622,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                         sx={{
                           textTransform: 'none',
                           fontWeight: 600,
-                          color: '#fb923c',
+                          color: 'secondary.main',
                           '&:hover': {
                             backgroundColor: 'rgba(251, 146, 60, 0.08)'
                           }
@@ -638,7 +641,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               mb: 3, 
               borderRadius: 3,
               border: '2px solid',
-              borderColor: '#fb923c',
+              borderColor: 'secondary.main',
               p: 3,
               backgroundColor: '#fafafa'
             }}>
@@ -680,11 +683,11 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                   variant="contained" 
                   onClick={() => handleCreate('Pendiente')}
                   sx={{
-                    backgroundColor: '#fb923c',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     borderRadius: 1,
                     '&:hover': {
-                      backgroundColor: '#f97316'
+                      backgroundColor: 'primary.dark'
                     }
                   }}
                 >
@@ -729,8 +732,8 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
             sx={{
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: '#fb923c',
-              color: '#fb923c',
+              borderColor: 'secondary.main',
+              color: 'secondary.main',
               '&:hover': {
                 borderColor: '#f97316',
               backgroundColor: 'rgba(251, 146, 60, 0.08)'

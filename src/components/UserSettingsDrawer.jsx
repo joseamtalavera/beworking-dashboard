@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
 import Avatar from '@mui/material/Avatar';
@@ -26,10 +27,11 @@ import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 
-const accentColor = '#fb923c';
-
-const UserSettingsDrawer = ({ open, onClose, user, refreshProfile }) => {
+const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) => {
+  const theme = useTheme();
+  const accentColor = theme.palette.brand.orange;
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -902,48 +904,74 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile }) => {
 
         <Divider sx={{ my: 3 }} />
 
-        <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ pb: 2 }}>
+        <Stack direction="row" spacing={1} justifyContent="space-between" sx={{ pb: 2 }}>
           <Button 
             variant="outlined" 
-            size="small" 
+            size="small"
+            startIcon={<LogoutRoundedIcon />}
             sx={{ 
               minWidth: 120,
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: accentColor, 
-              color: accentColor, 
+              borderColor: 'secondary.main', 
+              color: 'secondary.main', 
               '&:hover': { 
-                borderColor: '#f97316', 
-                color: '#f97316',
-                backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                borderColor: 'secondary.dark', 
+                color: 'secondary.dark',
+                backgroundColor: theme.palette.brand.orangeSoft,
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                boxShadow: `0 4px 12px ${theme.palette.brand.orangeSoft}`
               },
               transition: 'all 0.2s ease-in-out'
             }} 
-            onClick={onClose}
+            onClick={onLogout}
           >
-            CLOSE
+            LOGOUT
           </Button>
-          <Button 
-            variant="contained" 
-            size="small" 
-            sx={{ 
-              minWidth: 120,
-              height: 36,
-              textTransform: 'none',
-              fontWeight: 600,
-              backgroundColor: accentColor, 
-              color: 'white',
-              '&:hover': { 
-                backgroundColor: '#f97316' 
-              } 
-            }} 
-            onClick={() => setSubscriptionDialogOpen(true)}
-          >
-            {userSubscription ? 'MANAGE SUBSCRIPTION' : 'SUBSCRIBE NOW'}
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button 
+              variant="outlined" 
+              size="small" 
+              sx={{ 
+                minWidth: 100,
+                height: 36,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: accentColor, 
+                color: accentColor, 
+                '&:hover': { 
+                  borderColor: '#f97316', 
+                  color: '#f97316',
+                  backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }} 
+              onClick={onClose}
+            >
+              CLOSE
+            </Button>
+            <Button 
+              variant="contained" 
+              size="small" 
+              sx={{ 
+                minWidth: 120,
+                height: 36,
+                textTransform: 'none',
+                fontWeight: 600,
+                backgroundColor: accentColor, 
+                color: 'white',
+                '&:hover': { 
+                  backgroundColor: '#f97316' 
+                } 
+              }} 
+              onClick={() => setSubscriptionDialogOpen(true)}
+            >
+              {userSubscription ? 'MANAGE' : 'SUBSCRIBE'}
+            </Button>
+          </Stack>
         </Stack>
       </Box>
 

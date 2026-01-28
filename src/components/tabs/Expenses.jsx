@@ -30,7 +30,7 @@ const Expenses = () => {
               height: 80,
               borderRadius: '50%',
               bgcolor: 'rgba(34, 197, 94, 0.12)',
-              color: '#22c55e'
+              color: 'secondary.main'
             }}
           >
             <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 40 }} />

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useEffect, useMemo, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
 
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
@@ -34,6 +35,7 @@ import Alert from '@mui/material/Alert';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 
 const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile }) => {
+  const theme = useTheme();
   const mapContactToDraft = (value) => {
     if (!value) {
       return value;
@@ -168,18 +170,18 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         </Button>
         <Button 
           variant="outlined" 
-          startIcon={<EditRoundedIcon sx={{ color: '#fb923c' }} />}
+          startIcon={<EditRoundedIcon sx={{ color: 'primary.main' }} />}
           onClick={() => setEditorOpen(true)}
           sx={{
             minWidth: 120,
             height: 36,
             textTransform: 'none',
             fontWeight: 600,
-            borderColor: '#fb923c',
-            color: '#fb923c',
+            borderColor: 'primary.main',
+            color: 'primary.main',
             '&:hover': {
-              borderColor: '#f97316',
-              color: '#f97316',
+              borderColor: 'primary.dark',
+              color: 'primary.dark',
               backgroundColor: 'rgba(251, 146, 60, 0.08)',
               transform: 'translateY(-1px)',
               boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
@@ -195,9 +197,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         elevation={0}
         sx={{
           borderRadius: 4,
-          border: '1px solid #e2e8f0',
+          border: '1px solid',
+          borderColor: 'grey.200',
           p: { xs: 3, md: 4 },
-          background: 'linear-gradient(120deg, #f8fafc 0%, #eef2ff 50%, #ffffff 100%)'
+          background: (theme) => `linear-gradient(120deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[50]} 50%, ${theme.palette.background.paper} 100%)`
         }}
       >
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center" justifyContent="space-between">
@@ -205,7 +208,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <Avatar 
               src={contact?.avatar || contact?.photo} 
               alt={contact?.name || 'Contact'} 
-              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: '#22c55e', border: '3px solid #fde7d2' }}
+              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: 'secondary.main', border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
             >
               {initials.slice(0, 2)}
             </Avatar>
@@ -348,14 +351,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         PaperProps={{
           sx: {
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+            background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
           }
         }}
       >
         <DialogTitle sx={{ 
           pb: 0,
-          background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
+          background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           color: 'white',
           borderRadius: '12px 12px 0 0',
           p: 3
@@ -384,18 +387,20 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 elevation={0}
                 sx={{ 
                   borderRadius: 3, 
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid',
+          borderColor: 'grey.200',
                   overflow: 'hidden',
                   background: 'white'
                 }}
               >
                 <Box sx={{ 
                   p: 3, 
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
-                  borderBottom: '1px solid #e2e8f0'
+                  background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[50]} 100%)`,
+                  borderBottom: '1px solid',
+                  borderBottomColor: 'grey.200'
                 }}>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: '#10b981', width: 36, height: 36 }}>
+                    <Avatar sx={{ bgcolor: 'success.main', width: 36, height: 36 }}>
                       <PersonRoundedIcon />
                     </Avatar>
                     <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -407,19 +412,20 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   {/* Profile Photo Section */}
                   <Box sx={{ 
                     p: 3, 
-                    border: '2px dashed #10b981', 
-                    borderRadius: 2, 
-                    bgcolor: '#f0fdf4',
+                    border: '2px dashed',
+                    borderColor: 'success.main',
+                    borderRadius: 2,
+                    bgcolor: (theme) => `${theme.palette.success.main}0D`,
                     mb: 3 
                   }}>
-                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: '#10b981' }}>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: 'success.main' }}>
                       📸 Profile Photo
                     </Typography>
                     <Stack direction="row" spacing={3} alignItems="center">
                       <Avatar 
                         src={draft?.avatar} 
                         alt={draft?.name} 
-                        sx={{ width: 80, height: 80, bgcolor: '#10b981', fontSize: 32, border: '3px solid #fde7d2' }}
+                        sx={{ width: 80, height: 80, bgcolor: 'success.main', fontSize: 32, border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
                       >
                         {draft?.name ? draft.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
                       </Avatar>
@@ -448,11 +454,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             size="medium" 
                             startIcon={<PhotoCameraRoundedIcon />}
                             sx={{ 
-                              borderColor: '#10b981', 
-                              color: '#10b981',
-                              '&:hover': { 
-                                borderColor: '#10b981', 
-                                backgroundColor: '#10b98110' 
+                              borderColor: 'success.main', 
+                              color: 'success.main',
+                              '&:hover': {
+                                borderColor: 'success.main', 
+                                backgroundColor: (theme) => `${theme.palette.success.main}10`
                               } 
                             }}
                           >
@@ -479,7 +485,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -497,7 +503,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -515,7 +521,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -533,7 +539,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -551,7 +557,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -571,7 +577,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -598,7 +604,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -616,7 +622,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#10b981'
+                              borderColor: 'success.main'
                             }
                           }
                         }}
@@ -631,18 +637,20 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 elevation={0}
                 sx={{ 
                   borderRadius: 3, 
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid',
+          borderColor: 'grey.200',
                   overflow: 'hidden',
                   background: 'white'
                 }}
               >
                 <Box sx={{ 
                   p: 3, 
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
-                  borderBottom: '1px solid #e2e8f0'
+                  background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[50]} 100%)`,
+                  borderBottom: '1px solid',
+                  borderBottomColor: 'grey.200'
                 }}>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: '#059669', width: 36, height: 36 }}>
+                    <Avatar sx={{ bgcolor: 'success.dark', width: 36, height: 36 }}>
                       <BusinessRoundedIcon />
                     </Avatar>
                     <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -664,7 +672,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#059669'
+                              borderColor: 'success.dark'
                             }
                           }
                         }}
@@ -682,7 +690,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#059669'
+                              borderColor: 'success.dark'
                             }
                           }
                         }}
@@ -700,7 +708,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#059669'
+                              borderColor: 'success.dark'
                             }
                           }
                         }}
@@ -718,7 +726,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#059669'
+                              borderColor: 'success.dark'
                             }
                           }
                         }}
@@ -736,7 +744,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#059669'
+                              borderColor: 'success.dark'
                             }
                           }
                         }}
@@ -754,7 +762,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#059669'
+                              borderColor: 'success.dark'
                             }
                           }
                         }}
@@ -772,7 +780,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             borderRadius: 2,
                             minHeight: 56,
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#059669'
+                              borderColor: 'success.dark'
                             }
                           }
                         }}
@@ -787,11 +795,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         
         <DialogActions sx={{ 
           p: 3, 
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
           borderRadius: '0 0 12px 12px'
         }}>
           <Button
-            startIcon={<CloseRoundedIcon sx={{ color: '#fb923c' }} />}
+            startIcon={<CloseRoundedIcon sx={{ color: 'secondary.main' }} />}
             onClick={() => setEditorOpen(false)}
             disabled={saving}
             variant="outlined"
@@ -800,14 +808,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: '#fb923c',
-              color: '#fb923c',
+              borderColor: 'primary.main',
+              color: 'primary.main',
               '&:hover': {
-                borderColor: '#f97316',
-                color: '#f97316',
-                backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                borderColor: 'primary.dark',
+                color: 'primary.dark',
+                backgroundColor: (theme) => `${theme.palette.primary.main}14`,
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                boxShadow: (theme) => `0 4px 12px ${theme.palette.primary.main}33`
               },
               transition: 'all 0.2s ease-in-out'
             }}
@@ -824,10 +832,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              backgroundColor: '#fb923c',
-              color: 'white',
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
               '&:hover': {
-                backgroundColor: '#f97316'
+                backgroundColor: 'primary.dark'
               }
             }}
           >
@@ -882,12 +890,13 @@ const MetricCard = ({ title, value }) => (
     elevation={0}
     sx={{
       borderRadius: 3,
-      border: '1px solid #d9e1f2',
+      border: '1px solid',
+      borderColor: 'grey.300',
       px: 3,
       py: 2,
       minWidth: 120,
       textAlign: 'center',
-      bgcolor: '#fff'
+      bgcolor: 'background.paper'
     }}
   >
     <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
@@ -907,7 +916,7 @@ MetricCard.propTypes = {
 const InfoCard = ({ title, icon: Icon, children }) => (
   <Paper
     elevation={0}
-    sx={{ borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', p: 3, height: '100%', width: '100%' }}
+    sx={{ borderRadius: 3, border: '1px solid', borderColor: 'grey.200', bgcolor: 'background.paper', p: 3, height: '100%', width: '100%' }}
   >
     <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
       {Icon && (
@@ -916,13 +925,13 @@ const InfoCard = ({ title, icon: Icon, children }) => (
             width: 36,
             height: 36,
             borderRadius: '50%',
-            bgcolor: '#dcfce7',
+            bgcolor: (theme) => `${theme.palette.success.main}1A`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}
         >
-          <Icon fontSize="small" sx={{ color: '#22c55e' }} />
+          <Icon fontSize="small" sx={{ color: 'secondary.main' }} />
         </Box>
       )}
       <Typography variant="subtitle1" fontWeight={600}>
@@ -944,7 +953,8 @@ const InfoRow = ({ label, value, pill }) => (
     spacing={0.5}
     sx={{
       '&:not(:first-of-type)': {
-        borderTop: '1px solid #eef2f6',
+        borderTop: '1px solid',
+        borderTopColor: 'grey.100',
         mt: 1,
         pt: 1
       }
@@ -970,7 +980,7 @@ InfoRow.propTypes = {
 };
 
 const HighlightCard = ({ label, value, trend }) => (
-  <Paper elevation={0} sx={{ borderRadius: 2, border: '1px solid #e2e8f0', bgcolor: '#f8fafc', p: 2.5, height: '100%', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+  <Paper elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'grey.200', bgcolor: 'background.default', p: 2.5, height: '100%', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
     <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
       {label}
     </Typography>
@@ -990,8 +1000,8 @@ HighlightCard.propTypes = {
 };
 
 const SectionCard = ({ icon: Icon, title, children }) => (
-  <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #d9e1f2', bgcolor: '#fff', height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
-    <Stack direction="row" spacing={2} alignItems="center" sx={{ px: 3, py: 2, borderBottom: '1px solid #eef2f6' }}>
+  <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'grey.300', bgcolor: 'background.paper', height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Stack direction="row" spacing={2} alignItems="center" sx={{ px: 3, py: 2, borderBottom: '1px solid', borderBottomColor: 'grey.100' }}>
       <Box
         sx={{
           width: 40,
@@ -1003,7 +1013,7 @@ const SectionCard = ({ icon: Icon, title, children }) => (
           justifyContent: 'center'
         }}
       >
-        <Icon fontSize="small" sx={{ color: '#22c55e' }} />
+        <Icon fontSize="small" sx={{ color: 'secondary.main' }} />
       </Box>
       <Typography variant="subtitle2" fontWeight={600}>
         {title}
@@ -1028,7 +1038,8 @@ const SectionList = ({ description, items }) => (
       spacing={1}
       sx={{
         '& > *:not(:first-of-type)': {
-          borderTop: '1px solid #eef2f6',
+          borderTop: '1px solid',
+        borderTopColor: 'grey.100',
           pt: 1,
           mt: 1
         }

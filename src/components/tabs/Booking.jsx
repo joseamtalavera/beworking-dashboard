@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, parseISO } from 'date-fns';
+import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -72,13 +73,28 @@ import {
   deleteBloqueo,
   updateBloqueo,
   fetchPublicAvailability,
-  fetchPublicCentros
+  fetchPublicCentros,
+  fetchPublicProductos
 } from '../../api/bookings.js';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import Divider from '@mui/material/Divider';
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
+import DeskRoundedIcon from '@mui/icons-material/DeskRounded';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import PhotoLibraryOutlinedIcon from '@mui/icons-material/PhotoLibraryOutlined';
+import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined';
 import { createInvoice, fetchInvoicePdfUrl } from '../../api/invoices.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 
 const DEFAULT_START_HOUR = 6;
 const DEFAULT_END_HOUR = 24;
+
+// Colors are now defined in theme.js - use theme.palette.brand.green/greenHover and theme.palette.brand.orange/orangeHover
 const DEFAULT_RESERVATION_TYPE = 'Por Horas';
 const RESERVATION_TYPE_OPTIONS = ['Por Horas', 'Diaria', 'Mensual'];
 const STATUS_FORM_OPTIONS = ['Created', 'Invoiced', 'Paid'];
@@ -91,6 +107,47 @@ const WEEKDAY_OPTIONS = [
   { value: 'saturday', label: 'Saturday', shortLabel: 'Sat' },
   { value: 'sunday', label: 'Sunday', shortLabel: 'Sun' }
 ];
+
+// Calendar utilities for user booking flow
+const userCalendarStatusStyles = {
+  available: { bgcolor: 'transparent', borderColor: 'rgba(148, 163, 184, 0.24)', color: '#475569' },
+  paid: { bgcolor: 'rgba(134, 239, 172, 0.32)', borderColor: '#22c55e', color: '#166534' },
+  invoiced: { bgcolor: 'rgba(253, 224, 71, 0.25)', borderColor: '#facc15', color: '#854d0e' },
+  created: { bgcolor: 'rgba(251, 146, 60, 0.22)', borderColor: 'secondary.main', color: 'secondary.dark' }
+};
+
+// Booking flow step labels
+const BOOKING_STEP_LABELS = ['Select details', 'Contact & billing', 'Review & payment'];
+
+// Unified view toggle tabs style (used by both admin and user views)
+const getViewToggleTabsStyle = (theme) => ({
+  minHeight: 36,
+  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+  borderRadius: 2,
+  p: 0.5,
+  '& .MuiTabs-indicator': { display: 'none' },
+  '& .MuiTabs-flexContainer': { gap: 0.5 },
+  '& .MuiTab-root': {
+    minHeight: 32,
+    minWidth: 'auto',
+    textTransform: 'none',
+    fontWeight: 600,
+    fontSize: '0.875rem',
+    borderRadius: 1.5,
+    px: 2,
+    py: 0.75,
+    color: 'text.secondary',
+    transition: 'all 0.15s ease',
+    '&.Mui-selected': {
+      color: theme.palette.mode === 'dark' ? '#fff' : 'primary.main',
+      bgcolor: theme.palette.mode === 'dark' ? 'primary.main' : '#fff',
+      boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
+    },
+    '&:hover:not(.Mui-selected)': {
+      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+    }
+  }
+});
 
 const TENANT_TYPE_OVERRIDES = {
   'cesar manuel del castillo rivero': 'Usuario Virtual',
@@ -121,28 +178,36 @@ const resolveTenantType = (bloqueo) => {
   return LEGACY_TENANT_TYPE_MAP[rawType] || rawType;
 };
 
-const statusStyles = {
+const getStatusStyles = (theme) => ({
   available: {
-    bgcolor: 'rgba(229, 231, 235, 0.45)',
-    borderColor: '#cbd5f5',
-    color: '#64748b'
+    bgcolor: theme.palette.mode === 'dark' 
+      ? 'rgba(148, 163, 184, 0.2)' 
+      : 'rgba(229, 231, 235, 0.45)',
+    borderColor: theme.palette.grey[300],
+    color: theme.palette.text.disabled
   },
   paid: {
-    bgcolor: 'rgba(0, 255, 0, 0.18)',
-    borderColor: '#00b300',
-    color: '#006600'
+    bgcolor: theme.palette.mode === 'dark'
+      ? 'rgba(16, 185, 129, 0.2)'
+      : 'rgba(0, 255, 0, 0.18)',
+    borderColor: theme.palette.success.main,
+    color: theme.palette.success.dark
   },
   invoiced: {
-    bgcolor: 'rgba(255, 234, 128, 0.25)',
-    borderColor: '#facc15',
-    color: '#92400e'
+    bgcolor: theme.palette.mode === 'dark'
+      ? 'rgba(250, 204, 21, 0.2)'
+      : 'rgba(255, 234, 128, 0.25)',
+    borderColor: theme.palette.warning.main,
+    color: theme.palette.warning.dark || '#92400e'
   },
   created: {
-    bgcolor: 'rgba(255, 102, 102, 0.18)',
-    borderColor: '#f87171',
-    color: '#991b1b'
+    bgcolor: theme.palette.mode === 'dark'
+      ? 'rgba(251, 146, 60, 0.2)'
+      : 'rgba(251, 146, 60, 0.18)',
+    borderColor: 'secondary.main',
+    color: 'secondary.dark'
   }
-};
+});
 
 const statusLabels = {
   available: 'Available',
@@ -153,27 +218,32 @@ const statusLabels = {
 
 const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created'];
 
-const Legend = () => (
-  <Stack direction="row" spacing={2} flexWrap="wrap">
-    {LEGEND_STATUSES.map((status) => (
-      <Stack key={status} direction="row" spacing={1} alignItems="center">
-        <Box
-          sx={{
-            width: 16,
-            height: 16,
-            borderRadius: 1,
-            border: '1px solid',
-            borderColor: statusStyles[status].borderColor,
-            bgcolor: statusStyles[status].bgcolor
-          }}
-        />
-        <Typography variant="caption" color="text.secondary">
-          {statusLabels[status]}
-        </Typography>
-      </Stack>
-    ))}
-  </Stack>
-);
+const Legend = () => {
+  const theme = useTheme();
+  const statusStyles = getStatusStyles(theme);
+  
+  return (
+    <Stack direction="row" spacing={2} flexWrap="wrap">
+      {LEGEND_STATUSES.map((status) => (
+        <Stack key={status} direction="row" spacing={1} alignItems="center">
+          <Box
+            sx={{
+              width: 16,
+              height: 16,
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: statusStyles[status].borderColor,
+              bgcolor: statusStyles[status].bgcolor
+            }}
+          />
+          <Typography variant="caption" color="text.secondary">
+            {statusLabels[status]}
+          </Typography>
+        </Stack>
+      ))}
+    </Stack>
+  );
+};
 
 const getInitials = (value) => {
   if (!value || typeof value !== 'string') {
@@ -188,24 +258,24 @@ const getInitials = (value) => {
     .toUpperCase() || 'NA';
 };
 
-const filterFieldSx = {
+const getFilterFieldSx = (theme) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: 2,
-    backgroundColor: '#fff'
+    backgroundColor: theme.palette.background.paper
   },
   '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#1d4ed8'
+    borderColor: theme.palette.info.main
   },
   '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#94a3b8'
+    borderColor: theme.palette.grey[400]
   },
   '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#cbd5f5'
+    borderColor: theme.palette.grey[300]
   },
   '& .MuiInputAdornment-root': {
-    color: '#64748b'
+    color: theme.palette.text.disabled
   }
-};
+});
 
 const formatDate = (isoDate) => {
   if (!isoDate) {
@@ -390,6 +460,92 @@ const buildTimeSlots = (bloqueos) => {
   return slots;
 };
 
+// User booking helper functions
+const padTimeUser = (minutes) => {
+  const hour = Math.floor(minutes / 60).toString().padStart(2, '0');
+  const minute = (minutes % 60).toString().padStart(2, '0');
+  return `${hour}:${minute}`;
+};
+
+const buildTimeSlotsWithBoundsUser = (minMinutes, maxMinutes) => {
+  const slots = [];
+  for (let minutes = minMinutes; minutes <= maxMinutes; minutes += 30) {
+    slots.push({ id: padTimeUser(minutes), label: padTimeUser(minutes) });
+  }
+  return slots;
+};
+
+const buildTimeSlotsUser = (startHour = 6, endHour = 22) => buildTimeSlotsWithBoundsUser(startHour * 60, endHour * 60);
+
+const extractTimeFromISO = (isoString) => {
+  if (!isoString) return null;
+  const parts = isoString.split('T');
+  if (parts.length < 2) return null;
+  return parts[1].slice(0, 5);
+};
+
+const mapUserStatusKey = (status) => {
+  const normalized = (status || '').toLowerCase();
+  if (normalized.includes('pag') || normalized.includes('paid')) return 'paid';
+  if (normalized.includes('fact') || normalized.includes('invoice')) return 'invoiced';
+  return 'created';
+};
+
+const describeBloqueoUser = (bloqueo) => {
+  if (!bloqueo) return 'Available slot';
+  const pieces = [];
+  if (bloqueo.cliente?.nombre) pieces.push(bloqueo.cliente.nombre);
+  if (bloqueo.centro?.nombre) pieces.push(bloqueo.centro.nombre);
+  if (bloqueo.producto?.nombre) pieces.push(bloqueo.producto.nombre);
+  const from = extractTimeFromISO(bloqueo.fechaIni);
+  const to = extractTimeFromISO(bloqueo.fechaFin);
+  if (from && to) pieces.push(`${from} – ${to}`);
+  return pieces.join(' · ');
+};
+
+const bloqueoCoversSlotUser = (bloqueo, slotId) => {
+  const slotMinutes = timeStringToMinutes(slotId);
+  if (slotMinutes == null) return false;
+  const startMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni)) ?? 0;
+  const endMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin)) ?? 24 * 60;
+  return slotMinutes >= startMinutes && slotMinutes < endMinutes;
+};
+
+const buildTimeSlotsFromBloqueosUser = (bloqueos = []) => {
+  if (!Array.isArray(bloqueos) || bloqueos.length === 0) return buildTimeSlotsUser();
+  let min = 6 * 60;
+  let max = 22 * 60;
+  let hasData = false;
+  bloqueos.forEach((bloqueo) => {
+    const start = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni));
+    const end = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin));
+    if (start != null) { min = Math.min(min, start); hasData = true; }
+    if (end != null) { max = Math.max(max, end); hasData = true; }
+  });
+  if (!hasData) return buildTimeSlotsUser();
+  const clampedMin = Math.max(0, Math.min(min, 22 * 60));
+  const clampedMax = Math.min(Math.max(clampedMin + 30, max), 23 * 60 + 30);
+  return buildTimeSlotsWithBoundsUser(clampedMin, clampedMax);
+};
+
+const getInitialsUser = (value) => {
+  if (!value) return '';
+  const normalized = value.trim();
+  if (!normalized) return '';
+  const parts = normalized.split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  const [first, second] = parts;
+  return `${first.charAt(0)}${second.charAt(0)}`.toUpperCase();
+};
+
+const addMinutesToTime = (timeString, minutesToAdd) => {
+  const minutes = timeStringToMinutes(timeString);
+  if (minutes == null) return timeString;
+  const total = minutes + minutesToAdd;
+  const normalized = Math.max(0, Math.min(total, 24 * 60));
+  return padTimeUser(normalized);
+};
+
 const bloqueoAppliesToDate = (bloqueo, isoDate) => {
   if (!isoDate || !bloqueo.fechaIni) {
     return false;
@@ -505,6 +661,8 @@ const composeRooms = (bloqueos) => {
 };
 
 const BookingsTable = ({ bookings, onSelect }) => {
+  const theme = useTheme();
+  const statusStyles = getStatusStyles(theme);
   const [page, setPage] = useState(0);
   const rowsPerPage = 25;
 
@@ -549,11 +707,15 @@ const BookingsTable = ({ bookings, onSelect }) => {
         <Table size="small">
           <TableHead
             sx={{
-              bgcolor: '#e6ffe8',
-              boxShadow: 'inset 0 -1px 0 rgba(15, 118, 110, 0.35)',
+              bgcolor: theme.palette.mode === 'dark' 
+                ? 'rgba(16, 185, 129, 0.1)' 
+                : '#e6ffe8',
+              boxShadow: `inset 0 -1px 0 ${theme.palette.success.main}40`,
               '& .MuiTableCell-head': {
-                bgcolor: '#d9fbe5',
-                color: '#14532d',
+                bgcolor: theme.palette.mode === 'dark'
+                  ? 'rgba(16, 185, 129, 0.15)'
+                  : '#d9fbe5',
+                color: theme.palette.success.dark,
                 fontWeight: 800,
                 fontSize: '0.75rem',
                 letterSpacing: '0.08em',
@@ -648,6 +810,8 @@ const BookingsTable = ({ bookings, onSelect }) => {
 };
 
 const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
+  const theme = useTheme();
+  const statusStyles = getStatusStyles(theme);
   const sortedBloqueos = useMemo(() => {
     const clone = [...bloqueos];
     clone.sort((a, b) => {
@@ -771,14 +935,14 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                         <span>
                           <IconButton
                             size="small"
-                            color="error"
                             disabled={isDeleting}
                             onClick={(event) => {
                               event.stopPropagation();
                               onDelete(bloqueo.id);
                             }}
+                            sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
                           >
-                            <DeleteOutlineRoundedIcon fontSize="small" sx={{ color: '#6b7280' }} />
+                            <DeleteOutlineRoundedIcon fontSize="small" />
                           </IconButton>
                         </span>
                       </Tooltip>
@@ -807,38 +971,41 @@ const ReservaDialog = ({
   defaultDate,
   initialBloqueo
 }) => {
+  const theme = useTheme();
   const isEditMode = mode === 'edit';
     const baseInputStyles = {
       minHeight: 44,
       borderRadius: 10,
-      backgroundColor: '#fff',
+      backgroundColor: theme.palette.background.paper,
       transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
       '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: 'rgba(148, 163, 184, 0.32)'
+        borderColor: theme.palette.mode === 'dark' 
+          ? 'rgba(148, 163, 184, 0.32)' 
+          : 'rgba(148, 163, 184, 0.32)'
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#fb923c'
+        borderColor: theme.palette.primary.main
       },
       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#fb923c',
-        boxShadow: '0 0 0 2px rgba(251, 146, 60, 0.14)'
+        borderColor: theme.palette.primary.main,
+        boxShadow: `0 0 0 2px ${theme.palette.primary.main}24`
       },
         '& input': {
         fontSize: 14,
         fontWeight: 500,
-        color: '#1f2937'
+        color: theme.palette.text.primary
       },
       '& .MuiSvgIcon-root': {
-        color: 'text.disabled'
+        color: theme.palette.text.disabled
       }
     };
 
     const baseLabelStyles = {
       fontSize: 13,
       fontWeight: 600,
-      color: '#475569',
+      color: theme.palette.text.secondary,
         '&.Mui-focused': {
-          color: '#fb923c'
+          color: theme.palette.primary.main
         }
     };
 
@@ -1075,33 +1242,13 @@ const ReservaDialog = ({
     setLookupsLoading(true);
     setLookupError('');
     Promise.all([fetchBookingCentros(), fetchBookingProductos()])
-      .then(async ([centers, products]) => {
+      .then(([centers, products]) => {
         if (!active) {
           return;
         }
         const filteredCenters = Array.isArray(centers)
           ? centers.filter((center) => ALLOWED_CENTRO_IDS.has(Number(center?.id)))
           : [];
-
-        // Fallback to public centros if none returned
-        if (filteredCenters.length === 0) {
-          try {
-            const publicCenters = await fetchPublicCentros();
-            if (Array.isArray(publicCenters)) {
-              filteredCenters.push(
-                ...publicCenters
-                  .filter((center) => ALLOWED_CENTRO_IDS.has(Number(center?.id)))
-                  .map((c) => ({
-                    id: c.id,
-                    name: c.name || c.nombre || '',
-                    code: c.code || c.codigo || ''
-                  }))
-              );
-            }
-          } catch (fallbackErr) {
-            console.warn('Fallback centros load failed', fallbackErr);
-          }
-        }
 
         if (isEditMode && initialBloqueo?.centro?.id) {
           const exists = filteredCenters.some((center) => center?.id === initialBloqueo.centro.id);
@@ -1400,7 +1547,7 @@ const ReservaDialog = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: '#fb923c'
+                      backgroundColor: 'primary.main'
                     }}
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -1690,7 +1837,7 @@ const ReservaDialog = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: '#3b82f6'
+                      backgroundColor: 'info.main'
                     }}
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -1840,7 +1987,7 @@ const ReservaDialog = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: '#10b981'
+                      backgroundColor: 'success.light'
                     }}
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -1905,14 +2052,14 @@ const ReservaDialog = ({
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: '#fb923c',
-              color: '#fb923c',
+              borderColor: 'primary.main',
+              color: 'primary.main',
               '&:hover': {
-                borderColor: '#f97316',
-                color: '#f97316',
-                backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                borderColor: 'primary.dark',
+                color: 'primary.dark',
+                backgroundColor: (theme) => `${theme.palette.primary.main}14`,
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                boxShadow: (theme) => `0 4px 12px ${theme.palette.primary.main}33`
               },
               transition: 'all 0.2s ease-in-out'
             }}
@@ -1928,10 +2075,10 @@ const ReservaDialog = ({
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              backgroundColor: '#fb923c',
-              color: 'white',
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
               '&:hover': {
-                backgroundColor: '#f97316'
+                backgroundColor: 'primary.dark'
               }
             }}
           >
@@ -1944,6 +2091,7 @@ const ReservaDialog = ({
 };
 
 const DetailTile = ({ icon, label, primary, secondary, children }) => {
+  const theme = useTheme();
   const shouldShowDash =
     primary === undefined ||
     primary === null ||
@@ -1956,8 +2104,10 @@ const DetailTile = ({ icon, label, primary, secondary, children }) => {
         p: 2,
         borderRadius: 2,
         height: '100%',
-        borderColor: 'rgba(148, 163, 184, 0.3)',
-        backgroundColor: '#fff',
+        borderColor: theme.palette.mode === 'dark' 
+          ? 'rgba(148, 163, 184, 0.3)' 
+          : 'rgba(148, 163, 184, 0.3)',
+        backgroundColor: theme.palette.background.paper,
         boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
       }}
     >
@@ -1970,8 +2120,8 @@ const DetailTile = ({ icon, label, primary, secondary, children }) => {
               borderRadius: 1.5,
               display: 'grid',
               placeItems: 'center',
-              bgcolor: 'rgba(29, 78, 216, 0.1)',
-              color: '#1d4ed8'
+              bgcolor: (theme) => `${theme.palette.info.main}1A`,
+              color: 'info.main'
             }}
           >
             {icon}
@@ -2001,6 +2151,8 @@ const DetailTile = ({ icon, label, primary, secondary, children }) => {
 };
 
 const BookingDetailsDialog = ({ booking, onClose }) => {
+  const theme = useTheme();
+  const statusStyles = getStatusStyles(theme);
   const open = Boolean(booking);
   const statusKey = mapStatusKey(booking?.status);
   const statusColor = statusStyles[statusKey] || statusStyles.created;
@@ -2037,8 +2189,8 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
             <Stack direction="row" spacing={2} alignItems="center">
               <Avatar
                 sx={{
-                  bgcolor: '#1d4ed8',
-                  color: '#fff',
+                      bgcolor: 'info.main',
+                      color: 'info.contrastText',
                   width: 48,
                   height: 48,
                   fontWeight: 600,
@@ -2157,8 +2309,8 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                             label={chipLabel}
                             size="small"
                             sx={{
-                              bgcolor: 'rgba(79, 70, 229, 0.16)',
-                              color: '#4338ca',
+                              bgcolor: (theme) => `${theme.palette.info.main}29`,
+                              color: 'info.dark',
                               fontWeight: 600
                             }}
                           />
@@ -2182,7 +2334,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                 p: 2.5,
                 borderRadius: 2,
                 borderColor: 'rgba(148, 163, 184, 0.3)',
-                backgroundColor: '#fff',
+                backgroundColor: 'background.paper',
                 boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
               }}
             >
@@ -2196,7 +2348,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                       display: 'grid',
                       placeItems: 'center',
                       bgcolor: 'rgba(14, 116, 144, 0.1)',
-                      color: '#0e7490'
+                      color: 'info.dark'
                     }}
                   >
                     <StickyNote2RoundedIcon fontSize="small" />
@@ -2293,6 +2445,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
 };
 
 const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
+  const theme = useTheme();
   const open = Boolean(bloqueo);
   const canEdit = Boolean(onEdit);
   const canInvoice = Boolean(onInvoice);
@@ -2390,25 +2543,27 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const baseInputStyles = {
     minHeight: 44,
     borderRadius: '4px !important',
-    backgroundColor: '#fff',
+    backgroundColor: theme.palette.background.paper,
     transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
     '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'rgba(148, 163, 184, 0.32)',
+      borderColor: theme.palette.mode === 'dark' 
+        ? 'rgba(148, 163, 184, 0.32)' 
+        : 'rgba(148, 163, 184, 0.32)',
       borderRadius: '4px !important'
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#fb923c',
+      borderColor: theme.palette.primary.main,
       borderRadius: '4px !important'
     },
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#fb923c',
-      boxShadow: '0 0 0 2px rgba(251, 146, 60, 0.14)',
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 0 2px ${theme.palette.primary.main}24`,
       borderRadius: '4px !important'
     },
     '& input': {
       fontSize: 14,
       fontWeight: 500,
-      color: '#1f2937'
+      color: theme.palette.text.primary
     },
     '& .MuiSvgIcon-root': {
       color: 'text.disabled'
@@ -2418,9 +2573,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const baseLabelStyles = {
     fontSize: 13,
     fontWeight: 600,
-    color: '#475569',
+    color: theme.palette.text.secondary,
     '&.Mui-focused': {
-      color: '#fb923c'
+      color: theme.palette.primary.main
     }
   };
 
@@ -2525,7 +2680,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          backgroundColor: '#fb923c'
+                          backgroundColor: 'secondary.main'
                         }}
                       />
                       <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -2979,9 +3134,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
               sx={{ 
                 textTransform: 'none', 
                 fontWeight: 600,
-                backgroundColor: '#fb923c',
+                backgroundColor: 'primary.main',
                 '&:hover': {
-                  backgroundColor: '#ea580c'
+                  backgroundColor: 'primary.dark'
                 }
               }}
             >
@@ -2996,11 +3151,11 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
               sx={{ 
                 textTransform: 'none', 
                 fontWeight: 600,
-                borderColor: '#fb923c',
-                color: '#fb923c',
+                borderColor: 'primary.main',
+                color: 'primary.main',
                 '&:hover': {
-                  borderColor: '#ea580c',
-                  backgroundColor: 'rgba(251, 146, 60, 0.04)'
+                  borderColor: 'primary.dark',
+                  backgroundColor: (theme) => `${theme.palette.primary.main}0A`
                 }
               }}
             >
@@ -3015,10 +3170,10 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 sx={{ 
                   textTransform: 'none', 
                   fontWeight: 600,
-                  borderColor: '#fb923c',
-                  color: '#fb923c',
+                  borderColor: 'secondary.main',
+                  color: 'secondary.main',
                   '&:hover': {
-                    borderColor: '#ea580c',
+                    borderColor: 'secondary.dark',
                     backgroundColor: 'rgba(251, 146, 60, 0.04)'
                   }
                 }}
@@ -3032,9 +3187,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 sx={{ 
                   textTransform: 'none', 
                   fontWeight: 600,
-                  backgroundColor: '#fb923c',
+                  backgroundColor: 'primary.main',
                   '&:hover': {
-                    backgroundColor: '#ea580c'
+                    backgroundColor: 'primary.dark'
                   }
                 }}
               >
@@ -3095,7 +3250,1600 @@ const initialDateISO = () => {
   return `${year}-${month}-${day}`;
 };
 
+// Default rooms catalog for user booking view
+const DEFAULT_CATALOG_ROOMS = [
+  { id: 'ma1a1', slug: 'ma1a1', name: 'MA1A1', productName: 'MA1A1', centro: 'Málaga Workspace', capacity: 8, priceFrom: 35, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1600&q=80', description: 'Sala perfecta para reuniones, formaciones y entrevistas. Equipada con fibra simétrica, pantalla y zona lounge.', amenities: ['TV Screen', 'Whiteboard', 'Video conferencing'], tags: ['TV Screen', 'Whiteboard', 'Video conferencing'] },
+  { id: 'ma1a2', slug: 'ma1a2', name: 'MA1A2', productName: 'MA1A2', centro: 'Málaga Workspace', capacity: 10, priceFrom: 42, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80', description: 'Sala versátil con paneles acústicos y disposición flexible ideal para workshops creativos.', amenities: ['Workshop ready', 'Soundproofing'], tags: ['Workshop ready', 'Soundproofing'] },
+  { id: 'ma1a3', slug: 'ma1a3', name: 'MA1A3', productName: 'MA1A3', centro: 'Málaga Workspace', capacity: 6, priceFrom: 30, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1523875194681-bedd468c58bf?auto=format&fit=crop&w=1600&q=80', description: 'Sala íntima perfecta para pequeñas reuniones y videollamadas.', amenities: ['Video conferencing', 'High-speed Wi-Fi'], tags: ['Video conferencing', 'High-speed Wi-Fi'] },
+  { id: 'ma1a4', slug: 'ma1a4', name: 'MA1A4', productName: 'MA1A4', centro: 'Málaga Workspace', capacity: 12, priceFrom: 48, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1570129476769-55f4a5add5a3?auto=format&fit=crop&w=1600&q=80', description: 'Nuestra sala más grande con sistema AV premium y vista panorámica.', amenities: ['Hybrid ready', 'Panoramic view'], tags: ['Hybrid ready', 'Panoramic view'] },
+  { id: 'ma1a5', slug: 'ma1a5', name: 'MA1A5', productName: 'MA1A5', centro: 'Málaga Workspace', capacity: 4, priceFrom: 24, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80', description: 'Espacio acogedor ideal para brainstorming y reuniones creativas.', amenities: ['Brainstorming', 'Whiteboard', 'Cozy'], tags: ['Brainstorming', 'Whiteboard', 'Cozy'] },
+  { id: 'ma1-desks', slug: 'ma1-desks', name: 'MA1 Shared Desk Zone', productName: 'MA1 Desks', centro: 'Málaga Workspace', capacity: 1, priceFrom: 15, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1510972527921-ce03766a1cf1?auto=format&fit=crop&w=1600&q=80', description: 'Zona colaborativa con 16 puestos flexibles. Incluye conectividad de alta velocidad, lockers y acceso 24/7.', amenities: ['High-speed Wi-Fi', 'Lockers', '24/7 access', 'Coffee corner'], tags: ['Flex desk', 'Coworking', '24/7 access'] }
+];
+
+// Calendar Legend for user booking
+const UserCalendarLegendItem = ({ label, color }) => (
+  <Stack direction="row" spacing={1} alignItems="center">
+    <Box sx={{ width: 16, height: 16, borderRadius: 2, border: '1px solid', borderColor: color.borderColor, bgcolor: color.bgcolor }} />
+    <Typography variant="caption" sx={{ color: '#475569' }}>{label}</Typography>
+  </Stack>
+);
+
+const UserCalendarLegend = () => (
+  <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
+    <UserCalendarLegendItem label="Available" color={userCalendarStatusStyles.available} />
+    <UserCalendarLegendItem label="Paid" color={userCalendarStatusStyles.paid} />
+    <UserCalendarLegendItem label="Invoiced" color={userCalendarStatusStyles.invoiced} />
+    <UserCalendarLegendItem label="Created" color={userCalendarStatusStyles.created} />
+  </Stack>
+);
+
+// Room Calendar Grid for user booking
+const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onSelectSlot }) => {
+  const timeSlots = useMemo(() => buildTimeSlotsFromBloqueosUser(bloqueos), [bloqueos]);
+  const tableMinWidth = useMemo(() => Math.max(720, 220 + timeSlots.length * 64 + 32), [timeSlots.length]);
+
+  const getSlotStatus = (slotId) => {
+    const bloqueo = bloqueos.find((entry) => bloqueoCoversSlotUser(entry, slotId));
+    if (!bloqueo) return { status: 'available', bloqueo: null };
+    return { status: mapUserStatusKey(bloqueo.estado), bloqueo };
+  };
+
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0', width: '100%', maxWidth: 1240, mx: 'auto', overflow: 'hidden', backgroundColor: '#fff' }}>
+      <Stack spacing={3} sx={{ p: 3 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
+          <Stack spacing={0.5}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Availability · {room?.name || 'Meeting room'}</Typography>
+            {dateLabel && <Typography variant="body2" sx={{ color: '#475569' }}>{dateLabel}</Typography>}
+          </Stack>
+          <UserCalendarLegend />
+        </Stack>
+        <TableContainer sx={{ maxHeight: 420, overflowX: 'auto', overflowY: 'hidden', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+          <Table size="small" sx={{ minWidth: tableMinWidth, tableLayout: 'fixed', '& .MuiTableCell-root': { borderRight: '1px solid rgba(148, 163, 184, 0.12)' }, '& .MuiTableRow-root': { borderBottom: '1px solid rgba(148, 163, 184, 0.12)' } }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ width: 220, position: 'sticky', top: 0, left: 0, backgroundColor: 'background.paper', zIndex: 4, borderRight: '1px solid rgba(148, 163, 184, 0.32)', boxShadow: '4px 0 12px rgba(15, 23, 42, 0.06)' }}>Room</TableCell>
+                {timeSlots.map((slot) => (
+                  <TableCell key={slot.id} align="center" sx={{ position: 'sticky', top: 0, width: 64, maxWidth: 64, backgroundColor: 'background.paper', zIndex: 3 }}>
+                    <Typography variant="subtitle2" fontWeight="bold">{slot.label}</Typography>
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell sx={{ position: 'sticky', left: 0, width: 220, maxWidth: 220, backgroundColor: 'background.paper', zIndex: 2, borderRight: '1px solid rgba(148, 163, 184, 0.24)', boxShadow: '2px 0 8px rgba(15, 23, 42, 0.04)' }}>
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2" fontWeight="medium">{room?.name || room?.label || 'Meeting room'}</Typography>
+                    {room?.capacity && <Typography variant="caption" sx={{ color: '#64748b' }}>Capacity {room.capacity} guests</Typography>}
+                  </Stack>
+                </TableCell>
+                {timeSlots.map((slot) => {
+                  const slotKey = `${room?.id || 'room'}-${slot.id}`;
+                  const { status, bloqueo } = getSlotStatus(slot.id);
+                  const styles = userCalendarStatusStyles[status] || userCalendarStatusStyles.created;
+                  const isSelected = selectedSlotKey === slotKey;
+                  return (
+                    <TableCell key={`${room?.id ?? 'room'}-${slot.id}`} align="center" sx={{ p: 0.75, width: 64, maxWidth: 64 }}>
+                      <Tooltip arrow title={describeBloqueoUser(bloqueo)}>
+                        <Box
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => onSelectSlot?.(slot, bloqueo)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSlot?.(slot, bloqueo); } }}
+                          sx={{
+                            height: 52, width: '100%', borderRadius: 2, border: '2px solid',
+                            borderColor: isSelected ? '#2563eb' : styles.borderColor,
+                            bgcolor: styles.bgcolor, color: styles.color, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'transform 0.15s, border-color 0.15s',
+                            '&:hover': { transform: 'scale(1.05)' }, outline: 'none'
+                          }}
+                        >
+                          {bloqueo && <Typography variant="caption" fontWeight={600} noWrap>{getInitialsUser(bloqueo.cliente?.nombre || bloqueo.producto?.nombre || 'Reservado')}</Typography>}
+                        </Box>
+                      </Tooltip>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Stack>
+    </Paper>
+  );
+};
+
+// Booking Stepper Component
+const UserBookingStepper = ({ activeStep }) => (
+  <Stepper activeStep={activeStep} alternativeLabel sx={{ bgcolor: '#fff', borderRadius: 2, p: 2 }}>
+    {BOOKING_STEP_LABELS.map((label) => (
+      <Step key={label}><StepLabel>{label}</StepLabel></Step>
+    ))}
+  </Stepper>
+);
+
+// Select Booking Details Step
+const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, centroOptions, productOptions }) => {
+  const theme = useTheme();
+  const [formState, setFormState] = useState({
+    customerName: '',
+    centro: null,
+    userType: 'Usuario Aulas',
+    reservationType: 'Por Horas',
+    status: 'Created',
+    tarifa: room?.priceFrom || '',
+    producto: room ? { id: room.id, name: room.productName || room.name, type: 'Aula' } : null,
+    configuracion: '',
+    note: '',
+    weekdays: [],
+    openEnded: false
+  });
+  const [bloqueos, setBloqueos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!schedule.startTime) setSchedule(prev => ({ ...prev, startTime: '09:00' }));
+    if (!schedule.endTime) setSchedule(prev => ({ ...prev, endTime: '10:00' }));
+    if (!schedule.date) {
+      const today = new Date().toISOString().split('T')[0];
+      setSchedule(prev => ({ ...prev, date: today, dateTo: today }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (centroOptions.length && !formState.centro) {
+      const first = centroOptions.find(c => !c.isAllOption);
+      if (first) setFormState(prev => ({ ...prev, centro: { id: first.id, name: first.label, code: first.code } }));
+    }
+  }, [centroOptions]);
+
+  useEffect(() => {
+    if (room && !formState.producto) {
+      setFormState(prev => ({ ...prev, producto: { id: room.id, name: room.productName || room.name, type: 'Aula' }, tarifa: room.priceFrom || '' }));
+    }
+  }, [room]);
+
+  useEffect(() => {
+    if (!schedule.date || !room?.productName) return;
+    let active = true;
+    setLoading(true);
+    setError('');
+    fetchPublicAvailability({ date: schedule.date, products: [room.productName] })
+      .then(data => { if (active) setBloqueos(Array.isArray(data) ? data : []); })
+      .catch(err => { if (active) setError(err.message || 'Failed to load availability'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [schedule.date, room?.productName]);
+
+  const roomBloqueos = useMemo(() => {
+    if (!room?.productName) return bloqueos;
+    return bloqueos.filter(b => (b?.producto?.nombre || '').toLowerCase() === room.productName.toLowerCase());
+  }, [bloqueos, room?.productName]);
+
+  const selectedSlotKey = useMemo(() => schedule.startTime ? `${room?.id || 'room'}-${schedule.startTime}` : '', [room?.id, schedule.startTime]);
+
+  const handleSlotSelect = (slot, bloqueo) => {
+    if (!schedule.date || bloqueo) return;
+    const nextEnd = addMinutesToTime(slot.id, 60);
+    setSchedule(prev => ({ ...prev, startTime: slot.id, endTime: nextEnd }));
+  };
+
+  const handleWeekdayToggle = (weekday) => (_event, checked) => {
+    setFormState(prev => {
+      const set = new Set(prev.weekdays);
+      if (checked) set.add(weekday); else set.delete(weekday);
+      return { ...prev, weekdays: Array.from(set) };
+    });
+  };
+
+  const isContinueDisabled = !schedule.date || !schedule.startTime || !schedule.endTime;
+
+  const inputStyles = {
+    '& .MuiOutlinedInput-root': { borderRadius: 1, backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#f8fafc' }
+  };
+
+  return (
+    <Stack spacing={4}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+        <Stack spacing={2}>
+          <Stack spacing={0.5}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Who & where</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>Provide basic booking details so we can secure the right space for you.</Typography>
+          </Stack>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField label="Your name" placeholder="Your name" fullWidth value={formState.customerName} onChange={(e) => setFormState(prev => ({ ...prev, customerName: e.target.value }))}
+              InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+            <TextField label="Centro" select fullWidth value={formState.centro?.name || ''} onChange={(e) => {
+              const selected = centroOptions.find(c => c.label === e.target.value);
+              if (selected) setFormState(prev => ({ ...prev, centro: { id: selected.id, name: selected.label, code: selected.code } }));
+            }} InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles}>
+              {centroOptions.filter(c => !c.isAllOption).map(opt => <MenuItem key={opt.id} value={opt.label}>{opt.label}</MenuItem>)}
+            </TextField>
+          </Stack>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField label="User type" select fullWidth value={formState.userType} onChange={(e) => setFormState(prev => ({ ...prev, userType: e.target.value }))}
+              InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles}>
+              {['Usuario Aulas', 'Usuario Virtual', 'Usuario Mesa'].map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+            </TextField>
+            <TextField label="Producto" fullWidth value={formState.producto?.name || room?.name || ''} disabled
+              InputProps={{ startAdornment: <InputAdornment position="start"><SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+          </Stack>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField label="Reservation type" select fullWidth value={formState.reservationType} onChange={(e) => setFormState(prev => ({ ...prev, reservationType: e.target.value }))}
+              InputProps={{ startAdornment: <InputAdornment position="start"><EventRepeatRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles}>
+              {RESERVATION_TYPE_OPTIONS.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+            </TextField>
+            <TextField label="Status" fullWidth value={formState.status} disabled InputProps={{ startAdornment: <InputAdornment position="start"><FlagRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+            <TextField label="Tarifa (€)" fullWidth value={formState.tarifa} disabled InputProps={{ startAdornment: <InputAdornment position="start"><EuroRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+          </Stack>
+        </Stack>
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+        <Stack spacing={2}>
+          <Stack spacing={0.5}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Schedule & status</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>Select your preferred dates and times.</Typography>
+          </Stack>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField label="Date from" type="date" value={schedule.date || ''} onChange={(e) => setSchedule(prev => ({ ...prev, date: e.target.value, dateTo: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+              InputProps={{ startAdornment: <InputAdornment position="start"><CalendarMonthRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+            <TextField label="Date to" type="date" value={schedule.dateTo || schedule.date || ''} onChange={(e) => setSchedule(prev => ({ ...prev, dateTo: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+              InputProps={{ startAdornment: <InputAdornment position="start"><CalendarMonthRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+          </Stack>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField label="Start time" type="time" value={schedule.startTime || '09:00'} onChange={(e) => setSchedule(prev => ({ ...prev, startTime: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+              InputProps={{ startAdornment: <InputAdornment position="start"><AccessTimeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+            <TextField label="End time" type="time" value={schedule.endTime || '10:00'} onChange={(e) => setSchedule(prev => ({ ...prev, endTime: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+              InputProps={{ startAdornment: <InputAdornment position="start"><AccessTimeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+          </Stack>
+          <FormGroup row sx={{ gap: 1 }}>
+            {WEEKDAY_OPTIONS.map(wd => (
+              <FormControlLabel key={wd.value} control={<Checkbox checked={formState.weekdays.includes(wd.value)} onChange={handleWeekdayToggle(wd.value)} />} label={wd.shortLabel} />
+            ))}
+            <FormControlLabel control={<Switch checked={formState.openEnded} onChange={(_, checked) => setFormState(prev => ({ ...prev, openEnded: checked }))} />} label="Open ended" />
+          </FormGroup>
+          <Divider sx={{ my: 1 }} />
+          {error && <Alert severity="error">{error}</Alert>}
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress size={28} /></Box>
+          ) : (
+            <UserRoomCalendarGrid room={room} dateLabel={schedule.date ? new Date(schedule.date).toLocaleDateString() : ''} bloqueos={roomBloqueos} selectedSlotKey={selectedSlotKey} onSelectSlot={handleSlotSelect} />
+          )}
+        </Stack>
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Additional details</Typography>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField label="Attendees" type="number" value={schedule.attendees || ''} onChange={(e) => setSchedule(prev => ({ ...prev, attendees: parseInt(e.target.value) || 1 }))} fullWidth
+              InputProps={{ startAdornment: <InputAdornment position="start"><PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+            <TextField label="Configuración" value={formState.configuracion} onChange={(e) => setFormState(prev => ({ ...prev, configuracion: e.target.value }))} fullWidth sx={inputStyles} />
+          </Stack>
+          <TextField label="Notas" value={formState.note} onChange={(e) => setFormState(prev => ({ ...prev, note: e.target.value }))} fullWidth multiline minRows={2} sx={inputStyles} />
+        </Stack>
+      </Paper>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button variant="contained" onClick={() => onContinue(formState)} disabled={isContinueDisabled} sx={{ textTransform: 'none', fontWeight: 600 }}>Continue</Button>
+      </Box>
+    </Stack>
+  );
+};
+
+// Contact & Billing Step
+const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
+  const [formState, setFormState] = useState({
+    firstName: '', lastName: '', email: '', phone: '', company: '', taxId: '',
+    addressLine1: '', addressLine2: '', city: '', postalCode: '', country: 'Spain'
+  });
+  const [errors, setErrors] = useState({});
+
+  const summaryItems = useMemo(() => {
+    const items = [];
+    if (room?.name) items.push({ label: 'Room', value: room.name });
+    if (schedule?.date) items.push({ label: 'Date', value: new Date(schedule.date).toLocaleDateString() });
+    if (schedule?.startTime && schedule?.endTime) items.push({ label: 'Time', value: `${schedule.startTime} – ${schedule.endTime}` });
+    if (schedule?.attendees) items.push({ label: 'Attendees', value: `${schedule.attendees}` });
+    return items;
+  }, [room?.name, schedule]);
+
+  const validate = () => {
+    const errs = {};
+    if (!formState.firstName.trim()) errs.firstName = 'First name is required';
+    if (!formState.lastName.trim()) errs.lastName = 'Last name is required';
+    if (!formState.email.trim()) errs.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email)) errs.email = 'Enter a valid email';
+    if (!formState.phone.trim()) errs.phone = 'Phone is required';
+    if (!formState.addressLine1.trim()) errs.addressLine1 = 'Address is required';
+    if (!formState.city.trim()) errs.city = 'City is required';
+    if (!formState.postalCode.trim()) errs.postalCode = 'Postal code is required';
+    return errs;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length === 0) onContinue?.({ contact: formState });
+  };
+
+  return (
+    <Box component="form" onSubmit={handleSubmit}>
+      <Stack spacing={3}>
+        <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Contact details</Typography>
+            <Typography variant="body2" sx={{ color: '#475569' }}>Enter your contact and billing information.</Typography>
+          </Stack>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}><TextField label="First name" value={formState.firstName} onChange={(e) => setFormState(prev => ({ ...prev, firstName: e.target.value }))} required error={Boolean(errors.firstName)} helperText={errors.firstName} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label="Last name" value={formState.lastName} onChange={(e) => setFormState(prev => ({ ...prev, lastName: e.target.value }))} required error={Boolean(errors.lastName)} helperText={errors.lastName} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label="Email" type="email" value={formState.email} onChange={(e) => setFormState(prev => ({ ...prev, email: e.target.value }))} required error={Boolean(errors.email)} helperText={errors.email} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label="Phone" value={formState.phone} onChange={(e) => setFormState(prev => ({ ...prev, phone: e.target.value }))} required error={Boolean(errors.phone)} helperText={errors.phone} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label="Company" value={formState.company} onChange={(e) => setFormState(prev => ({ ...prev, company: e.target.value }))} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label="VAT / Tax ID" value={formState.taxId} onChange={(e) => setFormState(prev => ({ ...prev, taxId: e.target.value }))} fullWidth /></Grid>
+          </Grid>
+        </Paper>
+
+        <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Billing address</Typography>
+            <Typography variant="body2" sx={{ color: '#475569' }}>This information will appear on invoices.</Typography>
+          </Stack>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}><TextField label="Address line 1" value={formState.addressLine1} onChange={(e) => setFormState(prev => ({ ...prev, addressLine1: e.target.value }))} required error={Boolean(errors.addressLine1)} helperText={errors.addressLine1} fullWidth /></Grid>
+            <Grid item xs={12}><TextField label="Address line 2" value={formState.addressLine2} onChange={(e) => setFormState(prev => ({ ...prev, addressLine2: e.target.value }))} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label="City" value={formState.city} onChange={(e) => setFormState(prev => ({ ...prev, city: e.target.value }))} required error={Boolean(errors.city)} helperText={errors.city} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label="Postal code" value={formState.postalCode} onChange={(e) => setFormState(prev => ({ ...prev, postalCode: e.target.value }))} required error={Boolean(errors.postalCode)} helperText={errors.postalCode} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label="Country" value={formState.country} onChange={(e) => setFormState(prev => ({ ...prev, country: e.target.value }))} fullWidth /></Grid>
+          </Grid>
+        </Paper>
+
+        <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Reservation summary</Typography>
+          </Stack>
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            {summaryItems.map(item => (
+              <Stack key={item.label} direction="row" justifyContent="space-between">
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.label}</Typography>
+                <Typography variant="body2" sx={{ color: '#475569' }}>{item.value}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Paper>
+
+        <Stack direction="row" spacing={1} justifyContent="space-between">
+          <Button onClick={onBack} sx={{ textTransform: 'none' }}>Back</Button>
+          <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 600 }}>Continue to payment</Button>
+        </Stack>
+      </Stack>
+    </Box>
+  );
+};
+
+// Review & Payment Step
+const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const calculateTotal = () => {
+    if (!room?.priceFrom || !schedule?.startTime || !schedule?.endTime) return '—';
+    const startMins = timeStringToMinutes(schedule.startTime);
+    const endMins = timeStringToMinutes(schedule.endTime);
+    if (startMins == null || endMins == null) return '—';
+    const hours = (endMins - startMins) / 60;
+    return `€${(hours * room.priceFrom).toFixed(2)}`;
+  };
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setError('');
+    try {
+      const payload = {
+        cliente: { nombre: `${contact.firstName} ${contact.lastName}`, email: contact.email, telefono: contact.phone, empresa: contact.company, nif: contact.taxId },
+        centro: { nombre: room?.centro || 'Málaga Workspace' },
+        producto: { nombre: room?.productName || room?.name },
+        fechaIni: `${schedule.date}T${schedule.startTime}:00`,
+        fechaFin: `${schedule.dateTo || schedule.date}T${schedule.endTime}:00`,
+        asistentes: schedule.attendees || 1,
+        estado: 'Created',
+        direccion: { linea1: contact.addressLine1, linea2: contact.addressLine2, ciudad: contact.city, codigoPostal: contact.postalCode, pais: contact.country }
+      };
+      await createReserva(payload);
+      setSuccess(true);
+    } catch (err) {
+      setError(err.message || 'Failed to create booking');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+        <Stack spacing={3} alignItems="center">
+          <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: 'success.light', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="h4">✓</Typography>
+          </Box>
+          <Typography variant="h5" fontWeight={700}>Booking Request Submitted!</Typography>
+          <Typography variant="body1" color="text.secondary">
+            Thank you for your booking request. We'll review your reservation and send you a confirmation email with payment instructions shortly.
+          </Typography>
+          <Button variant="contained" onClick={onComplete} sx={{ textTransform: 'none', fontWeight: 600, backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}>
+            Back to Spaces
+          </Button>
+        </Stack>
+      </Paper>
+    );
+  }
+
+  return (
+    <Stack spacing={3}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Review your booking</Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Stack spacing={2}>
+              <Typography variant="subtitle2" fontWeight={600}>Space</Typography>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{ width: 80, height: 60, borderRadius: 2, overflow: 'hidden', flexShrink: 0 }}>
+                  <img src={room?.image || room?.heroImage} alt={room?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </Box>
+                <Box>
+                  <Typography variant="body1" fontWeight={600}>{room?.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">{room?.centro || 'Málaga Workspace'}</Typography>
+                </Box>
+              </Stack>
+            </Stack>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Stack spacing={1}>
+              <Typography variant="subtitle2" fontWeight={600}>Schedule</Typography>
+              <Typography variant="body2">Date: {schedule?.date ? new Date(schedule.date).toLocaleDateString() : '—'}</Typography>
+              <Typography variant="body2">Time: {schedule?.startTime} – {schedule?.endTime}</Typography>
+              <Typography variant="body2">Attendees: {schedule?.attendees || 1}</Typography>
+            </Stack>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Stack spacing={1}>
+              <Typography variant="subtitle2" fontWeight={600}>Contact</Typography>
+              <Typography variant="body2">{contact?.firstName} {contact?.lastName}</Typography>
+              <Typography variant="body2">{contact?.email}</Typography>
+              <Typography variant="body2">{contact?.phone}</Typography>
+            </Stack>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Stack spacing={1}>
+              <Typography variant="subtitle2" fontWeight={600}>Billing Address</Typography>
+              <Typography variant="body2">{contact?.addressLine1}</Typography>
+              {contact?.addressLine2 && <Typography variant="body2">{contact.addressLine2}</Typography>}
+              <Typography variant="body2">{contact?.city}, {contact?.postalCode}</Typography>
+              <Typography variant="body2">{contact?.country}</Typography>
+            </Stack>
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 3 }} />
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" fontWeight={700}>Estimated Total</Typography>
+          <Typography variant="h5" fontWeight={700} color="primary">{calculateTotal()}</Typography>
+        </Stack>
+      </Paper>
+
+      <Alert severity="info">
+        After submitting your booking request, our team will review it and send you a confirmation email with payment instructions. Payment will be processed securely via Stripe.
+      </Alert>
+
+      {error && <Alert severity="error">{error}</Alert>}
+
+      <Stack direction="row" spacing={1} justifyContent="space-between">
+        <Button onClick={onBack} disabled={submitting} sx={{ textTransform: 'none' }}>Back</Button>
+        <Button variant="contained" onClick={handleSubmit} disabled={submitting} sx={{ textTransform: 'none', fontWeight: 600, backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}>
+          {submitting ? <CircularProgress size={20} color="inherit" /> : 'Submit Booking Request'}
+        </Button>
+      </Stack>
+    </Stack>
+  );
+};
+
+// Room Detail View with Gallery
+const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
+  const theme = useTheme();
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  
+  const galleryImages = useMemo(() => {
+    const gallery = Array.isArray(room?.gallery) ? room.gallery.filter(Boolean) : [];
+    if (gallery.length) return gallery;
+    return room?.heroImage || room?.image ? [room.heroImage || room.image] : [];
+  }, [room]);
+
+  const featureImage = galleryImages[0];
+  const secondaryImages = galleryImages.slice(1, 5);
+  const amenities = room?.amenities || room?.tags || [];
+
+  const cancellationPolicy = [
+    'La fecha de la reserva podrá modificarse hasta 24 h antes del inicio.',
+    'La modificación debe confirmarse por email.',
+    'No se realizará devolución en caso de no asistencia.'
+  ];
+
+  const bookingInstructions = [
+    'Solicita el día de tu reserva.',
+    'Te confirmaremos disponibilidad y enviaremos la factura.',
+    'Tras el pago recibirás instrucciones de acceso.'
+  ];
+
+  return (
+    <Box>
+      <Button startIcon={<ArrowBackRoundedIcon />} onClick={onBack} sx={{ mb: 2, textTransform: 'none', color: 'text.secondary' }}>
+        Back to spaces
+      </Button>
+
+      <Stack spacing={4}>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+          <Stack spacing={1}>
+            <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: 1.2 }}>{room?.centro || 'Málaga Workspace'}</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>{room?.name}</Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              Capacity {room?.capacity} persons · from €{room?.priceFrom || '—'}/h
+            </Typography>
+          </Stack>
+          <Button size="small" startIcon={<IosShareOutlinedIcon />} variant="text" onClick={() => navigator.clipboard?.writeText(window.location.href)} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.primary' }}>
+            Share
+          </Button>
+        </Stack>
+
+        {featureImage && (
+          <Box sx={{ position: 'relative' }}>
+            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gridTemplateRows: { md: 'repeat(2, 200px)' }, gridTemplateAreas: { xs: '"hero"', md: '"hero hero thumb1 thumb2" "hero hero thumb3 thumb4"' } }}>
+              <Box component="img" src={featureImage} alt={room?.name} sx={{ gridArea: 'hero', width: '100%', height: { xs: 260, md: '100%' }, objectFit: 'cover', borderRadius: 3 }} />
+              {secondaryImages.map((img, i) => (
+                <Box key={i} component="img" src={img} alt={`${room?.name} ${i + 2}`} sx={{ gridArea: `thumb${i + 1}`, width: '100%', height: { xs: 180, md: '100%' }, objectFit: 'cover', borderRadius: 3 }} />
+              ))}
+            </Box>
+            {galleryImages.length > 5 && (
+              <Button onClick={() => setGalleryOpen(true)} startIcon={<PhotoLibraryOutlinedIcon />} sx={{ position: 'absolute', bottom: 16, right: 16, borderRadius: 999, backgroundColor: 'background.paper', textTransform: 'none', fontWeight: 600, px: 2.5, boxShadow: '0 10px 30px rgba(15, 23, 42, 0.12)' }}>
+                Show all photos
+              </Button>
+            )}
+          </Box>
+        )}
+
+        <Grid container spacing={5}>
+          <Grid item xs={12} md={7}>
+            <Stack spacing={4}>
+              <section>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Description</Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.65 }}>{room?.description}</Typography>
+              </section>
+
+              {amenities.length > 0 && (
+                <section>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>Included services</Typography>
+                  <Grid container spacing={1.5}>
+                    {amenities.map(amenity => (
+                      <Grid item xs={12} sm={6} md={4} key={amenity}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.5, borderRadius: 2, backgroundColor: `${theme.palette.primary.light}15`, border: `1px solid ${theme.palette.primary.light}80`, minHeight: 68 }}>
+                          <Box sx={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: `${theme.palette.primary.main}2E`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'primary.main', flexShrink: 0 }}>
+                            <BusinessRoundedIcon fontSize="small" />
+                          </Box>
+                          <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 600 }}>{amenity}</Typography>
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </section>
+              )}
+
+              <section>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Cancellation policy</Typography>
+                <Stack spacing={1.25}>
+                  {cancellationPolicy.map(item => (
+                    <Stack direction="row" spacing={1.5} key={item}>
+                      <FlagRoundedIcon sx={{ color: 'primary.main', mt: 0.35, flexShrink: 0 }} fontSize="small" />
+                      <Typography variant="body2" sx={{ color: '#475569' }}>{item}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </section>
+
+              <section>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Instructions</Typography>
+                <Stack spacing={1.25}>
+                  {bookingInstructions.map(item => (
+                    <Stack direction="row" spacing={1.5} key={item}>
+                      <CalendarTodayRoundedIcon sx={{ color: 'primary.main', mt: 0.35, flexShrink: 0 }} fontSize="small" />
+                      <Typography variant="body2" sx={{ color: '#475569' }}>{item}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </section>
+            </Stack>
+          </Grid>
+
+          <Grid item xs={12} md={5}>
+            <Stack spacing={3} sx={{ border: '1px solid', borderColor: 'grey.200', borderRadius: 3, p: 3, bgcolor: 'background.paper' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Ready to book?</Typography>
+              <Typography variant="body2" sx={{ color: '#475569' }}>Select your preferred date and time, provide your contact details, and submit your booking request.</Typography>
+              <Divider />
+              <Stack spacing={1}>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2" color="text.secondary">Price from</Typography>
+                  <Typography variant="body1" fontWeight={600}>€{room?.priceFrom || '—'}/h</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2" color="text.secondary">Capacity</Typography>
+                  <Typography variant="body1" fontWeight={600}>{room?.capacity} persons</Typography>
+                </Stack>
+              </Stack>
+              <Button onClick={onStartBooking} variant="contained" size="large" sx={{ textTransform: 'none', fontWeight: 700, backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' }, borderRadius: 999 }}>
+                Start booking
+              </Button>
+            </Stack>
+          </Grid>
+        </Grid>
+      </Stack>
+
+      <Dialog open={galleryOpen} onClose={() => setGalleryOpen(false)} maxWidth="lg" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
+        <IconButton onClick={() => setGalleryOpen(false)} sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'background.paper' }}><CloseRoundedIcon /></IconButton>
+        <DialogContent sx={{ pt: 4 }}>
+          <Grid container spacing={2}>
+            {galleryImages.map((img, i) => (
+              <Grid item xs={12} sm={6} md={4} key={i}>
+                <Box component="img" src={img} alt={`${room?.name} gallery ${i + 1}`} sx={{ width: '100%', height: 220, objectFit: 'cover', borderRadius: 2 }} />
+              </Grid>
+            ))}
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    </Box>
+  );
+};
+
+// Booking Flow View (multi-step)
+const UserBookingFlowView = ({ room, centroOptions, productOptions, onBack, onComplete }) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [schedule, setSchedule] = useState({ date: '', dateTo: '', startTime: '09:00', endTime: '10:00', attendees: 1 });
+  const [contact, setContact] = useState(null);
+  const [bookingDetails, setBookingDetails] = useState(null);
+
+  const handleDetailsComplete = (details) => {
+    setBookingDetails(details);
+    setActiveStep(1);
+  };
+
+  const handleContactComplete = ({ contact: contactData }) => {
+    setContact(contactData);
+    setActiveStep(2);
+  };
+
+  return (
+    <Box>
+      <Button startIcon={<ArrowBackRoundedIcon />} onClick={activeStep === 0 ? onBack : () => setActiveStep(prev => prev - 1)} sx={{ mb: 2, textTransform: 'none', color: 'text.secondary' }}>
+        {activeStep === 0 ? 'Back to room details' : 'Back'}
+      </Button>
+
+      <Stack spacing={4}>
+        <Box>
+          <Typography variant="overline" sx={{ color: 'text.disabled' }}>Booking · {room?.centro || 'Málaga Workspace'}</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>{room?.name}</Typography>
+        </Box>
+
+        <Paper variant="outlined" sx={{ px: 3, py: 2, borderRadius: 3 }}>
+          <UserBookingStepper activeStep={activeStep} />
+        </Paper>
+
+        {activeStep === 0 && (
+          <UserSelectBookingDetails room={room} schedule={schedule} setSchedule={setSchedule} onContinue={handleDetailsComplete} centroOptions={centroOptions} productOptions={productOptions} />
+        )}
+        {activeStep === 1 && (
+          <UserContactBillingStep room={room} schedule={schedule} onBack={() => setActiveStep(0)} onContinue={handleContactComplete} />
+        )}
+        {activeStep === 2 && (
+          <UserReviewPaymentStep room={room} schedule={schedule} contact={contact} onBack={() => setActiveStep(1)} onComplete={onComplete} />
+        )}
+      </Stack>
+    </Box>
+  );
+};
+
+// Space card component for user booking view
+const SpaceCardUser = ({ space, onBookNow }) => {
+  const theme = useTheme();
+  if (!space) return null;
+
+  const handleClick = () => {
+    if (typeof onBookNow === 'function') {
+      onBookNow(space);
+    }
+  };
+
+  const isMeetingRoom = space.type === 'meeting_room';
+  const deskLabel = space.availableCount ? ` (${space.availableCount} available)` : '';
+
+  return (
+    <Box sx={{ display: 'flex', minWidth: 0 }}>
+      <Card
+        sx={{
+          borderRadius: 3,
+          overflow: 'hidden',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          maxWidth: '100%',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+      >
+        <Box sx={{ position: 'relative', flexShrink: 0, height: '160px', overflow: 'hidden' }}>
+          <CardMedia
+            component="img"
+            image={space.image}
+            alt={space.name}
+            sx={{ objectFit: 'cover', width: '100%', height: '100%', display: 'block' }}
+          />
+          <Stack direction="row" spacing={1} sx={{ position: 'absolute', top: 10, left: 10 }}>
+            {space.instantBooking && (
+              <Chip
+                label="Instant booking"
+                size="small"
+                sx={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: 'text.primary', fontWeight: 500, fontSize: '0.75rem' }}
+              />
+            )}
+          </Stack>
+          <IconButton
+            sx={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' }
+            }}
+          >
+            <FavoriteBorderRoundedIcon />
+          </IconButton>
+        </Box>
+
+        <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, justifyContent: 'space-between', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+          <Box sx={{ flex: '1 1 auto', minHeight: 0, width: '100%', maxWidth: '100%' }}>
+            <Typography variant="h6" fontWeight={600} sx={{ mb: 0.75, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {space.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25, minHeight: '2rem', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', width: '100%' }}>
+              {space.subtitle || space.description}
+            </Typography>
+            <Stack direction="row" spacing={1.5} sx={{ mb: 1.25, minHeight: '1.5rem', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
+                <PeopleAltRoundedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                  {space.capacity}
+                </Typography>
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
+                <BusinessRoundedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                  {space.typeLabel || (isMeetingRoom ? 'Meeting room' : `Desk${deskLabel}`)}
+                </Typography>
+              </Stack>
+            </Stack>
+          </Box>
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 'auto', width: '100%', gap: 1 }}>
+            <Typography variant="subtitle1" fontWeight={600} color="primary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '0 1 auto', minWidth: 0 }}>
+              From {space.price}{space.priceUnit}
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleClick}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                backgroundColor: 'primary.main',
+                flexShrink: 0,
+                '&:hover': { backgroundColor: 'primary.dark' }
+              }}
+              disabled={!space.isBookable}
+            >
+              Book now
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+};
+
+// User Bookings Table - shows the user's own bookings
+const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
+  const theme = useTheme();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const getStatusChip = (status) => {
+    const statusLower = (status || '').toLowerCase();
+    if (statusLower.includes('paid') || statusLower.includes('pag')) {
+      return <Chip label="Paid" size="small" sx={{ bgcolor: 'rgba(34, 197, 94, 0.15)', color: '#166534', fontWeight: 600 }} />;
+    }
+    if (statusLower.includes('invoice') || statusLower.includes('fact')) {
+      return <Chip label="Invoiced" size="small" sx={{ bgcolor: 'rgba(250, 204, 21, 0.2)', color: '#854d0e', fontWeight: 600 }} />;
+    }
+    return <Chip label="Pending" size="small" sx={{ bgcolor: 'rgba(251, 146, 60, 0.15)', color: '#9a3412', fontWeight: 600 }} />;
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!bloqueos || bloqueos.length === 0) {
+    return (
+      <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="h6" color="text.secondary">No bookings found</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          You don't have any bookings yet. Browse spaces to make your first reservation.
+        </Typography>
+      </Paper>
+    );
+  }
+
+  const paginatedBloqueos = bloqueos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#f8fafc' }}>
+              <TableCell sx={{ fontWeight: 600 }}>Space</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Time</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Location</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedBloqueos.map((bloqueo) => {
+              const startDate = bloqueo.fechaIni ? new Date(bloqueo.fechaIni) : null;
+              const endDate = bloqueo.fechaFin ? new Date(bloqueo.fechaFin) : null;
+              const dateStr = startDate ? startDate.toLocaleDateString() : '—';
+              const startTime = startDate ? startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+              const endTime = endDate ? endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+              const timeStr = startTime && endTime ? `${startTime} - ${endTime}` : '—';
+
+              return (
+                <TableRow key={bloqueo.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                  <TableCell>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 40, height: 40 }}>
+                        <MeetingRoomRoundedIcon fontSize="small" />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" fontWeight={600}>{bloqueo.producto?.nombre || '—'}</Typography>
+                        <Typography variant="caption" color="text.secondary">{bloqueo.centro?.nombre || '—'}</Typography>
+                      </Box>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>{dateStr}</TableCell>
+                  <TableCell>{timeStr}</TableCell>
+                  <TableCell>{bloqueo.centro?.nombre || '—'}</TableCell>
+                  <TableCell>{getStatusChip(bloqueo.estado)}</TableCell>
+                  <TableCell align="right">
+                    <Button size="small" onClick={() => onViewDetails?.(bloqueo)} sx={{ textTransform: 'none' }}>
+                      View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={bloqueos.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25]}
+      />
+    </Paper>
+  );
+};
+
+// User Booking Details Dialog
+const UserBookingDetailsDialog = ({ bloqueo, onClose }) => {
+  const open = Boolean(bloqueo);
+  if (!bloqueo) return null;
+
+  const startDate = bloqueo.fechaIni ? new Date(bloqueo.fechaIni) : null;
+  const endDate = bloqueo.fechaFin ? new Date(bloqueo.fechaFin) : null;
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" fontWeight={600}>Booking Details</Typography>
+        <IconButton onClick={onClose} size="small"><CloseRoundedIcon /></IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={3}>
+          <Box>
+            <Typography variant="overline" color="text.secondary">Space</Typography>
+            <Typography variant="h6" fontWeight={600}>{bloqueo.producto?.nombre || '—'}</Typography>
+            <Typography variant="body2" color="text.secondary">{bloqueo.centro?.nombre || '—'}</Typography>
+          </Box>
+          <Divider />
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Typography variant="overline" color="text.secondary">Date</Typography>
+              <Typography variant="body1">{startDate ? startDate.toLocaleDateString() : '—'}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="overline" color="text.secondary">Time</Typography>
+              <Typography variant="body1">
+                {startDate ? startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} - {endDate ? endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="overline" color="text.secondary">Attendees</Typography>
+              <Typography variant="body1">{bloqueo.asistentes || '—'}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="overline" color="text.secondary">Status</Typography>
+              <Typography variant="body1">{bloqueo.estado || 'Pending'}</Typography>
+            </Grid>
+          </Grid>
+          {bloqueo.nota && (
+            <>
+              <Divider />
+              <Box>
+                <Typography variant="overline" color="text.secondary">Notes</Typography>
+                <Typography variant="body2">{bloqueo.nota}</Typography>
+              </Box>
+            </>
+          )}
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} sx={{ textTransform: 'none' }}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// User booking view component
+const UserBookingView = () => {
+  const theme = useTheme();
+  const [mainView, setMainView] = useState('spaces'); // 'spaces' or 'bookings'
+  const [spaceTypeTab, setSpaceTypeTab] = useState(0);
+  const [cityFilter, setCityFilter] = useState('');
+  const [cityOptions, setCityOptions] = useState([{ id: 'all', label: 'All locations', isAllOption: true }]);
+  const [location, setLocation] = useState('');
+  const [people, setPeople] = useState('');
+  const [checkIn, setCheckIn] = useState('');
+  const [centros, setCentros] = useState([]);
+  const [centrosLoading, setCentrosLoading] = useState(false);
+  const [productos, setProductos] = useState([]);
+  const [productosLoading, setProductosLoading] = useState(false);
+  const [selectedSpace, setSelectedSpace] = useState(null);
+  const [userBloqueos, setUserBloqueos] = useState([]);
+  const [bloqueosLoading, setBloqueosLoading] = useState(false);
+  const [selectedBloqueo, setSelectedBloqueo] = useState(null);
+  const catalogRooms = DEFAULT_CATALOG_ROOMS;
+
+  const spaceTypes = [
+    { value: 'all', label: 'All Spaces', icon: <BusinessRoundedIcon /> },
+    { value: 'meeting_room', label: 'Meeting Rooms', icon: <MeetingRoomRoundedIcon /> },
+    { value: 'desk', label: 'Desks', icon: <DeskRoundedIcon /> }
+  ];
+
+  // Load user's bookings
+  useEffect(() => {
+    if (mainView !== 'bookings') return;
+    let active = true;
+    setBloqueosLoading(true);
+    
+    const loadUserBloqueos = async () => {
+      try {
+        // Fetch bloqueos for the user (without specific filters to get all their bookings)
+        const today = new Date();
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(today.getMonth() - 3);
+        const threeMonthsAhead = new Date(today);
+        threeMonthsAhead.setMonth(today.getMonth() + 3);
+        
+        const data = await fetchBloqueos({
+          from: threeMonthsAgo.toISOString().split('T')[0],
+          to: threeMonthsAhead.toISOString().split('T')[0]
+        });
+        if (!active) return;
+        setUserBloqueos(Array.isArray(data) ? data : []);
+      } catch (error) {
+        if (active) setUserBloqueos([]);
+      } finally {
+        if (active) setBloqueosLoading(false);
+      }
+    };
+    loadUserBloqueos();
+    return () => { active = false; };
+  }, [mainView]);
+
+  // Load centros and cities
+  useEffect(() => {
+    let active = true;
+    setCentrosLoading(true);
+    
+    const loadCentros = async () => {
+      try {
+        const data = await fetchPublicCentros();
+        if (!active) return;
+
+        const options = Array.isArray(data) ? data.map((c) => {
+          const code = (c.codigo ?? c.code ?? '').toUpperCase();
+          const city = (c.localidad ?? c.city ?? '').trim();
+          return {
+            ...c, 
+            id: c.id ?? c.codigo ?? c.code ?? c.nombre ?? c.name ?? code, 
+            label: c.nombre ?? c.name ?? '',
+            code,
+            city
+          };
+        }) : [];
+        
+        const centrosWithAll = [{ id: 'all', label: 'All Centros', isAllOption: true }, ...options];
+        setCentros(centrosWithAll);
+
+        const uniqueCities = Array.from(new Set(options
+          .map(option => option.city)
+          .filter(city => typeof city === 'string' && city.trim() !== '')
+          .map(city => city.trim())));
+        const cityList = [
+          { id: 'all', label: 'All locations', isAllOption: true },
+          ...uniqueCities.map(city => ({ id: city.toLowerCase(), label: city }))
+        ];
+        setCityOptions(cityList);
+      } catch (error) {
+        if (active) {
+          setCentros([]);
+          setCityOptions([{ id: 'all', label: 'All locations', isAllOption: true }]);
+        }
+      } finally {
+        if (active) {
+          setCentrosLoading(false);
+        }
+      }
+    };
+    loadCentros();
+    
+    return () => { active = false; };
+  }, []);
+
+  // Load productos
+  useEffect(() => {
+    if (mainView !== 'spaces') return;
+    let active = true;
+    setProductosLoading(true);
+
+    const loadProductos = async () => {
+      try {
+        const params = { centerCode: 'MA1' };
+        if (spaceTypeTab === 1) {
+          params.type = 'Aula';
+        } else if (spaceTypeTab === 2) {
+          params.type = 'Mesa';
+        }
+        
+        const data = await fetchPublicProductos(params);
+        if (!active) return;
+        setProductos(Array.isArray(data) ? data : []);
+      } catch (error) {
+        if (active) {
+          setProductos([]);
+        }
+      } finally {
+        if (active) {
+          setProductosLoading(false);
+        }
+      }
+    };
+    
+    loadProductos();
+    return () => { active = false; };
+  }, [spaceTypeTab, mainView]);
+
+  const standardFieldStyles = {
+    width: '100%',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
+      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#f8fafc',
+      height: '40px',
+      '& fieldset': { borderColor: theme.palette.divider },
+      '& input': { fontSize: '0.9375rem !important', fontWeight: 500, padding: '8.5px 14px !important', height: '100%' }
+    },
+    '& .MuiInputLabel-root': { fontSize: '0.75rem', color: 'text.secondary' },
+    '& .MuiAutocomplete-input': { padding: '8.5px 14px !important' }
+  };
+
+  const filteredSpaces = useMemo(() => {
+    if (!productos || !Array.isArray(productos)) return [];
+
+    const filteredProductos = productos.filter((producto) => {
+      const type = (producto.type ?? producto.tipo ?? '').trim().toLowerCase();
+      const name = (producto.name ?? producto.nombre ?? '').trim();
+      const centerCode = (producto.centerCode ?? producto.centroCodigo ?? '').trim().toUpperCase();
+
+      if (!name || centerCode !== 'MA1') return false;
+
+      const upperName = name.toUpperCase();
+      if (type === 'aula') return upperName.startsWith('MA1A');
+      if (type === 'mesa') {
+        const deskMatch = upperName.match(/^MA1[-_]?O1[-_ ]?(\d{1,2})$/);
+        if (!deskMatch) return false;
+        const numero = parseInt(deskMatch[1], 10);
+        return numero >= 1 && numero <= 16;
+      }
+      return false;
+    });
+    
+    const aulas = filteredProductos.filter((producto) => {
+      const typeLower = (producto.type ?? producto.tipo ?? '').trim().toLowerCase();
+      return typeLower === 'aula';
+    });
+
+    const mesas = filteredProductos.filter((producto) => {
+      const typeLower = (producto.type ?? producto.tipo ?? '').trim().toLowerCase();
+      return typeLower === 'mesa';
+    });
+
+    const aulaSpaces = aulas.map((producto) => {
+      const rawType = (producto.type ?? producto.tipo ?? '').trim();
+      const name = (producto.name ?? producto.nombre ?? '').trim();
+      const productCenter = (producto.centerCode ?? producto.centroCodigo ?? '').trim();
+      const productCenterUpper = productCenter.toUpperCase();
+      const matchingCentro = centros.find((c) => (c.code ?? '').toUpperCase() === productCenterUpper);
+      const centerName = matchingCentro?.label ?? productCenter;
+      const city = matchingCentro?.city ?? '';
+      const matchingRoom = catalogRooms.find((room) => (room.productName ?? '').toLowerCase() === name.toLowerCase());
+      const roomSlug = matchingRoom?.slug ?? ((matchingRoom?.id ? matchingRoom.id.toString().toLowerCase() : '') || name.toLowerCase());
+
+      return {
+        id: producto.id,
+        name,
+        productName: name,
+        slug: roomSlug,
+        type: 'meeting_room',
+        typeLabel: rawType || 'Meeting room',
+        image: matchingRoom?.heroImage || producto.heroImage || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
+        capacity: producto.capacity != null ? String(producto.capacity) : '—',
+        rating: producto.ratingAverage != null ? Number(producto.ratingAverage) : 4.8,
+        reviewCount: producto.ratingCount != null ? producto.ratingCount : 0,
+        priceFrom: producto.priceFrom,
+        price: producto.priceFrom != null ? `€ ${producto.priceFrom}` : '€ —',
+        priceUnit: producto.priceUnit || '/h',
+        description: matchingRoom?.description || producto.description || producto.subtitle || `${rawType} - ${name}`,
+        subtitle: producto.subtitle || '',
+        gallery: Array.isArray(producto.images) ? producto.images : [],
+        amenities: matchingRoom?.amenities || (Array.isArray(producto.amenities) ? producto.amenities : []),
+        tags: matchingRoom?.tags || (Array.isArray(producto.tags) ? producto.tags : []),
+        location: city || centerName || 'Málaga',
+        instantBooking: producto.instantBooking !== false,
+        centroCode: productCenter || undefined,
+        centerName: centerName || undefined,
+        isBookable: Boolean(matchingRoom)
+      };
+    });
+
+    const deskCard = (() => {
+      if (mesas.length === 0) return null;
+
+      const sample = mesas[0];
+      const rawType = (sample.type ?? sample.tipo ?? '').trim();
+      const productCenter = (sample.centerCode ?? sample.centroCodigo ?? '').trim();
+      const productCenterUpper = productCenter.toUpperCase();
+      const matchingCentro = centros.find((c) => (c.code ?? '').toUpperCase() === productCenterUpper);
+      const centerName = matchingCentro?.label ?? productCenter;
+      const city = matchingCentro?.city ?? '';
+      const deskCount = mesas.length;
+      const matchingRoom = catalogRooms.find((room) => (room.slug ?? '').toLowerCase() === 'ma1-desks');
+      const roomSlug = matchingRoom?.slug ?? ((matchingRoom?.id ? String(matchingRoom.id).toLowerCase() : '') || 'ma1-desks');
+
+      return {
+        id: `desks-${productCenterUpper || 'ma1'}`,
+        name: centerName ? `${centerName} Desks` : 'MA1 Desks',
+        description: matchingRoom?.description || `${deskCount} desk${deskCount === 1 ? '' : 's'} available for booking`,
+        productName: 'MA1 Desks',
+        slug: roomSlug,
+        type: 'desk',
+        image: matchingRoom?.heroImage || 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=300&fit=crop',
+        capacity: '1',
+        rating: 4.8,
+        reviewCount: 0,
+        price: '€ 15',
+        priceUnit: '/day',
+        location: city || centerName || 'Málaga',
+        tags: matchingRoom?.tags || [],
+        instantBooking: true,
+        centroCode: productCenter || undefined,
+        availableCount: deskCount,
+        centerName: centerName || undefined,
+        isBookable: Boolean(matchingRoom)
+      };
+    })();
+
+    const mappedSpaces = deskCard ? [...aulaSpaces, deskCard] : aulaSpaces;
+    
+    let filtered = [...mappedSpaces];
+    
+    if (cityFilter && cityFilter.trim() !== '') {
+      const cityFilterLower = cityFilter.trim().toLowerCase();
+      filtered = filtered.filter(space => (space.location ?? '').toLowerCase() === cityFilterLower);
+    }
+    
+    if (people && people.trim() !== '') {
+      const userCount = parseInt(people);
+      if (!isNaN(userCount)) {
+        filtered = filtered.filter(space => {
+          if (!space.capacity) return false;
+          const capacityParts = space.capacity.split('-');
+          if (capacityParts.length === 1) {
+            const singleCapacity = parseInt(capacityParts[0]);
+            return !isNaN(singleCapacity) && userCount <= singleCapacity;
+          } else {
+            const [minCapacity, maxCapacity] = capacityParts.map(num => parseInt(num));
+            return !isNaN(minCapacity) && !isNaN(maxCapacity) && userCount >= minCapacity && userCount <= maxCapacity;
+          }
+        });
+      }
+    }
+    
+    return filtered;
+  }, [productos, centros, cityFilter, people, catalogRooms]);
+
+  // View states: 'list', 'detail', 'booking'
+  const [currentView, setCurrentView] = useState('list');
+
+  const handleBookNow = useCallback((space) => {
+    setSelectedSpace(space);
+    setCurrentView('detail');
+  }, []);
+
+  const handleSpaceTypeTabChange = (event, newValue) => {
+    setSpaceTypeTab(newValue);
+  };
+
+  const handleMainViewChange = (event, newValue) => {
+    if (newValue !== null) {
+      setMainView(newValue);
+      setCurrentView('list');
+      setSelectedSpace(null);
+    }
+  };
+
+  const handleBackToList = () => {
+    setSelectedSpace(null);
+    setCurrentView('list');
+  };
+
+  const handleStartBooking = () => {
+    setCurrentView('booking');
+  };
+
+  const handleBookingComplete = () => {
+    setSelectedSpace(null);
+    setCurrentView('list');
+    // Refresh bookings list
+    setMainView('bookings');
+  };
+
+  const handleViewBookingDetails = (bloqueo) => {
+    setSelectedBloqueo(bloqueo);
+  };
+
+  // Room Detail View
+  if (currentView === 'detail' && selectedSpace) {
+    return (
+      <Box sx={{ minHeight: '100vh' }}>
+        <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
+          <UserRoomDetailView 
+            room={selectedSpace} 
+            onBack={handleBackToList} 
+            onStartBooking={handleStartBooking} 
+          />
+        </Box>
+      </Box>
+    );
+  }
+
+  // Booking Flow View
+  if (currentView === 'booking' && selectedSpace) {
+    return (
+      <Box sx={{ minHeight: '100vh' }}>
+        <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
+          <UserBookingFlowView 
+            room={selectedSpace} 
+            centroOptions={centros}
+            productOptions={productos}
+            onBack={() => setCurrentView('detail')} 
+            onComplete={handleBookingComplete} 
+          />
+        </Box>
+      </Box>
+    );
+  }
+
+  // Main View with Spaces/Bookings toggle
+  return (
+    <Box sx={{ minHeight: '100vh' }}>
+      <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
+        {/* Header with title and view toggle */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} sx={{ mb: 3 }}>
+          <Stack spacing={1}>
+            <Typography variant="h5" fontWeight="bold" color="text.primary">
+              {mainView === 'spaces' ? 'Meeting Rooms' : 'My Bookings'}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {mainView === 'spaces' 
+                ? 'Find and book meeting rooms or desks at BeWorking locations.'
+                : 'View and manage your reservations.'}
+            </Typography>
+          </Stack>
+          <Tabs
+            value={mainView}
+            onChange={handleMainViewChange}
+            sx={getViewToggleTabsStyle(theme)}
+          >
+            <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Spaces" />
+            <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Bookings" />
+          </Tabs>
+        </Stack>
+
+        {/* Bookings View */}
+        {mainView === 'bookings' && (
+          <>
+            <UserBookingsTable 
+              bloqueos={userBloqueos} 
+              loading={bloqueosLoading} 
+              onViewDetails={handleViewBookingDetails} 
+            />
+            <UserBookingDetailsDialog 
+              bloqueo={selectedBloqueo} 
+              onClose={() => setSelectedBloqueo(null)} 
+            />
+          </>
+        )}
+
+        {/* Spaces View */}
+        {mainView === 'spaces' && (
+          <>
+            {/* Space Type Tabs */}
+            <Tabs 
+              value={spaceTypeTab} 
+              onChange={handleSpaceTypeTabChange}
+              sx={{ 
+                mb: 4,
+                '& .MuiTab-root': { textTransform: 'none', fontWeight: 600, minHeight: 48 }
+              }}
+            >
+              {spaceTypes.map((type, index) => (
+                <Tab key={type.value} icon={type.icon} label={type.label} iconPosition="start" />
+              ))}
+            </Tabs>
+
+        {/* Search and Filter Section */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3, 
+            mb: 4, 
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: theme.palette.background.paper,
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <Grid container spacing={1.5} sx={{ mb: 2, display: 'flex' }}>
+            <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
+              <Autocomplete
+                size="small"
+                options={cityOptions}
+                getOptionLabel={(option) => option?.label ?? ''}
+                value={
+                  cityFilter === ''
+                    ? (cityOptions.find(option => option.id === 'all') || null)
+                    : (cityOptions.find(option => option.label?.toLowerCase() === cityFilter.toLowerCase()) || null)
+                }
+                onChange={(_, value) => setCityFilter(value && value.id !== 'all' ? value.label : '')}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    fullWidth
+                    label="Location"
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BusinessRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={standardFieldStyles}
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <Box component="li" {...props} sx={{ fontSize: '0.9375rem', fontWeight: 500 }}>
+                    {option.label}
+                  </Box>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
+              <Autocomplete
+                size="small"
+                options={centros}
+                loading={centrosLoading}
+                getOptionLabel={(option) => option?.label ?? ''}
+                value={
+                  location === '' 
+                    ? (centros.find(c => c.id === 'all') || null)
+                    : (centros.find((c) => c.id !== 'all' && c.label?.toLowerCase() === (location || '').toLowerCase()) || null)
+                }
+                onChange={(_, value) => setLocation(value && value.id !== 'all' ? value.label : '')}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    fullWidth
+                    label="Centro"
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationOnRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={standardFieldStyles}
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <Box component="li" {...props} sx={{ fontSize: '0.9375rem', fontWeight: 500 }}>
+                    {option.label}
+                  </Box>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
+              <TextField
+                fullWidth
+                label="Number of Users"
+                type="number"
+                value={people}
+                onChange={(e) => setPeople(e.target.value)}
+                placeholder="Number of Users"
+                size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <PeopleAltRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={standardFieldStyles}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
+              <TextField
+                fullWidth
+                label="Check in"
+                type="date"
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <CalendarTodayRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={standardFieldStyles}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
+              <Button
+                fullWidth
+                variant="contained"
+                size="small"
+                sx={{
+                  height: 40,
+                  borderRadius: 1,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  backgroundColor: 'primary.main',
+                  '&:hover': { backgroundColor: 'primary.dark' }
+                }}
+              >
+                SEARCH SPACES
+              </Button>
+            </Grid>
+          </Grid>
+
+          {/* Results Count */}
+          <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+              {productosLoading ? 'Loading...' : `Showing ${filteredSpaces.length} ${filteredSpaces.length === 1 ? 'space' : 'spaces'}`}
+            </Typography>
+          </Stack>
+        </Paper>
+
+        {/* Space Listings */}
+        {productosLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : filteredSpaces.length === 0 ? (
+          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="h6" color="text.secondary">No spaces found</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Try adjusting your filters or check back later for availability.
+            </Typography>
+          </Paper>
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'grid',
+              gap: 3,
+              gridTemplateColumns: {
+                xs: 'repeat(1, minmax(0, 1fr))',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                md: 'repeat(3, minmax(0, 1fr))',
+                lg: 'repeat(4, minmax(0, 1fr))'
+              },
+              alignItems: 'stretch'
+            }}
+          >
+            {filteredSpaces.map((space) => (
+              <SpaceCardUser key={space.id} space={space} onBookNow={handleBookNow} />
+            ))}
+          </Box>
+        )}
+          </>
+        )}
+      </Box>
+    </Box>
+  );
+};
+
 const Booking = ({ mode = 'user' }) => {
+  const theme = useTheme();
+  const statusStyles = getStatusStyles(theme);
   const isAdmin = mode === 'admin';
   console.log('Booking component - mode:', mode, 'isAdmin:', isAdmin);
   const defaultAgendaUserType = '';
@@ -3554,6 +5302,12 @@ const Booking = ({ mode = 'user' }) => {
     ? `No bloqueos found for ${calendarDateLabel}. Try a different range or center.`
     : `No bloqueos registered for your account on ${calendarDateLabel}.`;
 
+  // User mode: Show embedded booking interface
+  if (!isAdmin) {
+    return <UserBookingView />;
+  }
+
+  // Admin mode: Show calendar/agenda view
   return (
     <Stack spacing={4}>
       <Stack
@@ -3562,17 +5316,19 @@ const Booking = ({ mode = 'user' }) => {
         justifyContent="space-between"
         alignItems={{ xs: 'flex-start', sm: 'center' }}
       >
-      <Stack spacing={1}>
-        <Typography variant="h5" fontWeight="bold" color="text.primary">
-            {isAdmin ? 'Workspace bloqueos' : 'My bloqueos'}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {isAdmin
-              ? 'Browse every bloqueo across BeWorking locations. Switch between calendar and agenda views to review occupancy, statuses, and tenants.'
-              : 'Track your bloqueos, check upcoming slots, and review bloqueo details from the calendar or agenda views.'}
-        </Typography>
+        <Stack spacing={1}>
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
+            Workspace bloqueos
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Browse every bloqueo across BeWorking locations. Switch between calendar and agenda views.
+          </Typography>
         </Stack>
-        {isAdmin ? (
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Tabs value={view} onChange={handleViewChange} sx={getViewToggleTabsStyle(theme)}>
+            <Tab icon={<CalendarMonthRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Calendar" value="calendar" />
+            <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Agenda" value="agenda" />
+          </Tabs>
           <Button
             variant="contained"
             startIcon={<AddRoundedIcon />}
@@ -3586,22 +5342,17 @@ const Booking = ({ mode = 'user' }) => {
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              backgroundColor: '#fb923c',
-              color: 'white',
+              backgroundColor: 'primary.main',
+              color: 'primary.contrastText',
               '&:hover': {
-                backgroundColor: '#f97316'
+                backgroundColor: 'primary.dark'
               }
             }}
           >
             NEW RESERVA
           </Button>
-        ) : null}
+        </Stack>
       </Stack>
-
-      <Tabs value={view} onChange={handleViewChange} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Tab label="Calendar" value="calendar" disableRipple />
-        <Tab label="Agenda" value="agenda" disableRipple />
-      </Tabs>
 
       {error && <Alert severity="error">{error}</Alert>}
 
@@ -3879,11 +5630,11 @@ const Booking = ({ mode = 'user' }) => {
                 size="small"
                 onClick={clearFilters}
                 sx={{
-                  borderColor: '#fb923c',
-                  color: '#fb923c',
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
                   '&:hover': {
-                    borderColor: '#f97316',
-                    backgroundColor: 'rgba(251, 146, 60, 0.08)'
+                    borderColor: 'primary.dark',
+                    backgroundColor: (theme) => `${theme.palette.primary.main}14`
                   }
                 }}
               >
@@ -3909,39 +5660,34 @@ const Booking = ({ mode = 'user' }) => {
             <AgendaTable
               bloqueos={agendaBloqueos}
               onSelect={handleSelectBloqueo}
-              onDelete={isAdmin ? handleDeleteBloqueo : undefined}
+              onDelete={handleDeleteBloqueo}
               deletingId={deletingBloqueoId}
             />
           )}
         </Stack>
       )}
-      {isAdmin ? (
-        <ReservaDialog
-          open={createDialogOpen}
-          mode="create"
-          onClose={handleCloseCreateDialog}
-          onCreated={handleReservaCreated}
-          defaultDate={calendarDate}
-        />
-      ) : null}
-      {console.log('Rendering ReservaDialog - createDialogOpen:', createDialogOpen, 'isAdmin:', isAdmin)}
+      <ReservaDialog
+        open={createDialogOpen}
+        mode="create"
+        onClose={handleCloseCreateDialog}
+        onCreated={handleReservaCreated}
+        defaultDate={calendarDate}
+      />
 
-      {isAdmin ? (
-        <ReservaDialog
-          open={Boolean(editBloqueo)}
-          mode="edit"
-          onClose={handleCloseEditDialog}
-          onUpdated={handleBloqueoUpdated}
-          initialBloqueo={editBloqueo}
-          defaultDate={calendarDate}
-        />
-      ) : null}
+      <ReservaDialog
+        open={Boolean(editBloqueo)}
+        mode="edit"
+        onClose={handleCloseEditDialog}
+        onUpdated={handleBloqueoUpdated}
+        initialBloqueo={editBloqueo}
+        defaultDate={calendarDate}
+      />
 
       <BloqueoDetailsDialog
         bloqueo={selectedBloqueo}
         onClose={() => setSelectedBloqueo(null)}
-        onEdit={isAdmin ? handleStartEditBloqueo : undefined}
-        onInvoice={isAdmin ? handleStartInvoice : undefined}
+        onEdit={handleStartEditBloqueo}
+        onInvoice={handleStartInvoice}
         invoiceLoading={invoiceSubmitting}
       />
       <InvoicePreviewDialog
@@ -3976,9 +5722,12 @@ const Booking = ({ mode = 'user' }) => {
           <Button onClick={handleCloseConfirm}>Cancel</Button>
           <Button
             onClick={handleConfirmDelete}
-            color="error"
             variant="contained"
             disabled={Boolean(deletingBloqueoId)}
+            sx={{ 
+              backgroundColor: 'secondary.main', 
+              '&:hover': { backgroundColor: 'secondary.dark' } 
+            }}
           >
             Delete
           </Button>

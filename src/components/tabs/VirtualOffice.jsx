@@ -61,11 +61,11 @@ const VirtualOffice = ({ userType = 'user' }) => {
               fontWeight: 500,
               minHeight: 64,
               '&.Mui-selected': {
-                color: '#22c55e'
+                color: 'secondary.main'
               }
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: '#22c55e',
+              backgroundColor: 'secondary.main',
               height: 3
             }
           }}
