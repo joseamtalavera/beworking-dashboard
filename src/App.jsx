@@ -6,9 +6,6 @@ import { useAuthProfile } from './components/hooks/useAuthProfile.js';
 const App = () => {
   const { status, profile, error, loginUrl, refreshProfile, logout } = useAuthProfile();
   
-  // Force component remount when switching between admin and user
-  const appKey = `${profile?.role || 'unknown'}-${Date.now()}`;
-
   if (status === 'loading') {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
@@ -29,7 +26,9 @@ const App = () => {
   }
 
   const isAdmin = profile.role?.toUpperCase() === 'ADMIN';
-  return isAdmin ? <AdminApp key={appKey} userProfile={profile} refreshProfile={refreshProfile} logout={logout} /> : <UserApp key={appKey} userProfile={profile} refreshProfile={refreshProfile} logout={logout} />;
+  return isAdmin
+    ? <AdminApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />
+    : <UserApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />;
 };
 
 export default App;

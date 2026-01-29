@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -19,9 +20,9 @@ import {
   SendRounded
 } from '@mui/icons-material';
 
-const accentColor = '#10b981';
-
 const Agent = ({ onClose }) => {
+  const theme = useTheme();
+  const accentColor = theme.palette.primary.main;
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([
     {
@@ -65,42 +66,47 @@ const Agent = ({ onClose }) => {
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <Box sx={{ 
-        p: 3, 
-        borderBottom: '1px solid #e2e8f0', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        bgcolor: '#f8fafc'
-      }}>
+      <Box
+        sx={{
+          p: 3,
+          borderBottom: '1px solid',
+          borderBottomColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          bgcolor: 'background.default'
+        }}
+      >
         <Stack direction="row" alignItems="center" spacing={2}>
           <Avatar sx={{ bgcolor: accentColor, width: 40, height: 40 }}>
             <SmartToyOutlined />
           </Avatar>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
               AI Agent
             </Typography>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 8, height: 8, bgcolor: '#10b981', borderRadius: '50%' }} />
-              <Typography variant="caption" sx={{ color: '#64748b' }}>
+              <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
+              <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                 Online
               </Typography>
             </Stack>
           </Box>
         </Stack>
-        <IconButton onClick={onClose} sx={{ color: '#64748b' }}>
+        <IconButton onClick={onClose} sx={{ color: 'text.disabled' }}>
           <CloseRounded />
         </IconButton>
       </Box>
 
       {/* Chat Messages */}
-      <Box sx={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        p: 2,
-        bgcolor: '#f8fafc'
-      }}>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          p: 2,
+          bgcolor: 'background.default'
+        }}
+      >
         <Stack spacing={2}>
           {messages.map((msg) => (
             <Box key={msg.id} sx={{ 
@@ -116,19 +122,19 @@ const Agent = ({ onClose }) => {
               )}
               <Box sx={{ 
                 maxWidth: '80%',
-                bgcolor: msg.sender === 'user' ? accentColor : 'white',
-                color: msg.sender === 'user' ? 'white' : '#1e293b',
+                bgcolor: msg.sender === 'user' ? accentColor : 'background.paper',
+                color: msg.sender === 'user' ? 'common.white' : 'text.primary',
                 p: 2,
                 borderRadius: 2,
                 borderTopLeftRadius: msg.sender === 'agent' ? 4 : 8,
                 borderTopRightRadius: msg.sender === 'user' ? 4 : 8,
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                boxShadow: theme.shadows[1]
               }}>
                 <Typography variant="body2">
                   {msg.text}
                 </Typography>
                 <Typography variant="caption" sx={{ 
-                  color: msg.sender === 'user' ? 'rgba(255, 255, 255, 0.7)' : '#64748b',
+                  color: msg.sender === 'user' ? alpha(theme.palette.common.white, 0.7) : 'text.disabled',
                   display: 'block',
                   mt: 0.5
                 }}>
@@ -136,7 +142,16 @@ const Agent = ({ onClose }) => {
                 </Typography>
               </Box>
               {msg.sender === 'user' && (
-                <Avatar sx={{ bgcolor: '#3b82f6', width: 32, height: 32, mt: 0.5, border: '3px solid #fde7d2' }}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'info.main',
+                    width: 32,
+                    height: 32,
+                    mt: 0.5,
+                    border: '3px solid',
+                    borderColor: (theme) => alpha(theme.palette.warning.light, 0.6)
+                  }}
+                >
                   <ChatBubbleOutline sx={{ fontSize: 16 }} />
                 </Avatar>
               )}
@@ -146,11 +161,7 @@ const Agent = ({ onClose }) => {
       </Box>
 
       {/* Input Area */}
-      <Box sx={{ 
-        p: 2, 
-        borderTop: '1px solid #e2e8f0',
-        bgcolor: 'white'
-      }}>
+      <Box sx={{ p: 2, borderTop: '1px solid', borderTopColor: 'divider', bgcolor: 'background.paper' }}>
         <TextField
           fullWidth
           multiline
@@ -163,7 +174,7 @@ const Agent = ({ onClose }) => {
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
               '& fieldset': {
-                borderColor: '#e2e8f0',
+                borderColor: 'divider',
               },
               '&:hover fieldset': {
                 borderColor: accentColor,
@@ -182,7 +193,7 @@ const Agent = ({ onClose }) => {
                   sx={{
                     color: accentColor,
                     '&:hover': {
-                      bgcolor: 'rgba(16, 185, 129, 0.08)'
+                      bgcolor: alpha(theme.palette.primary.main, 0.08)
                     }
                   }}
                 >

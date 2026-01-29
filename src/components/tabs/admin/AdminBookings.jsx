@@ -21,7 +21,7 @@ const statusColor = {
 };
 
 const AdminBookings = () => (
-  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
     <Stack spacing={0.5} sx={{ mb: 3 }}>
       <Typography variant="h6" fontWeight={700}>
         Bookings overview

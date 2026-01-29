@@ -1,4 +1,5 @@
 import React from 'react';
+import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -29,8 +30,8 @@ const Expenses = () => {
               width: 80,
               height: 80,
               borderRadius: '50%',
-              bgcolor: 'rgba(34, 197, 94, 0.12)',
-              color: 'secondary.main'
+              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
+              color: 'primary.main'
             }}
           >
             <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 40 }} />

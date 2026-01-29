@@ -34,7 +34,7 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { listSpaces, upsertSpace, deleteSpace } from '../../../api/spaceCatalog.js';
 import { apiFetch } from '../../../api/client.js';
 
@@ -818,7 +818,7 @@ const SpaceCatalog = () => {
                       sx={{
                         '& .MuiSwitch-switchBase.Mui-checked': {
                           color: BRAND_PRIMARY,
-                          '&:hover': { backgroundColor: 'rgba(251,146,60,0.12)' }
+                          '&:hover': { backgroundColor: (theme) => alpha(theme.palette.brand.orange, 0.12) }
                         },
                         '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
                           backgroundColor: BRAND_PRIMARY

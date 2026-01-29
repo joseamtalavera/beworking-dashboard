@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
 import Avatar from '@mui/material/Avatar';
@@ -31,7 +31,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 
 const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) => {
   const theme = useTheme();
-  const accentColor = theme.palette.brand.orange;
+  const accentColor = theme.palette.brand.green;
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -339,7 +339,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
           <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar src={user.avatar} alt={user.name} sx={{ width: 56, height: 56, border: '3px solid #fde7d2' }} />
+            <Avatar
+              src={user.avatar}
+              alt={user.name}
+              sx={{ width: 56, height: 56, border: '3px solid', borderColor: alpha(theme.palette.warning.light, 0.6) }}
+            />
             <Box>
               <Typography variant="h6" fontWeight="bold">
                 {user.name}
@@ -374,11 +378,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   borderColor: accentColor, 
                   color: accentColor,
                   '&:hover': { 
-                    borderColor: '#f97316',
-                    color: '#f97316',
-                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                    borderColor: theme.palette.brand.orangeHover,
+                    color: theme.palette.brand.orangeHover,
+                    backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -392,19 +396,20 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   size="small" 
                   onClick={handleCancelEdit}
                   disabled={loading}
+                  color="secondary"
                   sx={{
                     minWidth: 120,
                     height: 36,
                     textTransform: 'none',
                     fontWeight: 600,
-                    borderColor: accentColor,
-                    color: accentColor,
+                    borderColor: theme.palette.secondary.main,
+                    color: theme.palette.secondary.main,
                     '&:hover': {
-                      borderColor: '#f97316',
-                      color: '#f97316',
-                      backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                      borderColor: theme.palette.secondary.dark,
+                      color: theme.palette.secondary.dark,
+                      backgroundColor: theme.palette.brand.orangeSoft,
                       transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                      boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -422,9 +427,9 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     textTransform: 'none',
                     fontWeight: 600,
                     backgroundColor: accentColor, 
-                    color: 'white',
+                    color: 'common.white',
                     '&:hover': { 
-                      backgroundColor: '#f97316' 
+                      backgroundColor: theme.palette.brand.orangeHover 
                     } 
                   }}
                 >
@@ -603,7 +608,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             <Avatar 
               src={avatarPreview || user.avatar} 
               alt={user.name} 
-              sx={{ width: 64, height: 64, border: '2px solid #e2e8f0' }}
+              sx={{ width: 64, height: 64, border: '2px solid', borderColor: 'divider' }}
             >
               {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
             </Avatar>
@@ -629,11 +634,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     borderColor: accentColor, 
                     color: accentColor,
                     '&:hover': { 
-                      borderColor: '#f97316',
-                      color: '#f97316',
-                      backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                      borderColor: theme.palette.brand.orangeHover,
+                      color: theme.palette.brand.orangeHover,
+                      backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                       transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                      boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -733,11 +738,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   borderColor: accentColor, 
                   color: accentColor,
                   '&:hover': { 
-                    borderColor: '#f97316',
-                    color: '#f97316',
-                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                    borderColor: theme.palette.brand.orangeHover,
+                    color: theme.palette.brand.orangeHover,
+                    backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -751,19 +756,20 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   size="small" 
                   onClick={handleCancelBillingEdit}
                   disabled={loading}
+                  color="secondary"
                   sx={{
                     minWidth: 120,
                     height: 36,
                     textTransform: 'none',
                     fontWeight: 600,
-                    borderColor: accentColor,
-                    color: accentColor,
+                    borderColor: theme.palette.secondary.main,
+                    color: theme.palette.secondary.main,
                     '&:hover': {
-                      borderColor: '#f97316',
-                      color: '#f97316',
-                      backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                      borderColor: theme.palette.secondary.dark,
+                      color: theme.palette.secondary.dark,
+                      backgroundColor: theme.palette.brand.orangeSoft,
                       transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                      boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -781,9 +787,9 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     textTransform: 'none',
                     fontWeight: 600,
                     backgroundColor: accentColor, 
-                    color: 'white',
+                    color: 'common.white',
                     '&:hover': { 
-                      backgroundColor: '#f97316' 
+                      backgroundColor: theme.palette.brand.orangeHover 
                     } 
                   }}
                 >
@@ -941,11 +947,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 borderColor: accentColor, 
                 color: accentColor, 
                 '&:hover': { 
-                  borderColor: '#f97316', 
-                  color: '#f97316',
-                  backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                  borderColor: theme.palette.brand.orangeHover, 
+                  color: theme.palette.brand.orangeHover,
+                  backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                   transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                  boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                 },
                 transition: 'all 0.2s ease-in-out'
               }} 
@@ -962,9 +968,9 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 textTransform: 'none',
                 fontWeight: 600,
                 backgroundColor: accentColor, 
-                color: 'white',
+                color: 'common.white',
                 '&:hover': { 
-                  backgroundColor: '#f97316' 
+                  backgroundColor: theme.palette.brand.orangeHover 
                 } 
               }} 
               onClick={() => setSubscriptionDialogOpen(true)}
@@ -1001,10 +1007,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     p: 3, 
                     height: '100%',
                     cursor: 'pointer',
-                    border: selectedPlan?.id === plan.id ? `2px solid ${accentColor}` : '1px solid #e0e0e0',
+                    border: selectedPlan?.id === plan.id ? '2px solid' : '1px solid',
+                    borderColor: selectedPlan?.id === plan.id ? accentColor : 'divider',
                     '&:hover': {
                       borderColor: accentColor,
-                      boxShadow: `0 4px 12px ${accentColor}20`
+                      boxShadow: `0 4px 12px ${alpha(accentColor, 0.2)}`
                     }
                   }}
                   onClick={() => setSelectedPlan(plan)}
@@ -1074,7 +1081,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             disabled={!selectedPlan || processingPayment}
             sx={{ 
               bgcolor: accentColor, 
-              '&:hover': { bgcolor: '#f97316' },
+              '&:hover': { bgcolor: theme.palette.brand.orangeHover },
               minWidth: 120
             }}
           >

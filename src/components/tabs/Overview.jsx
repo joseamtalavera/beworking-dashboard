@@ -1,4 +1,5 @@
 import Avatar from '@mui/material/Avatar';
+import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
@@ -43,7 +44,7 @@ const metricCards = [
     value: '€45.2k',
     helper: '+12.5% vs last year',
     icon: <TrendingUpRoundedIcon />,
-    color: 'secondary.main'
+    color: 'primary.main'
   },
   {
     id: 'expenditure-ytd',
@@ -51,7 +52,7 @@ const metricCards = [
     value: '€28.7k',
     helper: '+8.3% vs last year',
     icon: <TrendingUpRoundedIcon />,
-    color: 'secondary.main'
+    color: 'primary.main'
   },
   {
     id: 'income-month',
@@ -59,7 +60,7 @@ const metricCards = [
     value: '€8.4k',
     helper: '+15.2% vs last month',
     icon: <TrendingUpRoundedIcon />,
-    color: 'secondary.main'
+    color: 'primary.main'
   },
   {
     id: 'expenditure-month',
@@ -67,7 +68,7 @@ const metricCards = [
     value: '€4.2k',
     helper: '+5.1% vs last month',
     icon: <TrendingUpRoundedIcon />,
-    color: 'secondary.main'
+    color: 'primary.main'
   },
   {
     id: 'overdue-invoices',
@@ -86,7 +87,7 @@ const userMetricCards = [
     value: '€2.4k',
     helper: '+12.5% vs last year',
     icon: <TrendingUpRoundedIcon />,
-    color: 'secondary.main'
+    color: 'primary.main'
   },
   {
     id: 'upcoming-payments',
@@ -94,7 +95,7 @@ const userMetricCards = [
     value: '€180',
     helper: '2 invoices pending',
     icon: <TrendingUpRoundedIcon />,
-    color: 'warning.main'
+    color: 'primary.main'
   },
   {
     id: 'last-payment',
@@ -102,7 +103,7 @@ const userMetricCards = [
     value: '€120',
     helper: 'Paid 3 days ago',
     icon: <TrendingUpRoundedIcon />,
-    color: 'secondary.main'
+    color: 'primary.main'
   },
   {
     id: 'overdue-invoices',
@@ -110,7 +111,7 @@ const userMetricCards = [
     value: '€85',
     helper: '1 invoice overdue',
     icon: <TrendingUpRoundedIcon />,
-    color: 'secondary.main'
+    color: 'primary.main'
   },
   {
     id: 'account-status',
@@ -164,7 +165,8 @@ const locations = [
 
 // Line Chart Component
 const LineChart = ({ data, loading, title, color, maxValue }) => {
-  
+  const theme = useTheme();
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
@@ -215,14 +217,14 @@ const LineChart = ({ data, loading, title, color, maxValue }) => {
                 y1={padding + ratio * chartHeight}
                 x2={chartWidth - padding}
                 y2={padding + ratio * chartHeight}
-                stroke="#f0f0f0"
+                stroke={theme.palette.divider}
                 strokeWidth={1}
               />
               <text
                 x={padding - 10}
                 y={padding + ratio * chartHeight + 4}
                 fontSize="10"
-                fill="#666"
+                fill={theme.palette.text.secondary}
                 textAnchor="end"
               >
                 {Math.round(maxValue * (1 - ratio)).toLocaleString()}€
@@ -239,7 +241,7 @@ const LineChart = ({ data, loading, title, color, maxValue }) => {
                 x={x}
                 y={chartHeight + padding + 15}
                 fontSize="10"
-                fill="#666"
+                fill={theme.palette.text.secondary}
                 textAnchor="middle"
               >
                 {item.month}
@@ -653,7 +655,7 @@ const Overview = ({ userType = 'admin' }) => {
             displayValue = activeUsersToday.toString();
           }
           return (
-            <Paper key={stat.id} elevation={0} sx={{ borderRadius: 4, p: 2, border: '1px solid #e2e8f0', minHeight: 100 }}>
+            <Paper key={stat.id} elevation={0} sx={{ borderRadius: 4, p: 2, border: '1px solid', borderColor: 'divider', minHeight: 100 }}>
             <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 0.6 }}>
               {stat.label}
             </Typography>
@@ -683,7 +685,7 @@ const Overview = ({ userType = 'admin' }) => {
         }}
       >
         {(userType === 'user' ? userMetricCards : metricCards).map((card) => (
-          <Paper key={card.id} elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0', minHeight: 150 }}>
+          <Paper key={card.id} elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider', minHeight: 150 }}>
             <Stack spacing={2} direction="row" alignItems="center">
               <Avatar sx={{ bgcolor: `${card.color}1A`, color: card.color }}>{card.icon}</Avatar>
               <Box>
@@ -703,7 +705,7 @@ const Overview = ({ userType = 'admin' }) => {
       </Box>
 
       {/* Year Selector */}
-        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
               <Box>
                 <Typography variant="h6" fontWeight={700}>
@@ -758,7 +760,7 @@ const Overview = ({ userType = 'admin' }) => {
         }}
       >
         {/* Revenue Chart */}
-        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
           <LineChart 
             data={revenueData} 
             loading={loading} 
@@ -769,7 +771,7 @@ const Overview = ({ userType = 'admin' }) => {
         </Paper>
 
         {/* Expenditure Chart */}
-        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
           <LineChart 
             data={expenditureData} 
             loading={loading} 
@@ -780,7 +782,7 @@ const Overview = ({ userType = 'admin' }) => {
         </Paper>
 
         {/* Overdue Invoices Chart */}
-        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
           <LineChart 
             data={overdueData} 
             loading={loading} 
@@ -793,7 +795,7 @@ const Overview = ({ userType = 'admin' }) => {
 
       {/* Workspace Occupancy - Admin Only */}
       {userType === 'admin' && (
-        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+        <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
             <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
               Workspace occupancy
             </Typography>

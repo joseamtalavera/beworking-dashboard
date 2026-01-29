@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { alpha, useTheme } from '@mui/material/styles';
 
 // Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 
@@ -45,6 +46,7 @@ import { fetchCuentas, fetchNextInvoiceNumberByCodigo } from '../../../api/cuent
 const DEFAULT_LINE = { description: '', quantity: 1, price: 0, vatPercent: 21 };
 
 const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
+  const theme = useTheme();
   const [client, setClient] = useState(initial.client || null);
   const [clientSearch, setClientSearch] = useState('');
   const [invoiceNum, setInvoiceNum] = useState(initial.invoiceNum || '');
@@ -425,7 +427,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                       }
                     >
                       <MenuItem value="">
-                        <span style={{ color: '#999' }}>Select user type</span>
+                        <span style={{ color: theme.palette.text.disabled }}>Select user type</span>
                       </MenuItem>
                       <MenuItem value="Distribuidor">Distribuidor</MenuItem>
                       <MenuItem value="Imported">Imported</MenuItem>
@@ -455,7 +457,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                       }
                     >
                       <MenuItem value="">
-                        <span style={{ color: '#999' }}>Select center</span>
+                        <span style={{ color: theme.palette.text.disabled }}>Select center</span>
                       </MenuItem>
                       <MenuItem value="1">MALAGA DUMAS (MA1)</MenuItem>
                       <MenuItem value="8">Oficina Virtual (MAOV)</MenuItem>
@@ -478,7 +480,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                       }
                     >
                       <MenuItem value="">
-                        <span style={{ color: '#999' }}>Select company</span>
+                        <span style={{ color: theme.palette.text.disabled }}>Select company</span>
                       </MenuItem>
                       {cuentaOptions.map((cuentaOption) => (
                         <MenuItem key={cuentaOption.id} value={cuentaOption.codigo}>
@@ -523,18 +525,19 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 <TableHead>
                 <TableRow
                   sx={{
-                    backgroundColor: '#f5f5f5',
+                    backgroundColor: 'background.default',
                     '& .MuiTableCell-head': {
                       position: 'relative',
                       fontWeight: 700,
                       textTransform: 'capitalize',
                       letterSpacing: '0.04em',
                       fontSize: '0.85rem',
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb',
+                      color: 'text.secondary',
+                      borderBottom: '1px solid',
+                      borderBottomColor: 'divider',
                       py: 1.6,
                       px: 3,
-                      backgroundColor: '#f5f5f5'
+                      backgroundColor: 'background.default'
                     },
                     '& .MuiTableCell-head:first-of-type': {
                       pl: 3,
@@ -608,7 +611,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                           size="small" 
                           onClick={() => removeLine(i)}
                         >
-                          <DeleteOutlineRoundedIcon fontSize="small" sx={{ color: '#6b7280' }} />
+                          <DeleteOutlineRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                         </IconButton>
                       </TableCell>
                     </TableRow>
@@ -624,7 +627,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                           fontWeight: 600,
                           color: 'secondary.main',
                           '&:hover': {
-                            backgroundColor: 'rgba(251, 146, 60, 0.08)'
+                            backgroundColor: alpha(theme.palette.brand.orange, 0.08)
                           }
                         }}
                       >
@@ -643,7 +646,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               border: '2px solid',
               borderColor: 'secondary.main',
               p: 3,
-              backgroundColor: '#fafafa'
+              backgroundColor: 'background.default'
             }}>
               <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
                 Invoice Summary
@@ -735,10 +738,10 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               borderColor: 'secondary.main',
               color: 'secondary.main',
               '&:hover': {
-                borderColor: '#f97316',
-              backgroundColor: 'rgba(251, 146, 60, 0.08)'
-            }
-          }}
+                borderColor: theme.palette.brand.orangeHover,
+                backgroundColor: alpha(theme.palette.brand.orange, 0.08)
+              }
+            }}
         >
           Close
           </Button>

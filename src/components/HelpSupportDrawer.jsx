@@ -1,4 +1,4 @@
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -97,7 +97,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                     backgroundColor: accentColor, 
                     color: 'white',
                     '&:hover': { 
-                      backgroundColor: '#f97316' 
+                      backgroundColor: theme.palette.brand.orangeHover 
                     } 
                   }} 
                   startIcon={<ChatBubbleRoundedIcon fontSize="small" />}
@@ -115,11 +115,11 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                     borderColor: accentColor,
                     color: accentColor,
                     '&:hover': {
-                      borderColor: '#f97316',
-                      color: '#f97316',
-                      backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                      borderColor: theme.palette.brand.orangeHover,
+                      color: theme.palette.brand.orangeHover,
+                      backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                       transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                      boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -168,7 +168,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
             {helpArticles.map((article) => (
               <ListItem key={article.id} disableGutters sx={{ mb: 1.5 }}>
                 <ListItemAvatar>
-                  <Avatar sx={{ bgcolor: 'rgba(251,146,60,0.12)', color: accentColor }}>
+                  <Avatar sx={{ bgcolor: alpha(theme.palette.brand.orange, 0.12), color: accentColor }}>
                     <ArticleRoundedIcon fontSize="small" />
                   </Avatar>
                 </ListItemAvatar>
@@ -195,8 +195,8 @@ const HelpSupportDrawer = ({ open, onClose }) => {
             <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar sx={{ bgcolor: '#0f172a', width: 44, height: 44 }}>
-                    <PlayCircleRoundedIcon sx={{ color: 'white' }} />
+                  <Avatar sx={{ bgcolor: 'text.primary', width: 44, height: 44 }}>
+                    <PlayCircleRoundedIcon sx={{ color: 'common.white' }} />
                   </Avatar>
                   <Box>
                     <Typography variant="body1" fontWeight={600}>
@@ -212,8 +212,8 @@ const HelpSupportDrawer = ({ open, onClose }) => {
             <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar sx={{ bgcolor: '#0f172a', width: 44, height: 44 }}>
-                    <PlayCircleRoundedIcon sx={{ color: 'white' }} />
+                  <Avatar sx={{ bgcolor: 'text.primary', width: 44, height: 44 }}>
+                    <PlayCircleRoundedIcon sx={{ color: 'common.white' }} />
                   </Avatar>
                   <Box>
                     <Typography variant="body1" fontWeight={600}>
@@ -253,9 +253,9 @@ const HelpSupportDrawer = ({ open, onClose }) => {
               textTransform: 'none',
               fontWeight: 600,
               backgroundColor: accentColor, 
-              color: 'white',
+              color: 'common.white',
               '&:hover': { 
-                backgroundColor: '#f97316' 
+                backgroundColor: theme.palette.brand.orangeHover 
               } 
             }}
           >

@@ -10,7 +10,7 @@ import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import BusinessIcon from '@mui/icons-material/Business';
 import DirectionsIcon from '@mui/icons-material/Directions';
@@ -355,7 +355,7 @@ const VirtualOfficeAddress = () => {
         <Box
           sx={{
             height: 300,
-            background: `linear-gradient(135deg, ${accentHover} 0%, rgba(251, 146, 60, 0.05) 100%)`,
+            background: `linear-gradient(135deg, ${accentHover} 0%, ${alpha(theme.palette.brand.orange, 0.05)} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -372,7 +372,7 @@ const VirtualOfficeAddress = () => {
                 height: 64,
                 borderRadius: '50%',
                 bgcolor: accentColor,
-                color: 'white'
+                color: 'common.white'
               }}
             >
               <LocationOnIcon sx={{ fontSize: 32 }} />

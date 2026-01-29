@@ -26,7 +26,7 @@ const reports = [
 ];
 
 const Reports = () => (
-  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
     <Stack spacing={0.5} sx={{ mb: 3 }}>
       <Typography variant="h6" fontWeight={700}>
         Analytics & reports
@@ -38,7 +38,7 @@ const Reports = () => (
     <Grid container spacing={2}>
       {reports.map((report) => (
         <Grid key={report.id} item xs={12} md={6}>
-          <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0', p: 2.5, height: '100%' }}>
+          <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5, height: '100%' }}>
             <Stack spacing={1.5}>
               <Typography variant="subtitle1" fontWeight={600}>
                 {report.title}

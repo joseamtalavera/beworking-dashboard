@@ -5,6 +5,7 @@ import { apiFetch } from '../../../api/client';
 // Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 
 import PropTypes from 'prop-types';
+import { alpha, useTheme } from '@mui/material/styles';
 
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -234,20 +235,20 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
       PaperProps={{
         sx: {
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
+          boxShadow: theme.shadows[6]
         }
       }}
     >
       <DialogTitle sx={{
         pb: 0,
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-        color: 'white',
+        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+        color: 'common.white',
         borderRadius: '12px 12px 0 0',
         p: 3
       }}>
         <Stack direction="row" alignItems="center" spacing={2}>
-          <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+          <Avatar sx={{ bgcolor: alpha(theme.palette.common.white, 0.2), width: 40, height: 40 }}>
             <AddRoundedIcon />
           </Avatar>
           <Box>
@@ -268,15 +269,20 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               elevation={0}
               sx={{ 
                 borderRadius: 3, 
-                border: '1px solid #e2e8f0',
+                border: '1px solid',
+                borderColor: 'divider',
                 overflow: 'hidden',
-                background: 'white'
+                background: 'background.paper'
               }}
             >
               <Box sx={{ 
                 p: 3, 
-                background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
-                borderBottom: '1px solid #e2e8f0'
+                background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(
+                  theme.palette.primary.main,
+                  0.05
+                )} 100%)`,
+                borderBottom: '1px solid',
+                borderBottomColor: 'divider'
               }}>
                 <Stack direction="row" alignItems="center" spacing={2}>
                   <Avatar sx={{ bgcolor: 'success.light', width: 36, height: 36 }}>
@@ -513,18 +519,23 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               elevation={0}
               sx={{ 
                 borderRadius: 3, 
-                border: '1px solid #e2e8f0',
+                border: '1px solid',
+                borderColor: 'divider',
                 overflow: 'hidden',
-                background: 'white'
+                background: 'background.paper'
               }}
             >
               <Box sx={{ 
                 p: 3, 
-                background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
-                borderBottom: '1px solid #e2e8f0'
+                background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(
+                  theme.palette.primary.main,
+                  0.05
+                )} 100%)`,
+                borderBottom: '1px solid',
+                borderBottomColor: 'divider'
               }}>
                 <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar sx={{ bgcolor: '#059669', width: 36, height: 36 }}>
+                  <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
                     <BusinessRoundedIcon />
                   </Avatar>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -546,7 +557,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#059669'
+                            borderColor: 'primary.main'
                           }
                         }
                       }}
@@ -564,7 +575,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#059669'
+                            borderColor: 'primary.main'
                           }
                         }
                       }}
@@ -582,7 +593,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#059669'
+                            borderColor: 'primary.main'
                           }
                         }
                       }}
@@ -600,7 +611,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#059669'
+                            borderColor: 'primary.main'
                           }
                         }
                       }}
@@ -618,7 +629,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                           borderRadius: 2,
                           minHeight: 56,
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#059669'
+                            borderColor: 'primary.main'
                           }
                         }
                       }}
@@ -632,14 +643,14 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       fullWidth 
                       variant="outlined"
                       sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#059669'
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            minHeight: 56,
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'primary.main'
+                            }
                           }
-                        }
-                      }}
+                        }}
                     />
               </Grid>
             </Grid>
@@ -650,7 +661,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
       </DialogContent>
       <DialogActions sx={{ 
         p: 3, 
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
         borderRadius: '0 0 12px 12px'
       }}>
         <Button 
@@ -663,10 +674,10 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
             px: 3,
             py: 1,
             color: 'text.secondary',
-            borderColor: '#e2e8f0',
+            borderColor: 'divider',
             '&:hover': {
-              borderColor: '#cbd5e1',
-              backgroundColor: '#f8fafc'
+              borderColor: (theme) => theme.palette.grey[300],
+              backgroundColor: 'background.default'
             }
           }}
           variant="outlined"
@@ -684,15 +695,15 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     fontWeight: 600,
                     px: 3,
                     py: 1,
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.brand.greenHover} 100%)`,
                       transform: 'translateY(-1px)',
-                      boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+                      boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.3)}`
                     },
                     '&:disabled': {
-                      background: '#d1d5db',
-                      color: '#9ca3af'
+                      background: theme.palette.grey[300],
+                      color: theme.palette.text.disabled
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -739,6 +750,7 @@ const buildQueryString = ({ page, search, status, email, userType }) => {
 };
 
 const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
+  const theme = useTheme();
   const [statusFilter, setStatusFilter] = useState('all');
   const [emailFilter, setEmailFilter] = useState('all');
   const [userTypeFilter, setUserTypeFilter] = useState('all');
@@ -1167,7 +1179,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         overflow: 'hidden',
         border: '1px solid',
         borderColor: 'divider',
-        background: 'linear-gradient(140deg, #f8fafc 0%, #f1f5f9 50%, #ffffff 100%)'
+        background: `linear-gradient(140deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[100]} 50%, ${theme.palette.background.paper} 100%)`
       }}
     >
       <Box sx={{ px: 4, pt: 4, pb: 2 }}>
@@ -1192,11 +1204,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   borderColor: 'secondary.main',
                   color: 'secondary.main',
                   '&:hover': {
-                    borderColor: '#f97316',
-                    color: '#f97316',
-                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                    borderColor: theme.palette.brand.orangeHover,
+                    color: theme.palette.brand.orangeHover,
+                    backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -1213,7 +1225,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 textTransform: 'none',
                 fontWeight: 600,
                 backgroundColor: 'primary.main',
-                color: 'white',
+                color: 'common.white',
                 '&:hover': {
                   backgroundColor: 'primary.dark'
                 }
@@ -1391,7 +1403,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 <TableRow
                   key={tenant.id}
                   hover
-                  sx={{ '& td': { borderBottomColor: '#eef2f6' }, cursor: 'pointer' }}
+                  sx={{ '& td': { borderBottomColor: 'divider' }, cursor: 'pointer' }}
                   onClick={() => handleRowClick(tenant)}
                 >
                   <TableCell sx={{ pl: 4 }}>
@@ -1399,7 +1411,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                       <Avatar 
                         src={tenant.avatar || tenant.photo} 
                         alt={tenant.name || 'Contact'} 
-                        sx={{ bgcolor: 'secondary.main', border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
+                        sx={{
+                          bgcolor: 'secondary.main',
+                          border: '3px solid',
+                          borderColor: (theme) => alpha(theme.palette.primary.light, 0.5)
+                        }}
                       >
                         {initials.slice(0, 2)}
                       </Avatar>
@@ -1493,7 +1509,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   },
                 },
                 '&:hover': {
-                  backgroundColor: (theme) => `${theme.palette.secondary.main}1F`,
+                  backgroundColor: (theme) => alpha(theme.palette.secondary.main, 0.12),
                 },
               },
             }}
@@ -1502,7 +1518,15 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       )}
       
       {/* Pagination Info */}
-      <Box sx={{ px: 4, py: 2, borderTop: '1px solid #eef2f6', bgcolor: 'rgba(248,250,252,0.6)' }}>
+      <Box
+        sx={{
+          px: 4,
+          py: 2,
+          borderTop: '1px solid',
+          borderTopColor: 'divider',
+          bgcolor: alpha(theme.palette.background.default, 0.6)
+        }}
+      >
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="body2" color="text.secondary">
             {filteredContacts.length === 0 ? '0 results' : `${startIndex + 1}-${Math.min(endIndex, filteredContacts.length)} of ${filteredContacts.length}`}
@@ -1532,20 +1556,20 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         PaperProps={{
           sx: {
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
+            boxShadow: theme.shadows[6]
           }
         }}
       >
         <DialogTitle sx={{
           pb: 0,
           background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orange} 0%, ${theme.palette.brand.orangeHover} 100%)`,
-          color: 'white',
+          color: 'common.white',
           borderRadius: '12px 12px 0 0',
           p: 3
         }}>
           <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+            <Avatar sx={{ bgcolor: alpha(theme.palette.common.white, 0.2), width: 40, height: 40 }}>
               <WarningRoundedIcon />
             </Avatar>
             <Box>
@@ -1571,7 +1595,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 p: 2, 
                 bgcolor: 'grey.50', 
                 borderRadius: 2, 
-                border: '1px solid #e2e8f0' 
+                border: '1px solid',
+                borderColor: 'divider' 
               }}>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>
                   User Details:
@@ -1588,7 +1613,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         </DialogContent>
         <DialogActions sx={{ 
           p: 3, 
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
           borderRadius: '0 0 12px 12px'
         }}>
           <Button 
@@ -1600,10 +1625,10 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               px: 3,
               py: 1,
               color: 'text.secondary',
-              borderColor: '#e2e8f0',
+              borderColor: 'divider',
               '&:hover': {
-                borderColor: '#cbd5e1',
-                backgroundColor: '#f8fafc'
+                borderColor: (theme) => theme.palette.grey[300],
+                backgroundColor: 'background.default'
               }
             }}
             variant="outlined"
@@ -1612,7 +1637,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           </Button>
           <Button 
             variant="contained" 
-            startIcon={<DeleteRoundedIcon sx={{ color: '#6b7280' }} />}
+            startIcon={<DeleteRoundedIcon sx={{ color: 'text.secondary' }} />}
             onClick={() => handleDeleteUser(userToDelete?.id)}
             sx={{
               borderRadius: 2,
@@ -1622,9 +1647,9 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               py: 1,
               background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orange} 0%, ${theme.palette.brand.orangeHover} 100%)`,
               '&:hover': {
-                background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orangeHover} 0%, #c2410c 100%)`,
+                background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orangeHover} 0%, ${theme.palette.secondary.dark} 100%)`,
                 transform: 'translateY(-1px)',
-                boxShadow: '0 8px 25px rgba(251, 146, 60, 0.3)'
+                boxShadow: `0 8px 25px ${alpha(theme.palette.brand.orange, 0.3)}`
               },
               transition: 'all 0.2s ease-in-out'
             }}

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { apiFetch } from '../api/client.js';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -18,6 +18,7 @@ import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -32,9 +33,9 @@ const spinAnimation = `
   }
 `;
 
-const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
+const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab }) => {
   const theme = useTheme();
-  const accentColor = theme.palette.brand.orange;
+  const accentColor = theme.palette.brand.green;
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -152,6 +153,12 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
     setSearchQuery(event.target.value);
   };
 
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setIsSearching(false);
+  };
+
   const handleSearchSubmit = (event) => {
     if (event.key === 'Enter') {
       performSearch(searchQuery);
@@ -166,7 +173,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
   ];
 
   return (
-    <Box component="header" sx={{ bgcolor: '#ffffff', borderBottom: '1px solid #e2e8f0', px: { xs: 3, lg: 4 }, py: 3 }}>
+    <Box component="header" sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderBottomColor: 'divider', px: { xs: 3, lg: 4 }, py: 3 }}>
       <style>{spinAnimation}</style>
       <Stack spacing={2.5}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
@@ -195,17 +202,43 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                     <SearchRoundedIcon fontSize="small" sx={{ color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
-                  endAdornment: isSearching && (
-                    <InputAdornment position="end">
-                      <Box sx={{ width: 16, height: 16, border: '2px solid #e0e0e0', borderTop: (theme) => `2px solid ${theme.palette.brand.orange}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                endAdornment: (
+                  <InputAdornment position="end" sx={{ gap: 0.5 }}>
+                    {isSearching && (
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          border: '2px solid',
+                          borderColor: 'divider',
+                          borderTopColor: (theme) => theme.palette.brand.orange,
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite'
+                        }}
+                      />
+                    )}
+                    {searchQuery && (
+                      <IconButton
+                        size="small"
+                        edge="end"
+                        aria-label="Clear search"
+                        onClick={handleClearSearch}
+                        sx={{
+                          color: 'text.disabled',
+                          '&:hover': { color: 'primary.main', backgroundColor: 'action.hover' }
+                        }}
+                      >
+                        <CloseRoundedIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </InputAdornment>
                 ),
                 sx: {
-                  backgroundColor: '#f8fafc',
-                  '& fieldset': { borderColor: '#e2e8f0' },
+                  backgroundColor: 'background.default',
+                  '& fieldset': { borderColor: 'divider' },
                  '&:hover fieldset': { borderColor: accentColor },
                  '&:focus-within fieldset': { borderColor: accentColor },
-                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+                 '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: accentColor },
                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accentColor }
                }
@@ -223,10 +256,11 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                     right: 0,
                     zIndex: 1000,
                     mt: 1,
-                    bgcolor: 'white',
+                    bgcolor: 'background.paper',
                     borderRadius: 2,
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                    border: '1px solid #e2e8f0',
+                    boxShadow: (theme) => theme.shadows[4],
+                    border: '1px solid',
+                    borderColor: 'divider',
                     maxHeight: 300,
                     overflow: 'auto'
                   }}
@@ -237,9 +271,10 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                       sx={{
                         p: 2,
                         cursor: 'pointer',
-                        borderBottom: index < searchResults.length - 1 ? '1px solid #f1f5f9' : 'none',
+                        borderBottom: index < searchResults.length - 1 ? '1px solid' : 'none',
+                        borderBottomColor: 'divider',
                         '&:hover': {
-                          bgcolor: '#f8fafc'
+                          bgcolor: 'background.default'
                         }
                       }}
                       onClick={() => {
@@ -280,9 +315,14 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              bgcolor: result.type === 'tenant' ? '#10b981' : 
-                                      result.type === 'room' ? '#3b82f6' :
-                                      result.type === 'automation' ? '#8b5cf6' : '#f59e0b'
+                              bgcolor:
+                                result.type === 'tenant'
+                                  ? theme.palette.success.main
+                                  : result.type === 'room'
+                                  ? theme.palette.info.main
+                                  : result.type === 'automation'
+                                  ? theme.palette.secondary.main
+                                  : theme.palette.warning.main
                             }}
                           />
                         )}
@@ -327,11 +367,11 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                   borderColor: accentColor,
                   color: accentColor,
                   '&:hover': {
-                    borderColor: '#f97316',
-                    color: '#f97316',
-                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                    borderColor: theme.palette.brand.orange,
+                    color: theme.palette.brand.orange,
+                    backgroundColor: theme.palette.brand.orangeSoft,
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -347,7 +387,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                     mt: 1,
                     minWidth: 200,
                     borderRadius: 2,
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    boxShadow: (theme) => theme.shadows[4]
                   }
                 }}
               >
@@ -362,11 +402,11 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                       py: 1.5, 
                       px: 2,
                       '&:hover': {
-                        backgroundColor: (theme) => `${theme.palette.secondary.main}14`
+                        backgroundColor: (theme) => theme.palette.brand.orangeSoft
                       }
                     }}
                   >
-                    <ListItemIcon sx={{ color: 'secondary.main', minWidth: 36 }}>
+                    <ListItemIcon sx={{ color: 'primary.main', minWidth: 36 }}>
                       {option.icon}
                     </ListItemIcon>
                     <ListItemText 
@@ -385,11 +425,11 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
                 startIcon={<HelpOutlineIcon />}
                 onClick={onOpenHelp}
                 sx={{ 
-                  bgcolor: accentColor,
-                  color: 'white',
+                  bgcolor: 'primary.main',
+                  color: 'common.white',
                   minWidth: 120,
                   height: 36,
-                  '&:hover': { bgcolor: '#f97316' } 
+                  '&:hover': { bgcolor: theme.palette.brand.orange }
                 }}
               >
                 Help & Support
@@ -397,7 +437,15 @@ const Header = ({ activeTab, userProfile, onOpenHelp, setActiveTab }) => {
               <Avatar 
                 src={userProfile?.avatar || userProfile?.photo} 
                 alt={userProfile?.name || userProfile?.email || 'User'} 
-                sx={{ width: 44, height: 44, border: '3px solid #fde7d2', bgcolor: accentColor }}
+                onClick={onOpenSettings}
+                sx={{
+                  width: 44,
+                  height: 44,
+                  border: '3px solid',
+                  borderColor: (theme) => alpha(theme.palette.warning.light, 0.6),
+                  bgcolor: accentColor,
+                  cursor: 'pointer'
+                }}
               >
                 {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('') : 'U'}
               </Avatar>

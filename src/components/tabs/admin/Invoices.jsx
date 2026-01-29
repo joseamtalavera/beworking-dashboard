@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { alpha, useTheme } from '@mui/material/styles';
 
 // Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 
@@ -57,6 +58,7 @@ const statusColor = (estado) => {
 const PAGE_SIZE = 100; // Server-side pagination - 100 invoices per page
 
 const Invoices = () => {
+  const theme = useTheme();
   const [page, setPage] = useState(0); // Backend uses 0-based pagination
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -181,7 +183,7 @@ const Invoices = () => {
   };
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+    <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack spacing={0.5} sx={{ mb: 3 }}>
         <Typography variant="h6" fontWeight={700}>
           Billing & invoices
@@ -348,11 +350,11 @@ const Invoices = () => {
               borderColor: 'secondary.main',
               color: 'secondary.main',
               '&:hover': {
-                borderColor: '#f97316',
-                color: '#f97316',
-                backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                borderColor: theme.palette.brand.orangeHover,
+                color: theme.palette.brand.orangeHover,
+                backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                 transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
               },
               transition: 'all 0.2s ease-in-out'
             }}
@@ -498,7 +500,7 @@ const Invoices = () => {
                           color: 'secondary.main',
                           backgroundColor: (theme) => `${theme.palette.secondary.main}14`,
                           transform: 'translateY(-1px)',
-                          boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)'
+                          boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
                         },
                         transition: 'all 0.2s ease-in-out'
                       }}
@@ -541,7 +543,7 @@ const Invoices = () => {
                       },
                     },
                     '&:hover': {
-                      backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                      backgroundColor: alpha(theme.palette.secondary.main, 0.12),
                     },
                   },
                 }}
@@ -550,7 +552,15 @@ const Invoices = () => {
           )}
           
           {/* Pagination Info */}
-          <Box sx={{ px: 4, py: 2, borderTop: '1px solid #eef2f6', bgcolor: 'rgba(248,250,252,0.6)' }}>
+          <Box
+            sx={{
+              px: 4,
+              py: 2,
+              borderTop: '1px solid',
+              borderTopColor: 'divider',
+              bgcolor: alpha(theme.palette.background.default, 0.6)
+            }}
+          >
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Typography variant="body2" color="text.secondary">
                 {rows.length === 0 ? '0 results' : `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, data.totalElements || 0)} of ${data.totalElements || 0}`}

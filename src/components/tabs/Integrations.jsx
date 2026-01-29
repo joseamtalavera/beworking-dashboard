@@ -1,4 +1,4 @@
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -159,7 +159,7 @@ const IntegrationRow = ({ integration }) => {
         <Avatar
           src={integration.logoUrl}
           alt={integration.name}
-          sx={{ width: 48, height: 48, border: '3px solid #fde7d2' }}
+          sx={{ width: 48, height: 48, border: '3px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6) }}
           imgProps={{ referrerPolicy: 'no-referrer' }}
         />
         <Box>
@@ -218,7 +218,12 @@ const IntegrationRow = ({ integration }) => {
         <Button
           variant="outlined"
           size="small"
-          sx={{ borderRadius: 2, borderColor: accentColor, color: accentColor, '&:hover': { borderColor: '#f97316', color: '#f97316' } }}
+          sx={{
+            borderRadius: 2,
+            borderColor: accentColor,
+            color: accentColor,
+            '&:hover': { borderColor: theme.palette.brand.orangeHover, color: theme.palette.brand.orangeHover }
+          }}
         >
           Sync now
         </Button>
@@ -245,7 +250,7 @@ const AvailableCard = ({ name, description, logoUrl }) => (
       <Avatar
         src={logoUrl}
         alt={name}
-        sx={{ width: 44, height: 44, border: '3px solid #fde7d2' }}
+        sx={{ width: 44, height: 44, border: '3px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6) }}
         imgProps={{ referrerPolicy: 'no-referrer' }}
       />
       <Typography variant="subtitle1" fontWeight="bold">
@@ -258,7 +263,12 @@ const AvailableCard = ({ name, description, logoUrl }) => (
     <Button
       variant="contained"
       size="small"
-      sx={{ borderRadius: 2, bgcolor: accentColor, alignSelf: 'flex-start', '&:hover': { bgcolor: '#f97316' } }}
+      sx={{
+        borderRadius: 2,
+        bgcolor: accentColor,
+        alignSelf: 'flex-start',
+        '&:hover': { bgcolor: theme.palette.brand.orangeHover }
+      }}
     >
       Request access
     </Button>

@@ -29,6 +29,7 @@ import {
   Breadcrumbs,
   Link
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   LocationOnRounded as LocationIcon,
   CalendarTodayRounded as CalendarIcon,
@@ -151,8 +152,9 @@ const BookingFlow = () => {
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       {/* Header */}
       <Box sx={{ 
-        backgroundColor: 'white', 
-        borderBottom: '1px solid #e2e8f0',
+        backgroundColor: 'background.paper', 
+        borderBottom: '1px solid',
+        borderBottomColor: 'divider',
         px: 3,
         py: 2
       }}>
@@ -202,8 +204,9 @@ const BookingFlow = () => {
             p: 3, 
             mb: 4, 
             borderRadius: 3,
-            border: '1px solid #e2e8f0',
-            backgroundColor: 'white'
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper'
           }}
         >
           {/* Category Tabs */}
@@ -324,7 +327,7 @@ const BookingFlow = () => {
               sx={{ 
                 borderRadius: 2,
                 textTransform: 'none',
-                borderColor: '#e2e8f0',
+                borderColor: 'divider',
                 color: 'text.secondary',
                 '&:hover': {
                   borderColor: 'secondary.main',
@@ -341,7 +344,7 @@ const BookingFlow = () => {
               sx={{ 
                 borderRadius: 2,
                 textTransform: 'none',
-                borderColor: '#e2e8f0',
+                borderColor: 'divider',
                 color: 'text.secondary',
                 '&:hover': {
                   borderColor: 'secondary.main',
@@ -358,7 +361,7 @@ const BookingFlow = () => {
               sx={{ 
                 borderRadius: 2,
                 textTransform: 'none',
-                borderColor: '#e2e8f0',
+                borderColor: 'divider',
                 color: 'text.secondary',
                 '&:hover': {
                   borderColor: 'secondary.main',
@@ -375,7 +378,7 @@ const BookingFlow = () => {
               sx={{ 
                 borderRadius: 2,
                 textTransform: 'none',
-                borderColor: '#e2e8f0',
+                borderColor: 'divider',
                 color: 'text.secondary',
                 '&:hover': {
                   borderColor: 'secondary.main',
@@ -392,7 +395,7 @@ const BookingFlow = () => {
               sx={{ 
                 borderRadius: 2,
                 textTransform: 'none',
-                borderColor: '#e2e8f0',
+                borderColor: 'divider',
                 color: 'text.secondary',
                 '&:hover': {
                   borderColor: 'secondary.main',
@@ -413,11 +416,11 @@ const BookingFlow = () => {
                 sx={{ 
                   borderRadius: 3,
                   overflow: 'hidden',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  boxShadow: (theme) => `0 4px 6px -1px ${alpha(theme.palette.common.black, 0.1)}`,
                   transition: 'transform 0.2s, box-shadow 0.2s',
                   '&:hover': {
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)'
+                    boxShadow: (theme) => `0 10px 25px -3px ${alpha(theme.palette.common.black, 0.1)}`
                   }
                 }}
               >
@@ -446,7 +449,7 @@ const BookingFlow = () => {
                         label={tag}
                         size="small"
                         sx={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          backgroundColor: (theme) => alpha(theme.palette.common.white, 0.9),
                           color: 'text.primary',
                           fontWeight: 500,
                           fontSize: '0.75rem'
@@ -458,7 +461,7 @@ const BookingFlow = () => {
                         label="Instant booking"
                         size="small"
                         sx={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          backgroundColor: (theme) => alpha(theme.palette.common.white, 0.9),
                           color: 'text.primary',
                           fontWeight: 500,
                           fontSize: '0.75rem'
@@ -474,9 +477,9 @@ const BookingFlow = () => {
                       left: 8,
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backgroundColor: (theme) => alpha(theme.palette.common.white, 0.8),
                       '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                        backgroundColor: (theme) => alpha(theme.palette.common.white, 0.9)
                       }
                     }}
                   >
@@ -488,9 +491,9 @@ const BookingFlow = () => {
                       right: 8,
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backgroundColor: (theme) => alpha(theme.palette.common.white, 0.8),
                       '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                        backgroundColor: (theme) => alpha(theme.palette.common.white, 0.9)
                       }
                     }}
                   >
@@ -503,9 +506,9 @@ const BookingFlow = () => {
                       position: 'absolute',
                       top: 12,
                       right: 12,
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backgroundColor: (theme) => alpha(theme.palette.common.white, 0.8),
                       '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                        backgroundColor: (theme) => alpha(theme.palette.common.white, 0.9)
                       }
                     }}
                   >
@@ -531,7 +534,7 @@ const BookingFlow = () => {
                       </Typography>
                     </Stack>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <StarIcon sx={{ fontSize: 16, color: '#fbbf24' }} />
+                      <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
                       <Typography variant="body2" color="text.secondary">
                         {room.rating} ({room.reviewCount})
                       </Typography>

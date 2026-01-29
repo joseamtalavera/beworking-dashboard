@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useEffect, useMemo, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
@@ -182,9 +182,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             '&:hover': {
               borderColor: 'primary.dark',
               color: 'primary.dark',
-              backgroundColor: 'rgba(251, 146, 60, 0.08)',
+              backgroundColor: alpha(theme.palette.brand.orange, 0.08),
               transform: 'translateY(-1px)',
-              boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+              boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
             },
             transition: 'all 0.2s ease-in-out'
           }}
@@ -198,7 +198,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         sx={{
           borderRadius: 4,
           border: '1px solid',
-          borderColor: 'grey.200',
+          borderColor: 'divider',
           p: { xs: 3, md: 4 },
           background: (theme) => `linear-gradient(120deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[50]} 50%, ${theme.palette.background.paper} 100%)`
         }}
@@ -208,7 +208,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <Avatar 
               src={contact?.avatar || contact?.photo} 
               alt={contact?.name || 'Contact'} 
-              sx={{ width: 90, height: 90, fontSize: 36, bgcolor: 'secondary.main', border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
+              sx={{
+                width: 90,
+                height: 90,
+                fontSize: 36,
+                bgcolor: 'secondary.main',
+                border: '3px solid',
+                borderColor: (theme) => alpha(theme.palette.primary.light, 0.5)
+              }}
             >
               {initials.slice(0, 2)}
             </Avatar>
@@ -352,19 +359,19 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           sx: {
             borderRadius: 3,
             background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            boxShadow: theme.shadows[6]
           }
         }}
       >
         <DialogTitle sx={{ 
           pb: 0,
           background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-          color: 'white',
+          color: 'common.white',
           borderRadius: '12px 12px 0 0',
           p: 3
         }}>
           <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 40, height: 40 }}>
+            <Avatar sx={{ bgcolor: alpha(theme.palette.common.white, 0.2), width: 40, height: 40 }}>
               <EditRoundedIcon />
             </Avatar>
             <Box>
@@ -980,7 +987,21 @@ InfoRow.propTypes = {
 };
 
 const HighlightCard = ({ label, value, trend }) => (
-  <Paper elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'grey.200', bgcolor: 'background.default', p: 2.5, height: '100%', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+  <Paper
+    elevation={0}
+    sx={{
+      borderRadius: 2,
+      border: '1px solid',
+      borderColor: 'divider',
+      bgcolor: 'background.default',
+      p: 2.5,
+      height: '100%',
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between'
+    }}
+  >
     <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
       {label}
     </Typography>
@@ -1000,20 +1021,32 @@ HighlightCard.propTypes = {
 };
 
 const SectionCard = ({ icon: Icon, title, children }) => (
-  <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'grey.300', bgcolor: 'background.paper', height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
-    <Stack direction="row" spacing={2} alignItems="center" sx={{ px: 3, py: 2, borderBottom: '1px solid', borderBottomColor: 'grey.100' }}>
+  <Paper
+    elevation={0}
+    sx={{
+      borderRadius: 3,
+      border: '1px solid',
+      borderColor: 'divider',
+      bgcolor: 'background.paper',
+      height: '100%',
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column'
+    }}
+  >
+    <Stack direction="row" spacing={2} alignItems="center" sx={{ px: 3, py: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
       <Box
         sx={{
           width: 40,
           height: 40,
           borderRadius: '50%',
-          bgcolor: '#dcfce7',
+          bgcolor: (theme) => alpha(theme.palette.success.main, 0.15),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}
       >
-        <Icon fontSize="small" sx={{ color: 'secondary.main' }} />
+        <Icon fontSize="small" sx={{ color: 'primary.main' }} />
       </Box>
       <Typography variant="subtitle2" fontWeight={600}>
         {title}

@@ -1,4 +1,5 @@
 import Paper from '@mui/material/Paper';
+import { alpha } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
@@ -20,7 +21,7 @@ const priorityColor = {
 };
 
 const Tickets = () => (
-  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid #e2e8f0' }}>
+  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
     <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: 3 }}>
       <Stack spacing={0.5}>
         <Typography variant="h6" fontWeight={700}>
@@ -41,11 +42,11 @@ const Tickets = () => (
           borderColor: 'secondary.main', 
           color: 'secondary.main', 
           '&:hover': { 
-            borderColor: '#f97316', 
-            color: '#f97316',
-            backgroundColor: 'rgba(251, 146, 60, 0.08)',
+            borderColor: (theme) => theme.palette.brand.orangeHover, 
+            color: (theme) => theme.palette.brand.orangeHover,
+            backgroundColor: (theme) => alpha(theme.palette.brand.orange, 0.08),
             transform: 'translateY(-1px)',
-            boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+            boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
           },
           transition: 'all 0.2s ease-in-out'
         }}

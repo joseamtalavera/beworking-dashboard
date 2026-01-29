@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -37,48 +37,52 @@ const palette = [
   { type: 'output', label: 'Notify', description: 'Send email, Slack, or in-app notification.' }
 ];
 
-const initialNodes = [
-  {
-    id: '1',
-    type: 'input',
-    position: { x: 80, y: 200 },
-    data: { label: 'Gmail Trigger' },
-    style: {
-      borderRadius: 16,
-      border: `1px solid ${accentColor}`,
-      background: 'white',
-      padding: 12,
-      width: 200
-    }
-  },
-  {
-    id: '2',
-    type: 'output',
-    position: { x: 460, y: 200 },
-    data: { label: 'Reply to message' },
-    style: {
-      borderRadius: 16,
-      border: '1px solid #cbd5f5',
-      background: 'white',
-      padding: 12,
-      width: 200
-    }
-  }
-];
-
-const initialEdges = [
-  {
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    animated: true,
-    style: { stroke: '#475467', strokeWidth: 2 }
-  }
-];
-
 const Automation = () => {
   const theme = useTheme();
   const accentColor = theme.palette.brand.orange;
+  const initialNodes = useMemo(
+    () => [
+      {
+        id: '1',
+        type: 'input',
+        position: { x: 80, y: 200 },
+        data: { label: 'Gmail Trigger' },
+        style: {
+          borderRadius: 16,
+          border: `1px solid ${accentColor}`,
+          background: theme.palette.background.paper,
+          padding: 12,
+          width: 200
+        }
+      },
+      {
+        id: '2',
+        type: 'output',
+        position: { x: 460, y: 200 },
+        data: { label: 'Reply to message' },
+        style: {
+          borderRadius: 16,
+          border: `1px solid ${theme.palette.divider}`,
+          background: theme.palette.background.paper,
+          padding: 12,
+          width: 200
+        }
+      }
+    ],
+    [accentColor, theme]
+  );
+  const initialEdges = useMemo(
+    () => [
+      {
+        id: 'e1-2',
+        source: '1',
+        target: '2',
+        animated: true,
+        style: { stroke: theme.palette.text.secondary, strokeWidth: 2 }
+      }
+    ],
+    [theme]
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNodeId, setSelectedNodeId] = useState(initialNodes[0].id);
@@ -86,7 +90,10 @@ const Automation = () => {
   const selectedNode = useMemo(() => nodes.find((node) => node.id === selectedNodeId), [nodes, selectedNodeId]);
 
   const handleConnect = useCallback(
-    (params) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#475467', strokeWidth: 2 } }, eds)),
+    (params) =>
+      setEdges((eds) =>
+        addEdge({ ...params, animated: true, style: { stroke: theme.palette.text.secondary, strokeWidth: 2 } }, eds)
+      ),
     [setEdges]
   );
 
@@ -103,8 +110,8 @@ const Automation = () => {
         data: { label: `${item.label} ${index}` },
         style: {
           borderRadius: 16,
-          border: '1px solid #cbd5f5',
-          background: 'white',
+          border: `1px solid ${theme.palette.divider}`,
+          background: theme.palette.background.paper,
           padding: 12,
           width: 220
         }
@@ -182,7 +189,7 @@ const Automation = () => {
                       border: '1px solid',
                       borderColor: 'divider',
                       cursor: 'pointer',
-                      '&:hover': { borderColor: accentColor, bgcolor: 'rgba(251,146,60,0.08)' }
+                      '&:hover': { borderColor: accentColor, bgcolor: alpha(theme.palette.brand.orange, 0.08) }
                     }}
                     onClick={() => handleAddNode(item)}
                   >
@@ -221,7 +228,7 @@ const Automation = () => {
               fitView
               attributionPosition="bottom-right"
             >
-              <Background gap={32} color="#e4e7ec" />
+              <Background gap={32} color={theme.palette.divider} />
               <Controls position="top-left" />
               <MiniMap pannable nodeColor={() => accentColor} />
             </ReactFlow>
@@ -265,11 +272,11 @@ const Automation = () => {
                           borderColor: accentColor,
                           color: accentColor,
                           '&:hover': {
-                            borderColor: '#f97316',
-                            color: '#f97316',
-                            backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                            borderColor: theme.palette.brand.orangeHover,
+                            color: theme.palette.brand.orangeHover,
+                            backgroundColor: alpha(theme.palette.brand.orange, 0.08),
                             transform: 'translateY(-1px)',
-                            boxShadow: '0 4px 12px rgba(251, 146, 60, 0.2)'
+                            boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
                           },
                           transition: 'all 0.2s ease-in-out'
                         }}
@@ -282,20 +289,20 @@ const Automation = () => {
                       <Button
                         variant="outlined"
                         size="small"
-                        startIcon={<DeleteOutlineRoundedIcon fontSize="small" sx={{ color: '#6b7280' }} />}
+                        startIcon={<DeleteOutlineRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />}
                         sx={{ 
                           minWidth: 120,
                           height: 36,
                           textTransform: 'none',
                           fontWeight: 600,
-                          borderColor: '#f97316', 
-                          color: '#f97316', 
+                          borderColor: accentColor, 
+                          color: accentColor, 
                           '&:hover': { 
-                            borderColor: 'secondary.dark', 
-                            color: 'secondary.dark',
-                            backgroundColor: 'rgba(249, 115, 22, 0.08)',
+                            borderColor: theme.palette.brand.orangeHover, 
+                            color: theme.palette.brand.orangeHover,
+                            backgroundColor: alpha(theme.palette.brand.orangeHover, 0.08),
                             transform: 'translateY(-1px)',
-                            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.2)'
+                            boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orangeHover, 0.2)}`
                           },
                           transition: 'all 0.2s ease-in-out'
                         }}
@@ -367,9 +374,9 @@ const Automation = () => {
                     textTransform: 'none',
                     fontWeight: 600,
                     backgroundColor: accentColor, 
-                    color: 'white',
+                    color: 'common.white',
                     '&:hover': { 
-                      backgroundColor: '#f97316' 
+                      backgroundColor: theme.palette.brand.orangeHover 
                     } 
                   }} 
                   startIcon={<PlayArrowRoundedIcon />}

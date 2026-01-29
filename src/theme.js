@@ -82,6 +82,9 @@ const theme = createTheme({
   },
   components: {
     MuiButton: {
+      defaultProps: {
+        color: 'primary',
+      },
       styleOverrides: {
         root: {
           textTransform: 'none',
@@ -102,6 +105,11 @@ const theme = createTheme({
             borderColor: theme.palette.brand.green,
           },
         }),
+      },
+    },
+    MuiIconButton: {
+      defaultProps: {
+        color: 'primary',
       },
     },
     MuiTextField: {

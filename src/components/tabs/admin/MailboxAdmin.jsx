@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 
 // Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 import Alert from '@mui/material/Alert';
@@ -1080,7 +1080,7 @@ const MailboxAdmin = () => {
                           cursor: 'pointer',
                           '&:hover': {
                             borderColor: 'secondary.main',
-                            backgroundColor: 'rgba(34, 197, 94, 0.04)'
+                            backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.04)
                           }
                         }}
                         onClick={() => handleSelectContact(contact)}

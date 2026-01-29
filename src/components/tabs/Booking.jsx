@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, parseISO } from 'date-fns';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -109,12 +109,28 @@ const WEEKDAY_OPTIONS = [
 ];
 
 // Calendar utilities for user booking flow
-const userCalendarStatusStyles = {
-  available: { bgcolor: 'transparent', borderColor: 'rgba(148, 163, 184, 0.24)', color: '#475569' },
-  paid: { bgcolor: 'rgba(134, 239, 172, 0.32)', borderColor: '#22c55e', color: '#166534' },
-  invoiced: { bgcolor: 'rgba(253, 224, 71, 0.25)', borderColor: '#facc15', color: '#854d0e' },
-  created: { bgcolor: 'rgba(251, 146, 60, 0.22)', borderColor: 'secondary.main', color: 'secondary.dark' }
-};
+const userCalendarStatusStyles = (theme) => ({
+  available: {
+    bgcolor: 'transparent',
+    borderColor: alpha(theme.palette.divider, 0.6),
+    color: theme.palette.text.secondary
+  },
+  paid: {
+    bgcolor: alpha(theme.palette.success.main, 0.32),
+    borderColor: theme.palette.success.main,
+    color: theme.palette.success.dark
+  },
+  invoiced: {
+    bgcolor: alpha(theme.palette.warning.light, 0.25),
+    borderColor: theme.palette.warning.main,
+    color: theme.palette.warning.dark
+  },
+  created: {
+    bgcolor: alpha(theme.palette.secondary.main, 0.22),
+    borderColor: theme.palette.secondary.main,
+    color: theme.palette.secondary.dark
+  }
+});
 
 // Booking flow step labels
 const BOOKING_STEP_LABELS = ['Select details', 'Contact & billing', 'Review & payment'];
@@ -122,7 +138,7 @@ const BOOKING_STEP_LABELS = ['Select details', 'Contact & billing', 'Review & pa
 // Unified view toggle tabs style (used by both admin and user views)
 const getViewToggleTabsStyle = (theme) => ({
   minHeight: 36,
-  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+  bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.05) : alpha(theme.palette.common.black, 0.04),
   borderRadius: 2,
   p: 0.5,
   '& .MuiTabs-indicator': { display: 'none' },
@@ -139,12 +155,12 @@ const getViewToggleTabsStyle = (theme) => ({
     color: 'text.secondary',
     transition: 'all 0.15s ease',
     '&.Mui-selected': {
-      color: theme.palette.mode === 'dark' ? '#fff' : 'primary.main',
-      bgcolor: theme.palette.mode === 'dark' ? 'primary.main' : '#fff',
-      boxShadow: theme.palette.mode === 'dark' ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
+      color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.primary.main,
+      bgcolor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.background.paper,
+      boxShadow: theme.palette.mode === 'dark' ? 'none' : theme.shadows[1],
     },
     '&:hover:not(.Mui-selected)': {
-      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+      bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.08) : alpha(theme.palette.common.black, 0.04),
     }
   }
 });
@@ -180,32 +196,32 @@ const resolveTenantType = (bloqueo) => {
 
 const getStatusStyles = (theme) => ({
   available: {
-    bgcolor: theme.palette.mode === 'dark' 
-      ? 'rgba(148, 163, 184, 0.2)' 
-      : 'rgba(229, 231, 235, 0.45)',
+    bgcolor: theme.palette.mode === 'dark'
+      ? alpha(theme.palette.grey[300], 0.2)
+      : alpha(theme.palette.divider, 0.45),
     borderColor: theme.palette.grey[300],
     color: theme.palette.text.disabled
   },
   paid: {
     bgcolor: theme.palette.mode === 'dark'
-      ? 'rgba(16, 185, 129, 0.2)'
-      : 'rgba(0, 255, 0, 0.18)',
+      ? alpha(theme.palette.success.main, 0.2)
+      : alpha(theme.palette.success.main, 0.18),
     borderColor: theme.palette.success.main,
     color: theme.palette.success.dark
   },
   invoiced: {
     bgcolor: theme.palette.mode === 'dark'
-      ? 'rgba(250, 204, 21, 0.2)'
-      : 'rgba(255, 234, 128, 0.25)',
+      ? alpha(theme.palette.warning.main, 0.2)
+      : alpha(theme.palette.warning.light, 0.25),
     borderColor: theme.palette.warning.main,
-    color: theme.palette.warning.dark || '#92400e'
+    color: theme.palette.warning.dark
   },
   created: {
     bgcolor: theme.palette.mode === 'dark'
-      ? 'rgba(251, 146, 60, 0.2)'
-      : 'rgba(251, 146, 60, 0.18)',
-    borderColor: 'secondary.main',
-    color: 'secondary.dark'
+      ? alpha(theme.palette.secondary.main, 0.2)
+      : alpha(theme.palette.secondary.main, 0.18),
+    borderColor: theme.palette.secondary.main,
+    color: theme.palette.secondary.dark
   }
 });
 
@@ -705,16 +721,16 @@ const BookingsTable = ({ bookings, onSelect }) => {
     <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
       <TableContainer>
         <Table size="small">
-          <TableHead
-            sx={{
-              bgcolor: theme.palette.mode === 'dark' 
-                ? 'rgba(16, 185, 129, 0.1)' 
-                : '#e6ffe8',
-              boxShadow: `inset 0 -1px 0 ${theme.palette.success.main}40`,
+        <TableHead
+          sx={{
+            bgcolor: theme.palette.mode === 'dark' 
+                ? alpha(theme.palette.success.main, 0.1)
+                : alpha(theme.palette.success.main, 0.08),
+              boxShadow: `inset 0 -1px 0 ${alpha(theme.palette.success.main, 0.25)}`,
               '& .MuiTableCell-head': {
                 bgcolor: theme.palette.mode === 'dark'
-                  ? 'rgba(16, 185, 129, 0.15)'
-                  : '#d9fbe5',
+                  ? alpha(theme.palette.success.main, 0.15)
+                  : alpha(theme.palette.success.main, 0.12),
                 color: theme.palette.success.dark,
                 fontWeight: 800,
                 fontSize: '0.75rem',
@@ -979,16 +995,14 @@ const ReservaDialog = ({
       backgroundColor: theme.palette.background.paper,
       transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
       '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: theme.palette.mode === 'dark' 
-          ? 'rgba(148, 163, 184, 0.32)' 
-          : 'rgba(148, 163, 184, 0.32)'
+        borderColor: alpha(theme.palette.divider, 0.6)
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
         borderColor: theme.palette.primary.main
       },
       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
         borderColor: theme.palette.primary.main,
-        boxShadow: `0 0 0 2px ${theme.palette.primary.main}24`
+        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.14)}`
       },
         '& input': {
         fontSize: 14,
@@ -1501,7 +1515,7 @@ const ReservaDialog = ({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          boxShadow: theme.shadows[6],
           maxWidth: '900px'
         }
       }}
@@ -2104,11 +2118,9 @@ const DetailTile = ({ icon, label, primary, secondary, children }) => {
         p: 2,
         borderRadius: 2,
         height: '100%',
-        borderColor: theme.palette.mode === 'dark' 
-          ? 'rgba(148, 163, 184, 0.3)' 
-          : 'rgba(148, 163, 184, 0.3)',
+        borderColor: alpha(theme.palette.divider, 0.6),
         backgroundColor: theme.palette.background.paper,
-        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
+        boxShadow: theme.shadows[3]
       }}
     >
       <Stack spacing={1.5}>
@@ -2120,7 +2132,7 @@ const DetailTile = ({ icon, label, primary, secondary, children }) => {
               borderRadius: 1.5,
               display: 'grid',
               placeItems: 'center',
-              bgcolor: (theme) => `${theme.palette.info.main}1A`,
+              bgcolor: (theme) => alpha(theme.palette.info.main, 0.1),
               color: 'info.main'
             }}
           >
@@ -2171,7 +2183,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
         sx: {
           borderRadius: 3,
           overflow: 'hidden',
-          boxShadow: '0 40px 80px rgba(15, 23, 42, 0.25)'
+          boxShadow: theme.shadows[8]
         }
       }}
     >
@@ -2181,8 +2193,12 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
             px: 3,
             pt: 3,
             pb: 2,
-            background: 'linear-gradient(135deg, rgba(30, 64, 175, 0.16) 0%, rgba(14, 116, 144, 0.12) 100%)',
-            borderBottom: '1px solid rgba(148, 163, 184, 0.25)'
+            background: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.16)} 0%, ${alpha(
+              theme.palette.secondary.main,
+              0.12
+            )} 100%)`,
+            borderBottom: '1px solid',
+            borderBottomColor: alpha(theme.palette.divider, 0.6)
           }}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
@@ -2231,9 +2247,9 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                 onClick={onClose}
                 size="small"
                 sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.6)',
+                  bgcolor: alpha(theme.palette.common.white, 0.6),
                   '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.9)'
+                    bgcolor: alpha(theme.palette.common.white, 0.9)
                   }
                 }}
               >
@@ -2248,7 +2264,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
         sx={{
           px: 3,
           py: 3,
-          backgroundColor: 'rgba(248, 250, 252, 0.9)'
+          backgroundColor: alpha(theme.palette.background.default, 0.9)
         }}
       >
         {booking ? (
@@ -2309,7 +2325,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                             label={chipLabel}
                             size="small"
                             sx={{
-                              bgcolor: (theme) => `${theme.palette.info.main}29`,
+                              bgcolor: (theme) => alpha(theme.palette.info.main, 0.16),
                               color: 'info.dark',
                               fontWeight: 600
                             }}
@@ -2333,9 +2349,9 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
               sx={{
                 p: 2.5,
                 borderRadius: 2,
-                borderColor: 'rgba(148, 163, 184, 0.3)',
+                borderColor: alpha(theme.palette.divider, 0.6),
                 backgroundColor: 'background.paper',
-                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)'
+                boxShadow: theme.shadows[3]
               }}
             >
               <Stack spacing={1.5}>
@@ -2347,7 +2363,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                       borderRadius: 1.5,
                       display: 'grid',
                       placeItems: 'center',
-                      bgcolor: 'rgba(14, 116, 144, 0.1)',
+                      bgcolor: alpha(theme.palette.info.dark, 0.1),
                       color: 'info.dark'
                     }}
                   >
@@ -2371,7 +2387,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
         sx={{
           px: 3,
           py: 2.5,
-          bgcolor: 'rgba(241, 245, 249, 0.8)'
+          bgcolor: alpha(theme.palette.background.default, 0.8)
         }}
       >
             {canInvoice ? (
@@ -2546,9 +2562,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
     backgroundColor: theme.palette.background.paper,
     transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
     '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.mode === 'dark' 
-        ? 'rgba(148, 163, 184, 0.32)' 
-        : 'rgba(148, 163, 184, 0.32)',
+      borderColor: alpha(theme.palette.divider, 0.6),
       borderRadius: '4px !important'
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
@@ -2557,7 +2571,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
     },
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
       borderColor: theme.palette.primary.main,
-      boxShadow: `0 0 0 2px ${theme.palette.primary.main}24`,
+      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.14)}`,
       borderRadius: '4px !important'
     },
     '& input': {
@@ -2615,7 +2629,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          boxShadow: theme.shadows[6],
           maxWidth: '900px'
         }
       }}
@@ -2647,7 +2661,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 right: 8,
                 color: 'text.secondary',
                 '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  backgroundColor: alpha(theme.palette.common.black, 0.04),
                   color: 'text.primary'
                 }
               }}
@@ -2903,7 +2917,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          backgroundColor: '#3b82f6'
+                          backgroundColor: 'info.main'
                         }}
                       />
                       <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -3062,7 +3076,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          backgroundColor: '#10b981'
+                          backgroundColor: 'success.main'
                         }}
                       />
                       <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -3170,13 +3184,13 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 sx={{ 
                   textTransform: 'none', 
                   fontWeight: 600,
-                  borderColor: 'secondary.main',
-                  color: 'secondary.main',
-                  '&:hover': {
-                    borderColor: 'secondary.dark',
-                    backgroundColor: 'rgba(251, 146, 60, 0.04)'
-                  }
-                }}
+                borderColor: 'secondary.main',
+                color: 'secondary.main',
+                '&:hover': {
+                  borderColor: 'secondary.dark',
+                  backgroundColor: alpha(theme.palette.secondary.main, 0.04)
+                }
+              }}
               >
                 Cancel
               </Button>
@@ -3264,23 +3278,25 @@ const DEFAULT_CATALOG_ROOMS = [
 const UserCalendarLegendItem = ({ label, color }) => (
   <Stack direction="row" spacing={1} alignItems="center">
     <Box sx={{ width: 16, height: 16, borderRadius: 2, border: '1px solid', borderColor: color.borderColor, bgcolor: color.bgcolor }} />
-    <Typography variant="caption" sx={{ color: '#475569' }}>{label}</Typography>
+    <Typography variant="caption" sx={{ color: 'text.secondary' }}>{label}</Typography>
   </Stack>
 );
 
-const UserCalendarLegend = () => (
+const UserCalendarLegend = ({ styles }) => (
   <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-    <UserCalendarLegendItem label="Available" color={userCalendarStatusStyles.available} />
-    <UserCalendarLegendItem label="Paid" color={userCalendarStatusStyles.paid} />
-    <UserCalendarLegendItem label="Invoiced" color={userCalendarStatusStyles.invoiced} />
-    <UserCalendarLegendItem label="Created" color={userCalendarStatusStyles.created} />
+    <UserCalendarLegendItem label="Available" color={styles.available} />
+    <UserCalendarLegendItem label="Paid" color={styles.paid} />
+    <UserCalendarLegendItem label="Invoiced" color={styles.invoiced} />
+    <UserCalendarLegendItem label="Created" color={styles.created} />
   </Stack>
 );
 
 // Room Calendar Grid for user booking
 const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onSelectSlot }) => {
+  const theme = useTheme();
   const timeSlots = useMemo(() => buildTimeSlotsFromBloqueosUser(bloqueos), [bloqueos]);
   const tableMinWidth = useMemo(() => Math.max(720, 220 + timeSlots.length * 64 + 32), [timeSlots.length]);
+  const resolvedUserCalendarStatusStyles = useMemo(() => userCalendarStatusStyles(theme), [theme]);
 
   const getSlotStatus = (slotId) => {
     const bloqueo = bloqueos.find((entry) => bloqueoCoversSlotUser(entry, slotId));
@@ -3289,20 +3305,60 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
   };
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0', width: '100%', maxWidth: 1240, mx: 'auto', overflow: 'hidden', backgroundColor: '#fff' }}>
+    <Paper
+      elevation={0}
+      sx={{
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        width: '100%',
+        maxWidth: 1240,
+        mx: 'auto',
+        overflow: 'hidden',
+        backgroundColor: 'background.paper'
+      }}
+    >
       <Stack spacing={3} sx={{ p: 3 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
           <Stack spacing={0.5}>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Availability · {room?.name || 'Meeting room'}</Typography>
-            {dateLabel && <Typography variant="body2" sx={{ color: '#475569' }}>{dateLabel}</Typography>}
+            {dateLabel && <Typography variant="body2" sx={{ color: 'text.secondary' }}>{dateLabel}</Typography>}
           </Stack>
-          <UserCalendarLegend />
+          <UserCalendarLegend styles={resolvedUserCalendarStatusStyles} />
         </Stack>
         <TableContainer sx={{ maxHeight: 420, overflowX: 'auto', overflowY: 'hidden', width: '100%', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ minWidth: tableMinWidth, tableLayout: 'fixed', '& .MuiTableCell-root': { borderRight: '1px solid rgba(148, 163, 184, 0.12)' }, '& .MuiTableRow-root': { borderBottom: '1px solid rgba(148, 163, 184, 0.12)' } }}>
+          <Table
+            size="small"
+            sx={{
+              minWidth: tableMinWidth,
+              tableLayout: 'fixed',
+              '& .MuiTableCell-root': {
+                borderRight: '1px solid',
+                borderRightColor: (theme) => alpha(theme.palette.divider, 0.6)
+              },
+              '& .MuiTableRow-root': {
+                borderBottom: '1px solid',
+                borderBottomColor: (theme) => alpha(theme.palette.divider, 0.6)
+              }
+            }}
+          >
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: 220, position: 'sticky', top: 0, left: 0, backgroundColor: 'background.paper', zIndex: 4, borderRight: '1px solid rgba(148, 163, 184, 0.32)', boxShadow: '4px 0 12px rgba(15, 23, 42, 0.06)' }}>Room</TableCell>
+                <TableCell
+                  sx={{
+                    width: 220,
+                    position: 'sticky',
+                    top: 0,
+                    left: 0,
+                    backgroundColor: 'background.paper',
+                    zIndex: 4,
+                    borderRight: '1px solid',
+                    borderRightColor: (theme) => alpha(theme.palette.divider, 0.8),
+                    boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
+                  }}
+                >
+                  Room
+                </TableCell>
                 {timeSlots.map((slot) => (
                   <TableCell key={slot.id} align="center" sx={{ position: 'sticky', top: 0, width: 64, maxWidth: 64, backgroundColor: 'background.paper', zIndex: 3 }}>
                     <Typography variant="subtitle2" fontWeight="bold">{slot.label}</Typography>
@@ -3312,16 +3368,28 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell sx={{ position: 'sticky', left: 0, width: 220, maxWidth: 220, backgroundColor: 'background.paper', zIndex: 2, borderRight: '1px solid rgba(148, 163, 184, 0.24)', boxShadow: '2px 0 8px rgba(15, 23, 42, 0.04)' }}>
+                <TableCell
+                  sx={{
+                    position: 'sticky',
+                    left: 0,
+                    width: 220,
+                    maxWidth: 220,
+                    backgroundColor: 'background.paper',
+                    zIndex: 2,
+                    borderRight: '1px solid',
+                    borderRightColor: (theme) => alpha(theme.palette.divider, 0.7),
+                    boxShadow: (theme) => `2px 0 8px ${alpha(theme.palette.common.black, 0.04)}`
+                  }}
+                >
                   <Stack spacing={0.5}>
                     <Typography variant="body2" fontWeight="medium">{room?.name || room?.label || 'Meeting room'}</Typography>
-                    {room?.capacity && <Typography variant="caption" sx={{ color: '#64748b' }}>Capacity {room.capacity} guests</Typography>}
+                    {room?.capacity && <Typography variant="caption" sx={{ color: 'text.disabled' }}>Capacity {room.capacity} guests</Typography>}
                   </Stack>
                 </TableCell>
                 {timeSlots.map((slot) => {
                   const slotKey = `${room?.id || 'room'}-${slot.id}`;
                   const { status, bloqueo } = getSlotStatus(slot.id);
-                  const styles = userCalendarStatusStyles[status] || userCalendarStatusStyles.created;
+                  const styles = resolvedUserCalendarStatusStyles[status] || resolvedUserCalendarStatusStyles.created;
                   const isSelected = selectedSlotKey === slotKey;
                   return (
                     <TableCell key={`${room?.id ?? 'room'}-${slot.id}`} align="center" sx={{ p: 0.75, width: 64, maxWidth: 64 }}>
@@ -3333,7 +3401,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSlot?.(slot, bloqueo); } }}
                           sx={{
                             height: 52, width: '100%', borderRadius: 2, border: '2px solid',
-                            borderColor: isSelected ? '#2563eb' : styles.borderColor,
+                            borderColor: isSelected ? theme.palette.primary.main : styles.borderColor,
                             bgcolor: styles.bgcolor, color: styles.color, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             transition: 'transform 0.15s, border-color 0.15s',
@@ -3357,7 +3425,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
 
 // Booking Stepper Component
 const UserBookingStepper = ({ activeStep }) => (
-  <Stepper activeStep={activeStep} alternativeLabel sx={{ bgcolor: '#fff', borderRadius: 2, p: 2 }}>
+  <Stepper activeStep={activeStep} alternativeLabel sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 2 }}>
     {BOOKING_STEP_LABELS.map((label) => (
       <Step key={label}><StepLabel>{label}</StepLabel></Step>
     ))}
@@ -3442,7 +3510,10 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
   const isContinueDisabled = !schedule.date || !schedule.startTime || !schedule.endTime;
 
   const inputStyles = {
-    '& .MuiOutlinedInput-root': { borderRadius: 1, backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#f8fafc' }
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
+      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : theme.palette.background.default
+    }
   };
 
   return (
@@ -3578,7 +3649,7 @@ const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={1}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Contact details</Typography>
-            <Typography variant="body2" sx={{ color: '#475569' }}>Enter your contact and billing information.</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>Enter your contact and billing information.</Typography>
           </Stack>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} sm={6}><TextField label="First name" value={formState.firstName} onChange={(e) => setFormState(prev => ({ ...prev, firstName: e.target.value }))} required error={Boolean(errors.firstName)} helperText={errors.firstName} fullWidth /></Grid>
@@ -3593,7 +3664,7 @@ const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={1}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Billing address</Typography>
-            <Typography variant="body2" sx={{ color: '#475569' }}>This information will appear on invoices.</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>This information will appear on invoices.</Typography>
           </Stack>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}><TextField label="Address line 1" value={formState.addressLine1} onChange={(e) => setFormState(prev => ({ ...prev, addressLine1: e.target.value }))} required error={Boolean(errors.addressLine1)} helperText={errors.addressLine1} fullWidth /></Grid>
@@ -3612,7 +3683,7 @@ const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
             {summaryItems.map(item => (
               <Stack key={item.label} direction="row" justifyContent="space-between">
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.label}</Typography>
-                <Typography variant="body2" sx={{ color: '#475569' }}>{item.value}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>{item.value}</Typography>
               </Stack>
             ))}
           </Stack>
@@ -3808,7 +3879,21 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
               ))}
             </Box>
             {galleryImages.length > 5 && (
-              <Button onClick={() => setGalleryOpen(true)} startIcon={<PhotoLibraryOutlinedIcon />} sx={{ position: 'absolute', bottom: 16, right: 16, borderRadius: 999, backgroundColor: 'background.paper', textTransform: 'none', fontWeight: 600, px: 2.5, boxShadow: '0 10px 30px rgba(15, 23, 42, 0.12)' }}>
+              <Button
+                onClick={() => setGalleryOpen(true)}
+                startIcon={<PhotoLibraryOutlinedIcon />}
+                sx={{
+                  position: 'absolute',
+                  bottom: 16,
+                  right: 16,
+                  borderRadius: 999,
+                  backgroundColor: 'background.paper',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 2.5,
+                  boxShadow: theme.shadows[6]
+                }}
+              >
                 Show all photos
               </Button>
             )}
@@ -3829,8 +3914,32 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
                   <Grid container spacing={1.5}>
                     {amenities.map(amenity => (
                       <Grid item xs={12} sm={6} md={4} key={amenity}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.5, borderRadius: 2, backgroundColor: `${theme.palette.primary.light}15`, border: `1px solid ${theme.palette.primary.light}80`, minHeight: 68 }}>
-                          <Box sx={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: `${theme.palette.primary.main}2E`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'primary.main', flexShrink: 0 }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1.25,
+                            p: 1.5,
+                            borderRadius: 2,
+                            backgroundColor: alpha(theme.palette.primary.light, 0.08),
+                            border: '1px solid',
+                            borderColor: alpha(theme.palette.primary.light, 0.5),
+                            minHeight: 68
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '50%',
+                              backgroundColor: alpha(theme.palette.primary.main, 0.18),
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'primary.main',
+                              flexShrink: 0
+                            }}
+                          >
                             <BusinessRoundedIcon fontSize="small" />
                           </Box>
                           <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 600 }}>{amenity}</Typography>
@@ -3847,7 +3956,7 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
                   {cancellationPolicy.map(item => (
                     <Stack direction="row" spacing={1.5} key={item}>
                       <FlagRoundedIcon sx={{ color: 'primary.main', mt: 0.35, flexShrink: 0 }} fontSize="small" />
-                      <Typography variant="body2" sx={{ color: '#475569' }}>{item}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>{item}</Typography>
                     </Stack>
                   ))}
                 </Stack>
@@ -3859,7 +3968,7 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
                   {bookingInstructions.map(item => (
                     <Stack direction="row" spacing={1.5} key={item}>
                       <CalendarTodayRoundedIcon sx={{ color: 'primary.main', mt: 0.35, flexShrink: 0 }} fontSize="small" />
-                      <Typography variant="body2" sx={{ color: '#475569' }}>{item}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>{item}</Typography>
                     </Stack>
                   ))}
                 </Stack>
@@ -3870,7 +3979,7 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
           <Grid item xs={12} md={5}>
             <Stack spacing={3} sx={{ border: '1px solid', borderColor: 'grey.200', borderRadius: 3, p: 3, bgcolor: 'background.paper' }}>
               <Typography variant="h6" sx={{ fontWeight: 700 }}>Ready to book?</Typography>
-              <Typography variant="body2" sx={{ color: '#475569' }}>Select your preferred date and time, provide your contact details, and submit your booking request.</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>Select your preferred date and time, provide your contact details, and submit your booking request.</Typography>
               <Divider />
               <Stack spacing={1}>
                 <Stack direction="row" justifyContent="space-between">
@@ -3973,7 +4082,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
         sx={{
           borderRadius: 3,
           overflow: 'hidden',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          boxShadow: (theme) => `0 4px 6px -1px ${alpha(theme.palette.common.black, 0.1)}`,
           transition: 'transform 0.2s, box-shadow 0.2s',
           width: '100%',
           height: '100%',
@@ -3983,7 +4092,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
           maxWidth: '100%',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)'
+            boxShadow: (theme) => `0 10px 25px -3px ${alpha(theme.palette.common.black, 0.1)}`
           }
         }}
       >
@@ -3999,7 +4108,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
               <Chip
                 label="Instant booking"
                 size="small"
-                sx={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', color: 'text.primary', fontWeight: 500, fontSize: '0.75rem' }}
+                sx={{ backgroundColor: alpha(theme.palette.common.white, 0.9), color: 'text.primary', fontWeight: 500, fontSize: '0.75rem' }}
               />
             )}
           </Stack>
@@ -4008,8 +4117,8 @@ const SpaceCardUser = ({ space, onBookNow }) => {
               position: 'absolute',
               top: 10,
               right: 10,
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' }
+              backgroundColor: alpha(theme.palette.common.white, 0.8),
+              '&:hover': { backgroundColor: alpha(theme.palette.common.white, 0.9) }
             }}
           >
             <FavoriteBorderRoundedIcon />
@@ -4081,12 +4190,30 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
   const getStatusChip = (status) => {
     const statusLower = (status || '').toLowerCase();
     if (statusLower.includes('paid') || statusLower.includes('pag')) {
-      return <Chip label="Paid" size="small" sx={{ bgcolor: 'rgba(34, 197, 94, 0.15)', color: '#166534', fontWeight: 600 }} />;
+      return (
+        <Chip
+          label="Paid"
+          size="small"
+          sx={{ bgcolor: alpha(theme.palette.success.main, 0.15), color: theme.palette.success.dark, fontWeight: 600 }}
+        />
+      );
     }
     if (statusLower.includes('invoice') || statusLower.includes('fact')) {
-      return <Chip label="Invoiced" size="small" sx={{ bgcolor: 'rgba(250, 204, 21, 0.2)', color: '#854d0e', fontWeight: 600 }} />;
+      return (
+        <Chip
+          label="Invoiced"
+          size="small"
+          sx={{ bgcolor: alpha(theme.palette.warning.main, 0.2), color: theme.palette.warning.dark, fontWeight: 600 }}
+        />
+      );
     }
-    return <Chip label="Pending" size="small" sx={{ bgcolor: 'rgba(251, 146, 60, 0.15)', color: '#9a3412', fontWeight: 600 }} />;
+    return (
+      <Chip
+        label="Pending"
+        size="small"
+        sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.15), color: theme.palette.secondary.dark, fontWeight: 600 }}
+      />
+    );
   };
 
   if (loading) {
@@ -4115,7 +4242,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
       <TableContainer>
         <Table>
           <TableHead>
-            <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : '#f8fafc' }}>
+            <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'background.default' }}>
               <TableCell sx={{ fontWeight: 600 }}>Space</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Time</TableCell>
@@ -4378,7 +4505,7 @@ const UserBookingView = () => {
     width: '100%',
     '& .MuiOutlinedInput-root': {
       borderRadius: 1,
-      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#f8fafc',
+      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : theme.palette.background.default,
       height: '40px',
       '& fieldset': { borderColor: theme.palette.divider },
       '& input': { fontSize: '0.9375rem !important', fontWeight: 500, padding: '8.5px 14px !important', height: '100%' }
@@ -5394,10 +5521,12 @@ const Booking = ({ mode = 'user' }) => {
                   stickyHeader
                   sx={{
                     '& .MuiTableCell-root': {
-                      borderRight: '1px solid rgba(148, 163, 184, 0.12)'
+                      borderRight: '1px solid',
+                      borderRightColor: (theme) => alpha(theme.palette.divider, 0.6)
                     },
                     '& .MuiTableRow-root': {
-                      borderBottom: '1px solid rgba(148, 163, 184, 0.12)'
+                      borderBottom: '1px solid',
+                      borderBottomColor: (theme) => alpha(theme.palette.divider, 0.6)
                     }
                   }}
                 >
@@ -5410,8 +5539,9 @@ const Booking = ({ mode = 'user' }) => {
                           left: 0,
                           backgroundColor: 'background.paper',
                           zIndex: 2,
-                          borderRight: '1px solid rgba(148, 163, 184, 0.32)',
-                          boxShadow: '4px 0 12px rgba(15, 23, 42, 0.06)'
+                          borderRight: '1px solid',
+                          borderRightColor: (theme) => alpha(theme.palette.divider, 0.8),
+                          boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
                         }}
                       >
                         Room
@@ -5434,8 +5564,9 @@ const Booking = ({ mode = 'user' }) => {
                             left: 0,
                             backgroundColor: 'background.paper',
                             zIndex: 1,
-                            borderRight: '1px solid rgba(148, 163, 184, 0.24)',
-                            boxShadow: '2px 0 8px rgba(15, 23, 42, 0.04)'
+                            borderRight: '1px solid',
+                            borderRightColor: (theme) => alpha(theme.palette.divider, 0.7),
+                            boxShadow: (theme) => `2px 0 8px ${alpha(theme.palette.common.black, 0.04)}`
                           }}
                         >
                           <Stack spacing={0.5}>

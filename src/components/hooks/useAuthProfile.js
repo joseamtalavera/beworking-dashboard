@@ -33,9 +33,27 @@ const BASE_PROFILE = {
   }
 };
 
+const deriveName = (apiProfile = {}) => {
+  const candidates = [
+    apiProfile.name,
+    apiProfile.fullName,
+    apiProfile.full_name,
+    apiProfile.displayName,
+    apiProfile.display_name,
+    apiProfile.username,
+    [apiProfile.firstName, apiProfile.lastName].filter(Boolean).join(' ').trim(),
+    [apiProfile.first_name, apiProfile.last_name].filter(Boolean).join(' ').trim(),
+    apiProfile.email && apiProfile.email.includes('@') ? apiProfile.email.split('@')[0] : null,
+  ].filter(Boolean);
+
+  const picked = candidates.find((val) => typeof val === 'string' && val.trim().length > 0);
+  return picked ? picked.trim() : BASE_PROFILE.name;
+};
+
 const composeProfile = (apiProfile = {}) => ({
   ...BASE_PROFILE,
   ...apiProfile,
+  name: deriveName(apiProfile),
   role: apiProfile.role || BASE_PROFILE.role,
   email: apiProfile.email || BASE_PROFILE.email,
   tenantId: apiProfile.tenantId ?? BASE_PROFILE.tenantId,

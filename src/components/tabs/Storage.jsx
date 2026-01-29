@@ -117,7 +117,7 @@ const Storage = () => {
       />
     </Box>
     <Card elevation={2} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb' }}>
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderBottomColor: 'divider' }}>
         <Typography variant="h6" fontWeight="bold" color="text.primary">Recent Files</Typography>
         <Button
           variant="contained"
@@ -125,7 +125,7 @@ const Storage = () => {
             borderRadius: 2,
             fontWeight: 600,
             bgcolor: accentColor,
-            '&:hover': { bgcolor: '#f97316' }
+            '&:hover': { bgcolor: theme.palette.brand.orangeHover }
           }}
         >
           Upload File

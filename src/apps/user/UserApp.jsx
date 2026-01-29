@@ -86,7 +86,13 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
         onLogout={logout}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header activeTab={activeTab} userProfile={userProfile} onOpenHelp={() => setHelpOpen(true)} setActiveTab={setActiveTab} />
+        <Header
+          activeTab={activeTab}
+          userProfile={userProfile}
+          onOpenHelp={() => setHelpOpen(true)}
+          onOpenSettings={() => setSettingsOpen(true)}
+          setActiveTab={setActiveTab}
+        />
         <Box component="main" sx={{ flex: 1, p: { xs: 3, lg: 4 }, overflowY: 'auto' }}>
           <React.Suspense
             fallback={(
@@ -119,7 +125,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
             zIndex: 1300,
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '-4px 0 12px rgba(0, 0, 0, 0.1)'
+            boxShadow: theme.shadows[6]
           }}
         >
           <Agent onClose={() => setAgentOpen(false)} />

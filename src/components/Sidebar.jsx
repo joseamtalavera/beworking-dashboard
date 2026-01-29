@@ -9,7 +9,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 
@@ -17,11 +17,9 @@ const drawerWidth = 260;
 
 const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout }) => {
   const theme = useTheme();
-  const accentColor = theme.palette.secondary.light;
-  const activeColor = theme.palette.secondary.dark;
-  const accentHover = theme.palette.mode === 'dark' 
-    ? 'rgba(34, 197, 94, 0.1)' 
-    : 'rgba(34, 197, 94, 0.1)';
+  const accentColor = theme.palette.primary.main;
+  const activeColor = theme.palette.primary.dark;
+  const accentHover = alpha(theme.palette.primary.main, 0.12);
   const activeHover = accentHover;
 
   return (
@@ -40,7 +38,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
       }}
     >
       <Box sx={{ height: 120, borderBottom: '1px solid', borderColor: 'divider', px: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: theme.palette.background.paper }}>
-        <img src="/assets/beworking_logo.svg" alt="BeWorking Logo" style={{ maxHeight: '60px', maxWidth: '180px', objectFit: 'contain' }} />
+        <img src="/assets/beworking_logo_clean.svg" alt="BeWorking Logo" style={{ maxHeight: '60px', maxWidth: '180px', objectFit: 'contain' }} />
       </Box>
       <Box sx={{ flex: 1, overflowY: 'auto' }}>
         <List sx={{ px: 2, py: 3 }}>
@@ -59,7 +57,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                     backgroundColor: activeHover,
                     color: activeColor,
                     border: 'none',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)'
+                    boxShadow: theme.shadows[1]
                   },
                   '&.Mui-selected .MuiListItemIcon-root': {
                     color: activeColor
@@ -71,7 +69,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                 }}
               >
                 <ListItemIcon>
-                  <tab.icon sx={{ fontSize: 20 }} />
+                  <tab.icon sx={{ fontSize: 20, color: 'inherit' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={
