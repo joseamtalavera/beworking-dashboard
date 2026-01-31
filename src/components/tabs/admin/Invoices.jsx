@@ -71,7 +71,7 @@ const Invoices = () => {
     status: '',
     tenantType: '',
     product: '',
-    startDate: new Date().getFullYear() + '-01-01', // Default to January 1st of current year
+    startDate: '',
     endDate: ''
   });
   const [queryFilters, setQueryFilters] = useState(filters);

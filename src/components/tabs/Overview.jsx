@@ -742,7 +742,7 @@ const Overview = ({ userType = 'admin' }) => {
             <Chip 
               label={loading ? "Loading..." : "Updated now"} 
               size="small" 
-              sx={{ bgcolor: (theme) => `${theme.palette.secondary.main}1F`, color: 'secondary.main' }} 
+              sx={{ bgcolor: (theme) => `${theme.palette.success.main}1F`, color: 'success.main' }} 
             />
           </Stack>
             </Stack>
@@ -813,7 +813,7 @@ const Overview = ({ userType = 'admin' }) => {
                   <LinearProgress
                     variant="determinate"
                     value={location.occupancy}
-                sx={{ height: 6, borderRadius: 999, bgcolor: 'grey.100', '& .MuiLinearProgress-bar': { bgcolor: 'secondary.main' } }}
+                    sx={{ height: 6, borderRadius: 999, bgcolor: 'grey.100', '& .MuiLinearProgress-bar': { bgcolor: 'success.main' } }}
                   />
                 </Box>
               ))}

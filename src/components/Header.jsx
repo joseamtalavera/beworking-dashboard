@@ -367,16 +367,16 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                   borderColor: accentColor,
                   color: accentColor,
                   '&:hover': {
-                    borderColor: theme.palette.brand.orange,
-                    color: theme.palette.brand.orange,
-                    backgroundColor: theme.palette.brand.orangeSoft,
+                    borderColor: accentColor,
+                    color: accentColor,
+                    backgroundColor: theme.palette.brand.accentSoft,
                     transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                    boxShadow: `0 4px 12px ${alpha(accentColor, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
               >
-                ACTION
+                Action
               </Button>
               <Menu
                 anchorEl={anchorEl}

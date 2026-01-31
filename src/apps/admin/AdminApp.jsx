@@ -28,7 +28,7 @@ import Marketplace from '../../components/tabs/Marketplace.jsx';
 const TAB_COMPONENTS = {
   Overview,
   Contacts,
-  Mailbox: VirtualOffice,
+  'Business Address': VirtualOffice,
   Booking,
   Invoices,
   Expenses,
@@ -70,7 +70,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'Contacts') {
       return <Component key={contactsKey} userType="admin" refreshProfile={refreshProfile} userProfile={userProfile} />;
     }
-    if (activeTab === 'Mailbox') {
+    if (activeTab === 'Business Address') {
       return <Component userType="admin" />;
     }
     return <Component />;

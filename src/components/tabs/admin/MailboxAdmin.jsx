@@ -65,7 +65,7 @@ const statusConfig = {
   viewed: { label: 'Viewed online', color: 'success', description: 'User downloaded or viewed the file.' }
 };
 
-const SummaryCard = ({ icon, title, value, helper, color }) => (
+const SummaryCard = ({ icon, title, value, helper, color, accentHover }) => (
   <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
     <Stack direction="row" spacing={2} alignItems="center">
       <Box
@@ -598,7 +598,7 @@ const MailboxAdmin = () => {
       />
       <Stack spacing={2}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Mailbox Intake
+          Mailbox
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Manage scanned mail for your virtual office tenants. Upload new scans, notify recipients automatically, and track when files are viewed online.
@@ -611,12 +611,14 @@ const MailboxAdmin = () => {
           title="New uploads"
           value={summary.scanned}
           helper="Waiting to notify tenants"
+          accentHover={accentHover}
         />
         <SummaryCard
           icon={<MarkEmailReadOutlinedIcon />}
           title="Notified"
           value={summary.notified}
           helper="Emails delivered in the last 7 days"
+          accentHover={accentHover}
         />
         <SummaryCard
           icon={<TaskAltOutlinedIcon />}
@@ -624,6 +626,7 @@ const MailboxAdmin = () => {
           value={summary.viewed}
           helper="Tenant confirmed access"
           color="secondary.main"
+          accentHover={accentHover}
         />
       </Stack>
 

@@ -177,6 +177,23 @@ const MemoizedTextField = memo(({ label, value, onChange, ...props }) => (
 
 const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile }) => {
   const [form, setForm] = useState(ADD_USER_DEFAULT);
+  const theme = useTheme();
+  const contactFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      minHeight: 40,
+      backgroundColor: theme.palette.common.white,
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.grey[400]
+      }
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: theme.palette.grey[300]
+    },
+    '& .MuiInputLabel-root': {
+      color: theme.palette.text.secondary
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -366,15 +383,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       fullWidth 
                       required
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'success.light'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
               </Grid>
                   <Grid item xs={12} sm={6}>
@@ -385,15 +395,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   fullWidth
                       select
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'success.light'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                 >
                   {statusOptions.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
@@ -409,15 +412,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       onChange={handleFieldChange('primaryContact')} 
                       fullWidth 
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'success.light'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -429,15 +425,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       fullWidth 
                       required
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'success.light'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -447,15 +436,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       onChange={handleFieldChange('phone')} 
                       fullWidth 
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'success.light'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -466,15 +448,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   fullWidth
                       select
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'success.light'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     >
                       {CANONICAL_USER_TYPES.map((type) => (
                         <MenuItem key={type} value={type}>
@@ -491,15 +466,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   fullWidth
                       select
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'success.light'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                 >
                   {CENTER_OPTIONS.map((center) => (
                     <MenuItem key={center} value={center}>
@@ -552,15 +520,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       onChange={handleFieldChange('billingCompany')} 
                       fullWidth 
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'primary.main'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
               </Grid>
                   <Grid item xs={12} sm={6}>
@@ -570,15 +531,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       onChange={handleFieldChange('billingEmail')} 
                       fullWidth 
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'primary.main'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
               </Grid>
               <Grid item xs={12}>
@@ -588,15 +542,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   onChange={handleFieldChange('billingAddress')}
                   fullWidth
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'primary.main'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                 />
               </Grid>
                   <Grid item xs={12} sm={4}>
@@ -606,15 +553,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       onChange={handleFieldChange('billingPostalCode')} 
                       fullWidth 
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'primary.main'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
               </Grid>
                   <Grid item xs={12} sm={4}>
@@ -624,15 +564,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       onChange={handleFieldChange('billingCounty')} 
                       fullWidth 
                       variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          minHeight: 56,
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'primary.main'
-                          }
-                        }
-                      }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
               </Grid>
                   <Grid item xs={12} sm={4}>
@@ -642,15 +575,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       onChange={handleFieldChange('billingCountry')} 
                       fullWidth 
                       variant="outlined"
-                      sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: 'primary.main'
-                            }
-                          }
-                        }}
+                      size="small"
+                      sx={contactFieldSx}
                     />
               </Grid>
             </Grid>
@@ -728,8 +654,8 @@ AddUserDialog.defaultProps = {
 
 const buildQueryString = ({ page, search, status, email, userType }) => {
   const params = new URLSearchParams({
-    page: '0', // Always fetch from first page
-    size: '10000', // Fetch a large number to get all contacts (7000+)
+    page: String(Math.max(0, (page || 1) - 1)),
+    size: String(PAGE_SIZE),
     sort: 'lastActive,desc'
   });
 
@@ -767,10 +693,6 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const [emailOptions, setEmailOptions] = useState([]);
   const [userTypeOptions, setUserTypeOptions] = useState(() => [...CANONICAL_USER_TYPES]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [dateFilters, setDateFilters] = useState({
-    startDate: '',
-    endDate: ''
-  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
@@ -824,41 +746,27 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
       try {
         const query = buildQueryString({
-          page: 1, // Not used anymore since we fetch all
+          page,
           search: debouncedSearch,
           status: statusFilter,
-        email: emailFilter,
-        userType: userTypeFilter
-      });
-      const data = await apiFetch(`/contact-profiles?${query}`);
+          email: emailFilter,
+          userType: userTypeFilter,
+        });
+        const data = await apiFetch(`/contact-profiles?${query}`);
 
         const rawItems = Array.isArray(data?.items)
           ? data.items
-        : Array.isArray(data?.content)
-          ? data.content
-          : Array.isArray(data)
-            ? data
-            : [];
-      
+          : Array.isArray(data?.content)
+            ? data.content
+            : Array.isArray(data)
+              ? data
+              : [];
+
         const normalized = rawItems.map((entry) => normalizeContact(entry));
 
-        console.log('DEBUG: Raw items from backend:', rawItems);
-        console.log('DEBUG: Normalized contacts:', normalized);
-        console.log('DEBUG: First contact avatar:', normalized[0]?.avatar);
-
-        // Filter contacts based on user type
-        let filteredContacts = normalized;
-        if (userType === 'user') {
-          // For users, they should only see their own contact
-          // This will be handled by the backend API based on the user's tenantId
-          // The backend should already filter to only return the user's own contact
-          filteredContacts = normalized;
-        }
-        // For admins, show all contacts (no filtering needed)
-
-        setContacts(filteredContacts);
-      setTotal(Number.isFinite(data?.totalElements) ? data.totalElements :
-        Number.isFinite(data?.total) ? data.total : normalized.length);
+        setContacts(normalized);
+        setTotal(Number.isFinite(data?.totalElements) ? data.totalElements :
+          Number.isFinite(data?.total) ? data.total : normalized.length);
 
         setStatusOptions((prev) => {
           const next = new Set(prev);
@@ -870,23 +778,23 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           return Array.from(next).sort((a, b) => a.localeCompare(b));
         });
 
-      setUserTypeOptions(() => {
-        const next = new Set(CANONICAL_USER_TYPES);
-        normalized.forEach((tenant) => {
-          if (tenant.user_type && tenant.user_type !== '—') {
-            next.add(tenant.user_type);
-          }
+        setUserTypeOptions(() => {
+          const next = new Set(CANONICAL_USER_TYPES);
+          normalized.forEach((tenant) => {
+            if (tenant.user_type && tenant.user_type !== '—') {
+              next.add(tenant.user_type);
+            }
+          });
+          return Array.from(next).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
         });
-        return Array.from(next).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-      });
       } catch (fetchError) {
         setError(fetchError.message || 'Unable to load contacts');
         setContacts([]);
         setTotal(0);
       } finally {
-          setLoading(false);
-        }
-  }, [debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
+        setLoading(false);
+      }
+  }, [page, debouncedSearch, statusFilter, emailFilter, userTypeFilter]);
 
   useEffect(() => {
     fetchContacts();
@@ -1048,16 +956,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
     setStatusFilter('all');
     setEmailFilter('all');
     setUserTypeFilter('all');
-    setDateFilters({ startDate: '', endDate: '' });
     setPage(1);
-  };
-
-  const handleDateFilterChange = (field, value) => {
-    setDateFilters(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    setPage(1); // Reset to first page when filters change
   };
 
   const handleAddUser = async (values) => {
@@ -1121,36 +1020,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
     setDeleteDialogOpen(true);
   };
 
-  // Client-side filtering for date range (since backend doesn't support date filtering yet)
-  const filteredContacts = useMemo(() => {
-    let filtered = contacts;
-    
-    // Filter by date range
-    if (dateFilters.startDate) {
-      const startDate = new Date(dateFilters.startDate);
-      filtered = filtered.filter((contact) => {
-        const contactDate = new Date(contact.createdAt || contact.lastActive || contact.updatedAt);
-        return contactDate >= startDate;
-      });
-    }
-    
-    if (dateFilters.endDate) {
-      const endDate = new Date(dateFilters.endDate);
-      endDate.setHours(23, 59, 59, 999); // End of day
-      filtered = filtered.filter((contact) => {
-        const contactDate = new Date(contact.createdAt || contact.lastActive || contact.updatedAt);
-        return contactDate <= endDate;
-      });
-    }
-    
-    return filtered;
-  }, [contacts, dateFilters]);
-
-  // Pagination logic (client-side like MailboxAdmin)
-  const totalPages = Math.ceil(filteredContacts.length / PAGE_SIZE);
+  // Server-side pagination: backend returns only the current page
+  const totalPages = Math.ceil(total / PAGE_SIZE);
   const startIndex = (page - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const paginatedContacts = filteredContacts.slice(startIndex, endIndex);
+  const endIndex = startIndex + contacts.length;
+  const paginatedContacts = contacts;
   
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
@@ -1201,20 +1075,20 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   height: 36,
                   textTransform: 'none',
                   fontWeight: 600,
-                  borderColor: 'secondary.main',
-                  color: 'secondary.main',
+                  borderColor: 'success.main',
+                  color: 'success.main',
                   '&:hover': {
-                    borderColor: theme.palette.brand.orangeHover,
-                    color: theme.palette.brand.orangeHover,
-                    backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                    borderColor: theme.palette.success.dark,
+                    color: theme.palette.success.dark,
+                    backgroundColor: alpha(theme.palette.success.main, 0.08),
                     transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.success.main, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
                 onClick={() => setAddDialogOpen(true)}
               >
-                + NEW USER
+                + New user
               </Button>
             )}
             <Button 
@@ -1231,7 +1105,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 }
               }}
             >
-              EXPORT CSV
+              Export csv
             </Button>
           </Stack>
         </Stack>
@@ -1272,28 +1146,6 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                     </InputAdornment>
                   ),
                 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label="Start Date"
-                type="date"
-                value={dateFilters.startDate}
-                onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label="End Date"
-                type="date"
-                value={dateFilters.endDate}
-                onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -1338,7 +1190,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               Clear Filters
             </Button>
             <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
-              Showing {filteredContacts.length} of {contacts.length} contacts
+              Showing {contacts.length} of {total} contacts
             </Typography>
           </Stack>
         </Paper>
@@ -1529,7 +1381,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="body2" color="text.secondary">
-            {filteredContacts.length === 0 ? '0 results' : `${startIndex + 1}-${Math.min(endIndex, filteredContacts.length)} of ${filteredContacts.length}`}
+            {total === 0 ? '0 results' : `${startIndex + 1}-${Math.min(startIndex + contacts.length, total)} of ${total}`}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Page {page} of {totalPages}
@@ -1645,11 +1497,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               fontWeight: 600,
               px: 3,
               py: 1,
-              background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orange} 0%, ${theme.palette.brand.orangeHover} 100%)`,
+              background: (theme) => `linear-gradient(135deg, ${theme.palette.error.main} 0%, ${theme.palette.error.dark} 100%)`,
               '&:hover': {
-                background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orangeHover} 0%, ${theme.palette.secondary.dark} 100%)`,
+                background: (theme) => `linear-gradient(135deg, ${theme.palette.error.dark} 0%, ${theme.palette.error.main} 100%)`,
                 transform: 'translateY(-1px)',
-                boxShadow: `0 8px 25px ${alpha(theme.palette.brand.orange, 0.3)}`
+                boxShadow: `0 8px 25px ${alpha(theme.palette.error.main, 0.3)}`
               },
               transition: 'all 0.2s ease-in-out'
             }}

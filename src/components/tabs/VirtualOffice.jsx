@@ -23,7 +23,7 @@ const VirtualOffice = ({ userType = 'user' }) => {
   const subtabs = [
     {
       id: 'mailbox',
-      label: 'Mailbox',
+      label: 'Business Address',
       icon: <MailOutlineIcon />,
       component: userType === 'admin' ? MailboxAdmin : MailboxUser
     },
@@ -42,10 +42,10 @@ const VirtualOffice = ({ userType = 'user' }) => {
       {/* Header */}
       <Stack spacing={2}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Virtual Office
+          Your Professional Business Address
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Manage your virtual office services including mail handling and office address information.
+          Manage your Business Address services including mail handling and office address information.
         </Typography>
       </Stack>
 

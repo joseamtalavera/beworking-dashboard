@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import TextField from '@mui/material/TextField';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
@@ -23,7 +28,7 @@ import PublicIcon from '@mui/icons-material/Public';
 import WifiIcon from '@mui/icons-material/Wifi';
 
 // Mock office data - in a real app, this would come from an API
-const officeData = {
+const initialOfficeData = {
   name: 'BeWorking Virtual Office',
   address: {
     street: 'Calle Gran Vía, 123',
@@ -146,6 +151,69 @@ const TransportItem = ({ transport }) => (
 
 const VirtualOfficeAddress = () => {
   const theme = useTheme();
+  const accentColor = theme.palette.primary.main;
+  const accentHover = theme.palette.brand.accentSoft;
+  const [officeData, setOfficeData] = useState(initialOfficeData);
+  const [editOpen, setEditOpen] = useState(false);
+  const [addTransportOpen, setAddTransportOpen] = useState(false);
+  const [editForm, setEditForm] = useState(initialOfficeData);
+  const [transportForm, setTransportForm] = useState({ name: '', distance: '' });
+  const mapQuery = encodeURIComponent(
+    `${officeData.address.street}, ${officeData.address.postalCode} ${officeData.address.city}, ${officeData.address.country}`
+  );
+  const mapSrc = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
+
+  const openEditDialog = () => {
+    setEditForm(officeData);
+    setEditOpen(true);
+  };
+
+  const handleEditChange = (field) => (event) => {
+    const { value } = event.target;
+    setEditForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddressChange = (field) => (event) => {
+    const { value } = event.target;
+    setEditForm((prev) => ({
+      ...prev,
+      address: { ...prev.address, [field]: value }
+    }));
+  };
+
+  const handleContactChange = (field) => (event) => {
+    const { value } = event.target;
+    setEditForm((prev) => ({
+      ...prev,
+      contact: { ...prev.contact, [field]: value }
+    }));
+  };
+
+  const handleHoursChange = (field) => (event) => {
+    const { value } = event.target;
+    setEditForm((prev) => ({
+      ...prev,
+      hours: { ...prev.hours, [field]: value }
+    }));
+  };
+
+  const handleSaveEdit = () => {
+    setOfficeData(editForm);
+    setEditOpen(false);
+  };
+
+  const handleAddTransport = () => {
+    if (!transportForm.name.trim() || !transportForm.distance.trim()) return;
+    setOfficeData((prev) => ({
+      ...prev,
+      nearbyTransport: [
+        ...(prev.nearbyTransport ?? []),
+        { name: transportForm.name.trim(), distance: transportForm.distance.trim() }
+      ]
+    }));
+    setTransportForm({ name: '', distance: '' });
+    setAddTransportOpen(false);
+  };
   const handleGetDirections = () => {
     const { lat, lng } = officeData.coordinates;
     const address = `${officeData.address.street}, ${officeData.address.city}`;
@@ -169,9 +237,19 @@ const VirtualOfficeAddress = () => {
     <Stack spacing={4}>
       {/* Header */}
       <Stack spacing={2}>
-        <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Office Address & Information
-        </Typography>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
+            Office Address & Information
+          </Typography>
+          <Stack direction="row" spacing={1}>
+            <Button variant="outlined" onClick={() => setAddTransportOpen(true)} sx={{ borderRadius: 2 }}>
+              Add transport
+            </Button>
+            <Button variant="contained" onClick={openEditDialog} sx={{ borderRadius: 2 }}>
+              Edit details
+            </Button>
+          </Stack>
+        </Stack>
         <Typography variant="body1" color="text.secondary">
           Your virtual office location with complete address details, amenities, and how to get there.
         </Typography>
@@ -224,7 +302,7 @@ const VirtualOfficeAddress = () => {
               onClick={handleGetDirections}
               sx={{
                 bgcolor: accentColor,
-                '&:hover': { bgcolor: 'secondary.main' },
+                '&:hover': { bgcolor: theme.palette.primary.dark },
                 borderRadius: 2
               }}
             >
@@ -331,69 +409,92 @@ const VirtualOfficeAddress = () => {
           />
         </Grid>
 
-        {/* Public Transport */}
-        <Grid item xs={12} md={6}>
-          <InfoCard
-            icon={<PublicIcon />}
-            title="Public Transport"
-            content={
-              <Stack spacing={1}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  Easy access via public transportation
-                </Typography>
-                {officeData.nearbyTransport.map((transport, index) => (
-                  <TransportItem key={index} transport={transport} />
-                ))}
-              </Stack>
-            }
-          />
-        </Grid>
       </Grid>
 
-      {/* Map Placeholder */}
+      {/* Map */}
       <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-        <Box
-          sx={{
-            height: 300,
-            background: `linear-gradient(135deg, ${accentHover} 0%, ${alpha(theme.palette.brand.orange, 0.05)} 100%)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative'
-          }}
-        >
-          <Stack spacing={2} alignItems="center">
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                bgcolor: accentColor,
-                color: 'common.white'
-              }}
+        <Box sx={{ position: 'relative', height: 360 }}>
+          <iframe
+            title="Virtual office location map"
+            src={mapSrc}
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              right: 16,
+              bottom: 16,
+              display: 'flex',
+              gap: 1
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<DirectionsIcon />}
+              onClick={handleGetDirections}
+              sx={{ borderRadius: 2 }}
             >
-              <LocationOnIcon sx={{ fontSize: 32 }} />
-            </Box>
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Interactive Map
-            </Typography>
-            <Typography variant="body2" color="text.secondary" textAlign="center">
-              Click "Get Directions" above to open Google Maps with your exact location
-            </Typography>
+              Get directions
+            </Button>
             <Button
               variant="outlined"
-              startIcon={<DirectionsIcon />}
               onClick={handleGetDirections}
               sx={{ borderRadius: 2 }}
             >
               Open in Google Maps
             </Button>
-          </Stack>
+          </Box>
         </Box>
       </Paper>
+
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Edit virtual office details</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Stack spacing={2}>
+            <TextField label="Office name" value={editForm.name} onChange={handleEditChange('name')} fullWidth />
+            <TextField label="Street" value={editForm.address.street} onChange={handleAddressChange('street')} fullWidth />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField label="City" value={editForm.address.city} onChange={handleAddressChange('city')} fullWidth />
+              <TextField label="Postal code" value={editForm.address.postalCode} onChange={handleAddressChange('postalCode')} fullWidth />
+              <TextField label="Country" value={editForm.address.country} onChange={handleAddressChange('country')} fullWidth />
+            </Stack>
+            <Divider />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField label="Phone" value={editForm.contact.phone} onChange={handleContactChange('phone')} fullWidth />
+              <TextField label="Email" value={editForm.contact.email} onChange={handleContactChange('email')} fullWidth />
+              <TextField label="Website" value={editForm.contact.website} onChange={handleContactChange('website')} fullWidth />
+            </Stack>
+            <Divider />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField label="Weekdays" value={editForm.hours.weekdays} onChange={handleHoursChange('weekdays')} fullWidth />
+              <TextField label="Saturday" value={editForm.hours.saturday} onChange={handleHoursChange('saturday')} fullWidth />
+              <TextField label="Sunday" value={editForm.hours.sunday} onChange={handleHoursChange('sunday')} fullWidth />
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button variant="outlined" onClick={() => setEditOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveEdit}>Save changes</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={addTransportOpen} onClose={() => setAddTransportOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Add transport option</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Stack spacing={2}>
+            <TextField label="Transport name" value={transportForm.name} onChange={(e) => setTransportForm((prev) => ({ ...prev, name: e.target.value }))} fullWidth />
+            <TextField label="Distance" value={transportForm.distance} onChange={(e) => setTransportForm((prev) => ({ ...prev, distance: e.target.value }))} fullWidth />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button variant="outlined" onClick={() => setAddTransportOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleAddTransport}>Add transport</Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };

@@ -44,7 +44,8 @@ export const apiFetch = async (path, options = {}) => {
     headers = {},
     body,
     credentials = 'include',
-    signal
+    signal,
+    _retry = false
   } = options;
 
   const init = {
@@ -71,6 +72,25 @@ export const apiFetch = async (path, options = {}) => {
   }
 
   const response = await fetch(toAbsoluteUrl(path), init);
+
+  if ((response.status === 401 || response.status === 403) && !_retry) {
+    try {
+      const refreshResponse = await fetch(toAbsoluteUrl('auth/refresh'), {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (refreshResponse.ok) {
+        const payload = await refreshResponse.json().catch(() => null);
+        if (payload?.token) {
+          setStoredToken(payload.token);
+          return apiFetch(path, { ...options, _retry: true });
+        }
+      }
+    } catch (error) {
+      console.error('Token refresh failed', error);
+    }
+    setStoredToken(null);
+  }
 
   if (!response.ok) {
     const message = await response.text().catch(() => '');

@@ -11,15 +11,15 @@ const theme = createTheme({
     brand: {
       green: '#2ecc71',        // Primary action color (Book, Save, Submit)
       greenHover: '#27ae60',   // Hover state for green
-      orange: '#fb923c',       // Destructive/warning actions (Delete, Logout)
-      orangeHover: '#ea580c',  // Hover state for orange
+      orange: '#ef4444',       // Destructive/warning actions (Delete, Logout)
+      orangeHover: '#dc2626',  // Hover state for destructive actions
       dark: '#2f3b46',
       muted: '#6b747d',
       lightBg: '#f6f8fb',
       border: '#e5e7eb',
       borderSoft: '#eef1f4',
       accentSoft: 'rgba(46, 204, 113, 0.08)',
-      orangeSoft: 'rgba(251, 146, 60, 0.08)',
+      orangeSoft: 'rgba(239, 68, 68, 0.08)',
     },
     primary: {
       main: '#2ecc71',         // Green - primary action color
@@ -28,9 +28,9 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     secondary: {
-      main: '#fb923c',         // Orange - secondary/destructive color
-      light: '#fdba74',
-      dark: '#ea580c',
+      main: '#2ecc71',         // Green - align secondary with primary to avoid orange
+      light: '#58d68d',
+      dark: '#27ae60',
       contrastText: '#fff',
     },
     success: {
@@ -46,16 +46,16 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     error: {
-      main: '#fb923c',         // Using orange instead of red
-      light: '#fdba74',
-      dark: '#ea580c',
+      main: '#ef4444',
+      light: '#f87171',
+      dark: '#dc2626',
       contrastText: '#fff',
     },
     warning: {
-      main: '#fb923c',
-      light: '#fdba74',
-      dark: '#ea580c',
-      contrastText: '#fff',
+      main: '#facc15',
+      light: '#fde047',
+      dark: '#eab308',
+      contrastText: '#111827',
     },
     background: {
       default: '#f8fafc',

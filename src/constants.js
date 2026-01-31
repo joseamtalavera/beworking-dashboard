@@ -24,7 +24,7 @@ import {
 const BASE_TABS = [
   { id: 'Overview', label: 'Overview', icon: OverviewIcon },
   { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
-  { id: 'Mailbox', label: 'Business Address', icon: MailboxIcon },
+  { id: 'Business Address', label: 'Business Address', icon: MailboxIcon },
   { id: 'Booking', label: 'Meeting Rooms', icon: BookingIcon },
   { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
   { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },

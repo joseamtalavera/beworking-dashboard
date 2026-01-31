@@ -211,28 +211,28 @@ const getStatusStyles = (theme) => ({
   },
   invoiced: {
     bgcolor: theme.palette.mode === 'dark'
+      ? alpha(theme.palette.error.main, 0.2)
+      : alpha(theme.palette.error.light, 0.18),
+    borderColor: theme.palette.error.main,
+    color: theme.palette.error.dark
+  },
+  created: {
+    bgcolor: theme.palette.mode === 'dark'
       ? alpha(theme.palette.warning.main, 0.2)
       : alpha(theme.palette.warning.light, 0.25),
     borderColor: theme.palette.warning.main,
     color: theme.palette.warning.dark
-  },
-  created: {
-    bgcolor: theme.palette.mode === 'dark'
-      ? alpha(theme.palette.secondary.main, 0.2)
-      : alpha(theme.palette.secondary.main, 0.18),
-    borderColor: theme.palette.secondary.main,
-    color: theme.palette.secondary.dark
   }
 });
 
 const statusLabels = {
   available: 'Available',
   paid: 'Paid',
-  invoiced: 'Invoiced',
+  invoiced: 'Invoiced (unpaid)',
   created: 'Created'
 };
 
-const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created'];
+const LEGEND_STATUSES = ['available', 'created', 'invoiced', 'paid'];
 
 const Legend = () => {
   const theme = useTheme();
@@ -990,21 +990,19 @@ const ReservaDialog = ({
   const theme = useTheme();
   const isEditMode = mode === 'edit';
     const baseInputStyles = {
-      minHeight: 44,
-      borderRadius: 10,
-      backgroundColor: theme.palette.background.paper,
-      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+      minHeight: 40,
+      borderRadius: 8,
+      backgroundColor: theme.palette.common.white,
       '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: alpha(theme.palette.divider, 0.6)
+        borderColor: theme.palette.grey[300]
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: theme.palette.primary.main
+        borderColor: theme.palette.grey[400]
       },
       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: theme.palette.primary.main,
-        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.14)}`
+        borderColor: theme.palette.primary.main
       },
-        '& input': {
+      '& input': {
         fontSize: 14,
         fontWeight: 500,
         color: theme.palette.text.primary
@@ -1018,9 +1016,9 @@ const ReservaDialog = ({
       fontSize: 13,
       fontWeight: 600,
       color: theme.palette.text.secondary,
-        '&.Mui-focused': {
-          color: theme.palette.primary.main
-        }
+      '&.Mui-focused': {
+        color: theme.palette.primary.main
+      }
     };
 
     const fieldStyles = {
@@ -2557,22 +2555,17 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   };
 
   const baseInputStyles = {
-    minHeight: 44,
-    borderRadius: '4px !important',
-    backgroundColor: theme.palette.background.paper,
-    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+    minHeight: 40,
+    borderRadius: 8,
+    backgroundColor: theme.palette.common.white,
     '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: alpha(theme.palette.divider, 0.6),
-      borderRadius: '4px !important'
+      borderColor: theme.palette.grey[300]
     },
     '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.primary.main,
-      borderRadius: '4px !important'
+      borderColor: theme.palette.grey[400]
     },
     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.primary.main,
-      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.14)}`,
-      borderRadius: '4px !important'
+      borderColor: theme.palette.primary.main
     },
     '& input': {
       fontSize: 14,
@@ -2601,10 +2594,6 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const selectFieldStyles = {
     '& .MuiOutlinedInput-root': {
       ...baseInputStyles,
-      borderRadius: '4px !important',
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderRadius: '4px !important'
-      },
       '& .MuiSelect-select': {
         display: 'flex',
         alignItems: 'center',
@@ -5276,9 +5265,15 @@ const Booking = ({ mode = 'user' }) => {
       }
 
         const productLabel = bloqueo?.producto?.nombre || '';
-        if (filterProduct && productLabel !== filterProduct) {
-        return false;
-      }
+        if (filterProduct) {
+          if (productLabel !== filterProduct) {
+            return false;
+          }
+        } else {
+          if (!ALLOWED_PRODUCT_NAMES.has(productLabel)) {
+            return false;
+          }
+        }
 
         if (filterUserType) {
         const tenantType = resolveTenantType(bloqueo);
@@ -5302,6 +5297,18 @@ const Booking = ({ mode = 'user' }) => {
       return [];
     }
   }, [bloqueos, filterUser, filterCenter, filterProduct, filterUserType, filterEmail]);
+
+  const totalAllowedBloqueos = useMemo(() => {
+    try {
+      return (bloqueos || []).filter((bloqueo) => {
+        const productLabel = bloqueo?.producto?.nombre || '';
+        return ALLOWED_PRODUCT_NAMES.has(productLabel);
+      }).length;
+    } catch (error) {
+      console.error('Error counting allowed bloqueos:', error);
+      return 0;
+    }
+  }, [bloqueos]);
 
   const calendarBloqueos = useMemo(() => {
     try {
@@ -5366,10 +5373,15 @@ const Booking = ({ mode = 'user' }) => {
 
     userTypes.add('Usuario Aulas');
 
+    const productList = Array.from(products).sort(sorter);
+    const preferredProducts = ['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5'];
+    const preferredSet = new Set(preferredProducts.map((item) => item.toUpperCase()));
+    const preferredList = productList.filter((item) => preferredSet.has(String(item).toUpperCase()));
+
     return {
       users: Array.from(users).sort(sorter),
       centers: Array.from(centers).sort(sorter),
-      products: Array.from(products).sort(sorter),
+      products: preferredList,
       userTypes: Array.from(userTypes).sort(sorter)
     };
   }, [bloqueos]);
@@ -5387,6 +5399,13 @@ const Booking = ({ mode = 'user' }) => {
     }
     return `Showing bloqueos on ${formatDate(agendaDate)}.`;
   }, [agendaDate]);
+
+  const agendaTotalLabel = useMemo(() => {
+    if (agendaDate) {
+      return agendaBloqueos.length;
+    }
+    return totalAllowedBloqueos;
+  }, [agendaDate, agendaBloqueos.length, totalAllowedBloqueos]);
 
   const getSlotStatus = (room, slot) => {
     try {
@@ -5445,10 +5464,10 @@ const Booking = ({ mode = 'user' }) => {
       >
         <Stack spacing={1}>
           <Typography variant="h5" fontWeight="bold" color="text.primary">
-            Workspace bloqueos
+            Workspace Bookings
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Browse every bloqueo across BeWorking locations. Switch between calendar and agenda views.
+            Browse every booking across BeWorking locations. Switch between calendar and agenda views.
           </Typography>
         </Stack>
         <Stack direction="row" spacing={2} alignItems="center">
@@ -5476,7 +5495,7 @@ const Booking = ({ mode = 'user' }) => {
               }
             }}
           >
-            NEW RESERVA
+            New reserva
           </Button>
         </Stack>
       </Stack>
@@ -5494,6 +5513,7 @@ const Booking = ({ mode = 'user' }) => {
                 onChange={handleCalendarDateChange}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
+                size="small"
               />
             </Grid>
             <Grid item xs={12} sm={6} md={8}>
@@ -5649,108 +5669,94 @@ const Booking = ({ mode = 'user' }) => {
                 <TextField
                   fullWidth
                   label="Search by Name"
-                      value={filterUser}
-                      onChange={(event) => setFilterUser(event.target.value)}
-                  placeholder="Search by name"
+                  value={filterUser}
+                  onChange={(event) => setFilterUser(event.target.value)}
                   size="small"
                   InputProps={{
                     startAdornment: (
-                        <InputAdornment position="start">
+                      <InputAdornment position="start">
                         <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                        </InputAdornment>
+                      </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
-            <TextField
-                      fullWidth
+                <TextField
+                  fullWidth
                   label="Search by Email"
-              value={filterEmail}
-              onChange={(event) => setFilterEmail(event.target.value)}
-              placeholder="Search by email"
+                  value={filterEmail}
+                  onChange={(event) => setFilterEmail(event.target.value)}
                   size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
                         <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
+                      </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth size="small">
-                  <InputLabel>Centro</InputLabel>
+                  <InputLabel shrink>Centro</InputLabel>
                   <Select
-              value={filterCenter}
-              onChange={(event) => setFilterCenter(event.target.value)}
+                    value={filterCenter}
+                    onChange={(event) => setFilterCenter(event.target.value)}
                     label="Centro"
                     displayEmpty
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <LocationOnRoundedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    }
-            >
-              <MenuItem value="">
-                All centros
-              </MenuItem>
-              {(filterOptions.centers || []).map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
+                    renderValue={(value) => (value ? value : 'All centros')}
+                  >
+                    <MenuItem value="">
+                      All centros
+                    </MenuItem>
+                    {(filterOptions.centers || []).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth size="small">
-                  <InputLabel>User Type</InputLabel>
+                  <InputLabel shrink>User Type</InputLabel>
                   <Select
-              value={filterUserType}
-              onChange={(event) => setFilterUserType(event.target.value)}
+                    value={filterUserType}
+                    onChange={(event) => setFilterUserType(event.target.value)}
                     label="User Type"
                     displayEmpty
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <PersonRoundedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    }
-            >
-              <MenuItem value="">
-                All user types
-              </MenuItem>
-              {(filterOptions.userTypes || []).map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
+                    renderValue={(value) => (value ? value : 'All user types')}
+                  >
+                    <MenuItem value="">
+                      All user types
+                    </MenuItem>
+                    {(filterOptions.userTypes || []).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth size="small">
-                  <InputLabel>Producto</InputLabel>
+                  <InputLabel shrink>Producto</InputLabel>
                   <Select
                       value={filterProduct}
                       onChange={(event) => setFilterProduct(event.target.value)}
                     label="Producto"
                     displayEmpty
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    }
-            >
-              <MenuItem value="">
-                All products
-              </MenuItem>
-              {(filterOptions.products || []).map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
+                    renderValue={(value) => (value ? value : 'All products')}
+                  >
+                    <MenuItem value="">
+                      All products
+                    </MenuItem>
+                    {(filterOptions.products || []).map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -5772,8 +5778,8 @@ const Booking = ({ mode = 'user' }) => {
                 RESET
                     </Button>
               <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
-                Showing {filteredBloqueos.length} of {bloqueos.length} bookings
-              </Typography>
+              Showing {agendaBloqueos.length} of {agendaTotalLabel} bookings
+            </Typography>
             </Stack>
           </Paper>
                 <Typography variant="body2" color="text.secondary">
