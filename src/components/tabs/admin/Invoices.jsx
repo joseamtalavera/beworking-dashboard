@@ -177,8 +177,20 @@ const Invoices = () => {
       })
       .finally(() => setLoading(false));
   };
+  const normalizeDateInput = (value) => {
+    if (typeof value !== 'string') return value;
+    const match = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (match) {
+      return `${match[3]}-${match[2]}-${match[1]}`;
+    }
+    return value;
+  };
+
   const handleFilterChange = (field) => (event) => {
-    const value = event.target.value;
+    let value = event.target.value;
+    if (field === 'startDate' || field === 'endDate') {
+      value = normalizeDateInput(value);
+    }
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -189,7 +201,7 @@ const Invoices = () => {
           Billing & invoices
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Imported from legacy system (`beworking.facturas`).
+          Filter and manage your invoices.
         </Typography>
       </Stack>
 
@@ -207,6 +219,7 @@ const Invoices = () => {
               value={filters.name}
               onChange={handleFilterChange('name')}
               placeholder="Search by name"
+              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -223,6 +236,7 @@ const Invoices = () => {
               value={filters.email}
               onChange={handleFilterChange('email')}
               placeholder="Search by email"
+              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -239,6 +253,7 @@ const Invoices = () => {
               value={filters.idFactura}
               onChange={handleFilterChange('idFactura')}
               placeholder="Search by ID"
+              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -249,18 +264,13 @@ const Invoices = () => {
             />
           </Grid>
           <Grid item xs={12} sm={6} md={1.5}>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
+            <FormControl fullWidth size="small">
+              <InputLabel shrink>Status</InputLabel>
               <Select
                 value={filters.status}
                 onChange={handleFilterChange('status')}
                 label="Status"
                 displayEmpty
-                startAdornment={
-                  <InputAdornment position="start">
-                    <CheckCircleRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                }
               >
                 <MenuItem value="">All Status</MenuItem>
                 <MenuItem value="pagado">Pagado</MenuItem>
@@ -270,22 +280,23 @@ const Invoices = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={1.5}>
-            <FormControl fullWidth>
-              <InputLabel>User Type</InputLabel>
+            <FormControl fullWidth size="small">
+              <InputLabel shrink>User Type</InputLabel>
               <Select
                 value={filters.tenantType}
                 onChange={handleFilterChange('tenantType')}
                 label="User Type"
                 displayEmpty
-                startAdornment={
-                  <InputAdornment position="start">
-                    <PersonRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                }
               >
-                <MenuItem value="">All Types</MenuItem>
-                <MenuItem value="USER">User</MenuItem>
-                <MenuItem value="ADMIN">Admin</MenuItem>
+                <MenuItem value="">All user types</MenuItem>
+                <MenuItem value="Distribuidor">Distribuidor</MenuItem>
+                <MenuItem value="Proveedor">Proveedor</MenuItem>
+                <MenuItem value="Servicios">Servicios</MenuItem>
+                <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+                <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
+                <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
+                <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
+                <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -298,6 +309,7 @@ const Invoices = () => {
               value={filters.product}
               onChange={handleFilterChange('product')}
               placeholder="Search by product"
+              size="small"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -315,6 +327,7 @@ const Invoices = () => {
               value={filters.startDate}
               onChange={handleFilterChange('startDate')}
               InputLabelProps={{ shrink: true }}
+              size="small"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
@@ -325,6 +338,7 @@ const Invoices = () => {
               value={filters.endDate}
               onChange={handleFilterChange('endDate')}
               InputLabelProps={{ shrink: true }}
+              size="small"
             />
           </Grid>
         </Grid>
@@ -339,7 +353,7 @@ const Invoices = () => {
               status: '',
               tenantType: '',
               product: '',
-              startDate: new Date().getFullYear() + '-01-01', // Reset to January 1st of current year
+              startDate: '',
               endDate: ''
             })}
             sx={{
@@ -347,19 +361,19 @@ const Invoices = () => {
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: 'secondary.main',
-              color: 'secondary.main',
+              borderColor: 'primary.main',
+              color: 'primary.main',
               '&:hover': {
-                borderColor: theme.palette.brand.orangeHover,
-                color: theme.palette.brand.orangeHover,
-                backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                borderColor: 'primary.dark',
+                color: 'primary.dark',
+                backgroundColor: (theme) => `${theme.palette.primary.main}14`,
                 transform: 'translateY(-1px)',
-                boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`
               },
               transition: 'all 0.2s ease-in-out'
             }}
           >
-            RESET
+            Reset
           </Button>
           <Button 
             onClick={() => setNewInvoiceOpen(true)} 
@@ -377,7 +391,7 @@ const Invoices = () => {
               }
             }}
           >
-            NEW INVOICE
+            New invoice
           </Button>
           <Stack direction="row" spacing={2} sx={{ alignSelf: 'center', width: '100%' }} justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">
