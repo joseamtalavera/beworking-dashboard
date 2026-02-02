@@ -208,7 +208,7 @@ const LineChart = ({ data, loading, title, color, maxValue }) => {
         {title}
       </Typography>
       <Box sx={{ position: 'relative', width: '100%', height: chartHeight + padding * 2 }}>
-        <svg width="100%" height={chartHeight + padding * 2} style={{ minWidth: chartWidth }}>
+        <svg width="100%" height={chartHeight + padding * 2} style={{ minWidth: Math.min(chartWidth, 400) }}>
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => (
             <g key={index}>

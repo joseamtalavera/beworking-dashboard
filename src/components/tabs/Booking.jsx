@@ -5535,7 +5535,7 @@ const Booking = ({ mode = 'user' }) => {
             </Paper>
           ) : (
             <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflowX: 'auto' }}>
-              <TableContainer sx={{ minWidth: 800 }}>
+              <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <Table
                   size="small"
                   stickyHeader

@@ -7,6 +7,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
+import TableContainer from '@mui/material/TableContainer';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
@@ -418,6 +419,7 @@ const Invoices = () => {
         </Box>
       ) : (
         <>
+          <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <Table size="small">
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
@@ -534,6 +536,7 @@ const Invoices = () => {
               )}
             </TableBody>
           </Table>
+          </TableContainer>
 
           {/* Pagination */}
           {totalPages > 1 && (

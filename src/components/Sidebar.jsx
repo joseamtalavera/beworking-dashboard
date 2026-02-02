@@ -9,34 +9,28 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, useTheme } from '@mui/material/styles';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 
-const drawerWidth = 260;
+export const drawerWidth = 260;
 
-const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout }) => {
+const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const accentColor = theme.palette.primary.main;
   const activeColor = theme.palette.primary.dark;
   const accentHover = alpha(theme.palette.primary.main, 0.12);
   const activeHover = accentHover;
 
-  return (
-    <Drawer
-      variant="permanent"
-      anchor="left"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-          backgroundColor: theme.palette.background.paper,
-          borderRight: `1px solid ${theme.palette.divider}`
-        }
-      }}
-    >
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (isMobile) onMobileClose?.();
+  };
+
+  const drawerContent = (
+    <>
       <Box sx={{ height: 120, borderBottom: '1px solid', borderColor: 'divider', px: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: theme.palette.background.paper }}>
         <img src="/assets/beworking_logo_clean.svg" alt="BeWorking Logo" style={{ maxHeight: '60px', maxWidth: '180px', objectFit: 'contain' }} />
       </Box>
@@ -46,7 +40,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             <ListItem key={tab.id} disablePadding>
               <ListItemButton
                 selected={activeTab === tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 sx={{
                   borderRadius: 2,
                   mb: 1,
@@ -71,27 +65,27 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                 <ListItemIcon>
                   <tab.icon sx={{ fontSize: 20, color: 'inherit' }} />
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary={
                     <Stack direction="row" alignItems="center" spacing={1}>
                       <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>{tab.label}</Typography>
                       {tab.soon && (
-                        <Chip 
-                          label="Soon" 
-                          size="small" 
+                        <Chip
+                          label="Soon"
+                          size="small"
                           variant="outlined"
-                          sx={{ 
-                            borderColor: theme.palette.secondary.light, 
-                            color: theme.palette.secondary.light, 
+                          sx={{
+                            borderColor: theme.palette.secondary.light,
+                            color: theme.palette.secondary.light,
                             fontSize: '0.6rem',
                             height: 16,
                             minWidth: 'auto',
                             '& .MuiChip-label': { px: 0.5, py: 0 }
-                          }} 
+                          }}
                         />
                       )}
                     </Stack>
-                  } 
+                  }
                 />
               </ListItemButton>
             </ListItem>
@@ -109,17 +103,17 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton 
-            sx={{ 
+          <ListItemButton
+            sx={{
               borderRadius: 2,
               color: 'secondary.main',
               '& .MuiListItemIcon-root': { color: 'secondary.main' },
-              '&:hover': { 
+              '&:hover': {
                 backgroundColor: (theme) => theme.palette.brand.orangeSoft,
                 color: 'secondary.dark',
                 '& .MuiListItemIcon-root': { color: 'secondary.dark' }
               }
-            }} 
+            }}
             onClick={onLogout}
           >
             <ListItemIcon>
@@ -129,7 +123,49 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
           </ListItemButton>
         </ListItem>
       </List>
-    </Drawer>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile: temporary drawer with overlay */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            backgroundColor: theme.palette.background.paper,
+            borderRight: `1px solid ${theme.palette.divider}`
+          }
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* Desktop: permanent drawer */}
+      <Drawer
+        variant="permanent"
+        anchor="left"
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            backgroundColor: theme.palette.background.paper,
+            borderRight: `1px solid ${theme.palette.divider}`
+          }
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    </>
   );
 };
 

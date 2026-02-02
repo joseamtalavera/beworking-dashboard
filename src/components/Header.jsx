@@ -12,7 +12,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import EventNoteRoundedIcon from '@mui/icons-material/EventNoteRounded';
 import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
@@ -23,8 +23,6 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-// accentColor is defined inside component using theme.palette.brand.orange
-
 // Add CSS animation for loading spinner
 const spinAnimation = `
   @keyframes spin {
@@ -33,7 +31,7 @@ const spinAnimation = `
   }
 `;
 
-const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab }) => {
+const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab, onMenuToggle }) => {
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
   const [anchorEl, setAnchorEl] = useState(null);
@@ -173,25 +171,33 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
   ];
 
   return (
-    <Box component="header" sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderBottomColor: 'divider', px: { xs: 3, lg: 4 }, py: 3 }}>
+    <Box component="header" sx={{ position: 'sticky', top: 0, zIndex: 1100, bgcolor: 'background.paper', borderBottom: '1px solid', borderBottomColor: 'divider', px: { xs: 2, sm: 3, lg: 4 }, py: { xs: 2, sm: 3 } }}>
       <style>{spinAnimation}</style>
-      <Stack spacing={2.5}>
+      <Stack spacing={2}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
           <Stack spacing={0.75}>
             <Stack direction="row" spacing={1.5} alignItems="center">
-              <Typography variant="h4" fontWeight={700} color="text.primary">
+              {/* Hamburger menu — mobile only */}
+              <IconButton
+                onClick={onMenuToggle}
+                sx={{ display: { xs: 'inline-flex', md: 'none' }, color: 'text.primary', ml: -1 }}
+                aria-label="Open navigation"
+              >
+                <MenuRoundedIcon />
+              </IconButton>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' } }}>
                 {activeTab}
               </Typography>
             </Stack>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
               {greeting}, {userProfile?.name || 'User'}. Here's the latest across your spaces.
             </Typography>
           </Stack>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
-            <Box sx={{ position: 'relative', width: { xs: '100%', sm: 260, md: 320 } }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ width: { xs: '100%', md: 'auto' } }}>
+            <Box sx={{ position: 'relative', width: { xs: '100%', sm: 220, md: 280, lg: 320 } }}>
             <TextField
-              placeholder="Search tenants, rooms, automations…"
+              placeholder="Search…"
               size="small"
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -245,7 +251,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                 }}
                 sx={{ width: '100%' }}
               />
-              
+
               {/* Search Results Dropdown */}
               {searchQuery && searchResults.length > 0 && (
                 <Box
@@ -279,7 +285,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                       }}
                       onClick={() => {
                         console.log('Selected:', result);
-                        
+
                         // Navigate to the appropriate section based on result type
                         if (result.type === 'tenant') {
                           console.log('Navigate to specific contact:', result.name, 'ID:', result.id, 'Type:', typeof result.id);
@@ -290,21 +296,19 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                         } else if (result.type === 'room') {
                           console.log('Navigate to Booking tab for:', result.name);
                           setActiveTab('Booking');
-                          // TODO: Could filter to specific room
                         } else if (result.type === 'automation') {
                           console.log('Navigate to Automation tab for:', result.name);
                           setActiveTab('Automation');
-                          // TODO: Could filter to specific automation
                         }
-                        
+
                         setSearchQuery('');
                         setSearchResults([]);
                       }}
                     >
                       <Stack direction="row" spacing={2} alignItems="center">
                         {result.avatar ? (
-                          <Avatar 
-                            src={result.avatar} 
+                          <Avatar
+                            src={result.avatar}
                             sx={{ width: 24, height: 24 }}
                           >
                             {result.name.charAt(0)}
@@ -326,12 +330,12 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                             }}
                           />
                         )}
-                        <Stack spacing={0.5}>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
                             {result.name}
                           </Typography>
                           {result.email && (
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant="caption" color="text.secondary" noWrap>
                               {result.email}
                             </Typography>
                           )}
@@ -341,7 +345,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                             </Typography>
                           )}
                         </Stack>
-                        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', flexShrink: 0 }}>
                           {result.type}
                         </Typography>
                       </Stack>
@@ -350,19 +354,18 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                 </Box>
               )}
             </Box>
-            
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button 
-                variant="outlined" 
-                size="small" 
-                startIcon={<AddRoundedIcon />} 
+
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddRoundedIcon />}
                 onClick={handleClick}
-                sx={{ 
+                sx={{
                   textTransform: 'none',
                   fontWeight: 600,
-                  px: 3,
+                  px: { xs: 1.5, sm: 3 },
                   py: 1,
-                  minWidth: 120,
                   height: 36,
                   borderColor: accentColor,
                   color: accentColor,
@@ -385,21 +388,21 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                 PaperProps={{
                   sx: {
                     mt: 1,
-                    minWidth: 200,
+                    minWidth: 180,
                     borderRadius: 2,
                     boxShadow: (theme) => theme.shadows[4]
                   }
                 }}
               >
                 {actionOptions.map((option, index) => (
-                  <MenuItem 
-                    key={index} 
+                  <MenuItem
+                    key={index}
                     onClick={() => {
                       option.action();
                       handleClose();
                     }}
-                    sx={{ 
-                      py: 1.5, 
+                    sx={{
+                      py: 1.5,
                       px: 2,
                       '&:hover': {
                         backgroundColor: (theme) => theme.palette.brand.orangeSoft
@@ -409,7 +412,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                     <ListItemIcon sx={{ color: 'primary.main', minWidth: 36 }}>
                       {option.icon}
                     </ListItemIcon>
-                    <ListItemText 
+                    <ListItemText
                       primary={option.label}
                       primaryTypographyProps={{
                         fontSize: '0.875rem',
@@ -419,32 +422,44 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                   </MenuItem>
                 ))}
               </Menu>
+              {/* Full button on sm+, icon-only on xs */}
               <Button
                 variant="contained"
                 size="small"
                 startIcon={<HelpOutlineIcon />}
                 onClick={onOpenHelp}
-                sx={{ 
+                sx={{
                   bgcolor: 'primary.main',
                   color: 'common.white',
-                  minWidth: 120,
                   height: 36,
+                  display: { xs: 'none', sm: 'inline-flex' },
                   '&:hover': { bgcolor: theme.palette.brand.orange }
                 }}
               >
-                Help & Support
+                Help
               </Button>
-              <Avatar 
-                src={userProfile?.avatar || userProfile?.photo} 
-                alt={userProfile?.name || userProfile?.email || 'User'} 
+              <IconButton
+                onClick={onOpenHelp}
+                sx={{
+                  display: { xs: 'inline-flex', sm: 'none' },
+                  color: 'primary.main'
+                }}
+                aria-label="Help & Support"
+              >
+                <HelpOutlineIcon />
+              </IconButton>
+              <Avatar
+                src={userProfile?.avatar || userProfile?.photo}
+                alt={userProfile?.name || userProfile?.email || 'User'}
                 onClick={onOpenSettings}
                 sx={{
-                  width: 44,
-                  height: 44,
+                  width: { xs: 36, sm: 44 },
+                  height: { xs: 36, sm: 44 },
                   border: '3px solid',
                   borderColor: (theme) => alpha(theme.palette.warning.light, 0.6),
                   bgcolor: accentColor,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  flexShrink: 0
                 }}
               >
                 {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('') : 'U'}

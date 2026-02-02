@@ -11,15 +11,15 @@ const theme = createTheme({
     brand: {
       green: '#2ecc71',        // Primary action color (Book, Save, Submit)
       greenHover: '#27ae60',   // Hover state for green
-      orange: '#ef4444',       // Destructive/warning actions (Delete, Logout)
-      orangeHover: '#dc2626',  // Hover state for destructive actions
+      orange: '#fb923c',       // Destructive/warning actions (Delete, Logout)
+      orangeHover: '#ea580c',  // Hover state for orange
       dark: '#2f3b46',
       muted: '#6b747d',
       lightBg: '#f6f8fb',
       border: '#e5e7eb',
       borderSoft: '#eef1f4',
       accentSoft: 'rgba(46, 204, 113, 0.08)',
-      orangeSoft: 'rgba(239, 68, 68, 0.08)',
+      orangeSoft: 'rgba(251, 146, 60, 0.08)',
     },
     primary: {
       main: '#2ecc71',         // Green - primary action color
@@ -28,9 +28,9 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     secondary: {
-      main: '#2ecc71',         // Green - align secondary with primary to avoid orange
-      light: '#58d68d',
-      dark: '#27ae60',
+      main: '#fb923c',         // Orange - secondary/destructive color
+      light: '#fdba74',
+      dark: '#ea580c',
       contrastText: '#fff',
     },
     success: {
@@ -46,16 +46,16 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     error: {
-      main: '#ef4444',
-      light: '#f87171',
-      dark: '#dc2626',
+      main: '#fb923c',         // Using orange instead of red
+      light: '#fdba74',
+      dark: '#ea580c',
       contrastText: '#fff',
     },
     warning: {
-      main: '#facc15',
-      light: '#fde047',
-      dark: '#eab308',
-      contrastText: '#111827',
+      main: '#fb923c',
+      light: '#fdba74',
+      dark: '#ea580c',
+      contrastText: '#fff',
     },
     background: {
       default: '#f8fafc',
@@ -82,9 +82,6 @@ const theme = createTheme({
   },
   components: {
     MuiButton: {
-      defaultProps: {
-        color: 'primary',
-      },
       styleOverrides: {
         root: {
           textTransform: 'none',
@@ -92,17 +89,18 @@ const theme = createTheme({
           fontWeight: 600,
         },
         contained: ({ theme }) => ({
-          backgroundColor: theme.palette.brand.green,
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
           '&:hover': {
-            backgroundColor: theme.palette.brand.greenHover,
+            backgroundColor: theme.palette.primary.dark,
           },
         }),
         outlined: ({ theme }) => ({
-          borderColor: theme.palette.brand.green,
-          color: theme.palette.brand.green,
+          borderColor: theme.palette.primary.main,
+          color: theme.palette.primary.main,
           '&:hover': {
             backgroundColor: theme.palette.brand.accentSoft,
-            borderColor: theme.palette.brand.green,
+            borderColor: theme.palette.primary.main,
           },
         }),
       },
@@ -114,11 +112,36 @@ const theme = createTheme({
     },
     MuiTextField: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
+            borderRadius: 10,
+            '& fieldset': {
+              borderColor: theme.palette.divider,
+            },
+            '&:hover fieldset': {
+              borderColor: theme.palette.primary.main,
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: theme.palette.primary.main,
+            },
           },
-        },
+        }),
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: 10,
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.palette.divider,
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.palette.primary.main,
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.palette.primary.main,
+          },
+        }),
       },
     },
     MuiCard: {
@@ -135,9 +158,55 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    display: {
+      fontSize: 'clamp(3rem, 5vw, 4.5rem)',
+      fontWeight: 500,
+      lineHeight: 1.2,
+      letterSpacing: '-0.02em',
+    },
+    h2: {
+      fontSize: '2.25rem',
+      fontWeight: 500,
+      lineHeight: 1.2,
+      letterSpacing: '-0.02em',
+    },
+    h3: {
+      fontSize: '1.75rem',
+      fontWeight: 400,
+      lineHeight: 1.2,
+      letterSpacing: '-0.02em',
+    },
+    bodyLg: {
+      fontSize: '1.125rem',
+      fontWeight: 400,
+      lineHeight: 1.5,
+    },
+    body1: {
+      fontSize: '1rem',
+      fontWeight: 400,
+      lineHeight: 1.7,
+    },
+    bodySm: {
+      fontSize: '0.875rem',
+      fontWeight: 400,
+      lineHeight: 1.5,
+    },
+    overline: {
+      fontSize: '0.75rem',
+      fontWeight: 600,
+      lineHeight: 1.5,
+      textTransform: 'uppercase',
+      letterSpacing: '2px',
+    },
+    nav: {
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      lineHeight: 1.5,
+    },
     button: {
       textTransform: 'none',
       fontWeight: 600,
+      fontSize: '0.875rem',
     },
   },
 });

@@ -1198,7 +1198,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
       <Divider />
 
-      <TableContainer sx={{ px: 1 }}>
+      <TableContainer sx={{ px: 1, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: 'grey.100' }}>

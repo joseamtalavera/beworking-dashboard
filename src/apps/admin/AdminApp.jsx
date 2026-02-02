@@ -50,6 +50,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
   const [helpOpen, setHelpOpen] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
   const [contactsKey, setContactsKey] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -85,16 +86,19 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAgent={() => setAgentOpen(true)}
         onLogout={logout}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
       />
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'auto' }}>
         <Header
           activeTab={activeTab}
           userProfile={userProfile}
           onOpenHelp={() => setHelpOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
           setActiveTab={setActiveTab}
+          onMenuToggle={() => setMobileOpen(true)}
         />
-        <Box component="main" sx={{ flex: 1, p: { xs: 3, lg: 4 }, overflowY: 'auto' }}>
+        <Box component="main" sx={{ flex: 1, p: { xs: 2, sm: 3, lg: 4 } }}>
           <React.Suspense
             fallback={(
               <Box sx={{ textAlign: 'center', py: 10 }}>
@@ -119,8 +123,8 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
             top: 0,
             right: 0,
             bottom: 0,
-            width: '33.333%',
-            minWidth: '400px',
+            width: { xs: '100%', sm: '80%', md: '33.333%' },
+            minWidth: { md: '400px' },
             bgcolor: theme.palette.background.paper,
             borderLeft: `1px solid ${theme.palette.divider}`,
             zIndex: 1300,
