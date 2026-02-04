@@ -59,18 +59,18 @@ import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants
 const STATUS_COLOR = {
   Activo: { color: 'success', label: 'Activo' },
   Convertido: { color: 'success', label: 'Convertido' },
-  Inactivo: { color: 'warning', label: 'Inactivo' },
-  Potencial: { color: 'warning', label: 'Potencial' },
-  Trial: { color: 'warning', label: 'Trial' },
-  Suspended: { color: 'warning', label: 'Suspended' },
+  Inactivo: { color: 'default', label: 'Inactivo' },
+  Potencial: { color: 'primary', label: 'Potencial' },
+  Trial: { color: 'primary', label: 'Trial' },
+  Suspended: { color: 'default', label: 'Suspended' },
   Inactive: { color: 'default', label: 'Inactive' }
 };
 
 // Activity status based on bookings and invoices
 const ACTIVITY_STATUS = {
   Activo: { color: 'success', label: 'Active', variant: 'outlined' },
-  Inactivo: { color: 'warning', label: 'Inactive', variant: 'outlined' },
-  Potencial: { color: 'default', label: 'Potencial', variant: 'outlined' }
+  Inactivo: { color: 'default', label: 'Inactive', variant: 'outlined' },
+  Potencial: { color: 'primary', label: 'Potencial', variant: 'outlined' }
 };
 
 const PAGE_SIZE = 10; // Client-side pagination like MailboxAdmin
@@ -1325,7 +1325,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                             event.stopPropagation();
                             openDeleteDialog(tenant);
                           }}
-                          sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
+                          sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.greenSoft } }}
                         >
                           <DeleteRoundedIcon fontSize="inherit" />
                         </IconButton>
@@ -1415,7 +1415,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       >
         <DialogTitle sx={{
           pb: 0,
-          background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.orange} 0%, ${theme.palette.brand.orangeHover} 100%)`,
+          background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
           color: 'common.white',
           borderRadius: '12px 12px 0 0',
           p: 3

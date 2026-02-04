@@ -627,7 +627,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                           fontWeight: 600,
                           color: 'secondary.main',
                           '&:hover': {
-                            backgroundColor: alpha(theme.palette.brand.orange, 0.08)
+                            backgroundColor: alpha(theme.palette.brand.green, 0.08)
                           }
                         }}
                       >
@@ -738,8 +738,8 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               borderColor: 'secondary.main',
               color: 'secondary.main',
               '&:hover': {
-                borderColor: theme.palette.brand.orangeHover,
-                backgroundColor: alpha(theme.palette.brand.orange, 0.08)
+                borderColor: theme.palette.brand.greenHover,
+                backgroundColor: alpha(theme.palette.brand.green, 0.08)
               }
             }}
         >

@@ -534,7 +534,7 @@ const BookingFlow = () => {
                       </Typography>
                     </Stack>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
+                      <StarIcon sx={{ fontSize: 16, color: 'primary.main' }} />
                       <Typography variant="body2" color="text.secondary">
                         {room.rating} ({room.reviewCount})
                       </Typography>

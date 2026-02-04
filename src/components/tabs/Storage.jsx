@@ -17,7 +17,7 @@ import MovieIcon from '@mui/icons-material/MovieOutlined';
 import ArchiveIcon from '@mui/icons-material/ArchiveOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVertOutlined';
 
-// accentColor is defined inside component using theme.palette.brand.orange
+// accentColor is defined inside component using theme.palette.brand.green
 
 
 const StatCard = ({ title, value, icon }) => (
@@ -67,7 +67,7 @@ const FileRow = ({ name, size, date, typeIcon }) => (
 
 const Storage = () => {
   const theme = useTheme();
-  const accentColor = theme.palette.brand.orange;
+  const accentColor = theme.palette.brand.green;
   return (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
@@ -125,7 +125,7 @@ const Storage = () => {
             borderRadius: 2,
             fontWeight: 600,
             bgcolor: accentColor,
-            '&:hover': { bgcolor: theme.palette.brand.orangeHover }
+            '&:hover': { bgcolor: theme.palette.brand.greenHover }
           }}
         >
           Upload File

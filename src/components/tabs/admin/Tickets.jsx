@@ -42,11 +42,11 @@ const Tickets = () => (
           borderColor: 'secondary.main', 
           color: 'secondary.main', 
           '&:hover': { 
-            borderColor: (theme) => theme.palette.brand.orangeHover, 
-            color: (theme) => theme.palette.brand.orangeHover,
-            backgroundColor: (theme) => alpha(theme.palette.brand.orange, 0.08),
+            borderColor: (theme) => theme.palette.brand.greenHover, 
+            color: (theme) => theme.palette.brand.greenHover,
+            backgroundColor: (theme) => alpha(theme.palette.brand.green, 0.08),
             transform: 'translateY(-1px)',
-            boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+            boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
           },
           transition: 'all 0.2s ease-in-out'
         }}

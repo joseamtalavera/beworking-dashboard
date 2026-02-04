@@ -94,7 +94,7 @@ import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 const DEFAULT_START_HOUR = 6;
 const DEFAULT_END_HOUR = 24;
 
-// Colors are now defined in theme.js - use theme.palette.brand.green/greenHover and theme.palette.brand.orange/orangeHover
+// Colors are now defined in theme.js - use theme.palette.brand.green/greenHover and theme.palette.brand.green/orangeHover
 const DEFAULT_RESERVATION_TYPE = 'Por Horas';
 const RESERVATION_TYPE_OPTIONS = ['Por Horas', 'Diaria', 'Mensual'];
 const STATUS_FORM_OPTIONS = ['Created', 'Invoiced', 'Paid'];
@@ -956,7 +956,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                               event.stopPropagation();
                               onDelete(bloqueo.id);
                             }}
-                            sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
+                            sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.greenSoft } }}
                           >
                             <DeleteOutlineRoundedIcon fontSize="small" />
                           </IconButton>

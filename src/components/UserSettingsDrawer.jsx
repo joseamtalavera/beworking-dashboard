@@ -378,11 +378,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   borderColor: accentColor, 
                   color: accentColor,
                   '&:hover': { 
-                    borderColor: theme.palette.brand.orangeHover,
-                    color: theme.palette.brand.orangeHover,
-                    backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                    borderColor: theme.palette.brand.greenHover,
+                    color: theme.palette.brand.greenHover,
+                    backgroundColor: alpha(theme.palette.brand.green, 0.08),
                     transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -407,7 +407,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     '&:hover': {
                       borderColor: theme.palette.secondary.dark,
                       color: theme.palette.secondary.dark,
-                      backgroundColor: theme.palette.brand.orangeSoft,
+                      backgroundColor: theme.palette.brand.greenSoft,
                       transform: 'translateY(-1px)',
                       boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
                     },
@@ -429,7 +429,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     backgroundColor: accentColor, 
                     color: 'common.white',
                     '&:hover': { 
-                      backgroundColor: theme.palette.brand.orangeHover 
+                      backgroundColor: theme.palette.brand.greenHover 
                     } 
                   }}
                 >
@@ -634,11 +634,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     borderColor: accentColor, 
                     color: accentColor,
                     '&:hover': { 
-                      borderColor: theme.palette.brand.orangeHover,
-                      color: theme.palette.brand.orangeHover,
-                      backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                      borderColor: theme.palette.brand.greenHover,
+                      color: theme.palette.brand.greenHover,
+                      backgroundColor: alpha(theme.palette.brand.green, 0.08),
                       transform: 'translateY(-1px)',
-                      boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                      boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -677,7 +677,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 <CreditCardRoundedIcon fontSize="small" sx={{ color: accentColor }} />
                 <Chip 
                   label={userSubscription.planName} 
-                  color={userSubscription.status === 'active' ? 'success' : 'warning'} 
+                  color={userSubscription.status === 'active' ? 'success' : 'default'} 
                   size="small" 
                 />
               </Stack>
@@ -738,11 +738,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   borderColor: accentColor, 
                   color: accentColor,
                   '&:hover': { 
-                    borderColor: theme.palette.brand.orangeHover,
-                    color: theme.palette.brand.orangeHover,
-                    backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                    borderColor: theme.palette.brand.greenHover,
+                    color: theme.palette.brand.greenHover,
+                    backgroundColor: alpha(theme.palette.brand.green, 0.08),
                     transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
                   },
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -767,7 +767,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     '&:hover': {
                       borderColor: theme.palette.secondary.dark,
                       color: theme.palette.secondary.dark,
-                      backgroundColor: theme.palette.brand.orangeSoft,
+                      backgroundColor: theme.palette.brand.greenSoft,
                       transform: 'translateY(-1px)',
                       boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
                     },
@@ -789,7 +789,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     backgroundColor: accentColor, 
                     color: 'common.white',
                     '&:hover': { 
-                      backgroundColor: theme.palette.brand.orangeHover 
+                      backgroundColor: theme.palette.brand.greenHover 
                     } 
                   }}
                 >
@@ -925,9 +925,9 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               '&:hover': { 
                 borderColor: 'secondary.dark', 
                 color: 'secondary.dark',
-                backgroundColor: theme.palette.brand.orangeSoft,
+                backgroundColor: theme.palette.brand.greenSoft,
                 transform: 'translateY(-1px)',
-                boxShadow: `0 4px 12px ${theme.palette.brand.orangeSoft}`
+                boxShadow: `0 4px 12px ${theme.palette.brand.greenSoft}`
               },
               transition: 'all 0.2s ease-in-out'
             }} 
@@ -947,11 +947,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 borderColor: accentColor, 
                 color: accentColor, 
                 '&:hover': { 
-                  borderColor: theme.palette.brand.orangeHover, 
-                  color: theme.palette.brand.orangeHover,
-                  backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                  borderColor: theme.palette.brand.greenHover, 
+                  color: theme.palette.brand.greenHover,
+                  backgroundColor: alpha(theme.palette.brand.green, 0.08),
                   transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                  boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
                 },
                 transition: 'all 0.2s ease-in-out'
               }} 
@@ -970,7 +970,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 backgroundColor: accentColor, 
                 color: 'common.white',
                 '&:hover': { 
-                  backgroundColor: theme.palette.brand.orangeHover 
+                  backgroundColor: theme.palette.brand.greenHover 
                 } 
               }} 
               onClick={() => setSubscriptionDialogOpen(true)}
@@ -1081,7 +1081,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             disabled={!selectedPlan || processingPayment}
             sx={{ 
               bgcolor: accentColor, 
-              '&:hover': { bgcolor: theme.palette.brand.orangeHover },
+              '&:hover': { bgcolor: theme.palette.brand.greenHover },
               minWidth: 120
             }}
           >

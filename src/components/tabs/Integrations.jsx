@@ -92,7 +92,7 @@ const COMING_SOON = [
 
 const statusChipStyles = {
   connected: { label: 'Connected', color: 'success' },
-  action_required: { label: 'Action required', color: 'warning' },
+  action_required: { label: 'Action required', color: 'primary' },
   disconnected: { label: 'Disconnected', color: 'default' }
 };
 
@@ -222,7 +222,7 @@ const IntegrationRow = ({ integration }) => {
             borderRadius: 2,
             borderColor: accentColor,
             color: accentColor,
-            '&:hover': { borderColor: theme.palette.brand.orangeHover, color: theme.palette.brand.orangeHover }
+            '&:hover': { borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover }
           }}
         >
           Sync now
@@ -267,7 +267,7 @@ const AvailableCard = ({ name, description, logoUrl }) => (
         borderRadius: 2,
         bgcolor: accentColor,
         alignSelf: 'flex-start',
-        '&:hover': { bgcolor: theme.palette.brand.orangeHover }
+        '&:hover': { bgcolor: theme.palette.brand.greenHover }
       }}
     >
       Request access
@@ -277,8 +277,8 @@ const AvailableCard = ({ name, description, logoUrl }) => (
 
 const Integrations = () => {
   const theme = useTheme();
-  const accentColor = theme.palette.brand.orange;
-  const accentHover = theme.palette.brand.orangeSoft;
+  const accentColor = theme.palette.brand.green;
+  const accentHover = theme.palette.brand.greenSoft;
   const connectedCount = ACTIVE_INTEGRATIONS.filter((item) => item.status === 'connected').length;
   const totalFeeds = ACTIVE_INTEGRATIONS.reduce((acc, item) => acc + item.dataFeeds.length, 0);
 

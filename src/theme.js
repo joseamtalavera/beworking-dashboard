@@ -10,9 +10,8 @@ const theme = createTheme({
     brand: {
       green: '#009624',
       greenHover: '#007a1d',
-      orange: '#fb923c',
-      orangeHover: '#ea580c',
-      orangeSoft: 'rgba(251, 146, 60, 0.08)',
+      greenLight: '#2ecc71',
+      greenSoft: 'rgba(0, 150, 36, 0.08)',
       ink: '#1a1a1a',
       inkLight: '#2d2d2d',
       graphite: '#4a4a4a',
@@ -32,9 +31,9 @@ const theme = createTheme({
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#fb923c',
-      light: '#fdba74',
-      dark: '#ea580c',
+      main: '#009624',
+      light: '#2ecc71',
+      dark: '#007a1d',
       contrastText: '#ffffff',
     },
     success: {
@@ -44,21 +43,21 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     info: {
-      main: '#3b82f6',
-      light: '#60a5fa',
-      dark: '#2563eb',
+      main: '#009624',
+      light: '#2ecc71',
+      dark: '#007a1d',
       contrastText: '#fff',
     },
     error: {
-      main: '#dc2626',
-      light: '#ef4444',
-      dark: '#b91c1c',
+      main: '#007a1d',
+      light: '#009624',
+      dark: '#005c16',
       contrastText: '#fff',
     },
     warning: {
-      main: '#f59e0b',
-      light: '#fbbf24',
-      dark: '#d97706',
+      main: '#2ecc71',
+      light: '#58d68d',
+      dark: '#009624',
       contrastText: '#000',
     },
     background: {
@@ -106,9 +105,9 @@ const theme = createTheme({
           },
         },
         containedSecondary: {
-          backgroundColor: '#fb923c',
+          backgroundColor: '#009624',
           '&:hover': {
-            backgroundColor: '#ea580c',
+            backgroundColor: '#007a1d',
           },
         },
         outlined: {

@@ -60,7 +60,7 @@ import { fetchBookingContacts } from '../../../api/bookings.js';
 // Using theme.secondary.main for all green colors
 
 const statusConfig = {
-  scanned: { label: 'New upload', color: 'warning', description: 'Ready to notify the user.' },
+  scanned: { label: 'New upload', color: 'primary', description: 'Ready to notify the user.' },
   notified: { label: 'Email sent', color: 'success', description: 'User has been notified.' },
   viewed: { label: 'Viewed online', color: 'success', description: 'User downloaded or viewed the file.' }
 };
@@ -888,7 +888,7 @@ const MailboxAdmin = () => {
                                     color: 'secondary.main',
                                     '&:hover': {
                                       color: 'secondary.dark',
-                                      backgroundColor: (theme) => theme.palette.brand.orangeSoft
+                                      backgroundColor: (theme) => theme.palette.brand.greenSoft
                                     }
                                   }}
                                 >

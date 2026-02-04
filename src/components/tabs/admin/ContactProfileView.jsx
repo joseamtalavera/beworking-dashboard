@@ -182,9 +182,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             '&:hover': {
               borderColor: 'primary.dark',
               color: 'primary.dark',
-              backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+              backgroundColor: alpha(theme.palette.brand.green, 0.08),
               transform: 'translateY(-1px)',
-              boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+              boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
             },
             transition: 'all 0.2s ease-in-out'
           }}

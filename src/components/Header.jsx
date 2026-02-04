@@ -217,7 +217,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                           height: 16,
                           border: '2px solid',
                           borderColor: 'divider',
-                          borderTopColor: (theme) => theme.palette.brand.orange,
+                          borderTopColor: (theme) => theme.palette.brand.green,
                           borderRadius: '50%',
                           animation: 'spin 1s linear infinite'
                         }}
@@ -405,7 +405,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                       py: 1.5,
                       px: 2,
                       '&:hover': {
-                        backgroundColor: (theme) => theme.palette.brand.orangeSoft
+                        backgroundColor: (theme) => theme.palette.brand.greenSoft
                       }
                     }}
                   >
@@ -433,7 +433,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                   color: 'common.white',
                   height: 36,
                   display: { xs: 'none', sm: 'inline-flex' },
-                  '&:hover': { bgcolor: theme.palette.brand.orange }
+                  '&:hover': { bgcolor: theme.palette.brand.green }
                 }}
               >
                 Help

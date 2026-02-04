@@ -109,7 +109,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
               color: 'secondary.main',
               '& .MuiListItemIcon-root': { color: 'secondary.main' },
               '&:hover': {
-                backgroundColor: (theme) => theme.palette.brand.orangeSoft,
+                backgroundColor: (theme) => theme.palette.brand.greenSoft,
                 color: 'secondary.dark',
                 '& .MuiListItemIcon-root': { color: 'secondary.dark' }
               }

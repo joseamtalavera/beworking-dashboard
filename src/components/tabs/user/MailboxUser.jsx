@@ -27,7 +27,7 @@ import { getMailboxDocumentDownloadUrl, listMailboxDocuments } from '../../../ap
 // accentColor and accentHover are defined inside component using theme.palette.brand
 
 const statusConfig = {
-  scanned: { label: 'Awaiting review', color: 'warning', description: 'New document available.' },
+  scanned: { label: 'Awaiting review', color: 'primary', description: 'New document available.' },
   notified: { label: 'Notified', color: 'primary', description: 'Notification email sent.' },
   viewed: { label: 'Viewed', color: 'success', description: 'You already opened this document.' }
 };
@@ -101,8 +101,8 @@ const normalizeDocuments = (payload) => {
 
 const MailboxUser = () => {
   const theme = useTheme();
-  const accentColor = theme.palette.brand.orange;
-  const accentHover = theme.palette.brand.orangeSoft;
+  const accentColor = theme.palette.brand.green;
+  const accentHover = theme.palette.brand.greenSoft;
   const [documents, setDocuments] = useState([]);
   const [filter, setFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(false);

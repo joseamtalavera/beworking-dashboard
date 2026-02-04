@@ -21,7 +21,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PlayCircleRoundedIcon from '@mui/icons-material/PlayCircleRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 
-// accentColor is defined inside component using theme.palette.brand.orange
+// accentColor is defined inside component using theme.palette.brand.green
 
 const helpArticles = [
   {
@@ -53,7 +53,7 @@ const quickAnswers = [
 
 const HelpSupportDrawer = ({ open, onClose }) => {
   const theme = useTheme();
-  const accentColor = theme.palette.brand.orange;
+  const accentColor = theme.palette.brand.green;
   return (
     <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', md: 420 } } }}>
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -97,7 +97,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                     backgroundColor: accentColor, 
                     color: 'white',
                     '&:hover': { 
-                      backgroundColor: theme.palette.brand.orangeHover 
+                      backgroundColor: theme.palette.brand.greenHover 
                     } 
                   }} 
                   startIcon={<ChatBubbleRoundedIcon fontSize="small" />}
@@ -115,11 +115,11 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                     borderColor: accentColor,
                     color: accentColor,
                     '&:hover': {
-                      borderColor: theme.palette.brand.orangeHover,
-                      color: theme.palette.brand.orangeHover,
-                      backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                      borderColor: theme.palette.brand.greenHover,
+                      color: theme.palette.brand.greenHover,
+                      backgroundColor: alpha(theme.palette.brand.green, 0.08),
                       transform: 'translateY(-1px)',
-                      boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                      boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -168,7 +168,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
             {helpArticles.map((article) => (
               <ListItem key={article.id} disableGutters sx={{ mb: 1.5 }}>
                 <ListItemAvatar>
-                  <Avatar sx={{ bgcolor: alpha(theme.palette.brand.orange, 0.12), color: accentColor }}>
+                  <Avatar sx={{ bgcolor: alpha(theme.palette.brand.green, 0.12), color: accentColor }}>
                     <ArticleRoundedIcon fontSize="small" />
                   </Avatar>
                 </ListItemAvatar>
@@ -255,7 +255,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
               backgroundColor: accentColor, 
               color: 'common.white',
               '&:hover': { 
-                backgroundColor: theme.palette.brand.orangeHover 
+                backgroundColor: theme.palette.brand.greenHover 
               } 
             }}
           >

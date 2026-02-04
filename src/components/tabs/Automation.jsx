@@ -27,7 +27,7 @@ import ReactFlow, {
   useNodesState
 } from 'reactflow';
 
-// accentColor is defined inside component using theme.palette.brand.orange
+// accentColor is defined inside component using theme.palette.brand.green
 
 const palette = [
   { type: 'input', label: 'Trigger', description: 'Start the flow from schedule, webhook, or app event.' },
@@ -39,7 +39,7 @@ const palette = [
 
 const Automation = () => {
   const theme = useTheme();
-  const accentColor = theme.palette.brand.orange;
+  const accentColor = theme.palette.brand.green;
   const initialNodes = useMemo(
     () => [
       {
@@ -189,7 +189,7 @@ const Automation = () => {
                       border: '1px solid',
                       borderColor: 'divider',
                       cursor: 'pointer',
-                      '&:hover': { borderColor: accentColor, bgcolor: alpha(theme.palette.brand.orange, 0.08) }
+                      '&:hover': { borderColor: accentColor, bgcolor: alpha(theme.palette.brand.green, 0.08) }
                     }}
                     onClick={() => handleAddNode(item)}
                   >
@@ -272,11 +272,11 @@ const Automation = () => {
                           borderColor: accentColor,
                           color: accentColor,
                           '&:hover': {
-                            borderColor: theme.palette.brand.orangeHover,
-                            color: theme.palette.brand.orangeHover,
-                            backgroundColor: alpha(theme.palette.brand.orange, 0.08),
+                            borderColor: theme.palette.brand.greenHover,
+                            color: theme.palette.brand.greenHover,
+                            backgroundColor: alpha(theme.palette.brand.green, 0.08),
                             transform: 'translateY(-1px)',
-                            boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orange, 0.2)}`
+                            boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
                           },
                           transition: 'all 0.2s ease-in-out'
                         }}
@@ -298,11 +298,11 @@ const Automation = () => {
                           borderColor: accentColor, 
                           color: accentColor, 
                           '&:hover': { 
-                            borderColor: theme.palette.brand.orangeHover, 
-                            color: theme.palette.brand.orangeHover,
-                            backgroundColor: alpha(theme.palette.brand.orangeHover, 0.08),
+                            borderColor: theme.palette.brand.greenHover, 
+                            color: theme.palette.brand.greenHover,
+                            backgroundColor: alpha(theme.palette.brand.greenHover, 0.08),
                             transform: 'translateY(-1px)',
-                            boxShadow: `0 4px 12px ${alpha(theme.palette.brand.orangeHover, 0.2)}`
+                            boxShadow: `0 4px 12px ${alpha(theme.palette.brand.greenHover, 0.2)}`
                           },
                           transition: 'all 0.2s ease-in-out'
                         }}
@@ -354,7 +354,7 @@ const Automation = () => {
                               variant="text"
                               size="small"
                               onClick={() => handleRemoveEdge(edge.id)}
-                              sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
+                              sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.greenSoft } }}
                             >
                               Remove
                             </Button>
@@ -376,7 +376,7 @@ const Automation = () => {
                     backgroundColor: accentColor, 
                     color: 'common.white',
                     '&:hover': { 
-                      backgroundColor: theme.palette.brand.orangeHover 
+                      backgroundColor: theme.palette.brand.greenHover 
                     } 
                   }} 
                   startIcon={<PlayArrowRoundedIcon />}

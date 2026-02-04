@@ -554,7 +554,7 @@ const SpaceCatalog = () => {
                     </IconButton>
                     <IconButton
                       onClick={() => handleDelete(index)}
-                      sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
+                      sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.greenSoft } }}
                     >
                       <DeleteOutlineRoundedIcon />
                     </IconButton>
@@ -818,7 +818,7 @@ const SpaceCatalog = () => {
                       sx={{
                         '& .MuiSwitch-switchBase.Mui-checked': {
                           color: BRAND_PRIMARY,
-                          '&:hover': { backgroundColor: (theme) => alpha(theme.palette.brand.orange, 0.12) }
+                          '&:hover': { backgroundColor: (theme) => alpha(theme.palette.brand.green, 0.12) }
                         },
                         '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
                           backgroundColor: BRAND_PRIMARY
@@ -1012,7 +1012,7 @@ const SpaceCatalog = () => {
                             variant="text"
                             onClick={handleRemoveImage(index)}
                             startIcon={<DeleteOutlineRoundedIcon />}
-                            sx={{ fontWeight: 600, color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.orangeSoft } }}
+                            sx={{ fontWeight: 600, color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.greenSoft } }}
                           >
                             Eliminar
                           </Button>
