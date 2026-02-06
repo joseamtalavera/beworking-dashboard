@@ -38,6 +38,10 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { listSpaces, upsertSpace, deleteSpace } from '../../../api/spaceCatalog.js';
 import { apiFetch } from '../../../api/client.js';
 
+const BRAND_PRIMARY = '#009624';
+const BRAND_PRIMARY_HOVER = '#007a1d';
+const BRAND_MUTED_BG = 'rgba(0, 150, 36, 0.08)';
+
 const COLUMN_WIDTHS = {
   displayName: 260,
   centro: 120,
@@ -108,29 +112,163 @@ const MOCK_ROWS = [
     ]
   },
   {
+    id: 'MA1A3',
+    centroCode: 'MA1',
+    displayName: 'Aula MA1A3',
+    productCode: 'MA1A3',
+    type: 'Aula',
+    status: 'Activo',
+    capacity: '6',
+    size: '45 m²',
+    priceFrom: '€ 30',
+    priceUnit: '/h',
+    rating: '4.8',
+    reviewCount: '24',
+    heroImage: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-0-featured-20220505082555-1.jpg',
+    instantBooking: true,
+    tags: ['Reuniones', 'Eventos', 'Formación', 'Entrevistas'],
+    amenities: [
+      'Acceso 24h',
+      'Internet 600Mb',
+      'Pizarra y papelógrafo',
+      'Proyector',
+      'Aire acondicionado',
+      'Llave digital',
+      'Sin permanencia',
+      'Escaner e impresora',
+      'Soporte 24h',
+      'Zona de descanso',
+      'Alarma'
+    ],
+    subtitle: 'Calle Alejandro Dumas 17, 29004 Málaga',
+    description:
+      'Nuestra Aula/ Sala 4 de Alejandro Dumas es perfecta para reuniones, eventos, formaciones ó entrevistas. Tiene 45 m2 y cuenta con luz natural y zona exterior. Equipada con conexión internet 600 Mb simétricos, pizarra y mobiliario. Acceso 24 horas / 365 días. Proyector, Pizarra y Llave digital.',
+    images: [
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-0-featured-20220505082555-1.jpg', caption: 'Vista principal del aula' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-1-20220505082555.jpg', caption: 'Interior del aula' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-2-20220505082555.jpg', caption: 'Zona de trabajo' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-3-20220505082555.jpg', caption: 'Detalle mobiliario' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-4-20220505082555.jpg', caption: 'Equipamiento' }
+    ]
+  },
+  {
+    id: 'MA1A4',
+    centroCode: 'MA1',
+    displayName: 'Aula MA1A4',
+    productCode: 'MA1A4',
+    type: 'Aula',
+    status: 'Activo',
+    capacity: '40',
+    size: '45 m²',
+    priceFrom: '€ 48',
+    priceUnit: '/h',
+    rating: '4.8',
+    reviewCount: '24',
+    heroImage: 'https://app.be-working.com/img/MA1A3-0-featured-20220504145833.jpg',
+    instantBooking: true,
+    tags: ['Reuniones', 'Formación', 'Eventos', 'Entrevistas'],
+    amenities: [
+      'Acceso 24h',
+      'Internet 600Mb',
+      'Pizarra y papelógrafo',
+      'Proyector',
+      'Aire acondicionado',
+      'Llave digital',
+      'Sin permanencia',
+      'Escaner e impresora',
+      'Soporte 24h',
+      'Zona de descanso',
+      'Alarma'
+    ],
+    subtitle: 'Calle Alejandro Dumas 17, 29004 Málaga',
+    description:
+      'Nuestra Aula/ Sala 3 de Alejandro Dumas es perfecta para reuniones, formaciones, eventos o entrevistas. Tiene 45 m2 y cuenta con conexión internet 600 Mb simétricos, pizarra, mobiliario y proyector. Zona de descanso, llave digital y alarma. Acceso 24 horas / 365 días.',
+    images: [
+      { url: 'https://app.be-working.com/img/MA1A3-0-featured-20220504145833.jpg', caption: 'Vista principal del aula' },
+      { url: 'https://app.be-working.com/img/MA1A3-1-20220504145833.jpg', caption: 'Interior del aula' },
+      { url: 'https://app.be-working.com/img/MA1A3-2-20220504145833.jpg', caption: 'Zona de trabajo' },
+      { url: 'https://app.be-working.com/img/MA1A3-3-20220504145833.jpg', caption: 'Detalle mobiliario' },
+      { url: 'https://app.be-working.com/img/MA1A3-4-20220504145833.jpg', caption: 'Equipamiento' }
+    ]
+  },
+  {
+    id: 'MA1A5',
+    centroCode: 'MA1',
+    displayName: 'Aula MA1A5',
+    productCode: 'MA1A5',
+    type: 'Aula',
+    status: 'Activo',
+    capacity: '20',
+    size: '45 m²',
+    priceFrom: '€ 24',
+    priceUnit: '/h',
+    rating: '4.8',
+    reviewCount: '24',
+    heroImage: 'https://app.be-working.com/img/MA1A5-0-featured-20240501123909.jpg',
+    instantBooking: true,
+    tags: ['Reuniones', 'Eventos', 'Formación', 'Entrevistas'],
+    amenities: [
+      'Acceso 24h',
+      'Agua gratis',
+      'Aire acondicionado',
+      'Internet 600Mb',
+      'Llave digital',
+      'Soporte 24h',
+      'Zona de descanso'
+    ],
+    subtitle: 'Calle Alejandro Dumas 17, 29004 Málaga',
+    description:
+      'Nuestra Aula/ Sala 5 de Alejandro Dumas es perfecta para reuniones, eventos, formaciones ó entrevistas. Tiene 45 m2 y cuenta con conexión internet 600 Mb simétricos, pizarra y proyector. Zona de descanso, llave digital y alarma. Acceso 24 horas / 365 días.',
+    images: [
+      { url: 'https://app.be-working.com/img/MA1A5-0-featured-20240501123909.jpg', caption: 'Vista principal del aula' },
+      { url: 'https://app.be-working.com/img/MA1A5-1-20240501123909.jpg', caption: 'Interior del aula' },
+      { url: 'https://app.be-working.com/img/MA1A5-2-20240501123909.jpg', caption: 'Zona de trabajo' },
+      { url: 'https://app.be-working.com/img/MA1A5-3-20240501123909.jpg', caption: 'Detalle mobiliario' },
+      { url: 'https://app.be-working.com/img/MA1A5-4-20240501123909.jpg', caption: 'Equipamiento' }
+    ]
+  },
+  {
     id: 'MA1-DESKS',
     centroCode: 'MA1',
-    displayName: 'MA1 Desk Area',
+    displayName: 'MA1 Desks',
     productCode: 'MA1O1',
     type: 'Mesa',
     status: 'Activo',
-    capacity: '1',
-    size: '15 m²',
-    priceFrom: '€ 15',
-    priceUnit: '/day',
+    capacity: '16',
+    size: '2 m²',
+    priceFrom: '€ 90',
+    priceUnit: '/month',
     rating: '4.6',
     reviewCount: '58',
-    heroImage: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800',
+    heroImage: 'https://app.be-working.com/img/MA1O1-1-0-featured-20220512103754.jpg',
     instantBooking: true,
-    tags: ['Coworking', 'Flexible'],
-    amenities: ['Acceso 24h', 'Internet 600Mb', 'Mesa Coworking'],
-    subtitle: 'Zona coworking MA1',
-    description: 'Espacio flexible con puestos individuales, preparado para freelancers y nómadas digitales.',
+    tags: ['Coworking', 'Flexible', '24h'],
+    amenities: [
+      'Acceso 24h',
+      'Agua gratis',
+      'Aire acondicionado',
+      'Alarma',
+      'Escaner e impresora',
+      'Internet 600Mb',
+      'Llave digital',
+      'Mesa Coworking',
+      'Oficina virtual',
+      'Pizarra y papelógrafo',
+      'Proyector',
+      'Sin permanencia',
+      'Soporte 24h',
+      'Taquilla',
+      'Zona de descanso'
+    ],
+    subtitle: 'Calle Alejandro Dumas 17, 29004 Málaga',
+    description:
+      'Coworking abierto de lunes a domingo 24 horas. Sin permanencias ni depósitos. Zona de Cafetería y Descanso, Impresora / Fotocopiadora. Llave Digital, Alarma, Sala Exterior y Luminosa.',
     images: [
-      {
-        url: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200',
-        caption: 'Área de mesas'
-      }
+      { url: 'https://app.be-working.com/img/MA1O1-1-0-featured-20220512103754.jpg', caption: 'Vista general coworking' },
+      { url: 'https://app.be-working.com/img/MA1O1-1-1-20220512103754.jpg', caption: 'Zona de trabajo' },
+      { url: 'https://app.be-working.com/img/MA1O1-1-2-20220512103754.jpg', caption: 'Área común' },
+      { url: 'https://app.be-working.com/img/MA1O1-1-3-20220512103754.jpg', caption: 'Detalle puestos' },
+      { url: 'https://app.be-working.com/img/MA1O1-1-4-20220512103754.jpg', caption: 'Zona de descanso' }
     ]
   }
 ];
@@ -210,7 +348,10 @@ const SpaceCatalog = () => {
         }
         setRows(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Failed to load spaces', error);
+        console.error('Failed to load spaces, using mock data', error);
+        if (active) {
+          setRows(MOCK_ROWS);
+        }
       }
     };
 
@@ -221,7 +362,7 @@ const SpaceCatalog = () => {
   }, []);
 
   const orderedRows = useMemo(
-    () => [...rows].sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    () => [...rows].sort((a, b) => (a.displayName ?? '').localeCompare(b.displayName ?? '')),
     [rows]
   );
 
