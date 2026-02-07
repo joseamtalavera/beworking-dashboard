@@ -111,24 +111,24 @@ const WEEKDAY_OPTIONS = [
 // Calendar utilities for user booking flow
 const userCalendarStatusStyles = (theme) => ({
   available: {
-    bgcolor: 'transparent',
-    borderColor: alpha(theme.palette.divider, 0.6),
-    color: theme.palette.text.secondary
-  },
-  paid: {
-    bgcolor: alpha(theme.palette.success.main, 0.32),
+    bgcolor: alpha(theme.palette.success.main, 0.18),
     borderColor: theme.palette.success.main,
     color: theme.palette.success.dark
   },
-  invoiced: {
-    bgcolor: alpha(theme.palette.warning.light, 0.25),
-    borderColor: theme.palette.warning.main,
+  created: {
+    bgcolor: alpha(theme.palette.warning.light, 0.15),
+    borderColor: theme.palette.warning.light,
     color: theme.palette.warning.dark
   },
-  created: {
-    bgcolor: alpha(theme.palette.secondary.main, 0.22),
+  invoiced: {
+    bgcolor: alpha(theme.palette.secondary.light, 0.25),
     borderColor: theme.palette.secondary.main,
     color: theme.palette.secondary.dark
+  },
+  paid: {
+    bgcolor: alpha(theme.palette.error.light, 0.18),
+    borderColor: theme.palette.error.main,
+    color: theme.palette.error.dark
   }
 });
 
@@ -197,31 +197,31 @@ const resolveTenantType = (bloqueo) => {
 const getStatusStyles = (theme) => ({
   available: {
     bgcolor: theme.palette.mode === 'dark'
-      ? alpha(theme.palette.grey[300], 0.2)
-      : alpha(theme.palette.divider, 0.45),
-    borderColor: theme.palette.grey[300],
-    color: theme.palette.text.disabled
-  },
-  paid: {
-    bgcolor: theme.palette.mode === 'dark'
       ? alpha(theme.palette.success.main, 0.2)
       : alpha(theme.palette.success.main, 0.18),
     borderColor: theme.palette.success.main,
     color: theme.palette.success.dark
   },
+  created: {
+    bgcolor: theme.palette.mode === 'dark'
+      ? alpha(theme.palette.warning.light, 0.15)
+      : alpha(theme.palette.warning.light, 0.15),
+    borderColor: theme.palette.warning.light,
+    color: theme.palette.warning.dark
+  },
   invoiced: {
+    bgcolor: theme.palette.mode === 'dark'
+      ? alpha(theme.palette.secondary.main, 0.2)
+      : alpha(theme.palette.secondary.light, 0.25),
+    borderColor: theme.palette.secondary.main,
+    color: theme.palette.secondary.dark
+  },
+  paid: {
     bgcolor: theme.palette.mode === 'dark'
       ? alpha(theme.palette.error.main, 0.2)
       : alpha(theme.palette.error.light, 0.18),
     borderColor: theme.palette.error.main,
     color: theme.palette.error.dark
-  },
-  created: {
-    bgcolor: theme.palette.mode === 'dark'
-      ? alpha(theme.palette.warning.main, 0.2)
-      : alpha(theme.palette.warning.light, 0.25),
-    borderColor: theme.palette.warning.main,
-    color: theme.palette.warning.dark
   }
 });
 
