@@ -109,26 +109,38 @@ const WEEKDAY_OPTIONS = [
 ];
 
 // Calendar utilities for user booking flow
-const userCalendarStatusStyles = (theme) => ({
+// Hardcoded calendar status colors to match beworking-booking palette
+// (the dashboard theme maps warning/secondary/error to green shades,
+//  but the calendar needs distinct colors for each status).
+// Hardcoded calendar status colors (shared across admin + user views).
+// available = light gray | paid = green | invoiced = red | created = orange
+const CALENDAR_COLORS = {
+  available: { bg: '#a1a1aa', border: '#a1a1aa', text: '#52525b' },
+  paid:      { bg: '#009624', border: '#009624', text: '#007a1d' },
+  invoiced:  { bg: '#ef4444', border: '#dc2626', text: '#b91c1c' },
+  created:   { bg: '#fb923c', border: '#fb923c', text: '#ea580c' }
+};
+
+const userCalendarStatusStyles = () => ({
   available: {
-    bgcolor: alpha(theme.palette.success.main, 0.18),
-    borderColor: theme.palette.success.main,
-    color: theme.palette.success.dark
-  },
-  created: {
-    bgcolor: alpha(theme.palette.warning.light, 0.15),
-    borderColor: theme.palette.warning.light,
-    color: theme.palette.warning.dark
-  },
-  invoiced: {
-    bgcolor: alpha(theme.palette.secondary.light, 0.25),
-    borderColor: theme.palette.secondary.main,
-    color: theme.palette.secondary.dark
+    bgcolor: alpha(CALENDAR_COLORS.available.bg, 0.15),
+    borderColor: CALENDAR_COLORS.available.border,
+    color: CALENDAR_COLORS.available.text
   },
   paid: {
-    bgcolor: alpha(theme.palette.error.light, 0.18),
-    borderColor: theme.palette.error.main,
-    color: theme.palette.error.dark
+    bgcolor: alpha(CALENDAR_COLORS.paid.bg, 0.18),
+    borderColor: CALENDAR_COLORS.paid.border,
+    color: CALENDAR_COLORS.paid.text
+  },
+  invoiced: {
+    bgcolor: alpha(CALENDAR_COLORS.invoiced.bg, 0.18),
+    borderColor: CALENDAR_COLORS.invoiced.border,
+    color: CALENDAR_COLORS.invoiced.text
+  },
+  created: {
+    bgcolor: alpha(CALENDAR_COLORS.created.bg, 0.15),
+    borderColor: CALENDAR_COLORS.created.border,
+    color: CALENDAR_COLORS.created.text
   }
 });
 
@@ -194,59 +206,51 @@ const resolveTenantType = (bloqueo) => {
   return LEGACY_TENANT_TYPE_MAP[rawType] || rawType;
 };
 
-const getStatusStyles = (theme) => ({
+const getStatusStyles = () => ({
   available: {
-    bgcolor: theme.palette.mode === 'dark'
-      ? alpha(theme.palette.success.main, 0.2)
-      : alpha(theme.palette.success.main, 0.18),
-    borderColor: theme.palette.success.main,
-    color: theme.palette.success.dark
-  },
-  created: {
-    bgcolor: theme.palette.mode === 'dark'
-      ? alpha(theme.palette.warning.light, 0.15)
-      : alpha(theme.palette.warning.light, 0.15),
-    borderColor: theme.palette.warning.light,
-    color: theme.palette.warning.dark
-  },
-  invoiced: {
-    bgcolor: theme.palette.mode === 'dark'
-      ? alpha(theme.palette.secondary.main, 0.2)
-      : alpha(theme.palette.secondary.light, 0.25),
-    borderColor: theme.palette.secondary.main,
-    color: theme.palette.secondary.dark
+    bgcolor: alpha(CALENDAR_COLORS.available.bg, 0.15),
+    borderColor: CALENDAR_COLORS.available.border,
+    color: CALENDAR_COLORS.available.text
   },
   paid: {
-    bgcolor: theme.palette.mode === 'dark'
-      ? alpha(theme.palette.error.main, 0.2)
-      : alpha(theme.palette.error.light, 0.18),
-    borderColor: theme.palette.error.main,
-    color: theme.palette.error.dark
+    bgcolor: alpha(CALENDAR_COLORS.paid.bg, 0.18),
+    borderColor: CALENDAR_COLORS.paid.border,
+    color: CALENDAR_COLORS.paid.text
+  },
+  invoiced: {
+    bgcolor: alpha(CALENDAR_COLORS.invoiced.bg, 0.18),
+    borderColor: CALENDAR_COLORS.invoiced.border,
+    color: CALENDAR_COLORS.invoiced.text
+  },
+  created: {
+    bgcolor: alpha(CALENDAR_COLORS.created.bg, 0.15),
+    borderColor: CALENDAR_COLORS.created.border,
+    color: CALENDAR_COLORS.created.text
   }
 });
 
 const statusLabels = {
   available: 'Available',
   paid: 'Paid',
-  invoiced: 'Invoiced (unpaid)',
+  invoiced: 'Invoiced',
   created: 'Created'
 };
 
-const LEGEND_STATUSES = ['available', 'created', 'invoiced', 'paid'];
+const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created'];
 
 const Legend = () => {
   const theme = useTheme();
   const statusStyles = getStatusStyles(theme);
   
   return (
-    <Stack direction="row" spacing={2} flexWrap="wrap">
+    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
       {LEGEND_STATUSES.map((status) => (
         <Stack key={status} direction="row" spacing={1} alignItems="center">
           <Box
             sx={{
               width: 16,
               height: 16,
-              borderRadius: 1,
+              borderRadius: 2,
               border: '1px solid',
               borderColor: statusStyles[status].borderColor,
               bgcolor: statusStyles[status].bgcolor
@@ -5614,7 +5618,7 @@ const Booking = ({ mode = 'user' }) => {
                                     height: 52,
                                     width: '100%',
                                     borderRadius: 2,
-                                    border: '1px solid',
+                                    border: '2px solid',
                                     borderColor: styles.borderColor,
                                     bgcolor: styles.bgcolor,
                                     color: styles.color,
@@ -5622,9 +5626,9 @@ const Booking = ({ mode = 'user' }) => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    transition: (theme) => theme.transitions.create('transform'),
+                                    transition: (theme) => theme.transitions.create(['transform', 'border-color']),
                                     '&:hover': {
-                                      transform: bloqueo ? 'scale(1.03)' : 'none'
+                                      transform: bloqueo ? 'scale(1.05)' : 'none'
                                     }
                                   }}
                                 >
