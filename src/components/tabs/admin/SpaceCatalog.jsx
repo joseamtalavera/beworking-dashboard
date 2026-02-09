@@ -124,49 +124,9 @@ const MOCK_ROWS = [
     priceUnit: '/h',
     rating: '4.8',
     reviewCount: '24',
-    heroImage: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-0-featured-20220505082555-1.jpg',
-    instantBooking: true,
-    tags: ['Reuniones', 'Eventos', 'Formación', 'Entrevistas'],
-    amenities: [
-      'Acceso 24h',
-      'Internet 600Mb',
-      'Pizarra y papelógrafo',
-      'Proyector',
-      'Aire acondicionado',
-      'Llave digital',
-      'Sin permanencia',
-      'Escaner e impresora',
-      'Soporte 24h',
-      'Zona de descanso',
-      'Alarma'
-    ],
-    subtitle: 'Calle Alejandro Dumas 17, 29004 Málaga',
-    description:
-      'Nuestra Aula/ Sala 4 de Alejandro Dumas es perfecta para reuniones, eventos, formaciones ó entrevistas. Tiene 45 m2 y cuenta con luz natural y zona exterior. Equipada con conexión internet 600 Mb simétricos, pizarra y mobiliario. Acceso 24 horas / 365 días. Proyector, Pizarra y Llave digital.',
-    images: [
-      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-0-featured-20220505082555-1.jpg', caption: 'Vista principal del aula' },
-      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-1-20220505082555.jpg', caption: 'Interior del aula' },
-      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-2-20220505082555.jpg', caption: 'Zona de trabajo' },
-      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-3-20220505082555.jpg', caption: 'Detalle mobiliario' },
-      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-4-20220505082555.jpg', caption: 'Equipamiento' }
-    ]
-  },
-  {
-    id: 'MA1A4',
-    centroCode: 'MA1',
-    displayName: 'Aula MA1A4',
-    productCode: 'MA1A4',
-    type: 'Aula',
-    status: 'Activo',
-    capacity: '40',
-    size: '45 m²',
-    priceFrom: '€ 48',
-    priceUnit: '/h',
-    rating: '4.8',
-    reviewCount: '24',
     heroImage: 'https://app.be-working.com/img/MA1A3-0-featured-20220504145833.jpg',
     instantBooking: true,
-    tags: ['Reuniones', 'Formación', 'Eventos', 'Entrevistas'],
+    tags: ['Reuniones', 'Eventos', 'Formación', 'Entrevistas'],
     amenities: [
       'Acceso 24h',
       'Internet 600Mb',
@@ -189,6 +149,46 @@ const MOCK_ROWS = [
       { url: 'https://app.be-working.com/img/MA1A3-2-20220504145833.jpg', caption: 'Zona de trabajo' },
       { url: 'https://app.be-working.com/img/MA1A3-3-20220504145833.jpg', caption: 'Detalle mobiliario' },
       { url: 'https://app.be-working.com/img/MA1A3-4-20220504145833.jpg', caption: 'Equipamiento' }
+    ]
+  },
+  {
+    id: 'MA1A4',
+    centroCode: 'MA1',
+    displayName: 'Aula MA1A4',
+    productCode: 'MA1A4',
+    type: 'Aula',
+    status: 'Activo',
+    capacity: '40',
+    size: '45 m²',
+    priceFrom: '€ 48',
+    priceUnit: '/h',
+    rating: '4.8',
+    reviewCount: '24',
+    heroImage: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-0-featured-20220505082555-1.jpg',
+    instantBooking: true,
+    tags: ['Reuniones', 'Formación', 'Eventos', 'Entrevistas'],
+    amenities: [
+      'Acceso 24h',
+      'Internet 600Mb',
+      'Pizarra y papelógrafo',
+      'Proyector',
+      'Aire acondicionado',
+      'Llave digital',
+      'Sin permanencia',
+      'Escaner e impresora',
+      'Soporte 24h',
+      'Zona de descanso',
+      'Alarma'
+    ],
+    subtitle: 'Calle Alejandro Dumas 17, 29004 Málaga',
+    description:
+      'Nuestra Aula/ Sala 4 de Alejandro Dumas es perfecta para reuniones, eventos, formaciones ó entrevistas. Tiene 45 m2 y cuenta con luz natural y zona exterior. Equipada con conexión internet 600 Mb simétricos, pizarra y mobiliario. Acceso 24 horas / 365 días. Proyector, Pizarra y Llave digital.',
+    images: [
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-0-featured-20220505082555-1.jpg', caption: 'Vista principal del aula' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-1-20220505082555.jpg', caption: 'Interior del aula' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-2-20220505082555.jpg', caption: 'Zona de trabajo' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-3-20220505082555.jpg', caption: 'Detalle mobiliario' },
+      { url: 'https://be-working.com/wp-content/uploads/2025/09/MA1A4-4-20220505082555.jpg', caption: 'Equipamiento' }
     ]
   },
   {
