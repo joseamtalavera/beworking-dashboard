@@ -27,28 +27,27 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import PublicIcon from '@mui/icons-material/Public';
 import WifiIcon from '@mui/icons-material/Wifi';
 
-// Mock office data - in a real app, this would come from an API
 const initialOfficeData = {
-  name: 'BeWorking Virtual Office',
+  name: 'BeWorking Coworking Málaga',
   address: {
-    street: 'Calle Gran Vía, 123',
-    city: 'Madrid',
-    postalCode: '28013',
+    street: 'Calle Alejandro Dumas 17 - Oficinas',
+    city: 'Málaga',
+    postalCode: '29004',
     country: 'Spain'
   },
   coordinates: {
-    lat: 40.4168,
-    lng: -3.7038
+    lat: 36.7213,
+    lng: -4.4214
   },
   contact: {
-    phone: '+34 91 123 45 67',
-    email: 'madrid@be-working.com',
+    phone: '+34 951 905 967',
+    email: 'info@be-working.com',
     website: 'https://be-working.com'
   },
   hours: {
-    weekdays: '9:00 AM - 6:00 PM',
-    saturday: '10:00 AM - 2:00 PM',
-    sunday: 'Closed'
+    weekdays: '24h',
+    saturday: '24h',
+    sunday: '24h'
   },
   amenities: [
     'High-speed WiFi',
@@ -60,9 +59,8 @@ const initialOfficeData = {
     'Business address'
   ],
   nearbyTransport: [
-    { type: 'Metro', name: 'Gran Vía', distance: '2 min walk' },
-    { type: 'Bus', name: 'Stop 123', distance: '1 min walk' },
-    { type: 'Train', name: 'Sol Station', distance: '5 min walk' }
+    { type: 'Bus', name: 'Alejandro Dumas', distance: '1 min walk' },
+    { type: 'Train', name: 'Estación María Zambrano', distance: '10 min' }
   ]
 };
 
@@ -158,10 +156,7 @@ const VirtualOfficeAddress = () => {
   const [addTransportOpen, setAddTransportOpen] = useState(false);
   const [editForm, setEditForm] = useState(initialOfficeData);
   const [transportForm, setTransportForm] = useState({ name: '', distance: '' });
-  const mapQuery = encodeURIComponent(
-    `${officeData.address.street}, ${officeData.address.postalCode} ${officeData.address.city}, ${officeData.address.country}`
-  );
-  const mapSrc = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
+  const mapSrc = 'https://maps.google.com/maps?q=BeWorking+Coworking+M%C3%A1laga+Calle+Alejandro+Dumas+17&t=&z=16&ie=UTF8&iwloc=&output=embed';
 
   const openEditDialog = () => {
     setEditForm(officeData);
@@ -367,23 +362,14 @@ const VirtualOfficeAddress = () => {
             content={
               <Stack spacing={1}>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2">Monday - Friday</Typography>
+                  <Typography variant="body2">Open hours</Typography>
                   <Typography variant="body2" fontWeight="medium">
                     {officeData.hours.weekdays}
                   </Typography>
                 </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2">Saturday</Typography>
-                  <Typography variant="body2" fontWeight="medium">
-                    {officeData.hours.saturday}
-                  </Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2">Sunday</Typography>
-                  <Typography variant="body2" fontWeight="medium">
-                    {officeData.hours.sunday}
-                  </Typography>
-                </Stack>
+                <Typography variant="body2" color="text.secondary">
+                  Access available 24 hours a day, 7 days a week
+                </Typography>
               </Stack>
             }
           />

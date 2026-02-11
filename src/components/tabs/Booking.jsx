@@ -97,7 +97,7 @@ const DEFAULT_END_HOUR = 24;
 // Colors are now defined in theme.js - use theme.palette.brand.green/greenHover and theme.palette.brand.green/orangeHover
 const DEFAULT_RESERVATION_TYPE = 'Por Horas';
 const RESERVATION_TYPE_OPTIONS = ['Por Horas', 'Diaria', 'Mensual'];
-const STATUS_FORM_OPTIONS = ['Created', 'Invoiced', 'Paid'];
+const STATUS_FORM_OPTIONS = ['Booked', 'Invoiced', 'Paid'];
 const WEEKDAY_OPTIONS = [
   { value: 'monday', label: 'Monday', shortLabel: 'Mon' },
   { value: 'tuesday', label: 'Tuesday', shortLabel: 'Tue' },
@@ -233,7 +233,7 @@ const statusLabels = {
   available: 'Available',
   paid: 'Paid',
   invoiced: 'Invoiced',
-  created: 'Created'
+  created: 'Booked'
 };
 
 const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created'];
@@ -768,7 +768,7 @@ const BookingsTable = ({ bookings, onSelect }) => {
             {paginated.map((booking) => {
               const statusKey = mapStatusKey(booking.status);
               const statusStyle = statusStyles[statusKey] || statusStyles.created;
-              const statusLabel = booking.status || statusLabels[statusKey] || 'Created';
+              const statusLabel = booking.status || statusLabels[statusKey] || 'Booked';
               const centerLabel = booking.centerName || booking.centerCode || '—';
               const productLabel = booking.productName || booking.productType || '—';
               const startHour = booking.timeFrom ? booking.timeFrom : 'All day';
@@ -886,7 +886,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
             {sortedBloqueos.map((bloqueo) => {
               const statusKey = mapStatusKey(bloqueo.estado);
               const statusStyle = statusStyles[statusKey] || statusStyles.created;
-              const statusLabel = statusLabels[statusKey] || 'Created';
+              const statusLabel = statusLabels[statusKey] || 'Booked';
               const rawStatusLabel = bloqueo.estado || '';
               const startHour = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : 'All day';
               const finishHour = bloqueo.fechaFin
@@ -1142,7 +1142,7 @@ const ReservaDialog = ({
         if (key === 'invoiced') {
           return 'Invoiced';
         }
-        return 'Created';
+        return 'Booked';
       })();
 
       return {
@@ -1570,23 +1570,24 @@ const ReservaDialog = ({
                     Who &amp; where
                 </Typography>
                 </Stack>
-                <Grid container spacing={3} sx={{ width: '100%' }}>
-                  {/* Contact field - full width */}
-                  <Grid item xs={12} sx={{ display: 'block' }}>
+                <Grid container spacing={2}>
+                  {/* Contact search */}
+                  <Grid item xs={12} md={6}>
                     <Box sx={{ position: 'relative' }}>
-                        <TextField
+                      <TextField
                         fullWidth
                         label="Search by Name"
                         value={contactInputValue}
                         onChange={(e) => setContactInputValue(e.target.value)}
                         placeholder="Search by name"
-                          required
+                        required
                         size="small"
-                          InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
+                        sx={fieldStyles}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
                               <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                                </InputAdornment>
+                            </InputAdornment>
                           ),
                           endAdornment: contactsLoading ? (
                             <CircularProgress color="inherit" size={18} />
@@ -1634,25 +1635,23 @@ const ReservaDialog = ({
                               sx={{
                                 p: 2,
                                 cursor: 'pointer',
-                                '&:hover': {
-                                  backgroundColor: 'grey.100'
-                                }
+                                '&:hover': { backgroundColor: 'grey.100' }
                               }}
                             >
                               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                 {contact.name || contact.code || '—'}
-                </Typography>
+                              </Typography>
                             </Box>
                           ))}
                         </Paper>
                       )}
                     </Box>
-              </Grid>
-                  
-                  {/* Centro field - full width */}
-                  <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
+                  </Grid>
+
+                  {/* Centro */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
                       label="Centro"
                       value={formState.centro?.name || ''}
                       onChange={(e) => {
@@ -1660,14 +1659,15 @@ const ReservaDialog = ({
                         setFormState((prev) => ({ ...prev, centro: selectedCentro || null }));
                       }}
                       placeholder="Select centro"
-                          required
+                      required
                       size="small"
                       select
                       SelectProps={{
                         displayEmpty: true,
                         renderValue: (value) => value === '' ? 'All centros' : value
-                          }}
-                          InputProps={{
+                      }}
+                      sx={selectFieldStyles}
+                      InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
                             <LocationOnRoundedIcon sx={{ color: 'text.disabled' }} />
@@ -1684,9 +1684,9 @@ const ReservaDialog = ({
                       ))}
                     </TextField>
                   </Grid>
-                  
-                  {/* User type field - full width */}
-                  <Grid item xs={12} sx={{ display: 'block' }}>
+
+                  {/* User Type */}
+                  <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
                       label="User Type"
@@ -1700,6 +1700,7 @@ const ReservaDialog = ({
                         displayEmpty: true,
                         renderValue: (value) => value === '' ? 'All user types' : value
                       }}
+                      sx={selectFieldStyles}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -1716,10 +1717,11 @@ const ReservaDialog = ({
                       ))}
                     </TextField>
                   </Grid>
-                  {/* Producto field - full width */}
-                  <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
+
+                  {/* Producto */}
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
                       label="Producto"
                       value={formState.producto?.name || ''}
                       onChange={(e) => {
@@ -1727,14 +1729,15 @@ const ReservaDialog = ({
                         setFormState((prev) => ({ ...prev, producto: selectedProduct || null }));
                       }}
                       placeholder="Select product"
-                          required
+                      required
                       size="small"
                       select
                       SelectProps={{
                         displayEmpty: true,
                         renderValue: (value) => value === '' ? 'All products' : value
                       }}
-                          InputProps={{
+                      sx={selectFieldStyles}
+                      InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
                             <SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} />
@@ -1751,13 +1754,14 @@ const ReservaDialog = ({
                       ))}
                     </TextField>
                   </Grid>
-                  {/* Reservation type field - full width */}
-                  <Grid item xs={12} sx={{ display: 'block' }}>
+
+                  {/* Reservation Type */}
+                  <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
                       label="Reservation Type"
                       value={formState.reservationType}
-                      onChange={handleFieldChange('reservationType')}
+                      onChange={handleReservationTypeChange}
                       placeholder="Select reservation type"
                       required
                       size="small"
@@ -1766,6 +1770,7 @@ const ReservaDialog = ({
                         displayEmpty: true,
                         renderValue: (value) => value === '' ? 'All reservation types' : value
                       }}
+                      sx={selectFieldStyles}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -1782,8 +1787,9 @@ const ReservaDialog = ({
                       ))}
                     </TextField>
                   </Grid>
-                  {/* Status field - full width */}
-                  <Grid item xs={12} sx={{ display: 'block' }}>
+
+                  {/* Status */}
+                  <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
                       label="Status"
@@ -1797,6 +1803,7 @@ const ReservaDialog = ({
                         displayEmpty: true,
                         renderValue: (value) => value === '' ? 'All statuses' : value
                       }}
+                      sx={selectFieldStyles}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -1806,14 +1813,14 @@ const ReservaDialog = ({
                       }}
                     >
                       <MenuItem value="">All statuses</MenuItem>
-                      <MenuItem value="created">Created</MenuItem>
-                      <MenuItem value="pendiente">Pendiente</MenuItem>
-                      <MenuItem value="paid">Paid</MenuItem>
+                      <MenuItem value="Booked">Booked</MenuItem>
+                      <MenuItem value="Pendiente">Pendiente</MenuItem>
+                      <MenuItem value="Paid">Paid</MenuItem>
                     </TextField>
                   </Grid>
-                  
-                  {/* Tarifa field - full width */}
-                  <Grid item xs={12} sx={{ display: 'block' }}>
+
+                  {/* Tarifa */}
+                  <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
                       label="Tarifa (€)"
@@ -1822,6 +1829,7 @@ const ReservaDialog = ({
                       placeholder="Enter tarifa"
                       required
                       size="small"
+                      sx={fieldStyles}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -2170,7 +2178,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
   const open = Boolean(booking);
   const statusKey = mapStatusKey(booking?.status);
   const statusColor = statusStyles[statusKey] || statusStyles.created;
-  const statusLabel = statusLabels[statusKey] || booking?.status || 'Created';
+  const statusLabel = statusLabels[statusKey] || booking?.status || 'Booked';
   const clientInitials = useMemo(() => getInitials(booking?.clientName), [booking]);
   const attendees =
     typeof booking?.attendees === 'number' ? booking.attendees : booking?.attendees || '—';
@@ -2488,7 +2496,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
         nota: bloqueo.nota || '',
         userType: bloqueo.cliente?.tipoTenant || '',
         reservationType: 'Por Horas', // Default value
-        status: bloqueo.estado || 'Created'
+        status: bloqueo.estado || 'Booked'
       });
       setIsEditMode(false);
       setError('');
@@ -2549,7 +2557,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
         nota: bloqueo.nota || '',
         userType: bloqueo.cliente?.tipoTenant || '',
         reservationType: 'Por Horas',
-        status: bloqueo.estado || 'Created'
+        status: bloqueo.estado || 'Booked'
       });
     }
   };
@@ -2840,7 +2848,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                         <TextField
                           fullWidth
                           label="Status"
-                          value={formState.status || 'Created'}
+                          value={formState.status || 'Booked'}
                           onChange={(e) => handleFieldChange('status', e.target.value)}
                           placeholder="Select status"
                           required
@@ -2861,7 +2869,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           }}
                         >
                           <MenuItem value="">All statuses</MenuItem>
-                          <MenuItem value="Created">Created</MenuItem>
+                          <MenuItem value="Booked">Booked</MenuItem>
                           <MenuItem value="Pendiente">Pendiente</MenuItem>
                           <MenuItem value="Paid">Paid</MenuItem>
                         </TextField>
@@ -3280,7 +3288,7 @@ const UserCalendarLegend = ({ styles }) => (
     <UserCalendarLegendItem label="Available" color={styles.available} />
     <UserCalendarLegendItem label="Paid" color={styles.paid} />
     <UserCalendarLegendItem label="Invoiced" color={styles.invoiced} />
-    <UserCalendarLegendItem label="Created" color={styles.created} />
+    <UserCalendarLegendItem label="Booked" color={styles.created} />
   </Stack>
 );
 
@@ -3433,7 +3441,7 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
     centro: null,
     userType: 'Usuario Aulas',
     reservationType: 'Por Horas',
-    status: 'Created',
+    status: 'Booked',
     tarifa: room?.priceFrom || '',
     producto: room ? { id: room.id, name: room.productName || room.name, type: 'Aula' } : null,
     configuracion: '',
@@ -3717,7 +3725,7 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
         fechaIni: `${schedule.date}T${schedule.startTime}:00`,
         fechaFin: `${schedule.dateTo || schedule.date}T${schedule.endTime}:00`,
         asistentes: schedule.attendees || 1,
-        estado: 'Created',
+        estado: 'Booked',
         direccion: { linea1: contact.addressLine1, linea2: contact.addressLine2, ciudad: contact.city, codigoPostal: contact.postalCode, pais: contact.country }
       };
       await createReserva(payload);
@@ -5489,9 +5497,12 @@ const Booking = ({ mode = 'user' }) => {
             disableElevation
             sx={{
               minWidth: 120,
-              height: 36,
+              height: 40,
+              borderRadius: 999,
               textTransform: 'none',
               fontWeight: 600,
+              fontSize: '0.875rem',
+              px: 2.5,
               backgroundColor: 'primary.main',
               color: 'primary.contrastText',
               '&:hover': {
@@ -5499,7 +5510,7 @@ const Booking = ({ mode = 'user' }) => {
               }
             }}
           >
-            New reserva
+            Reserva
           </Button>
         </Stack>
       </Stack>

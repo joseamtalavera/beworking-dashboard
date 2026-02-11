@@ -7,6 +7,7 @@ import Header from '../../components/Header.jsx';
 import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
 import { ADMIN_TABS } from '../../constants.js';
+import SpiralLoader from '../../components/SpiralLoader.jsx';
 
 const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
@@ -99,15 +100,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
           onMenuToggle={() => setMobileOpen(true)}
         />
         <Box component="main" sx={{ flex: 1, p: { xs: 2, sm: 3, lg: 4 } }}>
-          <React.Suspense
-            fallback={(
-              <Box sx={{ textAlign: 'center', py: 10 }}>
-                <Typography variant="body1" color="text.secondary">
-                  Loading...
-                </Typography>
-              </Box>
-            )}
-          >
+          <React.Suspense fallback={<SpiralLoader />}>
             <Box key={`${activeTab}-${contactsKey}`}>
               {TabContent}
             </Box>

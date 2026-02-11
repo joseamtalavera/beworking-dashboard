@@ -7,6 +7,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import SpiralLoader from '../SpiralLoader.jsx';
 
 // Lazy load the subtab components
 const MailboxUser = React.lazy(() => import('./user/MailboxUser.jsx'));
@@ -23,7 +24,7 @@ const VirtualOffice = ({ userType = 'user' }) => {
   const subtabs = [
     {
       id: 'mailbox',
-      label: 'Business Address',
+      label: 'Mailbox',
       icon: <MailOutlineIcon />,
       component: userType === 'admin' ? MailboxAdmin : MailboxUser
     },
@@ -86,19 +87,7 @@ const VirtualOffice = ({ userType = 'user' }) => {
       <Box sx={{ minHeight: 400 }}>
         {ActiveComponent && (
           <React.Suspense
-            fallback={
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minHeight: 400,
-                  color: 'text.secondary'
-                }}
-              >
-                <Typography>Loading...</Typography>
-              </Box>
-            }
+            fallback={<SpiralLoader />}
           >
             <ActiveComponent userType={userType} />
           </React.Suspense>
