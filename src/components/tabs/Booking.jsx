@@ -90,6 +90,7 @@ import PhotoLibraryOutlinedIcon from '@mui/icons-material/PhotoLibraryOutlined';
 import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined';
 import { createInvoice, fetchInvoicePdfUrl } from '../../api/invoices.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
+import BookingFlowPage from '../booking/BookingFlowPage';
 
 const DEFAULT_START_HOUR = 6;
 const DEFAULT_END_HOUR = 24;
@@ -4996,7 +4997,7 @@ const Booking = ({ mode = 'user' }) => {
     setFilterEmail('');
     setFilterUserType(defaultAgendaUserType);
   };
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [bookingFlowActive, setBookingFlowActive] = useState(false);
   const [editBloqueo, setEditBloqueo] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null });
   const [invoiceDialog, setInvoiceDialog] = useState({ open: false, bloqueo: null });
@@ -5006,13 +5007,12 @@ const Booking = ({ mode = 'user' }) => {
   const [invoiceError, setInvoiceError] = useState('');
 
   const handleOpenCreateDialog = useCallback(() => {
-    console.log('Opening create dialog...');
     setEditBloqueo(null); // ensure edit dialog is closed
-    setCreateDialogOpen(true);
+    setBookingFlowActive(true);
   }, []);
 
   const handleCloseCreateDialog = useCallback(() => {
-    setCreateDialogOpen(false);
+    setBookingFlowActive(false);
   }, []);
 
   const handleStartEditBloqueo = useCallback(
@@ -5158,7 +5158,7 @@ const Booking = ({ mode = 'user' }) => {
           setAgendaDate(primaryDate);
         }
       }
-      setCreateDialogOpen(false);
+      setBookingFlowActive(false);
     },
     [setAgendaDate, setCalendarDate, setBloqueos]
   );
@@ -5465,7 +5465,28 @@ const Booking = ({ mode = 'user' }) => {
     return <UserBookingView />;
   }
 
-  // Admin mode: Show calendar/agenda view
+  // Admin mode: Show booking flow or calendar/agenda view
+  if (bookingFlowActive) {
+    return (
+      <>
+        <BookingFlowPage
+          onClose={handleCloseCreateDialog}
+          onCreated={handleReservaCreated}
+          defaultDate={calendarDate}
+          mode={mode}
+        />
+        <ReservaDialog
+          open={Boolean(editBloqueo)}
+          mode="edit"
+          onClose={handleCloseEditDialog}
+          onUpdated={handleBloqueoUpdated}
+          initialBloqueo={editBloqueo}
+          defaultDate={calendarDate}
+        />
+      </>
+    );
+  }
+
   return (
     <Stack spacing={4}>
       <Stack
@@ -5818,14 +5839,6 @@ const Booking = ({ mode = 'user' }) => {
           )}
         </Stack>
       )}
-      <ReservaDialog
-        open={createDialogOpen}
-        mode="create"
-        onClose={handleCloseCreateDialog}
-        onCreated={handleReservaCreated}
-        defaultDate={calendarDate}
-      />
-
       <ReservaDialog
         open={Boolean(editBloqueo)}
         mode="edit"

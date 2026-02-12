@@ -52,6 +52,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
   const [agentOpen, setAgentOpen] = useState(false);
   const [contactsKey, setContactsKey] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -89,6 +90,8 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
         onLogout={logout}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'auto' }}>
         <Header
