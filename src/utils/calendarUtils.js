@@ -20,9 +20,9 @@ export const statusStyles = () => ({
     color: '#b91c1c'
   },
   created: {
-    bgcolor: alpha('#fb923c', 0.15),
-    borderColor: '#fb923c',
-    color: '#ea580c'
+    bgcolor: alpha('#2ecc71', 0.15),
+    borderColor: '#2ecc71',
+    color: '#27ae60'
   }
 });
 

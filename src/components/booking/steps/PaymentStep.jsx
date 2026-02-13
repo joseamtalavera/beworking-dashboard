@@ -15,6 +15,8 @@ import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 
@@ -85,33 +87,41 @@ function buildBookingPayload(state) {
 function AdminPaymentOptions({ onCreated }) {
   const theme = useTheme();
   const { state, prevStep } = useBookingFlow();
-  const [paymentOption, setPaymentOption] = useState('none'); // 'none' | 'charge' | 'invoice'
+  const [paymentOption, setPaymentOption] = useState(''); // 'charge' | 'invoice'
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState('');
   const [cardsLoading, setCardsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [createdResponse, setCreatedResponse] = useState(null);
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
 
   const contactEmail = state.contact?.email || '';
   const contactName = state.contact?.name || state.contact?.code || '';
   const pricing = useMemo(() => computePricing(state), [state]);
 
-  // Load saved cards when charge option selected
+  // Eager card fetch on mount — auto-select charge or invoice
   useEffect(() => {
-    if (paymentOption !== 'charge' || !contactEmail) return;
+    if (!contactEmail) return;
     setCardsLoading(true);
     fetchCustomerPaymentMethods(contactEmail)
       .then((res) => {
-        setSavedCards(res.paymentMethods || []);
-        if (res.paymentMethods?.length > 0) {
-          setSelectedCard(res.paymentMethods[0].id);
+        const methods = res.paymentMethods || [];
+        setSavedCards(methods);
+        if (methods.length > 0) {
+          setSelectedCard(methods[0].id);
+          setPaymentOption('charge');
+        } else {
+          setPaymentOption('invoice');
         }
       })
-      .catch(() => setSavedCards([]))
+      .catch(() => {
+        setSavedCards([]);
+        setPaymentOption('invoice');
+      })
       .finally(() => setCardsLoading(false));
-  }, [paymentOption, contactEmail]);
+  }, [contactEmail]);
 
   const handleSubmit = async () => {
     setError('');
@@ -151,31 +161,16 @@ function AdminPaymentOptions({ onCreated }) {
         bookingPayload.stripeInvoiceId = invoiceResult.invoiceId;
         bookingPayload.status = 'Invoiced';
       }
-      // If 'none', just create booking with current status
 
       const response = await createReserva(bookingPayload);
+      setCreatedResponse(response);
       setSuccess(true);
-      onCreated?.(response);
     } catch (err) {
       setError(err.message || 'Something went wrong.');
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (success) {
-    return (
-      <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
-        <Stack spacing={3} alignItems="center">
-          <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>Reserva created</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            The booking has been successfully created.
-          </Typography>
-        </Stack>
-      </Paper>
-    );
-  }
 
   const fieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -187,6 +182,21 @@ function AdminPaymentOptions({ onCreated }) {
 
   return (
     <Stack spacing={3}>
+      <Dialog open={success} PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
+        <DialogContent sx={{ textAlign: 'center' }}>
+          <Stack spacing={3} alignItems="center">
+            <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>Reserva created</Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              The booking has been successfully created.
+            </Typography>
+            <Button variant="contained" sx={pillButtonSx} onClick={() => onCreated?.(createdResponse)}>
+              Close
+            </Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+
       {error && <Alert severity="error">{error}</Alert>}
 
       <ReviewSummary state={state} />
@@ -215,14 +225,24 @@ function AdminPaymentOptions({ onCreated }) {
         <Stack spacing={2}>
           <Typography variant="subtitle1" fontWeight={700}>Payment</Typography>
 
+          {cardsLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
+
           <RadioGroup value={paymentOption} onChange={(e) => setPaymentOption(e.target.value)}>
-            <FormControlLabel value="none" control={<Radio size="small" />} label="No payment (booking only)" />
             <FormControlLabel
               value="charge"
               control={<Radio size="small" />}
               label="Charge saved card"
-              disabled={!contactEmail}
+              disabled={!contactEmail || cardsLoading || savedCards.length === 0}
             />
+            {!cardsLoading && savedCards.length === 0 && contactEmail && (
+              <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
+                No saved cards found for {contactEmail}
+              </Typography>
+            )}
             <FormControlLabel
               value="invoice"
               control={<Radio size="small" />}
@@ -231,38 +251,30 @@ function AdminPaymentOptions({ onCreated }) {
             />
           </RadioGroup>
 
-          {paymentOption === 'charge' && (
+          {paymentOption === 'charge' && savedCards.length > 0 && (
             <Box sx={{ pl: 4 }}>
-              {cardsLoading ? (
-                <CircularProgress size={24} />
-              ) : savedCards.length === 0 ? (
-                <Alert severity="info" sx={{ mt: 1 }}>
-                  No saved cards found for {contactEmail}
-                </Alert>
-              ) : (
-                <TextField
-                  fullWidth
-                  label="Select card"
-                  value={selectedCard}
-                  onChange={(e) => setSelectedCard(e.target.value)}
-                  select
-                  size="small"
-                  sx={fieldStyles}
-                >
-                  {savedCards.map((card) => (
-                    <MenuItem key={card.id} value={card.id}>
-                      {card.brand?.toUpperCase()} **** {card.last4} — exp {card.expMonth}/{card.expYear}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
+              <TextField
+                fullWidth
+                label="Select card"
+                value={selectedCard}
+                onChange={(e) => setSelectedCard(e.target.value)}
+                select
+                size="small"
+                sx={fieldStyles}
+              >
+                {savedCards.map((card) => (
+                  <MenuItem key={card.id} value={card.id}>
+                    {card.brand?.toUpperCase()} **** {card.last4} — exp {card.expMonth}/{card.expYear}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Box>
           )}
 
           {paymentOption === 'invoice' && (
             <Box sx={{ pl: 4 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="Days until due"

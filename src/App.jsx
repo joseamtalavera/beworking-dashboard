@@ -9,7 +9,13 @@ const App = () => {
   if (status === 'loading') {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-        <span>Loading workspace…</span>
+        <style>{`@keyframes spiral-spin { to { transform: rotate(360deg); } }`}</style>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          border: '3px solid transparent',
+          borderTopColor: '#22c55e', borderRightColor: 'rgba(34,197,94,0.4)', borderBottomColor: 'rgba(34,197,94,0.1)',
+          animation: 'spiral-spin 0.8s cubic-bezier(0.5,0,0.5,1) infinite',
+        }} />
       </div>
     );
   }

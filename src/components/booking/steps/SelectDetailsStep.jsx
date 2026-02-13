@@ -230,22 +230,24 @@ export default function SelectDetailsStep() {
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             Additional details
           </Typography>
-          <TextField
-            size="small"
-            label="Number of attendees"
-            type="number"
-            value={state.attendees || ''}
-            onChange={(e) => setField('attendees', e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} />
-                </InputAdornment>
-              ),
-              inputProps: { min: 1 }
-            }}
-            fullWidth
-          />
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <TextField
+              size="small"
+              label="Number of attendees"
+              type="number"
+              value={state.attendees || ''}
+              onChange={(e) => setField('attendees', e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} />
+                  </InputAdornment>
+                ),
+                inputProps: { min: 1, max: state.producto?.capacity || 99 }
+              }}
+              fullWidth
+            />
+          </Stack>
           <TextField
             size="small"
             label="Notes (optional)"

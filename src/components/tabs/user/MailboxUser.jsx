@@ -43,8 +43,8 @@ const SummaryCard = ({ icon, title, value, helper, color }) => (
           width: 48,
           height: 48,
           borderRadius: '50%',
-          bgcolor: color || accentHover,
-          color: color ? 'common.white' : accentColor
+          bgcolor: color || 'brand.accentSoft',
+          color: color ? 'common.white' : 'brand.green'
         }}
       >
         {icon}
@@ -102,7 +102,7 @@ const normalizeDocuments = (payload) => {
 const MailboxUser = () => {
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
-  const accentHover = theme.palette.brand.greenSoft;
+  const accentHover = theme.palette.brand.accentSoft;
   const [documents, setDocuments] = useState([]);
   const [filter, setFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
