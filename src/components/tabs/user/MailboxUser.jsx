@@ -3,7 +3,12 @@ import { useTheme } from '@mui/material/styles';
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
@@ -21,6 +26,12 @@ import Typography from '@mui/material/Typography';
 import Badge from '@mui/material/Badge';
 import CircularProgress from '@mui/material/CircularProgress';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+
+import { QRCodeSVG } from 'qrcode.react';
 
 import { getMailboxDocumentDownloadUrl, listMailboxDocuments } from '../../../api/mailbox.js';
 
@@ -29,7 +40,8 @@ import { getMailboxDocumentDownloadUrl, listMailboxDocuments } from '../../../ap
 const statusConfig = {
   scanned: { label: 'Awaiting review', color: 'primary', description: 'New document available.' },
   notified: { label: 'Notified', color: 'primary', description: 'Notification email sent.' },
-  viewed: { label: 'Viewed', color: 'success', description: 'You already opened this document.' }
+  viewed: { label: 'Viewed', color: 'success', description: 'You already opened this document.' },
+  picked_up: { label: 'Picked up', color: 'info', description: 'Package has been collected.' }
 };
 
 const SummaryCard = ({ icon, title, value, helper, color }) => (
@@ -99,7 +111,7 @@ const normalizeDocuments = (payload) => {
   });
 };
 
-const MailboxUser = () => {
+const MailboxUser = ({ userProfile }) => {
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
   const accentHover = theme.palette.brand.accentSoft;
@@ -108,13 +120,19 @@ const MailboxUser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // QR dialog state
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrDialogDoc, setQrDialogDoc] = useState(null);
+
+  const profileEmail = userProfile?.email;
+
   useEffect(() => {
     let active = true;
 
     const fetchDocuments = async () => {
       setIsLoading(true);
       try {
-        const response = await listMailboxDocuments();
+        const response = await listMailboxDocuments({ contactEmail: profileEmail });
         if (!active) return;
         setDocuments(normalizeDocuments(response));
         setError('');
@@ -133,13 +151,16 @@ const MailboxUser = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [profileEmail]);
 
   const summary = useMemo(() => {
     const scanned = documents.filter((doc) => doc.status === 'scanned').length;
     const notified = documents.filter((doc) => doc.status === 'notified').length;
     const viewed = documents.filter((doc) => doc.status === 'viewed').length;
-    return { scanned, notified, viewed };
+    const pendingPackages = documents.filter(
+      (doc) => doc.type === 'package' && doc.status !== 'picked_up'
+    ).length;
+    return { scanned, notified, viewed, pendingPackages };
   }, [documents]);
 
   const filteredDocuments = useMemo(() => {
@@ -159,6 +180,18 @@ const MailboxUser = () => {
     window.open(downloadUrl, '_blank', 'noopener');
   };
 
+  const handleShowQr = (doc) => {
+    setQrDialogDoc(doc);
+    setQrDialogOpen(true);
+  };
+
+  const handleCloseQrDialog = () => {
+    setQrDialogOpen(false);
+    setQrDialogDoc(null);
+  };
+
+  const isPackage = (doc) => doc.type === 'package';
+
   return (
     <Stack spacing={4}>
       <Stack spacing={2}>
@@ -166,7 +199,7 @@ const MailboxUser = () => {
           Your Mailbox
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          View the mail that has been processed for you. Open any document directly from the table below.
+          View the mail and packages that have been processed for you. Open any document directly from the table below.
         </Typography>
         {error && <Alert severity="error">{error}</Alert>}
       </Stack>
@@ -191,6 +224,12 @@ const MailboxUser = () => {
           helper="Documents you already opened"
           color={accentColor}
         />
+        <SummaryCard
+          icon={<LocalShippingOutlinedIcon />}
+          title="Pending Packages"
+          value={summary.pendingPackages}
+          helper="Awaiting your pickup"
+        />
       </Stack>
 
       <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -213,6 +252,7 @@ const MailboxUser = () => {
             <ToggleButton value="scanned">New</ToggleButton>
             <ToggleButton value="notified">Notified</ToggleButton>
             <ToggleButton value="viewed">Viewed</ToggleButton>
+            <ToggleButton value="picked_up">Picked Up</ToggleButton>
           </ToggleButtonGroup>
         </Stack>
 
@@ -223,6 +263,7 @@ const MailboxUser = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Document</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell>Recipient</TableCell>
                 <TableCell>Received</TableCell>
                 <TableCell>Status</TableCell>
@@ -233,7 +274,7 @@ const MailboxUser = () => {
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                       <CircularProgress size={28} thickness={4} />
                       <Typography variant="body2" color="text.secondary">
@@ -249,6 +290,8 @@ const MailboxUser = () => {
                   const recipient = doc.recipient || doc.contactEmail || doc.sender || 'Front desk';
                   const avatarSeed = (recipient || doc.title || doc.id || '?').slice(0, 2).toUpperCase();
                   const pageCountLabel = doc.pages ?? '—';
+                  const docIsPackage = isPackage(doc);
+                  const showQrButton = docIsPackage && doc.pickupCode && doc.status !== 'picked_up';
 
                   return (
                     <TableRow hover key={doc.id ?? doc.title ?? index}>
@@ -274,6 +317,19 @@ const MailboxUser = () => {
                           </Box>
                         </Stack>
                       </TableCell>
+                      <TableCell>
+                        <Chip
+                          icon={docIsPackage ? <InventoryOutlinedIcon sx={{ fontSize: 16 }} /> : <MailOutlineIcon sx={{ fontSize: 16 }} />}
+                          label={docIsPackage ? 'Package' : 'Mail'}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            borderColor: docIsPackage ? '#f97316' : accentColor,
+                            color: docIsPackage ? '#f97316' : accentColor,
+                            '& .MuiChip-icon': { color: docIsPackage ? '#f97316' : accentColor }
+                          }}
+                        />
+                      </TableCell>
                       <TableCell>{recipient}</TableCell>
                       <TableCell>{doc.receivedAt ? formatDateTime(doc.receivedAt) : '—'}</TableCell>
                       <TableCell>
@@ -281,26 +337,41 @@ const MailboxUser = () => {
                           <Chip
                             label={status?.label ?? doc.status ?? 'Unknown'}
                             color={status?.color ?? 'default'}
-                            variant={doc.status === 'viewed' ? 'filled' : 'outlined'}
+                            variant={doc.status === 'viewed' || doc.status === 'picked_up' ? 'filled' : 'outlined'}
                           />
                         </Tooltip>
                       </TableCell>
                       <TableCell>{doc.lastNotifiedAt ? formatDateTime(doc.lastNotifiedAt) : '—'}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Open document" arrow>
-                          <span>
-                            <IconButton size="small" onClick={() => doc.id && handlePreviewDocument(doc.id)} disabled={!doc.id}>
-                              <RemoveRedEyeOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
+                        <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          {showQrButton && (
+                            <Tooltip title="Show QR code for pickup" arrow>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleShowQr(doc)}
+                                  sx={{ color: '#f97316' }}
+                                >
+                                  <QrCode2Icon fontSize="small" />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
+                          <Tooltip title="Open document" arrow>
+                            <span>
+                              <IconButton size="small" onClick={() => doc.id && handlePreviewDocument(doc.id)} disabled={!doc.id}>
+                                <RemoveRedEyeOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   );
                 })}
               {!isLoading && filteredDocuments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                       <Typography variant="subtitle1" fontWeight="bold">
                         No documents yet
@@ -316,6 +387,73 @@ const MailboxUser = () => {
           </Table>
         </TableContainer>
       </Paper>
+
+      {/* QR Code Dialog */}
+      <Dialog
+        open={qrDialogOpen}
+        onClose={handleCloseQrDialog}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                bgcolor: '#fff7ed',
+                color: '#f97316'
+              }}
+            >
+              <QrCode2Icon />
+            </Box>
+            <Typography variant="h6" fontWeight="bold">
+              Package Pickup Code
+            </Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={3} alignItems="center" sx={{ py: 2 }}>
+            {qrDialogDoc?.pickupCode && (
+              <>
+                <QRCodeSVG
+                  value={qrDialogDoc.pickupCode}
+                  size={200}
+                  level="M"
+                  includeMargin
+                />
+                <Typography
+                  variant="h4"
+                  fontWeight="bold"
+                  sx={{ color: '#f97316', letterSpacing: 4 }}
+                >
+                  {qrDialogDoc.pickupCode}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" textAlign="center">
+                  Show this QR code or tell the pickup code to the front desk to collect your package.
+                </Typography>
+                {qrDialogDoc.title && (
+                  <Chip
+                    label={qrDialogDoc.title}
+                    variant="outlined"
+                    sx={{ borderColor: '#f97316', color: '#f97316' }}
+                  />
+                )}
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button onClick={handleCloseQrDialog} sx={{ color: 'text.secondary' }}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };

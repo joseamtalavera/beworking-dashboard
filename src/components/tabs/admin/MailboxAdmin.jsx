@@ -36,6 +36,9 @@ import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
 import Badge from '@mui/material/Badge';
 import InputAdornment from '@mui/material/InputAdornment';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import LinearProgress from '@mui/material/LinearProgress';
 import ScannerOutlinedIcon from '@mui/icons-material/ScannerOutlined';
 import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined';
@@ -43,17 +46,25 @@ import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
+import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 
 import {
   getMailboxDocumentDownloadUrl,
   listMailboxDocuments,
   markMailboxDocumentViewed,
+  markPackagePickedUp,
   notifyMailboxDocument,
-  uploadMailboxDocument
+  uploadMailboxDocument,
+  verifyPickupByCode
 } from '../../../api/mailbox.js';
 import { fetchBookingContacts } from '../../../api/bookings.js';
 
@@ -62,7 +73,8 @@ import { fetchBookingContacts } from '../../../api/bookings.js';
 const statusConfig = {
   scanned: { label: 'New upload', color: 'primary', description: 'Ready to notify the user.' },
   notified: { label: 'Email sent', color: 'success', description: 'User has been notified.' },
-  viewed: { label: 'Viewed online', color: 'success', description: 'User downloaded or viewed the file.' }
+  viewed: { label: 'Viewed online', color: 'success', description: 'User downloaded or viewed the file.' },
+  picked_up: { label: 'Picked up', color: 'info', description: 'Package has been collected.' }
 };
 
 const SummaryCard = ({ icon, title, value, helper, color, accentHover }) => (
@@ -120,8 +132,11 @@ const MailboxAdmin = () => {
   const [uploadForm, setUploadForm] = useState({
     contactName: '',
     contactEmail: '',
-    document: null
+    documents: [],
+    autoNotify: true,
+    documentType: 'mail'
   });
+  const [uploadProgress, setUploadProgress] = useState({ uploading: false, current: 0, total: 0, results: [] });
   const [actionStates, setActionStates] = useState({});
   const [searchForm, setSearchForm] = useState({
     nameSearch: '',
@@ -138,6 +153,16 @@ const MailboxAdmin = () => {
     nameSearch: '',
     emailSearch: ''
   });
+
+  // Pickup verification dialog state
+  const [pickupDialogOpen, setPickupDialogOpen] = useState(false);
+  const [pickupCode, setPickupCode] = useState('');
+  const [pickupVerifying, setPickupVerifying] = useState(false);
+  const [pickupResult, setPickupResult] = useState(null);
+  const [scannerActive, setScannerActive] = useState(false);
+  const scannerRef = useRef(null);
+  const html5QrCodeRef = useRef(null);
+
   const fileInputRef = useRef(null);
   const isMountedRef = useRef(false);
   const searchTimeoutRef = useRef(null);
@@ -203,17 +228,20 @@ const MailboxAdmin = () => {
     const scanned = documents.filter((doc) => doc.status === 'scanned').length;
     const notified = documents.filter((doc) => doc.status === 'notified').length;
     const viewed = documents.filter((doc) => doc.status === 'viewed').length;
-    return { scanned, notified, viewed };
+    const pendingPackages = documents.filter(
+      (doc) => doc.type === 'package' && doc.status !== 'picked_up'
+    ).length;
+    return { scanned, notified, viewed, pendingPackages };
   }, [documents]);
 
   const filteredDocuments = useMemo(() => {
     let filtered = documents;
-    
+
     // Filter by status
     if (filter !== 'all') {
       filtered = filtered.filter((doc) => doc.status === filter);
     }
-    
+
     // Filter by date range
     if (dateFilters.startDate) {
       const startDate = new Date(dateFilters.startDate);
@@ -222,7 +250,7 @@ const MailboxAdmin = () => {
         return docDate >= startDate;
       });
     }
-    
+
     if (dateFilters.endDate) {
       const endDate = new Date(dateFilters.endDate);
       endDate.setHours(23, 59, 59, 999); // End of day
@@ -231,7 +259,7 @@ const MailboxAdmin = () => {
         return docDate <= endDate;
       });
     }
-    
+
     // Filter by name search
     if (mainSearchForm.nameSearch.trim()) {
       const searchTerm = mainSearchForm.nameSearch.toLowerCase();
@@ -241,7 +269,7 @@ const MailboxAdmin = () => {
         return contactName.includes(searchTerm) || title.includes(searchTerm);
       });
     }
-    
+
     // Filter by email search
     if (mainSearchForm.emailSearch.trim()) {
       const searchTerm = mainSearchForm.emailSearch.toLowerCase();
@@ -250,10 +278,10 @@ const MailboxAdmin = () => {
         return contactEmail.includes(searchTerm);
       });
     }
-    
+
     return filtered;
   }, [documents, filter, dateFilters, mainSearchForm]);
-  
+
   // Pagination logic
   const documentsPerPage = 10;
   const totalPages = Math.ceil(filteredDocuments.length / documentsPerPage);
@@ -291,30 +319,6 @@ const MailboxAdmin = () => {
     setCurrentPage(1);
   };
 
-  const handleFileInputChange = async (event) => {
-    const [file] = event.target.files || [];
-    if (!file) return;
-
-    try {
-      const createdDocument = await uploadMailboxDocument(file);
-      const payloadAsList = normalizeDocuments(createdDocument);
-
-      if (payloadAsList.length > 0) {
-        setDocuments(payloadAsList);
-      } else if (createdDocument && typeof createdDocument === 'object') {
-        setDocuments((prev) => [createdDocument, ...prev]);
-      } else {
-        await refreshDocuments();
-      }
-      showSnackbar('Document uploaded and ready to notify the user.');
-    } catch (error) {
-      console.error('Failed to upload mailbox document', error);
-      showSnackbar(error.message || 'Failed to upload document.', 'error');
-    } finally {
-      event.target.value = '';
-    }
-  };
-
   const handleNotifyUser = async (docId) => {
     try {
       const updatedDocument = await notifyMailboxDocument(docId);
@@ -328,17 +332,13 @@ const MailboxAdmin = () => {
       );
 
       // Mark email action as completed FIRST
-      setActionStates(prev => {
-        const newStates = {
-          ...prev,
-          [docId]: {
-            ...prev[docId],
-            emailed: true
-          }
-        };
-        console.log('DEBUG: Setting action states for docId:', docId, 'newStates:', newStates);
-        return newStates;
-      });
+      setActionStates(prev => ({
+        ...prev,
+        [docId]: {
+          ...prev[docId],
+          emailed: true
+        }
+      }));
 
       if (!updatedDocument) {
         await refreshDocuments();
@@ -380,17 +380,34 @@ const MailboxAdmin = () => {
     }
   };
 
+  const handleMarkPickedUp = async (docId) => {
+    try {
+      const updatedDocument = await markPackagePickedUp(docId);
+      const fallbackUpdate = { status: 'picked_up', pickedUpAt: new Date().toISOString() };
+
+      setDocuments((prev) =>
+        prev.map((doc) => (doc.id === docId ? { ...doc, ...(updatedDocument || fallbackUpdate) } : doc))
+      );
+
+      if (!updatedDocument) {
+        await refreshDocuments();
+      }
+
+      showSnackbar('Package marked as picked up.');
+    } catch (error) {
+      console.error('Failed to mark package as picked up', error);
+      showSnackbar(error.message || 'Unable to mark package as picked up.', 'error');
+    }
+  };
+
   const handleDeleteDocument = async (docId) => {
     if (!window.confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
       return;
     }
 
     try {
-      // In a real app, you would call a delete API endpoint here
-      // For now, we'll just remove it from the local state
       setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
-      
-      // Remove action states for this document
+
       setActionStates(prev => {
         const newStates = { ...prev };
         delete newStates[docId];
@@ -411,8 +428,7 @@ const MailboxAdmin = () => {
         throw new Error('Missing download URL');
       }
       window.open(downloadUrl, '_blank', 'noopener');
-      
-      // Mark preview action as completed
+
       setActionStates(prev => ({
         ...prev,
         [docId]: {
@@ -433,12 +449,16 @@ const MailboxAdmin = () => {
   };
 
   const handleDialogClose = () => {
+    if (uploadProgress.uploading) return;
     setUploadDialogOpen(false);
     setUploadForm({
       contactName: '',
       contactEmail: '',
-      document: null
+      documents: [],
+      autoNotify: true,
+      documentType: 'mail'
     });
+    setUploadProgress({ uploading: false, current: 0, total: 0, results: [] });
     setSearchForm({
       nameSearch: '',
       emailSearch: ''
@@ -453,24 +473,50 @@ const MailboxAdmin = () => {
     }));
   };
 
+  const addFiles = (fileList) => {
+    const isPackage = uploadForm.documentType === 'package';
+    const newFiles = Array.from(fileList).filter((f) => {
+      if (isPackage) {
+        return f.type.startsWith('image/');
+      }
+      return f.type === 'application/pdf' || f.type.startsWith('image/');
+    });
+    if (newFiles.length === 0) return;
+    setUploadForm(prev => ({
+      ...prev,
+      documents: [...prev.documents, ...newFiles]
+    }));
+  };
+
   const handleFileSelect = (event) => {
-    const [file] = event.target.files || [];
-    if (file) {
-      setUploadForm(prev => ({
-        ...prev,
-        document: file
-      }));
-    }
+    addFiles(event.target.files);
+    event.target.value = '';
+  };
+
+  const handleRemoveFile = (index) => {
+    setUploadForm(prev => ({
+      ...prev,
+      documents: prev.documents.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    addFiles(event.dataTransfer.files);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   const handleSearchChange = (field, value) => {
-    console.log('DEBUG: handleSearchChange called with field:', field, 'value:', value);
     setSearchForm(prev => ({
       ...prev,
       [field]: value
     }));
-    
-    // Trigger debounced search for both name and email fields
+
     debouncedSearch(value);
   };
 
@@ -482,17 +528,10 @@ const MailboxAdmin = () => {
 
     setIsSearching(true);
     try {
-      console.log('DEBUG: Searching contacts with term:', searchTerm);
-      console.log('DEBUG: Current token:', localStorage.getItem('beworking_token'));
-      console.log('DEBUG: API base URL:', import.meta.env.VITE_API_BASE_URL);
-      
       const results = await fetchBookingContacts({ search: searchTerm.trim() });
-      console.log('DEBUG: Search results received:', results);
-      console.log('DEBUG: Search results type:', typeof results);
-      console.log('DEBUG: Search results length:', Array.isArray(results) ? results.length : 'not an array');
-      
+
       const normalizedResults = Array.isArray(results) ? results : [];
-      
+
       setSearchResults(normalizedResults.map(contact => ({
         id: contact.id,
         name: contact.name || contact.contactName || 'Unknown',
@@ -500,14 +539,8 @@ const MailboxAdmin = () => {
       })));
     } catch (error) {
       console.error('Search error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.status,
-        response: error.response
-      });
       setSearchResults([]);
-      
-      // Check if it's an authentication error
+
       if (error.message.includes('401') || error.message.includes('Unauthorized')) {
         showSnackbar('Authentication required. Please refresh the page or log in again.', 'error');
       } else {
@@ -519,15 +552,13 @@ const MailboxAdmin = () => {
   }, [showSnackbar]);
 
   const debouncedSearch = useCallback((searchTerm) => {
-    console.log('DEBUG: debouncedSearch called with term:', searchTerm);
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     searchTimeoutRef.current = setTimeout(() => {
-      console.log('DEBUG: Executing debounced search for:', searchTerm);
       searchContacts(searchTerm);
-    }, 300); // 300ms debounce
+    }, 300);
   }, [searchContacts]);
 
   const handleSelectContact = (contact) => {
@@ -544,64 +575,167 @@ const MailboxAdmin = () => {
   };
 
   const handleUploadSubmit = async () => {
-    if (!uploadForm.contactName || !uploadForm.contactEmail || !uploadForm.document) {
-      showSnackbar('Please fill in all fields and select a document', 'error');
+    if (!uploadForm.contactName || !uploadForm.contactEmail || uploadForm.documents.length === 0) {
+      showSnackbar('Please fill in all fields and select at least one document', 'error');
       return;
     }
 
-    try {
-      const metadata = {
-        contactEmail: uploadForm.contactEmail
-      };
-      const createdDocument = await uploadMailboxDocument(uploadForm.document, metadata);
-      const payloadAsList = normalizeDocuments(createdDocument);
+    const total = uploadForm.documents.length;
+    setUploadProgress({ uploading: true, current: 0, total, results: [] });
 
-      if (payloadAsList.length > 0) {
-        // Add contact information to the document
-        const documentWithContact = {
-          ...payloadAsList[0],
+    const uploaded = [];
+    const failed = [];
+
+    for (let i = 0; i < total; i++) {
+      setUploadProgress(prev => ({ ...prev, current: i + 1 }));
+      try {
+        const metadata = {
+          contactEmail: uploadForm.contactEmail,
+          autoNotify: uploadForm.autoNotify ? 'true' : 'false',
+          documentType: uploadForm.documentType
+        };
+        const createdDocument = await uploadMailboxDocument(uploadForm.documents[i], metadata);
+        const payloadAsList = normalizeDocuments(createdDocument);
+        const doc = payloadAsList.length > 0 ? payloadAsList[0] : createdDocument;
+        uploaded.push({
+          ...doc,
           contactName: uploadForm.contactName,
           contactEmail: uploadForm.contactEmail,
-          recipient: uploadForm.contactEmail,
-          sender: uploadForm.contactName
-        };
-        setDocuments([documentWithContact, ...documents]);
-      } else if (createdDocument && typeof createdDocument === 'object') {
-        const documentWithContact = {
-          ...createdDocument,
-          contactName: uploadForm.contactName,
-          contactEmail: uploadForm.contactEmail,
-          recipient: uploadForm.contactEmail,
-          sender: uploadForm.contactName
-        };
-        setDocuments((prev) => [documentWithContact, ...prev]);
-      } else {
-        await refreshDocuments();
+          recipient: uploadForm.contactEmail
+        });
+      } catch (error) {
+        failed.push({ file: uploadForm.documents[i].name, error: error.message });
       }
-      
-      showSnackbar('Document uploaded successfully');
-      handleDialogClose();
+    }
+
+    if (uploaded.length > 0) {
+      setDocuments(prev => [...uploaded, ...prev]);
+    }
+
+    const typeLabel = uploadForm.documentType === 'package' ? 'package' : 'document';
+    const notifyLabel = uploadForm.autoNotify ? ' and notified' : '';
+    if (failed.length === 0) {
+      showSnackbar(`${uploaded.length} ${typeLabel}${uploaded.length > 1 ? 's' : ''} uploaded${notifyLabel} successfully`);
+    } else {
+      showSnackbar(`${uploaded.length} uploaded${notifyLabel}, ${failed.length} failed`, 'warning');
+    }
+
+    setUploadProgress({ uploading: false, current: 0, total: 0, results: [] });
+    handleDialogClose();
+  };
+
+  // Pickup verification handlers
+  const handleOpenPickupDialog = () => {
+    setPickupDialogOpen(true);
+    setPickupCode('');
+    setPickupResult(null);
+    setScannerActive(false);
+  };
+
+  const handleClosePickupDialog = () => {
+    stopScanner();
+    setPickupDialogOpen(false);
+    setPickupCode('');
+    setPickupResult(null);
+    setScannerActive(false);
+  };
+
+  const handleVerifyPickupByCode = async (code) => {
+    const codeToVerify = code || pickupCode;
+    if (!codeToVerify.trim()) {
+      showSnackbar('Please enter a pickup code', 'error');
+      return;
+    }
+
+    setPickupVerifying(true);
+    setPickupResult(null);
+    try {
+      const updatedDocument = await verifyPickupByCode(codeToVerify.trim());
+      setPickupResult({ success: true, document: updatedDocument });
+
+      // Update document in local state
+      if (updatedDocument?.id) {
+        setDocuments((prev) =>
+          prev.map((doc) =>
+            doc.id === updatedDocument.id
+              ? { ...doc, ...updatedDocument, status: 'picked_up', pickedUpAt: updatedDocument.pickedUpAt || new Date().toISOString() }
+              : doc
+          )
+        );
+      }
+
+      showSnackbar('Package verified and marked as picked up!');
     } catch (error) {
-      console.error('Failed to upload mailbox document', error);
-      showSnackbar(error.message || 'Failed to upload document.', 'error');
+      console.error('Pickup verification failed', error);
+      setPickupResult({ success: false, error: error.message || 'Verification failed' });
+      showSnackbar(error.message || 'Pickup verification failed.', 'error');
+    } finally {
+      setPickupVerifying(false);
     }
   };
 
+  const startScanner = async () => {
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      const scannerId = 'pickup-qr-scanner';
+
+      // Wait for DOM element to be available
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const el = document.getElementById(scannerId);
+      if (!el) return;
+
+      const html5QrCode = new Html5Qrcode(scannerId);
+      html5QrCodeRef.current = html5QrCode;
+
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          // Auto-verify on successful scan
+          setPickupCode(decodedText);
+          stopScanner();
+          handleVerifyPickupByCode(decodedText);
+        },
+        () => {
+          // QR code not detected - ignore
+        }
+      );
+      setScannerActive(true);
+    } catch (error) {
+      console.error('Failed to start QR scanner', error);
+      showSnackbar('Unable to access camera. Please enter the code manually.', 'warning');
+      setScannerActive(false);
+    }
+  };
+
+  const stopScanner = () => {
+    if (html5QrCodeRef.current) {
+      html5QrCodeRef.current.stop().catch(() => {});
+      html5QrCodeRef.current = null;
+    }
+    setScannerActive(false);
+  };
+
+  // Clean up scanner on unmount
+  useEffect(() => {
+    return () => {
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(() => {});
+      }
+    };
+  }, []);
+
+  const isPackage = (doc) => doc.type === 'package';
+
   return (
     <Stack spacing={4}>
-      <input
-        type="file"
-        accept="application/pdf,image/*"
-        hidden
-        ref={fileInputRef}
-        onChange={handleFileInputChange}
-      />
       <Stack spacing={2}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
           Mailbox
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Manage scanned mail for your virtual office tenants. Upload new scans, notify recipients automatically, and track when files are viewed online.
+          Manage scanned mail and packages for your virtual office tenants. Upload new scans, notify recipients automatically, and track when files are viewed online.
         </Typography>
       </Stack>
 
@@ -628,6 +762,13 @@ const MailboxAdmin = () => {
           color="secondary.main"
           accentHover={accentHover}
         />
+        <SummaryCard
+          icon={<LocalShippingOutlinedIcon />}
+          title="Pending packages"
+          value={summary.pendingPackages}
+          helper="Awaiting pickup"
+          accentHover={accentHover}
+        />
       </Stack>
 
       <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -648,13 +789,30 @@ const MailboxAdmin = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <Button
               variant="outlined"
+              startIcon={<QrCodeScannerIcon />}
+              onClick={handleOpenPickupDialog}
+              sx={{
+                borderRadius: 2,
+                borderColor: '#f97316',
+                color: '#f97316',
+                '&:hover': {
+                  borderColor: '#ea580c',
+                  color: '#ea580c',
+                  backgroundColor: '#fff7ed'
+                }
+              }}
+            >
+              Verify Pickup
+            </Button>
+            <Button
+              variant="outlined"
               startIcon={<UploadFileOutlinedIcon />}
               onClick={handleUploadScan}
-              sx={{ 
+              sx={{
                 borderRadius: 2,
                 borderColor: 'secondary.main',
                 color: 'secondary.main',
-                '&:hover': { 
+                '&:hover': {
                   borderColor: 'secondary.main',
                   color: 'secondary.main',
                   backgroundColor: (theme) => `${theme.palette.secondary.main}14`
@@ -668,6 +826,7 @@ const MailboxAdmin = () => {
               <ToggleButton value="scanned">New Upload</ToggleButton>
               <ToggleButton value="notified">Notified</ToggleButton>
               <ToggleButton value="viewed">Viewed</ToggleButton>
+              <ToggleButton value="picked_up">Picked Up</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
         </Stack>
@@ -754,6 +913,7 @@ const MailboxAdmin = () => {
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
                 <TableCell sx={{ fontWeight: 'bold' }}>Document</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Contact</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Received</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
@@ -763,7 +923,7 @@ const MailboxAdmin = () => {
             <TableBody>
               {isLoading && documents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={6}>
                     <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                       <Typography variant="subtitle1" fontWeight="bold">
                         Loading documents...
@@ -781,10 +941,7 @@ const MailboxAdmin = () => {
                     const contactName = doc.contactName || doc.recipient || 'Unknown contact';
                     const avatarSeed = (contactName || doc.title || doc.id || '?').slice(0, 2).toUpperCase();
                     const pageCountLabel = doc.pages ?? '—';
-                    const docActionStates = actionStates[doc.id] || {};
-                    if (doc.id === '084511a2-b373-4604-9185-7f2cdf453b76') {
-                      console.log('DEBUG: Document action states for', doc.id, ':', docActionStates);
-                    }
+                    const docIsPackage = isPackage(doc);
 
                     return (
                       <TableRow hover key={doc.id ?? doc.title ?? doc.recipient ?? index}>
@@ -811,6 +968,26 @@ const MailboxAdmin = () => {
                           </Stack>
                         </TableCell>
                         <TableCell>
+                          <Chip
+                            icon={docIsPackage ? <InventoryOutlinedIcon sx={{ fontSize: 16 }} /> : <MailOutlineIcon sx={{ fontSize: 16 }} />}
+                            label={docIsPackage ? 'Package' : 'Mail'}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              borderColor: docIsPackage ? '#f97316' : 'secondary.main',
+                              color: docIsPackage ? '#f97316' : 'secondary.main',
+                              '& .MuiChip-icon': { color: docIsPackage ? '#f97316' : 'secondary.main' }
+                            }}
+                          />
+                          {docIsPackage && doc.pickupCode && (
+                            <Chip
+                              label={doc.pickupCode}
+                              size="small"
+                              sx={{ ml: 1, fontWeight: 'bold', bgcolor: '#fff7ed', color: '#f97316', fontSize: '0.7rem' }}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <Stack direction="row" spacing={1} alignItems="center">
                             <PersonIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                             <Typography variant="body2">{contactName}</Typography>
@@ -822,8 +999,8 @@ const MailboxAdmin = () => {
                             <Chip
                               label={status?.label ?? doc.status ?? 'Unknown'}
                               color={status?.color ?? 'default'}
-                              variant={doc.status === 'viewed' ? 'filled' : 'outlined'}
-                              sx={{ 
+                              variant={doc.status === 'viewed' || doc.status === 'picked_up' ? 'filled' : 'outlined'}
+                              sx={{
                                 minWidth: 120,
                                 '& .MuiChip-label': {
                                   width: '100%',
@@ -854,30 +1031,46 @@ const MailboxAdmin = () => {
                                 <IconButton
                                   size="small"
                                   onClick={() => doc.id && handleNotifyUser(doc.id)}
-                                  disabled={!doc.id || doc.status === 'notified' || doc.status === 'viewed'}
+                                  disabled={!doc.id || doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up'}
                                   sx={{
                                     color: 'secondary.main'
                                   }}
-                                  title={`Email state: ${docActionStates.emailed || doc.status === 'notified' ? 'sent' : 'not sent'}`}
                                 >
                                   <MailOutlineIcon fontSize="small" />
                                 </IconButton>
                               </span>
                             </Tooltip>
-                            <Tooltip title="Mark as viewed" arrow>
-                              <span>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => doc.id && handleMarkViewed(doc.id)}
-                                  disabled={!doc.id || doc.status === 'viewed'}
-                                  sx={{
-                                    color: 'secondary.main'
-                                  }}
-                                >
-                                  <CheckCircleOutlineOutlinedIcon fontSize="small" />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
+                            {docIsPackage ? (
+                              <Tooltip title="Mark as picked up" arrow>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => doc.id && handleMarkPickedUp(doc.id)}
+                                    disabled={!doc.id || doc.status === 'picked_up'}
+                                    sx={{
+                                      color: '#f97316'
+                                    }}
+                                  >
+                                    <InventoryOutlinedIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            ) : (
+                              <Tooltip title="Mark as viewed" arrow>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => doc.id && handleMarkViewed(doc.id)}
+                                    disabled={!doc.id || doc.status === 'viewed'}
+                                    sx={{
+                                      color: 'secondary.main'
+                                    }}
+                                  >
+                                    <CheckCircleOutlineOutlinedIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
                             <Tooltip title="Delete document" arrow>
                               <span>
                                 <IconButton
@@ -903,7 +1096,7 @@ const MailboxAdmin = () => {
                   })}
                   {!isLoading && filteredDocuments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5}>
+                      <TableCell colSpan={6}>
                         <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                           <Typography variant="subtitle1" fontWeight="bold">
                             No documents found
@@ -920,7 +1113,7 @@ const MailboxAdmin = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        
+
         {/* Pagination */}
         {totalPages > 1 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
@@ -935,7 +1128,7 @@ const MailboxAdmin = () => {
             />
           </Box>
         )}
-        
+
         {/* Pagination Info */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
           <Typography variant="body2" color="text.secondary">
@@ -974,12 +1167,41 @@ const MailboxAdmin = () => {
               <UploadFileOutlinedIcon />
             </Box>
             <Typography variant="h6" fontWeight="bold">
-              Upload Document
+              Upload {uploadForm.documentType === 'package' ? 'Package Photo' : 'Document'}
             </Typography>
           </Stack>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 1 }}>
+            {/* Document Type Toggle */}
+            <Box>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 1 }}>
+                Type
+              </Typography>
+              <ToggleButtonGroup
+                value={uploadForm.documentType}
+                exclusive
+                onChange={(_, value) => {
+                  if (value !== null) {
+                    handleFormChange('documentType', value);
+                    // Clear files when switching type
+                    handleFormChange('documents', []);
+                  }
+                }}
+                size="small"
+                fullWidth
+              >
+                <ToggleButton value="mail" sx={{ textTransform: 'none' }}>
+                  <MailOutlineIcon sx={{ mr: 1, fontSize: 18 }} />
+                  Mail
+                </ToggleButton>
+                <ToggleButton value="package" sx={{ textTransform: 'none' }}>
+                  <InventoryOutlinedIcon sx={{ mr: 1, fontSize: 18 }} />
+                  Package
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
             {/* Search Section */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
@@ -1063,7 +1285,7 @@ const MailboxAdmin = () => {
                   sx={{ flex: 1 }}
                 />
               </Stack>
-              
+
               {/* Search Results */}
               {searchResults.length > 0 && (
                 <Box sx={{ mt: 2 }}>
@@ -1138,55 +1360,274 @@ const MailboxAdmin = () => {
 
             <Divider />
 
-            {/* Document Selection */}
+            {/* Drag-and-Drop Document Selection */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
-                Select Document
+                {uploadForm.documentType === 'package' ? 'Photo of Package' : 'Select Documents'}
               </Typography>
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<UploadFileOutlinedIcon />}
+              <Box
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
                 sx={{
-                  borderColor: 'secondary.main',
-                  color: 'secondary.main',
+                  border: '2px dashed',
+                  borderColor: 'grey.300',
+                  borderRadius: 3,
+                  p: 4,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s, background-color 0.2s',
                   '&:hover': {
-                    borderColor: 'secondary.main',
-                    color: 'secondary.main',
-                    backgroundColor: (theme) => `${theme.palette.secondary.main}14`
+                    borderColor: uploadForm.documentType === 'package' ? '#f97316' : 'secondary.main',
+                    bgcolor: uploadForm.documentType === 'package' ? '#fff7ed' : (theme) => `${theme.palette.secondary.main}08`
                   }
                 }}
+                onClick={() => fileInputRef.current?.click()}
               >
-                {uploadForm.document ? uploadForm.document.name : 'Choose File'}
                 <input
                   type="file"
                   hidden
-                  accept="application/pdf,image/*"
+                  multiple
+                  accept={uploadForm.documentType === 'package' ? 'image/*' : 'application/pdf,image/*'}
+                  ref={fileInputRef}
                   onChange={handleFileSelect}
                 />
-              </Button>
-              {uploadForm.document && (
-                <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
-                  {uploadForm.document.name} ({(uploadForm.document.size / 1024 / 1024).toFixed(2)} MB)
+                <CloudUploadOutlinedIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
+                <Typography variant="body1" fontWeight="medium" color="text.secondary">
+                  Drag & drop files here
                 </Typography>
+                <Typography variant="caption" color="text.disabled">
+                  {uploadForm.documentType === 'package'
+                    ? 'or click to browse — images only'
+                    : 'or click to browse — PDF and images accepted'
+                  }
+                </Typography>
+              </Box>
+
+              {/* File list */}
+              {uploadForm.documents.length > 0 && (
+                <Stack spacing={1} sx={{ mt: 2 }}>
+                  {uploadForm.documents.map((file, index) => (
+                    <Paper
+                      key={`${file.name}-${index}`}
+                      variant="outlined"
+                      sx={{ px: 2, py: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                    >
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                        <InsertDriveFileOutlinedIcon sx={{ color: 'secondary.main', fontSize: 20 }} />
+                        <Typography variant="body2" noWrap sx={{ flex: 1 }}>
+                          {file.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </Typography>
+                      </Stack>
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleRemoveFile(index); }}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Paper>
+                  ))}
+                  <Typography variant="caption" color="text.secondary">
+                    {uploadForm.documents.length} file{uploadForm.documents.length > 1 ? 's' : ''} selected
+                  </Typography>
+                </Stack>
               )}
             </Box>
+
+            {/* Auto-notify toggle */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={uploadForm.autoNotify}
+                  onChange={(e) => handleFormChange('autoNotify', e.target.checked)}
+                  sx={{ color: 'secondary.main', '&.Mui-checked': { color: 'secondary.main' } }}
+                />
+              }
+              label={
+                <Stack>
+                  <Typography variant="body2" fontWeight="medium">
+                    Auto-notify recipient
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {uploadForm.documentType === 'package'
+                      ? 'Send notification email with pickup code immediately after upload'
+                      : 'Send notification email immediately after upload'
+                    }
+                  </Typography>
+                </Stack>
+              }
+            />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button onClick={handleDialogClose} sx={{ color: 'text.secondary' }}>
+          {uploadProgress.uploading && (
+            <Box sx={{ flex: 1, mr: 2 }}>
+              <LinearProgress
+                variant="determinate"
+                value={(uploadProgress.current / uploadProgress.total) * 100}
+                sx={{ borderRadius: 2, height: 6, '& .MuiLinearProgress-bar': { bgcolor: 'secondary.main' } }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                Uploading {uploadProgress.current} of {uploadProgress.total}...
+              </Typography>
+            </Box>
+          )}
+          <Button onClick={handleDialogClose} disabled={uploadProgress.uploading} sx={{ color: 'text.secondary' }}>
             Cancel
           </Button>
           <Button
             onClick={handleUploadSubmit}
             variant="contained"
+            disabled={uploadProgress.uploading || uploadForm.documents.length === 0}
             sx={{
-              bgcolor: 'secondary.main',
-              '&:hover': { bgcolor: 'secondary.main' },
+              bgcolor: uploadForm.documentType === 'package' ? '#f97316' : 'secondary.main',
+              '&:hover': { bgcolor: uploadForm.documentType === 'package' ? '#ea580c' : 'secondary.dark' },
               borderRadius: 2
             }}
           >
-            Upload Document
+            {uploadProgress.uploading
+              ? 'Uploading...'
+              : `Upload ${uploadForm.documents.length || ''} ${uploadForm.documentType === 'package' ? 'photo' : 'document'}${uploadForm.documents.length > 1 ? 's' : ''}`
+            }
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Pickup Verification Dialog */}
+      <Dialog
+        open={pickupDialogOpen}
+        onClose={handleClosePickupDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                bgcolor: '#fff7ed',
+                color: '#f97316'
+              }}
+            >
+              <QrCodeScannerIcon />
+            </Box>
+            <Typography variant="h6" fontWeight="bold">
+              Verify Package Pickup
+            </Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            {/* QR Scanner */}
+            <Box>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 1 }}>
+                Scan QR Code
+              </Typography>
+              <Box
+                sx={{
+                  width: '100%',
+                  minHeight: scannerActive ? 300 : 120,
+                  border: '2px dashed',
+                  borderColor: scannerActive ? '#f97316' : 'grey.300',
+                  borderRadius: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}
+              >
+                <div id="pickup-qr-scanner" style={{ width: '100%' }} ref={scannerRef} />
+                {!scannerActive && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<QrCodeScannerIcon />}
+                    onClick={startScanner}
+                    sx={{
+                      position: 'absolute',
+                      borderColor: '#f97316',
+                      color: '#f97316',
+                      '&:hover': { borderColor: '#ea580c', bgcolor: '#fff7ed' }
+                    }}
+                  >
+                    Start Camera
+                  </Button>
+                )}
+              </Box>
+              {scannerActive && (
+                <Button
+                  size="small"
+                  onClick={stopScanner}
+                  sx={{ mt: 1, color: 'text.secondary' }}
+                >
+                  Stop Camera
+                </Button>
+              )}
+            </Box>
+
+            <Divider>
+              <Typography variant="caption" color="text.secondary">
+                OR
+              </Typography>
+            </Divider>
+
+            {/* Manual Code Entry */}
+            <Box>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 1 }}>
+                Enter Pickup Code Manually
+              </Typography>
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  placeholder="BW-XXXXXX"
+                  value={pickupCode}
+                  onChange={(e) => setPickupCode(e.target.value.toUpperCase())}
+                  fullWidth
+                  InputProps={{
+                    sx: {
+                      fontWeight: 'bold',
+                      letterSpacing: 2,
+                      fontSize: '1.1rem'
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleVerifyPickupByCode();
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  onClick={() => handleVerifyPickupByCode()}
+                  disabled={pickupVerifying || !pickupCode.trim()}
+                  sx={{
+                    bgcolor: '#f97316',
+                    '&:hover': { bgcolor: '#ea580c' },
+                    minWidth: 100,
+                    borderRadius: 2
+                  }}
+                >
+                  {pickupVerifying ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Verify'}
+                </Button>
+              </Stack>
+            </Box>
+
+            {/* Result */}
+            {pickupResult && (
+              <Alert severity={pickupResult.success ? 'success' : 'error'} sx={{ borderRadius: 2 }}>
+                {pickupResult.success
+                  ? `Package "${pickupResult.document?.title || 'Package'}" verified and marked as picked up!`
+                  : pickupResult.error
+                }
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button onClick={handleClosePickupDialog} sx={{ color: 'text.secondary' }}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>

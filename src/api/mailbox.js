@@ -7,7 +7,13 @@ const documentPath = (documentId, suffix = '') => {
   return `${MAILROOM_BASE_PATH}/${encodedId}${suffix}`;
 };
 
-export const listMailboxDocuments = () => apiFetch(MAILROOM_BASE_PATH);
+export const listMailboxDocuments = ({ contactEmail } = {}) => {
+  if (contactEmail) {
+    const params = new URLSearchParams({ contactEmail });
+    return apiFetch(`${MAILROOM_BASE_PATH}?${params}`);
+  }
+  return apiFetch(MAILROOM_BASE_PATH);
+};
 
 export const uploadMailboxDocument = (file, metadata = {}) => {
   const formData = new FormData();
@@ -30,3 +36,11 @@ export const markMailboxDocumentViewed = (documentId) =>
 
 export const getMailboxDocumentDownloadUrl = (documentId) =>
   resolveApiUrl(documentPath(documentId, '/download'));
+
+export const verifyPickupByCode = (code) => {
+  const params = new URLSearchParams({ code });
+  return apiFetch(`${MAILROOM_BASE_PATH}/verify-pickup?${params}`, { method: 'POST' });
+};
+
+export const markPackagePickedUp = (documentId) =>
+  apiFetch(documentPath(documentId, '/pickup'), { method: 'POST' });
