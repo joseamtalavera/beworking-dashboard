@@ -288,23 +288,25 @@ export default function RoomCatalog({ onClose, onBookNow }) {
 
   return (
     <Box sx={{ maxWidth: 1400, mx: 'auto', width: '100%' }}>
-      {/* Back button */}
-      <Button
-        onClick={onClose}
-        startIcon={<ArrowBackRoundedIcon />}
-        sx={{
-          fontSize: '0.875rem',
-          fontWeight: 500,
-          color: 'text.secondary',
-          textTransform: 'none',
-          px: 1,
-          mb: 1,
-          borderRadius: '6px',
-          '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'text.primary' },
-        }}
-      >
-        Back to calendar
-      </Button>
+      {/* Back button (only in admin mode, when there's a calendar to go back to) */}
+      {onClose && (
+        <Button
+          onClick={onClose}
+          startIcon={<ArrowBackRoundedIcon />}
+          sx={{
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            color: 'text.secondary',
+            textTransform: 'none',
+            px: 1,
+            mb: 1,
+            borderRadius: '6px',
+            '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'text.primary' },
+          }}
+        >
+          Back to calendar
+        </Button>
+      )}
 
       {/* Title */}
       <Typography variant="h3" fontWeight={700} sx={{ mb: 1 }}>

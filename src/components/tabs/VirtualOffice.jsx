@@ -14,7 +14,7 @@ const MailboxUser = React.lazy(() => import('./user/MailboxUser.jsx'));
 const MailboxAdmin = React.lazy(() => import('./admin/MailboxAdmin.jsx'));
 const VirtualOfficeAddress = React.lazy(() => import('./VirtualOfficeAddress.jsx'));
 
-const VirtualOffice = ({ userType = 'user' }) => {
+const VirtualOffice = ({ userType = 'user', userProfile }) => {
   const [activeSubTab, setActiveSubTab] = useState(0);
 
   const handleSubTabChange = (event, newValue) => {
@@ -89,7 +89,7 @@ const VirtualOffice = ({ userType = 'user' }) => {
           <React.Suspense
             fallback={<SpiralLoader />}
           >
-            <ActiveComponent userType={userType} />
+            <ActiveComponent userType={userType} userProfile={userProfile} />
           </React.Suspense>
         )}
       </Box>

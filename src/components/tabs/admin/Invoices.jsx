@@ -29,10 +29,6 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
 import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
-import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
-import EventRoundedIcon from '@mui/icons-material/EventRounded';
 
 import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
@@ -40,7 +36,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
 const formatCurrency = (value) => {
-  if (value == null) return '—';
+  if (value == null) return '\u2014';
   const number = Number(value);
   if (Number.isNaN(number)) return String(value);
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(number);
@@ -58,8 +54,9 @@ const statusColor = (estado) => {
 
 const PAGE_SIZE = 100; // Server-side pagination - 100 invoices per page
 
-const Invoices = () => {
+const Invoices = ({ mode = 'admin', userProfile }) => {
   const theme = useTheme();
+  const isAdmin = mode === 'admin';
   const [page, setPage] = useState(0); // Backend uses 0-based pagination
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -77,8 +74,16 @@ const Invoices = () => {
   });
   const [queryFilters, setQueryFilters] = useState(filters);
   const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
-  const [newInvoiceForm, setNewInvoiceForm] = useState({ bloqueoIds: '', description: '', reference: '', vatPercent: 21 });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Build the effective filters: for user mode, always filter by user email
+  const effectiveFilters = useMemo(() => {
+    const base = { ...queryFilters };
+    if (!isAdmin && userProfile?.email) {
+      base.email = userProfile.email;
+    }
+    return base;
+  }, [queryFilters, isAdmin, userProfile]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -97,31 +102,27 @@ const Invoices = () => {
   useEffect(() => {
     setLoading(true);
     setError('');
-    console.log('Fetching invoices with filters:', queryFilters);
-    
-    // Fetch invoices (now includes total revenue)
+
     const fetchInitialInvoices = async () => {
       try {
-        const response = await fetchInvoices({ 
-          page: 0, 
-          size: 25, // Fetch first 25 invoices (1 page)
-          name: queryFilters.name,
-          email: queryFilters.email,
-          idFactura: queryFilters.idFactura,
-          status: queryFilters.status,
-          tenantType: queryFilters.tenantType,
-          product: queryFilters.product,
-          startDate: queryFilters.startDate,
-          endDate: queryFilters.endDate,
-          from: queryFilters.startDate,
-          to: queryFilters.endDate
+        const response = await fetchInvoices({
+          page: 0,
+          size: PAGE_SIZE,
+          name: effectiveFilters.name,
+          email: effectiveFilters.email,
+          idFactura: effectiveFilters.idFactura,
+          status: effectiveFilters.status,
+          tenantType: effectiveFilters.tenantType,
+          product: effectiveFilters.product,
+          startDate: effectiveFilters.startDate,
+          endDate: effectiveFilters.endDate,
+          from: effectiveFilters.startDate,
+          to: effectiveFilters.endDate
         });
-        
-        console.log('Fetched initial invoices:', response);
-        
-        setData({ 
-          content: response.content || [], 
-          totalElements: response.totalElements || 0 
+
+        setData({
+          content: response.content || [],
+          totalElements: response.totalElements || 0
         });
         setTotalRevenue(response.totalRevenue || 0);
       } catch (e) {
@@ -131,44 +132,41 @@ const Invoices = () => {
         setLoading(false);
       }
     };
-    
+
     fetchInitialInvoices();
-  }, [queryFilters]);
+  }, [effectiveFilters]);
 
   // Client-side filtering (disabled since backend now handles date filtering)
   const rows = useMemo(() => {
-    // Backend now handles all filtering including date filtering
-    // So we just return the content as-is
     return data.content || [];
   }, [data.content]);
 
   // Server-side pagination
   const totalPages = Math.ceil((data.totalElements || 0) / PAGE_SIZE);
-  const paginatedRows = rows; // Use all rows from current page
+  const paginatedRows = rows;
 
   const handleChangePage = (_e, newPage) => {
-    setPage(newPage - 1); // Convert to 0-based for backend
+    setPage(newPage - 1);
     setLoading(true);
-    
-    // Fetch the new page from backend
-    fetchInvoices({ 
-      page: newPage - 1, // 0-based pagination
+
+    fetchInvoices({
+      page: newPage - 1,
       size: PAGE_SIZE,
-      name: queryFilters.name,
-      email: queryFilters.email,
-      idFactura: queryFilters.idFactura,
-      status: queryFilters.status,
-      tenantType: queryFilters.tenantType,
-      product: queryFilters.product,
-      startDate: queryFilters.startDate,
-      endDate: queryFilters.endDate,
-      from: queryFilters.startDate,
-      to: queryFilters.endDate
+      name: effectiveFilters.name,
+      email: effectiveFilters.email,
+      idFactura: effectiveFilters.idFactura,
+      status: effectiveFilters.status,
+      tenantType: effectiveFilters.tenantType,
+      product: effectiveFilters.product,
+      startDate: effectiveFilters.startDate,
+      endDate: effectiveFilters.endDate,
+      from: effectiveFilters.startDate,
+      to: effectiveFilters.endDate
     })
       .then((res) => {
-        setData({ 
-          content: res.content || [], 
-          totalElements: res.totalElements || 0 
+        setData({
+          content: res.content || [],
+          totalElements: res.totalElements || 0
         });
         setTotalRevenue(res.totalRevenue || 0);
       })
@@ -178,6 +176,7 @@ const Invoices = () => {
       })
       .finally(() => setLoading(false));
   };
+
   const normalizeDateInput = (value) => {
     if (typeof value !== 'string') return value;
     const match = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
@@ -195,58 +194,75 @@ const Invoices = () => {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
+  const refreshList = async () => {
+    setLoading(true);
+    try {
+      const refreshed = await fetchInvoices({ page, size: PAGE_SIZE, ...effectiveFilters });
+      setData({ content: refreshed.content || [], totalElements: refreshed.totalElements || 0 });
+      setTotalRevenue(refreshed.totalRevenue || 0);
+    } catch (e) {
+      setError(e.message || 'Failed to refresh invoices');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack spacing={0.5} sx={{ mb: 3 }}>
         <Typography variant="h6" fontWeight={700}>
-          Billing & invoices
+          {isAdmin ? 'Billing & invoices' : 'My invoices'}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Filter and manage your invoices.
+          {isAdmin ? 'Filter and manage your invoices.' : 'View and download your invoices.'}
         </Typography>
       </Stack>
 
-      {/* Filters Section - Always visible like Contacts/MailboxAdmin */}
+      {/* Filters Section */}
       <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
         <Typography variant="h6" gutterBottom>
           Filters
         </Typography>
         <Grid container spacing={3}>
-          {/* Top Row - Search fields (wider) */}
-          <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              fullWidth
-              label="Search by Name"
-              value={filters.name}
-              onChange={handleFilterChange('name')}
-              placeholder="Search by name"
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              fullWidth
-              label="Search by Email"
-              value={filters.email}
-              onChange={handleFilterChange('email')}
-              placeholder="Search by email"
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
+          {/* Admin-only filters: name, email, user type */}
+          {isAdmin && (
+            <>
+              <Grid item xs={12} sm={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Search by Name"
+                  value={filters.name}
+                  onChange={handleFilterChange('name')}
+                  placeholder="Search by name"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Search by Email"
+                  value={filters.email}
+                  onChange={handleFilterChange('email')}
+                  placeholder="Search by email"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+            </>
+          )}
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -264,7 +280,7 @@ const Invoices = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={1.5}>
+          <Grid item xs={12} sm={6} md={isAdmin ? 1.5 : 3}>
             <FormControl fullWidth size="small">
               <InputLabel shrink>Status</InputLabel>
               <Select
@@ -274,35 +290,36 @@ const Invoices = () => {
                 displayEmpty
               >
                 <MenuItem value="">All Status</MenuItem>
-                <MenuItem value="pagado">Pagado</MenuItem>
-                <MenuItem value="pendiente">Pendiente</MenuItem>
-                <MenuItem value="cancelado">Cancelado</MenuItem>
+                <MenuItem value="paid">Paid</MenuItem>
+                <MenuItem value="invoiced">Invoiced</MenuItem>
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={1.5}>
-            <FormControl fullWidth size="small">
-              <InputLabel shrink>User Type</InputLabel>
-              <Select
-                value={filters.tenantType}
-                onChange={handleFilterChange('tenantType')}
-                label="User Type"
-                displayEmpty
-              >
-                <MenuItem value="">All user types</MenuItem>
-                <MenuItem value="Distribuidor">Distribuidor</MenuItem>
-                <MenuItem value="Proveedor">Proveedor</MenuItem>
-                <MenuItem value="Servicios">Servicios</MenuItem>
-                <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
-                <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
-                <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
-                <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
-                <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          
-          {/* Bottom Row */}
+          {isAdmin && (
+            <Grid item xs={12} sm={6} md={1.5}>
+              <FormControl fullWidth size="small">
+                <InputLabel shrink>User Type</InputLabel>
+                <Select
+                  value={filters.tenantType}
+                  onChange={handleFilterChange('tenantType')}
+                  label="User Type"
+                  displayEmpty
+                >
+                  <MenuItem value="">All user types</MenuItem>
+                  <MenuItem value="Distribuidor">Distribuidor</MenuItem>
+                  <MenuItem value="Proveedor">Proveedor</MenuItem>
+                  <MenuItem value="Servicios">Servicios</MenuItem>
+                  <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+                  <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
+                  <MenuItem value="Usuario N\u00f3mada">Usuario N\u00f3mada</MenuItem>
+                  <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
+                  <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
+
+          {/* Shared filters: product, dates */}
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -376,29 +393,31 @@ const Invoices = () => {
           >
             Reset
           </Button>
-          <Button 
-            onClick={() => setNewInvoiceOpen(true)} 
-            variant="contained" 
-            size="small"
-            sx={{
-              minWidth: 120,
-              height: 36,
-              textTransform: 'none',
-              fontWeight: 600,
-              backgroundColor: 'primary.main',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'primary.dark'
-              }
-            }}
-          >
-            New invoice
-          </Button>
+          {isAdmin && (
+            <Button
+              onClick={() => setNewInvoiceOpen(true)}
+              variant="contained"
+              size="small"
+              sx={{
+                minWidth: 120,
+                height: 36,
+                textTransform: 'none',
+                fontWeight: 600,
+                backgroundColor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'primary.dark'
+                }
+              }}
+            >
+              New invoice
+            </Button>
+          )}
           <Stack direction="row" spacing={2} sx={{ alignSelf: 'center', width: '100%' }} justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">
               Showing {rows.length} invoices
             </Typography>
-            {totalRevenue > 0 && (
+            {isAdmin && totalRevenue > 0 && (
               <Typography variant="body2" color="text.primary" sx={{ fontWeight: 'bold' }}>
                 Total Revenue: {formatCurrency(totalRevenue)}
               </Typography>
@@ -424,53 +443,50 @@ const Invoices = () => {
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
                 <TableCell sx={{ fontWeight: 'bold' }}>Invoice ID</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>User type</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>}
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold' }}>User type</TableCell>}
                 <TableCell sx={{ fontWeight: 'bold' }}>Products</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Issued</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>Document</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedRows.map((inv) => (
           <TableRow key={inv.id} hover>
                   <TableCell>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
-                  <TableCell>{inv.clientName || '—'}</TableCell>
-                  <TableCell>{inv.tenantType || '—'}</TableCell>
-                  <TableCell>{inv.products || '—'}</TableCell>
+                  {isAdmin && <TableCell>{inv.clientName || '\u2014'}</TableCell>}
+                  {isAdmin && <TableCell>{inv.tenantType || '\u2014'}</TableCell>}
+                  <TableCell>{inv.products || '\u2014'}</TableCell>
                   <TableCell align="right">{formatCurrency(inv.total)}</TableCell>
                   <TableCell>
-                    <Chip 
-                      label={inv.estado || '—'} 
-                      size="small" 
-                      color={statusColor(inv.estado)} 
-                      variant="outlined" 
-                      sx={{ 
+                    <Chip
+                      label={inv.estado || '\u2014'}
+                      size="small"
+                      color={statusColor(inv.estado)}
+                      variant="outlined"
+                      sx={{
                         minWidth: 100,
                         height: 24,
                         fontSize: '0.75rem',
                         fontWeight: 500
-                      }} 
+                      }}
                     />
                   </TableCell>
-                  <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '—'}</TableCell>
+                  <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '\u2014'}</TableCell>
                   <TableCell align="right">
                     <Link
                       component="button"
                       onClick={async (e) => {
                         e.preventDefault();
                         try {
-                          // Prefer on-demand generated PDF and open in a new tab without saving
                           const blob = await fetchInvoicePdfBlob(inv.id);
                           const objectUrl = URL.createObjectURL(blob);
                           window.open(objectUrl, '_blank', 'noopener');
-                          // Revoke later to avoid memory leaks
                           setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
                         } catch {
-                          // Fallback to legacy URL resolution
                           try {
                             const url = inv.holdedinvoicepdf || (await fetchInvoicePdfUrl(inv.id));
                             if (url) window.open(url, '_blank', 'noopener');
@@ -483,25 +499,22 @@ const Invoices = () => {
                       Open
                     </Link>
                   </TableCell>
+                  {isAdmin && (
                   <TableCell>
                     <Button
                       size="small"
                       variant="outlined"
                       onClick={async () => {
-                        // open credit dialog in a new window/tab (simple flow for now)
-                        const shouldCredit = window.confirm('Create a credit (rectification) for this invoice? This action is irreversible.');
+                        const invoiceNum = inv.holdedInvoiceNum || inv.idFactura || inv.id;
+                        const shouldCredit = window.confirm(`Create a refund invoice for ${invoiceNum}? This action is irreversible.`);
                         if (!shouldCredit) return;
                         try {
-                          await creditInvoice(inv.id, {});
-                          alert('Credit created successfully. Refreshing list.');
-                          // Refresh the list quickly
-                          setLoading(true);
-                          const refreshed = await fetchInvoices({ page, size: rowsPerPage, ...queryFilters });
-                          setData({ content: refreshed.content || [], totalElements: refreshed.totalElements || 0 });
+                          const result = await creditInvoice(inv.id, {});
+                          const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
+                          setSnackbar({ open: true, message: `Refund invoice created: ${refundId}`, severity: 'success' });
+                          await refreshList();
                         } catch (e) {
-                          alert(e.message || 'Failed to create credit.');
-                        } finally {
-                          setLoading(false);
+                          setSnackbar({ open: true, message: e.message || 'Failed to create refund invoice.', severity: 'error' });
                         }
                       }}
                       sx={{
@@ -521,15 +534,15 @@ const Invoices = () => {
                         transition: 'all 0.2s ease-in-out'
                       }}
                     >
-                      CREDIT
+                      Credit
                     </Button>
                   </TableCell>
+                  )}
                 </TableRow>
               ))}
               {paginatedRows.length === 0 && (
                 <TableRow>
-                  {/* empty rows fallback */}
-                  <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={isAdmin ? 9 : 6} align="center" sx={{ py: 6 }}>
                     <Typography variant="body2" color="text.secondary">No invoices found.</Typography>
                   </TableCell>
                 </TableRow>
@@ -543,7 +556,7 @@ const Invoices = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 2 }}>
               <Pagination
                 count={totalPages}
-                page={page + 1} // Convert back to 1-based for display
+                page={page + 1}
                 onChange={handleChangePage}
                 color="success"
                 size="large"
@@ -567,7 +580,7 @@ const Invoices = () => {
               />
             </Box>
           )}
-          
+
           {/* Pagination Info */}
           <Box
             sx={{
@@ -590,32 +603,33 @@ const Invoices = () => {
         </>
       )}
 
-      <InvoiceEditor
-        open={newInvoiceOpen}
-        onClose={() => setNewInvoiceOpen(false)}
-        onCreate={async (payload) => {
-            try {
-              setLoading(true);
-              const created = payload?.lineItems?.length
-                ? await createManualInvoice(payload)
-                : await createInvoice(payload);
-              setSnackbar({ open: true, message: 'Invoice created', severity: 'success' });
-              setNewInvoiceOpen(false);
-              const refreshed = await fetchInvoices({ page, size: rowsPerPage, ...queryFilters });
-              setData({ content: refreshed.content || [], totalElements: refreshed.totalElements || 0 });
+      {isAdmin && (
+        <InvoiceEditor
+          open={newInvoiceOpen}
+          onClose={() => setNewInvoiceOpen(false)}
+          onCreate={async (payload) => {
               try {
-                const url = await fetchInvoicePdfUrl(created.id || created.idFactura || created.id);
-                if (url) window.open(url, '_blank', 'noopener');
-              } catch {}
-              return created;
-            } catch (e) {
-              setSnackbar({ open: true, message: e.message || 'Failed to create invoice', severity: 'error' });
-              throw e;
-            } finally {
-              setLoading(false);
-            }
-        }}
-      />
+                setLoading(true);
+                const created = payload?.lineItems?.length
+                  ? await createManualInvoice(payload)
+                  : await createInvoice(payload);
+                setSnackbar({ open: true, message: 'Invoice created', severity: 'success' });
+                setNewInvoiceOpen(false);
+                await refreshList();
+                try {
+                  const url = await fetchInvoicePdfUrl(created.id || created.idFactura);
+                  if (url) window.open(url, '_blank', 'noopener');
+                } catch {}
+                return created;
+              } catch (e) {
+                setSnackbar({ open: true, message: e.message || 'Failed to create invoice', severity: 'error' });
+                throw e;
+              } finally {
+                setLoading(false);
+              }
+          }}
+        />
+      )}
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
         <Alert onClose={() => setSnackbar((s) => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}

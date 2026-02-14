@@ -211,7 +211,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
   }, [name, centroName]);
 
   return (
-    <Box sx={{ maxWidth: '1200px', mx: 'auto', width: '100%', px: { xs: 2, md: 3 }, py: 4 }}>
+    <Box sx={{ maxWidth: 1400, mx: 'auto', width: '100%', py: 4 }}>
       <Stack spacing={4}>
         {/* Back button */}
         <Button

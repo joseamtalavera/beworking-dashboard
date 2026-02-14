@@ -165,9 +165,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   return (
     <Stack spacing={4}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Button startIcon={<ArrowBackRoundedIcon />} onClick={onBack}>
-          Back to contacts
-        </Button>
+        {onBack && (
+          <Button startIcon={<ArrowBackRoundedIcon />} onClick={onBack}>
+            Back to contacts
+          </Button>
+        )}
         <Button 
           variant="outlined" 
           startIcon={<EditRoundedIcon sx={{ color: 'primary.main' }} />}
@@ -881,7 +883,7 @@ ContactProfileView.propTypes = {
       tax_id: PropTypes.string
     })
   }),
-  onBack: PropTypes.func.isRequired,
+  onBack: PropTypes.func,
   onSave: PropTypes.func,
   userTypeOptions: PropTypes.arrayOf(PropTypes.string)
 };

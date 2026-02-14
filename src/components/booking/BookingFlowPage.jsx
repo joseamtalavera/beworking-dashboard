@@ -19,7 +19,7 @@ const PaymentStep = lazy(() => import('./steps/PaymentStep'));
 
 const STEP_LABELS = ['Select details', 'Contact & billing', 'Review & payment'];
 
-function StepperContent({ onClose, onCreated, mode }) {
+function StepperContent({ onClose, onCreated, mode, userProfile }) {
   const { state } = useBookingFlow();
   const { activeStep } = state;
 
@@ -34,7 +34,7 @@ function StepperContent({ onClose, onCreated, mode }) {
     case 0:
       return <SelectDetailsStep />;
     case 1:
-      return <ContactBillingStep mode={mode} />;
+      return <ContactBillingStep mode={mode} userProfile={userProfile} />;
     case 2:
       return (
         <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>}>
@@ -46,7 +46,7 @@ function StepperContent({ onClose, onCreated, mode }) {
   }
 }
 
-function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom, onBackToDetail }) {
+function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom, onBackToDetail, userProfile, initialTime }) {
   const { state, reset, setFields } = useBookingFlow();
 
   useEffect(() => {
@@ -67,16 +67,20 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
     if (centro) {
       fields.centro = centro;
     }
+    if (initialTime) {
+      if (initialTime.startTime) fields.startTime = initialTime.startTime;
+      if (initialTime.endTime) fields.endTime = initialTime.endTime;
+    }
     if (Object.keys(fields).length > 0) {
       setFields(fields);
     }
-  }, [selectedRoom, setFields]);
+  }, [selectedRoom, initialTime, setFields]);
 
   const centroName = state.centro?.name || state.centro?.label || state.centro?.code || '';
   const productoName = state.producto?.name || selectedRoom?.name || '';
 
   return (
-    <Box sx={{ maxWidth: '1200px', mx: 'auto', width: '100%', px: { xs: 2, md: 3 }, py: 4 }}>
+    <Box sx={{ maxWidth: 1400, mx: 'auto', width: '100%', py: 4 }}>
       <Button
         onClick={onBackToDetail}
         startIcon={<ArrowBackRoundedIcon />}
@@ -106,16 +110,16 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
         </Stepper>
       </Paper>
 
-      <StepperContent onClose={onClose} onCreated={onCreated} mode={mode} />
+      <StepperContent onClose={onClose} onCreated={onCreated} mode={mode} userProfile={userProfile} />
     </Box>
   );
 }
 
 // Phase enum: 'catalog' → 'detail' → 'booking'
 
-export default function BookingFlowPage({ onClose, onCreated, defaultDate, mode = 'admin' }) {
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [phase, setPhase] = useState('catalog');
+export default function BookingFlowPage({ onClose, onCreated, defaultDate, mode = 'admin', userProfile, initialRoom, initialTime }) {
+  const [selectedRoom, setSelectedRoom] = useState(initialRoom || null);
+  const [phase, setPhase] = useState(initialRoom ? 'booking' : 'catalog');
 
   const handleBookNow = useCallback((space) => {
     setSelectedRoom(space);
@@ -132,8 +136,18 @@ export default function BookingFlowPage({ onClose, onCreated, defaultDate, mode 
   }, []);
 
   const handleBackToDetail = useCallback(() => {
-    setPhase('detail');
-  }, []);
+    if (initialRoom) {
+      onClose?.();
+    } else {
+      setPhase('detail');
+    }
+  }, [initialRoom, onClose]);
+
+  const handleCreated = useCallback((response) => {
+    onCreated?.(response);
+    setSelectedRoom(null);
+    setPhase('catalog');
+  }, [onCreated]);
 
   // Phase 1: Room catalog
   if (phase === 'catalog') {
@@ -156,11 +170,13 @@ export default function BookingFlowPage({ onClose, onCreated, defaultDate, mode 
     <BookingFlowProvider defaultDate={defaultDate}>
       <BookingFlowInner
         onClose={onClose}
-        onCreated={onCreated}
+        onCreated={handleCreated}
         defaultDate={defaultDate}
         mode={mode}
         selectedRoom={selectedRoom}
         onBackToDetail={handleBackToDetail}
+        userProfile={userProfile}
+        initialTime={initialTime}
       />
     </BookingFlowProvider>
   );

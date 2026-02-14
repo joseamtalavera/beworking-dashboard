@@ -116,3 +116,13 @@ export const updateBloqueo = (bloqueoId, payload, options = {}) =>
     body: payload,
     ...options
   });
+
+export const fetchBookingUsage = (email, productName, options = {}) =>
+  apiFetch(`/public/booking-usage?email=${encodeURIComponent(email)}&productName=${encodeURIComponent(productName)}`, options);
+
+export const createPublicBooking = (payload, options = {}) =>
+  apiFetch('/public/bookings', {
+    method: 'POST',
+    body: payload,
+    ...options
+  });

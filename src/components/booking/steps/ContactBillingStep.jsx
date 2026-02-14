@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import Alert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
@@ -11,8 +12,12 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 
 import { fetchBookingContacts } from '../../../api/bookings.js';
 import { useBookingFlow } from '../BookingFlowContext';
@@ -36,17 +41,14 @@ const backButtonSx = {
   color: 'text.secondary',
 };
 
-const buildErrors = (form) => {
-  const errors = {};
-  if (!form.firstName.trim()) errors.firstName = 'First name is required';
-  if (!form.lastName.trim()) errors.lastName = 'Last name is required';
-  if (!form.email.trim()) errors.email = 'Email is required';
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Enter a valid email address';
-  if (!form.phone.trim()) errors.phone = 'Phone number is required';
-  return errors;
+const splitName = (fullName) => {
+  if (!fullName) return { first: '', last: '' };
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 1) return { first: parts[0] || '', last: '' };
+  return { first: parts[0], last: parts.slice(1).join(' ') };
 };
 
-export default function ContactBillingStep({ mode = 'admin' }) {
+export default function ContactBillingStep({ mode = 'admin', userProfile }) {
   const { state, setField, nextStep, prevStep } = useBookingFlow();
 
   // Admin contact search
@@ -54,23 +56,23 @@ export default function ContactBillingStep({ mode = 'admin' }) {
   const [contactOptions, setContactOptions] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
   const [selectedContact, setSelectedContact] = useState(state.contact || null);
-
-  // User mode manual form
-  const [formState, setFormState] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    company: '',
-    taxId: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    postalCode: '',
-    country: 'Spain',
-  });
-  const [formErrors, setFormErrors] = useState({});
   const [validationError, setValidationError] = useState('');
+
+  // User mode: build contact object from profile and auto-set it
+  useEffect(() => {
+    if (mode !== 'user' || !userProfile) return;
+    const { first, last } = splitName(userProfile.name);
+    const contact = {
+      name: userProfile.name || '',
+      firstName: userProfile.firstName || first,
+      lastName: userProfile.lastName || last,
+      email: userProfile.email || '',
+      phone: userProfile.phone || '',
+      company: userProfile.company || '',
+      address: userProfile.address || {},
+    };
+    setField('contact', contact);
+  }, [mode, userProfile, setField]);
 
   // Admin contact search with debounce
   useEffect(() => {
@@ -100,10 +102,6 @@ export default function ContactBillingStep({ mode = 'admin' }) {
     setField('contact', null);
   };
 
-  const handleChange = (field) => (event) => {
-    setFormState((prev) => ({ ...prev, [field]: event.target.value }));
-  };
-
   const handleNext = () => {
     setValidationError('');
     if (mode === 'admin') {
@@ -112,16 +110,17 @@ export default function ContactBillingStep({ mode = 'admin' }) {
         return;
       }
       setField('contact', selectedContact);
-    } else {
-      const errors = buildErrors(formState);
-      if (Object.keys(errors).length > 0) {
-        setFormErrors(errors);
-        return;
-      }
-      setField('contact', formState);
     }
+    // User mode: contact already set via useEffect
     nextStep();
   };
+
+  const initials = (userProfile?.name || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('');
 
   return (
     <Stack spacing={3}>
@@ -139,7 +138,7 @@ export default function ContactBillingStep({ mode = 'admin' }) {
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             {mode === 'admin'
               ? 'Search for an existing contact to assign this booking.'
-              : "We'll use this to confirm your booking and send access instructions."}
+              : 'Booking will be confirmed under your account.'}
           </Typography>
         </Stack>
 
@@ -205,65 +204,43 @@ export default function ContactBillingStep({ mode = 'admin' }) {
             )}
           </Box>
         ) : (
-          /* User: manual contact form */
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField size="small" label="First name" value={formState.firstName} onChange={handleChange('firstName')} required error={Boolean(formErrors.firstName)} helperText={formErrors.firstName} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField size="small" label="Last name" value={formState.lastName} onChange={handleChange('lastName')} required error={Boolean(formErrors.lastName)} helperText={formErrors.lastName} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField size="small" label="Email" type="email" value={formState.email} onChange={handleChange('email')} required error={Boolean(formErrors.email)} helperText={formErrors.email} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField size="small" label="Phone" value={formState.phone} onChange={handleChange('phone')} required error={Boolean(formErrors.phone)} helperText={formErrors.phone} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField size="small" label="Company" value={formState.company} onChange={handleChange('company')} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField size="small" label="VAT / Tax ID" value={formState.taxId} onChange={handleChange('taxId')} fullWidth />
-            </Grid>
-          </Grid>
+          /* User: show profile as confirmed contact (same compact style as admin) */
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 2, borderRadius: 2, bgcolor: 'action.hover' }}>
+            <Avatar sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontWeight: 700, fontSize: '1rem' }}>
+              {initials || <PersonOutlineRoundedIcon />}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body1" fontWeight={600} noWrap>
+                  {userProfile?.name || 'User'}
+                </Typography>
+                <Chip
+                  icon={<CheckCircleOutlineRoundedIcon sx={{ fontSize: 16 }} />}
+                  label="Confirmed"
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                  sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                />
+              </Stack>
+              <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
+                {userProfile?.email && (
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <EmailOutlinedIcon sx={{ fontSize: 15, color: 'text.disabled' }} />
+                    <Typography variant="caption" color="text.secondary">{userProfile.email}</Typography>
+                  </Stack>
+                )}
+                {userProfile?.phone && (
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <PhoneOutlinedIcon sx={{ fontSize: 15, color: 'text.disabled' }} />
+                    <Typography variant="caption" color="text.secondary">{userProfile.phone}</Typography>
+                  </Stack>
+                )}
+              </Stack>
+            </Box>
+          </Stack>
         )}
       </Paper>
-
-      {/* Billing address (user mode only) */}
-      {mode !== 'admin' && (
-        <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
-          <Stack spacing={1} sx={{ mb: 2 }}>
-            <Stack direction="row" spacing={1} alignItems="baseline">
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                Billing address
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-                — optional
-              </Typography>
-            </Stack>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Required only if you need an invoice.
-            </Typography>
-          </Stack>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField size="small" label="Address line 1" value={formState.addressLine1} onChange={handleChange('addressLine1')} fullWidth />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField size="small" label="Address line 2" value={formState.addressLine2} onChange={handleChange('addressLine2')} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField size="small" label="City" value={formState.city} onChange={handleChange('city')} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField size="small" label="Postal code" value={formState.postalCode} onChange={handleChange('postalCode')} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField size="small" label="Country" value={formState.country} onChange={handleChange('country')} fullWidth />
-            </Grid>
-          </Grid>
-        </Paper>
-      )}
 
       {/* Navigation buttons */}
       <Stack direction="row" spacing={2} justifyContent="space-between">

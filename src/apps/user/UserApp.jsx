@@ -19,7 +19,7 @@ const Integrations = React.lazy(() => import('../../components/tabs/Integrations
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));
 const Community = React.lazy(() => import('../../components/tabs/Community.jsx'));
 const Events = React.lazy(() => import('../../components/tabs/Events.jsx'));
-const Contacts = React.lazy(() => import('../../components/tabs/admin/Contacts.jsx'));
+const Contacts = React.lazy(() => import('../../components/tabs/user/UserContacts.jsx'));
 const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.jsx'));
 const Expenses = React.lazy(() => import('../../components/tabs/Expenses.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
@@ -63,17 +63,20 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
 
   const TabContent = useMemo(() => {
     if (activeTab === 'Booking') {
-      return <Booking mode="user" />;
+      return <Booking mode="user" userProfile={userProfile} />;
+    }
+    if (activeTab === 'Invoices') {
+      return <Invoices mode="user" userProfile={userProfile} />;
     }
     const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
     if (activeTab === 'Overview') {
       return <Component userType="user" />;
     }
     if (activeTab === 'Contacts') {
-      return <Component key={contactsKey} userType="user" refreshProfile={refreshProfile} userProfile={userProfile} />;
+      return <Component key={contactsKey} refreshProfile={refreshProfile} userProfile={userProfile} />;
     }
     if (activeTab === 'Business Address') {
-      return <Component userType="user" />;
+      return <Component userType="user" userProfile={userProfile} />;
     }
     return <Component />;
   }, [activeTab, contactsKey]);

@@ -80,6 +80,8 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Divider from '@mui/material/Divider';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
@@ -89,6 +91,11 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import PhotoLibraryOutlinedIcon from '@mui/icons-material/PhotoLibraryOutlined';
 import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined';
 import { createInvoice, fetchInvoicePdfUrl } from '../../api/invoices.js';
+import {
+  fetchCustomerPaymentMethods,
+  chargeCustomer,
+  createStripeInvoice,
+} from '../../api/stripe.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
 
@@ -2481,190 +2488,213 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Initialize form state when bloqueo changes
+  // Payment state
+  const [paymentOption, setPaymentOption] = useState('');
+  const [savedCards, setSavedCards] = useState([]);
+  const [selectedCard, setSelectedCard] = useState('');
+  const [cardsLoading, setCardsLoading] = useState(false);
+  const [invoiceDueDays, setInvoiceDueDays] = useState(30);
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+
+  const buildFormState = (b) => {
+    const reservationTypeRaw =
+      b.tipoReserva || b.reservationType || b.tipo || 'Por Horas';
+    return {
+      cliente: b.cliente?.nombre || '',
+      clienteId: b.cliente?.id || null,
+      clienteEmail: b.cliente?.email || '',
+      centro: b.centro?.nombre || '',
+      centroId: b.centro?.id || null,
+      producto: b.producto?.nombre || '',
+      productoId: b.producto?.id || null,
+      dateFrom: b.fechaIni ? format(parseISO(b.fechaIni), 'yyyy-MM-dd') : '',
+      dateTo: b.fechaFin ? format(parseISO(b.fechaFin), 'yyyy-MM-dd') : '',
+      horaIni: b.fechaIni ? format(parseISO(b.fechaIni), 'HH:mm') : '',
+      horaFin: b.fechaFin ? format(parseISO(b.fechaFin), 'HH:mm') : '',
+      asistentes: b.asistentes ?? '',
+      tarifa: b.tarifa ?? '',
+      configuracion: b.configuracion || '',
+      nota: b.nota || '',
+      userType: b.cliente?.tipoTenant || '',
+      reservationType: reservationTypeRaw,
+      status: b.estado || 'Booked',
+      openEnded: Boolean(b.openEnded)
+    };
+  };
+
   useEffect(() => {
     if (bloqueo) {
-      setFormState({
-        cliente: bloqueo.cliente?.nombre || '',
-        centro: bloqueo.centro?.nombre || '',
-        producto: bloqueo.producto?.nombre || '',
-        fecha: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'yyyy-MM-dd') : '',
-        horaIni: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'HH:mm') : '',
-        horaFin: bloqueo.fechaFin ? format(parseISO(bloqueo.fechaFin), 'HH:mm') : '',
-        asistentes: bloqueo.asistentes || '',
-        tarifa: bloqueo.tarifa || '',
-        configuracion: bloqueo.configuracion || '',
-        nota: bloqueo.nota || '',
-        userType: bloqueo.cliente?.tipoTenant || '',
-        reservationType: 'Por Horas', // Default value
-        status: bloqueo.estado || 'Booked'
-      });
+      setFormState(buildFormState(bloqueo));
       setIsEditMode(false);
       setError('');
+      setPaymentOption('');
+      setSavedCards([]);
+      setSelectedCard('');
     }
   }, [bloqueo]);
 
-  const handleEditClick = () => {
-    setIsEditMode(true);
-  };
+  // Fetch saved cards when dialog opens for a "Booked" bloqueo
+  const contactEmail = bloqueo?.cliente?.email || '';
+  const isBooked = bloqueo && mapStatusKey(bloqueo.estado) === 'created';
+
+  useEffect(() => {
+    if (!open || !isBooked || !contactEmail) return;
+    setCardsLoading(true);
+    fetchCustomerPaymentMethods(contactEmail)
+      .then((res) => {
+        const methods = res.paymentMethods || [];
+        setSavedCards(methods);
+        if (methods.length > 0) {
+          setSelectedCard(methods[0].id);
+          setPaymentOption('charge');
+        } else {
+          setPaymentOption('invoice');
+        }
+      })
+      .catch(() => {
+        setSavedCards([]);
+        setPaymentOption('invoice');
+      })
+      .finally(() => setCardsLoading(false));
+  }, [open, isBooked, contactEmail]);
+
+  const handleEditClick = () => setIsEditMode(true);
 
   const handleSave = async () => {
     if (!bloqueo) return;
-    
     setSaving(true);
     setError('');
     try {
-      // Create the updated bloqueo object
-      const updatedBloqueo = {
+      await updateBloqueo(bloqueo.id, {
         ...bloqueo,
-        cliente: { id: formState.cliente },
-        centro: { id: formState.centro },
-        producto: { id: formState.producto },
-        fechaIni: `${formState.fecha}T${formState.horaIni}:00`,
-        fechaFin: `${formState.fecha}T${formState.horaFin}:00`,
+        cliente: { id: formState.clienteId },
+        centro: { id: formState.centroId },
+        producto: { id: formState.productoId },
+        fechaIni: `${formState.dateFrom}T${formState.horaIni}:00`,
+        fechaFin: `${formState.dateTo}T${formState.horaFin}:00`,
         asistentes: formState.asistentes,
         tarifa: formState.tarifa,
         configuracion: formState.configuracion,
         nota: formState.nota
-      };
-
-      // Call the update function
-      await updateBloqueo(bloqueo.id, updatedBloqueo);
-      
+      });
       setIsEditMode(false);
       onClose?.();
-    } catch (error) {
-      setError(error.message || 'Unable to update bloqueo.');
+    } catch (saveError) {
+      setError(saveError.message || 'Unable to update bloqueo.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!bloqueo) return;
+    setPaymentSubmitting(true);
+    setError('');
+    try {
+      const contactName = bloqueo.cliente?.nombre || '';
+      const tarifaNum = Number(formState.tarifa) || 0;
+      const amountCents = Math.round(tarifaNum * 100);
+      const description = `Reserva: ${formState.producto || ''} (${formState.dateFrom})`;
+
+      if (paymentOption === 'charge') {
+        if (!selectedCard) {
+          setError('Please select a card.');
+          setPaymentSubmitting(false);
+          return;
+        }
+        await chargeCustomer({
+          customerEmail: contactEmail,
+          paymentMethodId: selectedCard,
+          amount: amountCents,
+          currency: 'eur',
+          description,
+          reference: String(formState.productoId || ''),
+        });
+        await updateBloqueo(bloqueo.id, { ...bloqueo, estado: 'Paid' });
+      } else if (paymentOption === 'invoice') {
+        await createStripeInvoice({
+          customerEmail: contactEmail,
+          customerName: contactName,
+          amount: amountCents,
+          currency: 'eur',
+          description,
+          reference: String(formState.productoId || ''),
+          dueDays: invoiceDueDays,
+        });
+        await updateBloqueo(bloqueo.id, { ...bloqueo, estado: 'Invoiced' });
+      }
+      onClose?.();
+    } catch (payError) {
+      setError(payError.message || 'Payment failed.');
+    } finally {
+      setPaymentSubmitting(false);
     }
   };
 
   const handleCancel = () => {
     setIsEditMode(false);
     setError('');
-    // Reset form state to original values
-    if (bloqueo) {
-      setFormState({
-        cliente: bloqueo.cliente?.nombre || '',
-        centro: bloqueo.centro?.nombre || '',
-        producto: bloqueo.producto?.nombre || '',
-        fecha: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'yyyy-MM-dd') : '',
-        horaIni: bloqueo.fechaIni ? format(parseISO(bloqueo.fechaIni), 'HH:mm') : '',
-        horaFin: bloqueo.fechaFin ? format(parseISO(bloqueo.fechaFin), 'HH:mm') : '',
-        asistentes: bloqueo.asistentes || '',
-        tarifa: bloqueo.tarifa || '',
-        configuracion: bloqueo.configuracion || '',
-        nota: bloqueo.nota || '',
-        userType: bloqueo.cliente?.tipoTenant || '',
-        reservationType: 'Por Horas',
-        status: bloqueo.estado || 'Booked'
-      });
-    }
+    if (bloqueo) setFormState(buildFormState(bloqueo));
   };
 
   const handleFieldChange = (field, value) => {
     setFormState(prev => ({ ...prev, [field]: value }));
   };
 
-  const baseInputStyles = {
-    minHeight: 40,
-    borderRadius: 8,
-    backgroundColor: theme.palette.common.white,
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.grey[300]
-    },
-    '&:hover .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.grey[400]
-    },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.primary.main
-    },
-    '& input': {
-      fontSize: 14,
-      fontWeight: 500,
-      color: theme.palette.text.primary
-    },
-    '& .MuiSvgIcon-root': {
-      color: 'text.disabled'
-    }
-  };
-
-  const baseLabelStyles = {
-    fontSize: 13,
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-    '&.Mui-focused': {
-      color: theme.palette.primary.main
-    }
-  };
-
-  const fieldStyles = {
-    '& .MuiOutlinedInput-root': baseInputStyles,
-    '& .MuiInputLabel-root': baseLabelStyles
-  };
-
-  const selectFieldStyles = {
+  // Use theme defaults for field styling — no borderRadius override
+  const fieldSx = {
     '& .MuiOutlinedInput-root': {
-      ...baseInputStyles,
-      '& .MuiSelect-select': {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        fontWeight: 500
-      }
+      minHeight: 40,
+      backgroundColor: theme.palette.common.white,
     },
-    '& .MuiInputLabel-root': baseLabelStyles
   };
 
-  const dialogTitle = isEditMode ? 'Edit bloqueo' : 'Bloqueo details';
+  const dialogTitle = isEditMode ? 'Edit Bloqueo' : 'Bloqueo Details';
   const dialogSubtitle = isEditMode
     ? 'Update the bloqueo details before saving.'
-    : 'View and edit bloqueo information';
+    : 'View booking information and schedule';
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      fullWidth 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
       maxWidth="lg"
       PaperProps={{
         sx: {
           borderRadius: 3,
-          boxShadow: theme.shadows[6],
-          maxWidth: '900px'
+          background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
+          boxShadow: theme.shadows[6]
         }
       }}
     >
       <Box component="form" noValidate>
-        <DialogTitle 
-          sx={{ 
-            pb: 2,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            backgroundColor: 'background.paper',
-            position: 'relative'
-          }}
-        >
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-            <Stack>
-              <Typography variant="h5" fontWeight={700} color="text.primary">
+        <DialogTitle sx={{
+          pb: 0,
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          color: 'common.white',
+          borderRadius: '12px 12px 0 0',
+          p: 3
+        }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar sx={{ bgcolor: alpha(theme.palette.common.white, 0.2), width: 40, height: 40 }}>
+              <CalendarMonthRoundedIcon />
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h5" fontWeight={700}>
                 {dialogTitle}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 {dialogSubtitle}
               </Typography>
-            </Stack>
+            </Box>
             <IconButton
               onClick={onClose}
               sx={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                color: 'text.secondary',
+                color: alpha(theme.palette.common.white, 0.8),
                 '&:hover': {
-                  backgroundColor: alpha(theme.palette.common.black, 0.04),
-                  color: 'text.primary'
+                  backgroundColor: alpha(theme.palette.common.white, 0.15),
+                  color: 'common.white'
                 }
               }}
             >
@@ -2672,491 +2702,294 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
             </IconButton>
           </Stack>
         </DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={3}>
-            {error ? <Alert severity="error">{error}</Alert> : null}
-            
-            {bloqueo ? (
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Paper
-                  elevation={0}
-                  variant="outlined"
-                  sx={{ 
-                    p: { xs: 2, md: 3 }, 
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    backgroundColor: 'background.paper'
-                  }}
-                >
-                  <Stack spacing={2.25}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          backgroundColor: 'secondary.main'
-                        }}
-                      />
-                      <Typography variant="subtitle1" fontWeight={600} color="text.primary">
-                        Who &amp; where
-                      </Typography>
-                    </Stack>
-                    <Grid container spacing={3} sx={{ width: '100%' }}>
-                      {/* Search by Name field - full width */}
-                      <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
-                          label="Search by Name"
-                          value={formState.cliente || ''}
-                          onChange={(e) => handleFieldChange('cliente', e.target.value)}
-                          placeholder="Search by name"
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          sx={fieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-              </Grid>
-                      
-                      {/* Centro field - full width */}
-                      <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
-                          label="Centro"
-                          value={formState.centro || ''}
-                          onChange={(e) => handleFieldChange('centro', e.target.value)}
-                          placeholder="Select centro"
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          select
-                          SelectProps={{
-                            displayEmpty: true,
-                            renderValue: (value) => value === '' ? 'All centros' : value
-                          }}
-                          sx={selectFieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <LocationOnRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        >
-                          <MenuItem value="">All centros</MenuItem>
-                        </TextField>
-                      </Grid>
-                      
-                      {/* User type field - full width */}
-                      <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
-                          label="User Type"
-                          value={formState.userType || ''}
-                          onChange={(e) => handleFieldChange('userType', e.target.value)}
-                          placeholder="Select user type"
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          select
-                          SelectProps={{
-                            displayEmpty: true,
-                            renderValue: (value) => value === '' ? 'All user types' : value
-                          }}
-                          sx={selectFieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <PersonRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        >
-                          <MenuItem value="">All user types</MenuItem>
-                          <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
-                        </TextField>
-                      </Grid>
-                      
-                      {/* Producto field - full width */}
-                      <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
-                          label="Producto"
-                          value={formState.producto || ''}
-                          onChange={(e) => handleFieldChange('producto', e.target.value)}
-                          placeholder="Select product"
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          select
-                          SelectProps={{
-                            displayEmpty: true,
-                            renderValue: (value) => value === '' ? 'All products' : value
-                          }}
-                          sx={selectFieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        >
-                          <MenuItem value="">All products</MenuItem>
-                        </TextField>
-                      </Grid>
-                      
-                      {/* Reservation type field - full width */}
-                      <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
-                          label="Reservation Type"
-                          value={formState.reservationType || 'Por Horas'}
-                          onChange={(e) => handleFieldChange('reservationType', e.target.value)}
-                          placeholder="Select reservation type"
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          select
-                          SelectProps={{
-                            displayEmpty: true,
-                            renderValue: (value) => value === '' ? 'All reservation types' : value
-                          }}
-                          sx={selectFieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <EventRepeatRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        >
-                          <MenuItem value="">All reservation types</MenuItem>
-                          <MenuItem value="Por Horas">Por Horas</MenuItem>
-                        </TextField>
-                      </Grid>
-                      
-                      {/* Status field - full width */}
-                      <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
-                          label="Status"
-                          value={formState.status || 'Booked'}
-                          onChange={(e) => handleFieldChange('status', e.target.value)}
-                          placeholder="Select status"
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          select
-                          SelectProps={{
-                            displayEmpty: true,
-                            renderValue: (value) => value === '' ? 'All statuses' : value
-                          }}
-                          sx={selectFieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <FlagRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        >
-                          <MenuItem value="">All statuses</MenuItem>
-                          <MenuItem value="Booked">Booked</MenuItem>
-                          <MenuItem value="Pendiente">Pendiente</MenuItem>
-                          <MenuItem value="Paid">Paid</MenuItem>
-                        </TextField>
-                      </Grid>
-                      
-                      {/* Tarifa field - full width */}
-                      <Grid item xs={12} sx={{ display: 'block' }}>
-                        <TextField
-                          fullWidth
-                          label="Tarifa (€)"
-                          value={formState.tarifa || ''}
-                          onChange={(e) => handleFieldChange('tarifa', e.target.value)}
-                          placeholder="Enter tarifa"
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          sx={fieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <EuroRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Stack>
-                </Paper>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 4 }}>
+            <Stack spacing={4}>
+              {error ? <Alert severity="error">{error}</Alert> : null}
 
-                <Paper
-                  elevation={0}
-                  variant="outlined"
-                  sx={{ 
-                    p: { xs: 2, md: 3 }, 
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    backgroundColor: 'background.paper'
-                  }}
-                >
-                  <Stack spacing={2.25}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          backgroundColor: 'info.main'
-                        }}
-                      />
-                      <Typography variant="subtitle1" fontWeight={600} color="text.primary">
-                        Schedule &amp; status
-                </Typography>
-                    </Stack>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={3}>
-                        <TextField
-                          type="date"
-                          label="Date from"
-                          value={formState.fecha || ''}
-                          onChange={(e) => handleFieldChange('fecha', e.target.value)}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          sx={fieldStyles}
-                        />
-              </Grid>
-                      <Grid item xs={12} md={3}>
-                        <TextField
-                          type="date"
-                          label="Date to"
-                          value={formState.fecha || ''}
-                          onChange={(e) => handleFieldChange('fecha', e.target.value)}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                          required
-                          disabled={!isEditMode}
-                          size="small"
-                          sx={fieldStyles}
-                        />
-            </Grid>
-                      <Grid item xs={12} md={3}>
-                        <TimePicker
-                          label="Start time"
-                          value={formState.horaIni ? timeStringToDate(formState.horaIni) : null}
-                          onChange={(time) => handleFieldChange('horaIni', time ? dateToTimeString(time) : '')}
-                          slotProps={{
-                            textField: {
-                              fullWidth: true,
-                              required: true,
-                              disabled: !isEditMode,
-                              size: 'small',
-                              InputLabelProps: { shrink: true },
-                              sx: {
-                                ...fieldStyles,
-                                '& .MuiOutlinedInput-root': {
-                                  ...baseInputStyles,
-                                  borderRadius: '4px !important',
-                                  '& .MuiOutlinedInput-notchedOutline': {
-                                    borderRadius: '4px !important'
-                                  }
-                                }
-                              }
-                            }
-                          }}
-                          minutesStep={30}
-                        />
+              {bloqueo ? (
+                <>
+                  {/* Section 1: Booking Information */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      overflow: 'hidden',
+                      background: 'background.paper'
+                    }}
+                  >
+                    <Box sx={{
+                      p: 3,
+                      background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                      borderBottom: '1px solid',
+                      borderBottomColor: 'divider'
+                    }}>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Avatar sx={{ bgcolor: 'success.light', width: 36, height: 36 }}>
+                          <PersonRoundedIcon />
+                        </Avatar>
+                        <Typography variant="h6" fontWeight={600} color="text.primary">
+                          Booking Information
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    <Box sx={{ p: 3 }}>
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField fullWidth label="Contact" value={formState.cliente || ''} onChange={(e) => handleFieldChange('cliente', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField fullWidth label="Centro" value={formState.centro || ''} onChange={(e) => handleFieldChange('centro', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField fullWidth label="User type" value={formState.userType || ''} onChange={(e) => handleFieldChange('userType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
+                            <MenuItem value="">—</MenuItem>
+                            <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+                            <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
+                            <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+                          </TextField>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField fullWidth label="Producto" value={formState.producto || ''} onChange={(e) => handleFieldChange('producto', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField fullWidth label="Reservation type" value={formState.reservationType || 'Por Horas'} onChange={(e) => handleFieldChange('reservationType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
+                            <MenuItem value="Por Horas">Por Horas</MenuItem>
+                            <MenuItem value="Diaria">Diaria</MenuItem>
+                            <MenuItem value="Mensual">Mensual</MenuItem>
+                          </TextField>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField fullWidth label="Status" value={formState.status || 'Booked'} onChange={(e) => handleFieldChange('status', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
+                            <MenuItem value="Booked">Booked</MenuItem>
+                            <MenuItem value="Pendiente">Pendiente</MenuItem>
+                            <MenuItem value="Paid">Paid</MenuItem>
+                            <MenuItem value="Invoiced">Invoiced</MenuItem>
+                          </TextField>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField fullWidth label="Tarifa (€)" value={formState.tarifa ?? ''} onChange={(e) => handleFieldChange('tarifa', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField fullWidth label="Attendees" value={formState.asistentes ?? ''} onChange={(e) => handleFieldChange('asistentes', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField fullWidth label="Configuración" value={formState.configuracion || ''} onChange={(e) => handleFieldChange('configuracion', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <TextField fullWidth label="Notes" value={formState.nota || ''} onChange={(e) => handleFieldChange('nota', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" multiline minRows={2} maxRows={4} sx={fieldSx} />
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} md={3}>
-                        <TimePicker
-                          label="End time"
-                          value={formState.horaFin ? timeStringToDate(formState.horaFin) : null}
-                          onChange={(time) => handleFieldChange('horaFin', time ? dateToTimeString(time) : '')}
-                          slotProps={{
-                            textField: {
-                              fullWidth: true,
-                              required: true,
-                              disabled: !isEditMode,
-                              size: 'small',
-                              InputLabelProps: { shrink: true },
-                              sx: {
-                                ...fieldStyles,
-                                '& .MuiOutlinedInput-root': {
-                                  ...baseInputStyles,
-                                  borderRadius: '4px !important',
-                                  '& .MuiOutlinedInput-notchedOutline': {
-                                    borderRadius: '4px !important'
-                                  }
-                                }
-                              }
-                            }
-                          }}
-                          minutesStep={30}
-                        />
-                      </Grid>
-                    </Grid>
+                    </Box>
+                  </Paper>
 
-                    {/* Weekdays section */}
-                    <Box
+                  {/* Section 2: Schedule */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      borderRadius: 3,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      overflow: 'hidden',
+                      background: 'background.paper'
+                    }}
+                  >
+                    <Box sx={{
+                      p: 3,
+                      background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                      borderBottom: '1px solid',
+                      borderBottomColor: 'divider'
+                    }}>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                          <AccessTimeRoundedIcon />
+                        </Avatar>
+                        <Typography variant="h6" fontWeight={600} color="text.primary">
+                          Schedule
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    <Box sx={{ p: 3 }}>
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <Grid container spacing={3}>
+                          <Grid item xs={12} sm={3}>
+                            <TextField type="date" label="Date from" value={formState.dateFrom || ''} onChange={(e) => handleFieldChange('dateFrom', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <TextField type="date" label="Date to" value={formState.dateTo || ''} onChange={(e) => handleFieldChange('dateTo', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <TimePicker
+                              label="Start time"
+                              value={formState.horaIni ? timeStringToDate(formState.horaIni) : null}
+                              onChange={(time) => handleFieldChange('horaIni', time ? dateToTimeString(time) : '')}
+                              slotProps={{ textField: { fullWidth: true, disabled: !isEditMode, size: 'small', variant: 'outlined', InputLabelProps: { shrink: true }, sx: fieldSx } }}
+                              minutesStep={30}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <TimePicker
+                              label="End time"
+                              value={formState.horaFin ? timeStringToDate(formState.horaFin) : null}
+                              onChange={(time) => handleFieldChange('horaFin', time ? dateToTimeString(time) : '')}
+                              slotProps={{ textField: { fullWidth: true, disabled: !isEditMode, size: 'small', variant: 'outlined', InputLabelProps: { shrink: true }, sx: fieldSx } }}
+                              minutesStep={30}
+                            />
+                          </Grid>
+                        </Grid>
+
+                      </LocalizationProvider>
+                    </Box>
+                  </Paper>
+
+                  {/* Section 3: Payment — only for "Booked" status */}
+                  {isBooked && canInvoice && !isEditMode ? (
+                    <Paper
+                      elevation={0}
                       sx={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        alignItems: 'center',
-                        gap: 1.5
+                        borderRadius: 3,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        overflow: 'hidden',
+                        background: 'background.paper'
                       }}
                     >
-                      <Typography variant="overline" color="text.secondary">
-                        Weekdays
-                      </Typography>
-                      <FormGroup
-                        row
-                        sx={{
-                          gap: 1,
-                          flexWrap: 'wrap'
-                        }}
-                      >
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                          <FormControlLabel
-                            key={day}
-                            control={
-                              <Checkbox
-                                size="small"
-                                checked={false}
-                                disabled={!isEditMode}
-                              />
-                            }
-                            label={day}
-                          />
-                        ))}
-                      </FormGroup>
-                      <Box sx={{ flexGrow: 1 }} />
-                      <FormControlLabel
-                        sx={{ ml: 'auto' }}
-                        control={
-                          <Switch
-                            size="small"
-                            checked={false}
-                            disabled={!isEditMode}
-                          />
-                        }
-                        label="Open ended"
-                      />
-                    </Box>
-          </Stack>
-                </Paper>
+                      <Box sx={{
+                        p: 3,
+                        background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                        borderBottom: '1px solid',
+                        borderBottomColor: 'divider'
+                      }}>
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                          <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                            <EuroRoundedIcon />
+                          </Avatar>
+                          <Typography variant="h6" fontWeight={600} color="text.primary">
+                            Payment
+                          </Typography>
+                        </Stack>
+                      </Box>
+                      <Box sx={{ p: 3 }}>
+                        <Stack spacing={2}>
+                          {cardsLoading && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                              <CircularProgress size={24} />
+                            </Box>
+                          )}
 
-                <Paper
-                  elevation={0}
-                  variant="outlined"
-                  sx={{ 
-                    p: { xs: 2, md: 3 }, 
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    backgroundColor: 'background.paper'
-                  }}
-                >
-                  <Stack spacing={2.25}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          backgroundColor: 'success.main'
-                        }}
-                      />
-                      <Typography variant="subtitle1" fontWeight={600} color="text.primary">
-                        Additional details
-                      </Typography>
-                    </Stack>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Attendees"
-                          value={formState.asistentes || ''}
-                          onChange={(e) => handleFieldChange('asistentes', e.target.value)}
-                          disabled={!isEditMode}
-                          size="small"
-                          sx={fieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <GroupRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Configuración"
-                          value={formState.configuracion || ''}
-                          onChange={(e) => handleFieldChange('configuracion', e.target.value)}
-                          disabled={!isEditMode}
-                          size="small"
-                          sx={fieldStyles}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <BusinessRoundedIcon sx={{ color: 'text.disabled' }} />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Stack>
-                </Paper>
-              </LocalizationProvider>
-        ) : null}
-          </Stack>
+                          {!cardsLoading && (
+                            <RadioGroup value={paymentOption} onChange={(e) => setPaymentOption(e.target.value)}>
+                              <FormControlLabel
+                                value="charge"
+                                control={<Radio size="small" />}
+                                label="Charge saved card"
+                                disabled={savedCards.length === 0}
+                              />
+                              {savedCards.length === 0 && contactEmail && (
+                                <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
+                                  No saved cards found for {contactEmail}
+                                </Typography>
+                              )}
+                              <FormControlLabel
+                                value="invoice"
+                                control={<Radio size="small" />}
+                                label="Send Stripe invoice"
+                                disabled={!contactEmail}
+                              />
+                              {!contactEmail && (
+                                <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
+                                  No email found for this contact
+                                </Typography>
+                              )}
+                            </RadioGroup>
+                          )}
+
+                          {paymentOption === 'charge' && savedCards.length > 0 && (
+                            <Box sx={{ pl: 4 }}>
+                              <TextField
+                                fullWidth
+                                label="Select card"
+                                value={selectedCard}
+                                onChange={(e) => setSelectedCard(e.target.value)}
+                                select
+                                size="small"
+                                sx={fieldSx}
+                              >
+                                {savedCards.map((card) => (
+                                  <MenuItem key={card.id} value={card.id}>
+                                    {card.brand?.toUpperCase()} **** {card.last4} — exp {card.expMonth}/{card.expYear}
+                                  </MenuItem>
+                                ))}
+                              </TextField>
+                            </Box>
+                          )}
+
+                          {paymentOption === 'invoice' && (
+                            <Box sx={{ pl: 4 }}>
+                              <TextField
+                                label="Days until due"
+                                type="number"
+                                value={invoiceDueDays}
+                                onChange={(e) => setInvoiceDueDays(Number(e.target.value))}
+                                size="small"
+                                sx={{ ...fieldSx, maxWidth: 200 }}
+                              />
+                            </Box>
+                          )}
+                        </Stack>
+                      </Box>
+                    </Paper>
+                  ) : null}
+                </>
+              ) : null}
+            </Stack>
+          </Box>
         </DialogContent>
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 2.5,
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            backgroundColor: 'background.paper'
-          }}
-        >
-          {canInvoice && !isEditMode ? (
+        <DialogActions sx={{
+          p: 3,
+          background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
+          borderRadius: '0 0 12px 12px'
+        }}>
+          {/* Payment action for Booked bloqueos */}
+          {isBooked && canInvoice && !isEditMode && paymentOption ? (
             <Button
-              onClick={() => {
-                if (bloqueo) {
-                  onInvoice?.(bloqueo);
-                }
-              }}
+              onClick={handlePayment}
               variant="contained"
-              disabled={invoiceLoading}
-              sx={{ 
-                textTransform: 'none', 
+              disabled={paymentSubmitting || invoiceLoading}
+              sx={{
+                textTransform: 'none',
                 fontWeight: 600,
-                backgroundColor: 'primary.main',
+                px: 3,
+                py: 1,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                 '&:hover': {
-                  backgroundColor: 'primary.dark'
+                  background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
                 }
               }}
             >
-              PAY
+              {paymentSubmitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : (paymentOption === 'charge' ? 'Charge Card' : 'Send Invoice')}
+            </Button>
+          ) : null}
+          {/* Legacy invoice button for non-Booked statuses */}
+          {!isBooked && canInvoice && !isEditMode ? (
+            <Button
+              onClick={() => { if (bloqueo) onInvoice?.(bloqueo); }}
+              variant="contained"
+              disabled={invoiceLoading}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                '&:hover': {
+                  background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+                }
+              }}
+            >
+              {invoiceLoading ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : 'Invoice'}
             </Button>
           ) : null}
           {canEdit && !isEditMode ? (
@@ -3164,35 +2997,40 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
               onClick={handleEditClick}
               variant="outlined"
               startIcon={<EditRoundedIcon fontSize="small" />}
-              sx={{ 
-                textTransform: 'none', 
+              sx={{
+                textTransform: 'none',
                 fontWeight: 600,
-                borderColor: 'primary.main',
-                color: 'primary.main',
+                px: 3,
+                py: 1,
+                color: 'text.secondary',
+                borderColor: 'divider',
                 '&:hover': {
-                  borderColor: 'primary.dark',
-                  backgroundColor: (theme) => `${theme.palette.primary.main}0A`
+                  borderColor: theme.palette.grey[300],
+                  backgroundColor: 'background.default'
                 }
               }}
             >
-              EDIT
+              Edit
             </Button>
           ) : null}
           {isEditMode ? (
             <>
               <Button
                 onClick={handleCancel}
+                startIcon={<CloseRoundedIcon />}
                 variant="outlined"
-                sx={{ 
-                  textTransform: 'none', 
+                sx={{
+                  textTransform: 'none',
                   fontWeight: 600,
-                borderColor: 'secondary.main',
-                color: 'secondary.main',
-                '&:hover': {
-                  borderColor: 'secondary.dark',
-                  backgroundColor: alpha(theme.palette.secondary.main, 0.04)
-                }
-              }}
+                  px: 3,
+                  py: 1,
+                  color: 'text.secondary',
+                  borderColor: 'divider',
+                  '&:hover': {
+                    borderColor: theme.palette.grey[300],
+                    backgroundColor: 'background.default'
+                  }
+                }}
               >
                 Cancel
               </Button>
@@ -3200,16 +3038,18 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 onClick={handleSave}
                 variant="contained"
                 disabled={saving}
-                sx={{ 
-                  textTransform: 'none', 
+                sx={{
+                  textTransform: 'none',
                   fontWeight: 600,
-                  backgroundColor: 'primary.main',
+                  px: 3,
+                  py: 1,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                   '&:hover': {
-                    backgroundColor: 'primary.dark'
+                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
                   }
                 }}
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : 'Save Changes'}
               </Button>
             </>
           ) : null}
@@ -3265,16 +3105,6 @@ const initialDateISO = () => {
   const day = `${today.getDate()}`.padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
-
-// Default rooms catalog for user booking view
-const DEFAULT_CATALOG_ROOMS = [
-  { id: 'ma1a1', slug: 'ma1a1', name: 'MA1A1', productName: 'MA1A1', centro: 'Málaga Workspace', capacity: 8, priceFrom: 35, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1600&q=80', description: 'Sala perfecta para reuniones, formaciones y entrevistas. Equipada con fibra simétrica, pantalla y zona lounge.', amenities: ['TV Screen', 'Whiteboard', 'Video conferencing'], tags: ['TV Screen', 'Whiteboard', 'Video conferencing'] },
-  { id: 'ma1a2', slug: 'ma1a2', name: 'MA1A2', productName: 'MA1A2', centro: 'Málaga Workspace', capacity: 10, priceFrom: 42, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80', description: 'Sala versátil con paneles acústicos y disposición flexible ideal para workshops creativos.', amenities: ['Workshop ready', 'Soundproofing'], tags: ['Workshop ready', 'Soundproofing'] },
-  { id: 'ma1a3', slug: 'ma1a3', name: 'MA1A3', productName: 'MA1A3', centro: 'Málaga Workspace', capacity: 6, priceFrom: 30, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1523875194681-bedd468c58bf?auto=format&fit=crop&w=1600&q=80', description: 'Sala íntima perfecta para pequeñas reuniones y videollamadas.', amenities: ['Video conferencing', 'High-speed Wi-Fi'], tags: ['Video conferencing', 'High-speed Wi-Fi'] },
-  { id: 'ma1a4', slug: 'ma1a4', name: 'MA1A4', productName: 'MA1A4', centro: 'Málaga Workspace', capacity: 12, priceFrom: 48, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1570129476769-55f4a5add5a3?auto=format&fit=crop&w=1600&q=80', description: 'Nuestra sala más grande con sistema AV premium y vista panorámica.', amenities: ['Hybrid ready', 'Panoramic view'], tags: ['Hybrid ready', 'Panoramic view'] },
-  { id: 'ma1a5', slug: 'ma1a5', name: 'MA1A5', productName: 'MA1A5', centro: 'Málaga Workspace', capacity: 4, priceFrom: 24, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1600&q=80', description: 'Espacio acogedor ideal para brainstorming y reuniones creativas.', amenities: ['Brainstorming', 'Whiteboard', 'Cozy'], tags: ['Brainstorming', 'Whiteboard', 'Cozy'] },
-  { id: 'ma1-desks', slug: 'ma1-desks', name: 'MA1 Shared Desk Zone', productName: 'MA1 Desks', centro: 'Málaga Workspace', capacity: 1, priceFrom: 15, currency: 'EUR', heroImage: 'https://images.unsplash.com/photo-1510972527921-ce03766a1cf1?auto=format&fit=crop&w=1600&q=80', description: 'Zona colaborativa con 16 puestos flexibles. Incluye conectividad de alta velocidad, lockers y acceso 24/7.', amenities: ['High-speed Wi-Fi', 'Lockers', '24/7 access', 'Coffee corner'], tags: ['Flex desk', 'Coworking', '24/7 access'] }
-];
 
 // Calendar Legend for user booking
 const UserCalendarLegendItem = ({ label, color }) => (
@@ -4381,7 +4211,7 @@ const UserBookingView = () => {
   const [userBloqueos, setUserBloqueos] = useState([]);
   const [bloqueosLoading, setBloqueosLoading] = useState(false);
   const [selectedBloqueo, setSelectedBloqueo] = useState(null);
-  const catalogRooms = DEFAULT_CATALOG_ROOMS;
+  // Room data now comes from the API (Room entity via /public/productos)
 
   const spaceTypes = [
     { value: 'all', label: 'All Spaces', icon: <BusinessRoundedIcon /> },
@@ -4555,8 +4385,7 @@ const UserBookingView = () => {
       const matchingCentro = centros.find((c) => (c.code ?? '').toUpperCase() === productCenterUpper);
       const centerName = matchingCentro?.label ?? productCenter;
       const city = matchingCentro?.city ?? '';
-      const matchingRoom = catalogRooms.find((room) => (room.productName ?? '').toLowerCase() === name.toLowerCase());
-      const roomSlug = matchingRoom?.slug ?? ((matchingRoom?.id ? matchingRoom.id.toString().toLowerCase() : '') || name.toLowerCase());
+      const roomSlug = name.toLowerCase();
 
       return {
         id: producto.id,
@@ -4565,23 +4394,23 @@ const UserBookingView = () => {
         slug: roomSlug,
         type: 'meeting_room',
         typeLabel: rawType || 'Meeting room',
-        image: matchingRoom?.heroImage || producto.heroImage || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
+        image: producto.heroImage || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
         capacity: producto.capacity != null ? String(producto.capacity) : '—',
         rating: producto.ratingAverage != null ? Number(producto.ratingAverage) : 4.8,
         reviewCount: producto.ratingCount != null ? producto.ratingCount : 0,
         priceFrom: producto.priceFrom,
         price: producto.priceFrom != null ? `€ ${producto.priceFrom}` : '€ —',
         priceUnit: producto.priceUnit || '/h',
-        description: matchingRoom?.description || producto.description || producto.subtitle || `${rawType} - ${name}`,
+        description: producto.description || producto.subtitle || `${rawType} - ${name}`,
         subtitle: producto.subtitle || '',
         gallery: Array.isArray(producto.images) ? producto.images : [],
-        amenities: matchingRoom?.amenities || (Array.isArray(producto.amenities) ? producto.amenities : []),
-        tags: matchingRoom?.tags || (Array.isArray(producto.tags) ? producto.tags : []),
+        amenities: Array.isArray(producto.amenities) ? producto.amenities : [],
+        tags: Array.isArray(producto.tags) ? producto.tags : [],
         location: city || centerName || 'Málaga',
         instantBooking: producto.instantBooking !== false,
         centroCode: productCenter || undefined,
         centerName: centerName || undefined,
-        isBookable: Boolean(matchingRoom)
+        isBookable: true
       };
     });
 
@@ -4596,29 +4425,28 @@ const UserBookingView = () => {
       const centerName = matchingCentro?.label ?? productCenter;
       const city = matchingCentro?.city ?? '';
       const deskCount = mesas.length;
-      const matchingRoom = catalogRooms.find((room) => (room.slug ?? '').toLowerCase() === 'ma1-desks');
-      const roomSlug = matchingRoom?.slug ?? ((matchingRoom?.id ? String(matchingRoom.id).toLowerCase() : '') || 'ma1-desks');
+      const samplePrice = sample.priceFrom;
 
       return {
         id: `desks-${productCenterUpper || 'ma1'}`,
         name: centerName ? `${centerName} Desks` : 'MA1 Desks',
-        description: matchingRoom?.description || `${deskCount} desk${deskCount === 1 ? '' : 's'} available for booking`,
+        description: sample.description || `${deskCount} desk${deskCount === 1 ? '' : 's'} available for booking`,
         productName: 'MA1 Desks',
-        slug: roomSlug,
+        slug: 'ma1-desks',
         type: 'desk',
-        image: matchingRoom?.heroImage || 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=300&fit=crop',
+        image: sample.heroImage || 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400&h=300&fit=crop',
         capacity: '1',
-        rating: 4.8,
-        reviewCount: 0,
-        price: '€ 15',
-        priceUnit: '/day',
+        rating: sample.ratingAverage != null ? Number(sample.ratingAverage) : 4.8,
+        reviewCount: sample.ratingCount != null ? sample.ratingCount : 0,
+        price: samplePrice != null ? `€ ${samplePrice}` : '€ 15',
+        priceUnit: sample.priceUnit || '/day',
         location: city || centerName || 'Málaga',
-        tags: matchingRoom?.tags || [],
+        tags: Array.isArray(sample.tags) ? sample.tags : [],
         instantBooking: true,
         centroCode: productCenter || undefined,
         availableCount: deskCount,
         centerName: centerName || undefined,
-        isBookable: Boolean(matchingRoom)
+        isBookable: true
       };
     })();
 
@@ -4649,7 +4477,7 @@ const UserBookingView = () => {
     }
     
     return filtered;
-  }, [productos, centros, cityFilter, people, catalogRooms]);
+  }, [productos, centros, cityFilter, people]);
 
   // View states: 'list', 'detail', 'booking'
   const [currentView, setCurrentView] = useState('list');
@@ -4970,7 +4798,7 @@ const UserBookingView = () => {
   );
 };
 
-const Booking = ({ mode = 'user' }) => {
+const Booking = ({ mode = 'user', userProfile }) => {
   const theme = useTheme();
   const statusStyles = getStatusStyles(theme);
   const isAdmin = mode === 'admin';
@@ -4998,6 +4826,8 @@ const Booking = ({ mode = 'user' }) => {
     setFilterUserType(defaultAgendaUserType);
   };
   const [bookingFlowActive, setBookingFlowActive] = useState(false);
+  const [slotBookingRoom, setSlotBookingRoom] = useState(null);
+  const [slotBookingTime, setSlotBookingTime] = useState(null);
   const [editBloqueo, setEditBloqueo] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null });
   const [invoiceDialog, setInvoiceDialog] = useState({ open: false, bloqueo: null });
@@ -5454,13 +5284,30 @@ const Booking = ({ mode = 'user' }) => {
     }
   };
 
+  const handleAvailableSlotClick = useCallback((room, slot) => {
+    const sample = (calendarBloqueos || []).find(b => b?.producto?.id === room.productId);
+    const producto = sample?.producto
+      ? { id: sample.producto.id, name: sample.producto.nombre || room.label }
+      : { id: room.productId, name: room.label };
+    const centro = sample?.centro
+      ? { id: sample.centro.id, name: sample.centro.nombre || room.centerName, label: room.centerName }
+      : null;
+
+    setSlotBookingRoom({ _producto: producto, _centro: centro });
+    const startMin = timeStringToMinutes(slot.id);
+    const endMin = startMin + 30;
+    const endTime = `${Math.floor(endMin / 60).toString().padStart(2, '0')}:${(endMin % 60).toString().padStart(2, '0')}`;
+    setSlotBookingTime({ startTime: slot.id, endTime });
+    setBookingFlowActive(true);
+  }, [calendarBloqueos]);
+
   const calendarDateLabel = useMemo(() => formatDate(calendarDate), [calendarDate]);
 
   const noDataMessage = isAdmin
     ? `No bloqueos found for ${calendarDateLabel}. Try a different range or center.`
     : `No bloqueos registered for your account on ${calendarDateLabel}.`;
 
-  // User mode: Show embedded booking interface
+  // User mode: show the UserBookingView with Spaces/Bookings toggle
   if (!isAdmin) {
     return <UserBookingView />;
   }
@@ -5470,10 +5317,12 @@ const Booking = ({ mode = 'user' }) => {
     return (
       <>
         <BookingFlowPage
-          onClose={handleCloseCreateDialog}
-          onCreated={handleReservaCreated}
+          onClose={() => { handleCloseCreateDialog(); setSlotBookingRoom(null); setSlotBookingTime(null); }}
+          onCreated={(res) => { handleReservaCreated(res); setSlotBookingRoom(null); setSlotBookingTime(null); }}
           defaultDate={calendarDate}
           mode={mode}
+          initialRoom={slotBookingRoom}
+          initialTime={slotBookingTime}
         />
         <ReservaDialog
           open={Boolean(editBloqueo)}
@@ -5500,13 +5349,13 @@ const Booking = ({ mode = 'user' }) => {
             Workspace Bookings
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Browse every booking across BeWorking locations. Switch between calendar and agenda views.
+            Browse every booking across BeWorking locations. Switch between calendar and bookings views.
           </Typography>
         </Stack>
         <Stack direction="row" spacing={2} alignItems="center">
           <Tabs value={view} onChange={handleViewChange} sx={getViewToggleTabsStyle(theme)}>
             <Tab icon={<CalendarMonthRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Calendar" value="calendar" />
-            <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Agenda" value="agenda" />
+            <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Bookings" value="agenda" />
           </Tabs>
           <Button
             variant="contained"
@@ -5645,7 +5494,7 @@ const Booking = ({ mode = 'user' }) => {
                                 title={bloqueo ? describeBloqueo(bloqueo) : 'Available slot'}
                               >
                                 <Box
-                                  onClick={() => bloqueo && handleSelectBloqueo(bloqueo)}
+                                  onClick={() => bloqueo ? handleSelectBloqueo(bloqueo) : handleAvailableSlotClick(room, slot)}
                                   sx={{
                                     height: 52,
                                     width: '100%',
@@ -5654,13 +5503,13 @@ const Booking = ({ mode = 'user' }) => {
                                     borderColor: styles.borderColor,
                                     bgcolor: styles.bgcolor,
                                     color: styles.color,
-                                    cursor: bloqueo ? 'pointer' : 'default',
+                                    cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     transition: (theme) => theme.transitions.create(['transform', 'border-color']),
                                     '&:hover': {
-                                      transform: bloqueo ? 'scale(1.05)' : 'none'
+                                      transform: 'scale(1.05)'
                                     }
                                   }}
                                 >
@@ -5693,7 +5542,7 @@ const Booking = ({ mode = 'user' }) => {
               <Grid item xs={12} sm={6} md={2}>
                     <TextField
                   fullWidth
-                  label="Agenda Date"
+                  label="Bookings Date"
               type="date"
               value={agendaDate}
               onChange={handleAgendaDateChange}

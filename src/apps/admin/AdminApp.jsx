@@ -66,6 +66,9 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'Booking') {
       return <Booking mode="admin" />;
     }
+    if (activeTab === 'Invoices') {
+      return <Invoices mode="admin" userProfile={userProfile} />;
+    }
     const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
     if (activeTab === 'Overview') {
       return <Component userType="admin" />;
@@ -74,7 +77,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
       return <Component key={contactsKey} userType="admin" refreshProfile={refreshProfile} userProfile={userProfile} />;
     }
     if (activeTab === 'Business Address') {
-      return <Component userType="admin" />;
+      return <Component userType="admin" userProfile={userProfile} />;
     }
     return <Component />;
   }, [activeTab, contactsKey]);

@@ -31,8 +31,9 @@ const App = () => {
     );
   }
 
-  const isAdmin = profile.role?.toUpperCase() === 'ADMIN';
-  return isAdmin
+  const path = window.location.pathname;
+  const isAdminRoute = path.startsWith('/admin');
+  return isAdminRoute
     ? <AdminApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />
     : <UserApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />;
 };

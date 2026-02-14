@@ -20,7 +20,7 @@ import DialogContent from '@mui/material/DialogContent';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 
-import { createReserva } from '../../../api/bookings.js';
+import { createReserva, createPublicBooking, fetchBookingUsage } from '../../../api/bookings.js';
 import {
   createPaymentIntent,
   fetchCustomerPaymentMethods,
@@ -309,7 +309,106 @@ function AdminPaymentOptions({ onCreated }) {
 }
 
 /* ─────────────────────────────────────
-   User Payment Form (Stripe Elements)
+   Helper: build public booking payload
+   ───────────────────────────────────── */
+function buildPublicPayload(state, extra = {}) {
+  const contact = state.contact || {};
+  const firstName = contact.firstName || contact.name || '';
+  const lastName = contact.lastName || firstName;
+  return {
+    firstName,
+    lastName,
+    email: contact.email || '',
+    phone: contact.phone || '',
+    company: contact.company || '',
+    taxId: contact.taxId || '',
+    productName: state.producto?.name || '',
+    date: state.dateFrom || '',
+    dateTo: state.dateTo || '',
+    startTime: state.startTime || '',
+    endTime: state.endTime || '',
+    attendees: state.attendees ? Number(state.attendees) : 1,
+    ...extra,
+  };
+}
+
+/* ─────────────────────────────────────
+   User: Free Booking Form
+   ───────────────────────────────────── */
+function UserFreeBookingForm({ onCreated, usage }) {
+  const { state, prevStep } = useBookingFlow();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async () => {
+    setError('');
+    setSubmitting(true);
+    try {
+      const payload = buildPublicPayload(state);
+      await createPublicBooking(payload);
+      setSuccess(true);
+    } catch (err) {
+      setError(err.message || 'Something went wrong.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+        <Stack spacing={3} alignItems="center">
+          <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>Booking confirmed!</Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+            Free booking ({usage.used + 1} of {usage.freeLimit}) — no payment required.
+          </Typography>
+          <Button variant="contained" sx={pillButtonSx} onClick={() => onCreated?.({})}>
+            Done
+          </Button>
+        </Stack>
+      </Paper>
+    );
+  }
+
+  return (
+    <Stack spacing={3}>
+      {error && <Alert severity="error">{error}</Alert>}
+      <ReviewSummary state={state} />
+
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+        <Stack spacing={1.5} alignItems="center" sx={{ py: 1 }}>
+          <CheckCircleRoundedIcon sx={{ fontSize: 40, color: 'success.main' }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            Free booking available
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
+            You have used {usage.used} of {usage.freeLimit} free bookings this month.
+            This booking will be free — no payment required.
+          </Typography>
+        </Stack>
+      </Paper>
+
+      <Stack direction="row" spacing={2} justifyContent="space-between">
+        <Button onClick={prevStep} disabled={submitting} sx={backButtonSx}>
+          Back
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={submitting}
+          sx={pillButtonSx}
+        >
+          {submitting ? <CircularProgress size={22} color="inherit" /> : 'Confirm free booking'}
+        </Button>
+      </Stack>
+    </Stack>
+  );
+}
+
+/* ─────────────────────────────────────
+   User: Stripe Payment Form (inner)
    ───────────────────────────────────── */
 function UserPaymentFormInner({ onCreated }) {
   const stripe = useStripe();
@@ -338,25 +437,12 @@ function UserPaymentFormInner({ onCreated }) {
       }
 
       if (result.paymentIntent?.status === 'succeeded') {
-        const contact = state.contact || {};
-        const payload = {
-          firstName: contact.firstName || '',
-          lastName: contact.lastName || '',
-          email: contact.email || '',
-          phone: contact.phone || '',
-          company: contact.company || '',
-          taxId: contact.taxId || '',
-          productName: state.producto?.name || '',
-          date: state.dateFrom || '',
-          dateTo: state.dateTo || '',
-          startTime: state.startTime || '',
-          endTime: state.endTime || '',
-          attendees: state.attendees ? Number(state.attendees) : 1,
+        const payload = buildPublicPayload(state, {
           stripePaymentIntentId: result.paymentIntent.id,
-        };
-        const response = await createReserva(payload);
+        });
+        await createPublicBooking(payload);
         setSuccess(true);
-        onCreated?.(response);
+        onCreated?.({});
       }
     } catch (err) {
       setError(err.message || 'Something went wrong.');
@@ -372,7 +458,7 @@ function UserPaymentFormInner({ onCreated }) {
           <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
           <Typography variant="h5" sx={{ fontWeight: 700 }}>Booking confirmed!</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Your payment of €{pricing.total.toFixed(2)} was successful. You'll receive a confirmation email shortly.
+            Your payment of €{pricing.total.toFixed(2)} was successful.
           </Typography>
         </Stack>
       </Paper>
@@ -413,13 +499,37 @@ function UserPaymentFormInner({ onCreated }) {
   );
 }
 
+/* ─────────────────────────────────────
+   User Payment Form (checks free eligibility first)
+   ───────────────────────────────────── */
 function UserPaymentForm({ onCreated }) {
   const { state } = useBookingFlow();
   const pricing = useMemo(() => computePricing(state), [state]);
   const [clientSecret, setClientSecret] = useState(null);
   const [error, setError] = useState('');
+  const [usage, setUsage] = useState(null); // { used, freeLimit, isFree }
+  const [usageLoading, setUsageLoading] = useState(true);
 
+  const contactEmail = state.contact?.email || '';
+  const productName = state.producto?.name || '';
+
+  // Check free booking eligibility on mount
   useEffect(() => {
+    if (!contactEmail || !productName) {
+      setUsageLoading(false);
+      return;
+    }
+    setUsageLoading(true);
+    fetchBookingUsage(contactEmail, productName)
+      .then((res) => setUsage(res))
+      .catch(() => setUsage(null))
+      .finally(() => setUsageLoading(false));
+  }, [contactEmail, productName]);
+
+  // Only create Stripe intent if NOT free
+  useEffect(() => {
+    if (usageLoading) return;
+    if (usage?.isFree) return; // skip Stripe for free bookings
     const amountCents = Math.round(pricing.total * 100);
     if (amountCents <= 0) return;
     createPaymentIntent({
@@ -427,12 +537,35 @@ function UserPaymentForm({ onCreated }) {
       currency: 'eur',
       reference: String(state.producto?.id || 'booking'),
       description: `Booking: ${state.producto?.name || ''} (${state.dateFrom})`,
-      customerEmail: state.contact?.email || '',
+      customerEmail: contactEmail,
     })
       .then((res) => setClientSecret(res.clientSecret))
       .catch((err) => setError(err.message || 'Failed to initialize payment.'));
-  }, [pricing.total, state.producto, state.dateFrom, state.contact]);
+  }, [usageLoading, usage, pricing.total, state.producto, state.dateFrom, contactEmail]);
 
+  // Loading state
+  if (usageLoading) {
+    return (
+      <Stack spacing={3}>
+        <ReviewSummary state={state} />
+        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+          <Stack spacing={2} alignItems="center">
+            <CircularProgress size={28} />
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              Checking booking eligibility...
+            </Typography>
+          </Stack>
+        </Paper>
+      </Stack>
+    );
+  }
+
+  // Free booking path
+  if (usage?.isFree) {
+    return <UserFreeBookingForm onCreated={onCreated} usage={usage} />;
+  }
+
+  // Paid booking path
   if (error) {
     return <Alert severity="error">{error}</Alert>;
   }

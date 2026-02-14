@@ -45,6 +45,7 @@ export const apiFetch = async (path, options = {}) => {
     body,
     credentials = 'include',
     signal,
+    parse,
     _retry = false
   } = options;
 
@@ -100,6 +101,9 @@ export const apiFetch = async (path, options = {}) => {
   if (response.status === 204) {
     return null;
   }
+
+  if (parse === 'blob') return response.blob();
+  if (parse === 'text') return response.text();
 
   const contentType = response.headers.get('content-type') || '';
   return contentType.includes('application/json') ? response.json() : response.text();
