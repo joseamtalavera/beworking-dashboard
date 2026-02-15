@@ -48,6 +48,11 @@ import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
+import MarkunreadMailboxRoundedIcon from '@mui/icons-material/MarkunreadMailboxRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
@@ -376,15 +381,16 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                 
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <MemoizedTextField 
-                      label="User / Company name" 
-                      value={form.name} 
-                      onChange={handleFieldChange('name')} 
-                      fullWidth 
+                    <MemoizedTextField
+                      label="User / Company name"
+                      value={form.name}
+                      onChange={handleFieldChange('name')}
+                      fullWidth
                       required
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
                   <Grid item xs={12} sm={6}>
@@ -407,37 +413,40 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={6}>
                 <TextField
-                      label="Primary contact" 
-                      value={form.primaryContact} 
-                      onChange={handleFieldChange('primaryContact')} 
-                      fullWidth 
+                      label="Primary contact"
+                      value={form.primaryContact}
+                      onChange={handleFieldChange('primaryContact')}
+                      fullWidth
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <MemoizedTextField 
-                      label="Email" 
-                      type="email" 
-                      value={form.email} 
-                      onChange={handleFieldChange('email')} 
-                      fullWidth 
+                    <MemoizedTextField
+                      label="Email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleFieldChange('email')}
+                      fullWidth
                       required
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlinedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
-                      label="Phone" 
-                      value={form.phone} 
-                      onChange={handleFieldChange('phone')} 
-                      fullWidth 
+                    <TextField
+                      label="Phone"
+                      value={form.phone}
+                      onChange={handleFieldChange('phone')}
+                      fullWidth
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PhoneRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -514,25 +523,27 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               <Box sx={{ p: 3 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
-                      label="Billing company" 
-                      value={form.billingCompany} 
-                      onChange={handleFieldChange('billingCompany')} 
-                      fullWidth 
+                    <TextField
+                      label="Billing company"
+                      value={form.billingCompany}
+                      onChange={handleFieldChange('billingCompany')}
+                      fullWidth
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
-                      label="Billing email" 
-                      value={form.billingEmail} 
-                      onChange={handleFieldChange('billingEmail')} 
-                      fullWidth 
+                    <TextField
+                      label="Billing email"
+                      value={form.billingEmail}
+                      onChange={handleFieldChange('billingEmail')}
+                      fullWidth
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlinedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
               <Grid item xs={12}>
@@ -544,39 +555,43 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><HomeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                 />
               </Grid>
                   <Grid item xs={12} sm={4}>
-                    <TextField 
-                      label="Postal code" 
-                      value={form.billingPostalCode} 
-                      onChange={handleFieldChange('billingPostalCode')} 
-                      fullWidth 
+                    <TextField
+                      label="Postal code"
+                      value={form.billingPostalCode}
+                      onChange={handleFieldChange('billingPostalCode')}
+                      fullWidth
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><MarkunreadMailboxRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
                   <Grid item xs={12} sm={4}>
-                    <TextField 
-                      label="County" 
-                      value={form.billingCounty} 
-                      onChange={handleFieldChange('billingCounty')} 
-                      fullWidth 
+                    <TextField
+                      label="County"
+                      value={form.billingCounty}
+                      onChange={handleFieldChange('billingCounty')}
+                      fullWidth
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><LocationCityRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
                   <Grid item xs={12} sm={4}>
-                    <TextField 
-                      label="Country" 
-                      value={form.billingCountry} 
-                      onChange={handleFieldChange('billingCountry')} 
-                      fullWidth 
+                    <TextField
+                      label="Country"
+                      value={form.billingCountry}
+                      onChange={handleFieldChange('billingCountry')}
+                      fullWidth
                       variant="outlined"
                       size="small"
                       sx={contactFieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PublicRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
             </Grid>

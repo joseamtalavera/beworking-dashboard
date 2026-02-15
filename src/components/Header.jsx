@@ -195,7 +195,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ width: { xs: '100%', md: 'auto' } }}>
-            <Box sx={{ position: 'relative', width: { xs: '100%', sm: 220, md: 280, lg: 320 } }}>
+            <Box sx={{ position: 'relative', width: { xs: '100%', sm: 220, md: 280, lg: 320 }, order: { xs: 1, sm: 0 } }}>
             <TextField
               placeholder="Search…"
               size="small"

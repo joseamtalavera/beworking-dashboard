@@ -14,8 +14,8 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Pagination from '@mui/material/Pagination';
 import Chip from '@mui/material/Chip';
-import Link from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
+import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
@@ -25,10 +25,10 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import InputAdornment from '@mui/material/InputAdornment';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
-import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
-import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded';
+import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 
 import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
@@ -42,14 +42,9 @@ const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(number);
 };
 
-const statusColor = (estado) => {
+const isPaid = (estado) => {
   const key = (estado || '').toLowerCase();
-  if (key.includes('pag') || key.includes('paid') || key.includes('pagado')) return 'success';
-  if (key.includes('pend') || key.includes('confir')) return 'error';
-  // invoice/facturas should be shown as warning (yellow) until paid
-  if (key.includes('fact') || key.includes('invoice') || key.includes('invoiced')) return 'warning';
-  if (key.includes('cancel')) return 'default';
-  return 'default';
+  return key.includes('pag') || key.includes('paid');
 };
 
 const PAGE_SIZE = 100; // Server-side pagination - 100 invoices per page
@@ -238,7 +233,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
+                        <SearchOutlinedIcon sx={{ color: 'text.disabled' }} />
                       </InputAdornment>
                     ),
                   }}
@@ -274,7 +269,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <ReceiptRoundedIcon sx={{ color: 'text.disabled' }} />
+                    <ReceiptOutlinedIcon sx={{ color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
               }}
@@ -289,9 +284,9 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 label="Status"
                 displayEmpty
               >
-                <MenuItem value="">All Status</MenuItem>
+                <MenuItem value="">All</MenuItem>
                 <MenuItem value="paid">Paid</MenuItem>
-                <MenuItem value="invoiced">Invoiced</MenuItem>
+                <MenuItem value="unpaid">Unpaid</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -331,7 +326,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <CategoryRoundedIcon sx={{ color: 'text.disabled' }} />
+                    <CategoryOutlinedIcon sx={{ color: 'text.disabled' }} />
                   </InputAdornment>
                 ),
               }}
@@ -360,60 +355,62 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             />
           </Grid>
         </Grid>
-        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => setFilters({
-              name: '',
-              email: '',
-              idFactura: '',
-              status: '',
-              tenantType: '',
-              product: '',
-              startDate: '',
-              endDate: ''
-            })}
-            sx={{
-              minWidth: 120,
-              height: 36,
-              textTransform: 'none',
-              fontWeight: 600,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': {
-                borderColor: 'primary.dark',
-                color: 'primary.dark',
-                backgroundColor: (theme) => `${theme.palette.primary.main}14`,
-                transform: 'translateY(-1px)',
-                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`
-              },
-              transition: 'all 0.2s ease-in-out'
-            }}
-          >
-            Reset
-          </Button>
-          {isAdmin && (
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
             <Button
-              onClick={() => setNewInvoiceOpen(true)}
-              variant="contained"
+              variant="outlined"
               size="small"
+              onClick={() => setFilters({
+                name: '',
+                email: '',
+                idFactura: '',
+                status: '',
+                tenantType: '',
+                product: '',
+                startDate: '',
+                endDate: ''
+              })}
               sx={{
-                minWidth: 120,
+                minWidth: 100,
                 height: 36,
                 textTransform: 'none',
                 fontWeight: 600,
-                backgroundColor: 'primary.main',
-                color: 'white',
+                borderColor: 'primary.main',
+                color: 'primary.main',
                 '&:hover': {
-                  backgroundColor: 'primary.dark'
-                }
+                  borderColor: 'primary.dark',
+                  color: 'primary.dark',
+                  backgroundColor: (theme) => `${theme.palette.primary.main}14`,
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`
+                },
+                transition: 'all 0.2s ease-in-out'
               }}
             >
-              New invoice
+              Reset
             </Button>
-          )}
-          <Stack direction="row" spacing={2} sx={{ alignSelf: 'center', width: '100%' }} justifyContent="space-between">
+            {isAdmin && (
+              <Button
+                onClick={() => setNewInvoiceOpen(true)}
+                variant="contained"
+                size="small"
+                sx={{
+                  minWidth: 100,
+                  height: 36,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark'
+                  }
+                }}
+              >
+                New invoice
+              </Button>
+            )}
+          </Stack>
+          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">
               Showing {rows.length} invoices
             </Typography>
@@ -439,48 +436,50 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       ) : (
         <>
           <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small">
+          <Table size="small" sx={{ minWidth: isAdmin ? 820 : 600, '& .MuiTableCell-root': { px: 1.5, whiteSpace: 'nowrap' } }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 'bold' }}>Invoice ID</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>}
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold' }}>User type</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold' }}>Products</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Issued</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Document</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Invoice ID</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Client</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>User type</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 140, whiteSpace: 'normal' }}>Products</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold', minWidth: 90 }}>Total</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 90 }}>Issued</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 70 }}>Document</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedRows.map((inv) => (
           <TableRow key={inv.id} hover>
                   <TableCell>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
-                  {isAdmin && <TableCell>{inv.clientName || '\u2014'}</TableCell>}
+                  <TableCell>{inv.clientName || '\u2014'}</TableCell>
                   {isAdmin && <TableCell>{inv.tenantType || '\u2014'}</TableCell>}
-                  <TableCell>{inv.products || '\u2014'}</TableCell>
-                  <TableCell align="right">{formatCurrency(inv.total)}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={inv.estado || '\u2014'}
-                      size="small"
-                      color={statusColor(inv.estado)}
-                      variant="outlined"
-                      sx={{
-                        minWidth: 100,
-                        height: 24,
-                        fontSize: '0.75rem',
-                        fontWeight: 500
-                      }}
-                    />
+                  <TableCell sx={{ whiteSpace: 'normal' }}>{inv.products || '\u2014'}</TableCell>
+                  <TableCell align="right">
+                    <Tooltip title={isPaid(inv.estado) ? 'Paid' : 'Unpaid'} arrow>
+                      <Chip
+                        label={formatCurrency(inv.total)}
+                        size="small"
+                        variant="outlined"
+                        color={isPaid(inv.estado) ? 'success' : 'error'}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          minWidth: 80,
+                          height: 24,
+                        }}
+                      />
+                    </Tooltip>
                   </TableCell>
                   <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '\u2014'}</TableCell>
-                  <TableCell align="right">
-                    <Link
-                      component="button"
-                      onClick={async (e) => {
-                        e.preventDefault();
+                  <TableCell align="center">
+                    <Chip
+                      label="PDF"
+                      size="small"
+                      variant="outlined"
+                      clickable
+                      onClick={async () => {
                         try {
                           const blob = await fetchInvoicePdfBlob(inv.id);
                           const objectUrl = URL.createObjectURL(blob);
@@ -493,11 +492,18 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                           } catch {}
                         }
                       }}
-                      color="secondary.main"
-                      underline="hover"
-                    >
-                      Open
-                    </Link>
+                      sx={{
+                        borderColor: 'primary.main',
+                        color: 'primary.main',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        height: 24,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                        },
+                      }}
+                    />
                   </TableCell>
                   {isAdmin && (
                   <TableCell>
@@ -542,7 +548,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               ))}
               {paginatedRows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 9 : 6} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={isAdmin ? 8 : 6} align="center" sx={{ py: 6 }}>
                     <Typography variant="body2" color="text.secondary">No invoices found.</Typography>
                   </TableCell>
                 </TableRow>
