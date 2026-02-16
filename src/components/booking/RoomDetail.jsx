@@ -12,6 +12,11 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esBooking from '../../i18n/locales/es/booking.json';
+import enBooking from '../../i18n/locales/en/booking.json';
+
 import { fetchPublicAvailability } from '../../api/bookings';
 import RoomCalendarGrid, { CalendarLegend } from './RoomCalendarGrid';
 
@@ -49,6 +54,11 @@ import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
 import WeekendRoundedIcon from '@mui/icons-material/WeekendRounded';
 import WifiRoundedIcon from '@mui/icons-material/WifiRounded';
+
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 // ── Icon pickers (same as booking app) ──
 
@@ -108,6 +118,7 @@ const DEFAULT_BOOKING_INSTRUCTIONS = [
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export default function RoomDetail({ space, onBack, onStartBooking }) {
+  const { t } = useTranslation('booking');
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
@@ -228,7 +239,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
             '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'text.primary' },
           }}
         >
-          Back
+          {t('detail.back')}
         </Button>
 
         {/* Header */}
@@ -257,7 +268,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               </Typography>
             )}
             <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '1rem' }}>
-              {`Capacidad ${capacity || '—'} personas · desde ${priceFrom ?? '—'} ${priceUnit}`}
+              {t('detail.capacityLine', { capacity: capacity || '—', price: priceFrom ?? '—', unit: priceUnit })}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
@@ -268,7 +279,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               onClick={handleShare}
               sx={{ textTransform: 'none', fontWeight: 700, color: 'text.primary' }}
             >
-              Compartir
+              {t('detail.share')}
             </Button>
             <Button
               size="small"
@@ -286,7 +297,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               }}
               sx={{ textTransform: 'none', fontWeight: 700, color: 'text.primary' }}
             >
-              Guardar
+              {t('detail.save')}
             </Button>
           </Stack>
         </Stack>
@@ -351,7 +362,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 '&:hover': { backgroundColor: 'background.default' },
               }}
             >
-              {`${galleryImages.length} photos`}
+              {t('detail.photos', { count: galleryImages.length })}
             </Button>
           </Box>
         ) : null}
@@ -363,7 +374,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               {/* Description */}
               <section>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, fontSize: '1.5rem' }}>
-                  Descripción
+                  {t('detail.description')}
                 </Typography>
                 <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.65, fontSize: '1rem' }}>
                   {description}
@@ -374,7 +385,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               {amenities.length > 0 && (
                 <section>
                   <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, fontSize: '1.5rem' }}>
-                    Servicios incluidos
+                    {t('detail.includedServices')}
                   </Typography>
                   <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1.5}>
                     {amenities.map((amenity) => {
@@ -414,7 +425,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               {/* Cancellation policy */}
               <section>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, fontSize: '1.5rem' }}>
-                  Política de cancelación
+                  {t('detail.cancellationPolicy')}
                 </Typography>
                 <Stack spacing={1.25}>
                   {cancellationPolicy.map((item) => {
@@ -434,7 +445,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               {/* Booking instructions */}
               <section>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, fontSize: '1.5rem' }}>
-                  Instrucciones
+                  {t('detail.instructions')}
                 </Typography>
                 <Stack spacing={1.25}>
                   {bookingInstructions.map((item) => {
@@ -468,12 +479,12 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               }}
             >
               <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
-                Disponibilidad
+                {t('detail.availability')}
               </Typography>
 
               <TextField
                 size="small"
-                label="Date"
+                label={t('detail.date')}
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
@@ -503,9 +514,9 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
               <Divider />
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {capacity ? `Capacidad: ${capacity} personas` : ''}
+                {capacity ? t('detail.capacityOnly', { capacity }) : ''}
                 {capacity && priceFrom != null ? ' · ' : ''}
-                {priceFrom != null ? `desde ${priceFrom} ${priceUnit}` : ''}
+                {priceFrom != null ? t('detail.fromPrice', { price: priceFrom, unit: priceUnit }) : ''}
               </Typography>
               <Button
                 onClick={onStartBooking}
@@ -523,7 +534,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   py: 1.25,
                 }}
               >
-                Start booking
+                {t('detail.startBooking')}
               </Button>
             </Stack>
           </Grid>
@@ -532,7 +543,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
         {/* Map */}
         <section>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, fontSize: '1.5rem' }}>
-            Ubicación
+            {t('detail.location')}
           </Typography>
           <Box
             sx={{

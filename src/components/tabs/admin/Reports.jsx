@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -25,41 +26,44 @@ const reports = [
   }
 ];
 
-const Reports = () => (
-  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
-    <Stack spacing={0.5} sx={{ mb: 3 }}>
-      <Typography variant="h6" fontWeight={700}>
-        Analytics & reports
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        Connect your data warehouse or BI layer to export curated dashboards.
-      </Typography>
-    </Stack>
-    <Grid container spacing={2}>
-      {reports.map((report) => (
-        <Grid key={report.id} item xs={12} md={6}>
-          <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5, height: '100%' }}>
-            <Stack spacing={1.5}>
-              <Typography variant="subtitle1" fontWeight={600}>
-                {report.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {report.description}
-              </Typography>
-              <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                <Typography variant="caption" color="text.secondary">
-                  Refresh: {report.frequency}
+const Reports = () => {
+  const { t } = useTranslation();
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Stack spacing={0.5} sx={{ mb: 3 }}>
+        <Typography variant="h6" fontWeight={700}>
+          {t('stubs.reports.title')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {t('stubs.reports.subtitle')}
+        </Typography>
+      </Stack>
+      <Grid container spacing={2}>
+        {reports.map((report) => (
+          <Grid key={report.id} item xs={12} md={6}>
+            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2.5, height: '100%' }}>
+              <Stack spacing={1.5}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {report.title}
                 </Typography>
-                <Button variant="outlined" size="small" sx={{ borderRadius: 2 }}>
-                  View report
-                </Button>
+                <Typography variant="body2" color="text.secondary">
+                  {report.description}
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                  <Typography variant="caption" color="text.secondary">
+                    {t('common.refresh')}: {report.frequency}
+                  </Typography>
+                  <Button variant="outlined" size="small" sx={{ borderRadius: 2 }}>
+                    {t('common.viewReport')}
+                  </Button>
+                </Stack>
               </Stack>
-            </Stack>
-          </Paper>
-        </Grid>
-      ))}
-    </Grid>
-  </Paper>
-);
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Paper>
+  );
+};
 
 export default Reports;

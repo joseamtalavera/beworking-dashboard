@@ -20,50 +20,59 @@ import ChatBubbleRoundedIcon from '@mui/icons-material/ChatBubbleRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PlayCircleRoundedIcon from '@mui/icons-material/PlayCircleRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n/i18n.js';
+import esSettings from '../i18n/locales/es/settings.json';
+import enSettings from '../i18n/locales/en/settings.json';
 
-// accentColor is defined inside component using theme.palette.brand.green
-
-const helpArticles = [
-  {
-    id: 'getting-started',
-    title: 'Getting started with BeWorking',
-    summary: 'Set up your tenant spaces, invite teammates, and configure branding.',
-    url: '#'
-  },
-  {
-    id: 'billing',
-    title: 'Manage billing and invoices',
-    summary: 'Understand Stripe charges, update payment methods, download invoices.',
-    url: '#'
-  },
-  {
-    id: 'automations',
-    title: 'Build automations with n8n',
-    summary: 'Create workflows that connect your apps and streamline BeWorking tasks.',
-    url: '#'
-  }
-];
-
-const quickAnswers = [
-  'How do I update my card on file?',
-  'Where can I see all tenant invoices?',
-  'How do automations sync with n8n?',
-  'Is there an API for booking rooms?'
-];
+if (!i18n.hasResourceBundle('es', 'settings')) {
+  i18n.addResourceBundle('es', 'settings', esSettings);
+  i18n.addResourceBundle('en', 'settings', enSettings);
+}
 
 const HelpSupportDrawer = ({ open, onClose }) => {
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
+  const { t } = useTranslation('settings');
+
+  const helpArticles = [
+    {
+      id: 'getting-started',
+      title: t('help.articles.gettingStarted.title'),
+      summary: t('help.articles.gettingStarted.summary'),
+      url: '#'
+    },
+    {
+      id: 'billing',
+      title: t('help.articles.billing.title'),
+      summary: t('help.articles.billing.summary'),
+      url: '#'
+    },
+    {
+      id: 'automations',
+      title: t('help.articles.automations.title'),
+      summary: t('help.articles.automations.summary'),
+      url: '#'
+    }
+  ];
+
+  const quickAnswers = [
+    t('help.questions.card'),
+    t('help.questions.invoices'),
+    t('help.questions.automations'),
+    t('help.questions.api')
+  ];
+
   return (
     <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', md: 420 } } }}>
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
           <Stack spacing={0.5}>
             <Typography variant="h6" fontWeight="bold">
-              Help & Support
+              {t('help.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Chat with us, search documentation, or watch quick walkthroughs.
+              {t('help.subtitle')}
             </Typography>
           </Stack>
           <IconButton onClick={onClose}>
@@ -80,10 +89,10 @@ const HelpSupportDrawer = ({ open, onClose }) => {
             </Avatar>
             <Box>
               <Typography variant="subtitle1" fontWeight="bold">
-                Live chat
+                {t('help.liveChat')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Our support engineers respond within a few minutes during business hours.
+                {t('help.liveChatDesc')}
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
                 <Button 
@@ -102,7 +111,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                   }} 
                   startIcon={<ChatBubbleRoundedIcon fontSize="small" />}
                 >
-                  START CHAT
+                  {t('help.startChat')}
                 </Button>
                 <Button 
                   variant="outlined" 
@@ -124,7 +133,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                     transition: 'all 0.2s ease-in-out'
                   }}
                 >
-                  BOOK CALL
+                  {t('help.bookCall')}
                 </Button>
               </Stack>
             </Box>
@@ -133,7 +142,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
 
         <Stack spacing={2}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Quick answers
+            {t('help.quickAnswers')}
           </Typography>
           <List dense sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
             {quickAnswers.map((question) => (
@@ -149,7 +158,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                       {question}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Tap to open the relevant article
+                      {t('help.tapToOpen')}
                     </Typography>
                   </Stack>
                 </Button>
@@ -162,7 +171,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
 
         <Stack spacing={2}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Documentation
+            {t('help.documentation')}
           </Typography>
           <List dense>
             {helpArticles.map((article) => (
@@ -189,7 +198,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
 
         <Stack spacing={2}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Tutorials
+            {t('help.tutorials')}
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -200,10 +209,10 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                   </Avatar>
                   <Box>
                     <Typography variant="body1" fontWeight={600}>
-                      Introduction to BeWorking dashboard
+                      {t('help.videoIntro.title')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      6 min video · core navigation, tabs, and key features
+                      {t('help.videoIntro.desc')}
                     </Typography>
                   </Box>
                 </Stack>
@@ -217,10 +226,10 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                   </Avatar>
                   <Box>
                     <Typography variant="body1" fontWeight={600}>
-                      Automations with n8n
+                      {t('help.videoAutomations.title')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      9 min video · building flows and syncing executions
+                      {t('help.videoAutomations.desc')}
                     </Typography>
                   </Box>
                 </Stack>
@@ -233,13 +242,13 @@ const HelpSupportDrawer = ({ open, onClose }) => {
 
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Leave us a note
+            {t('help.leaveNote')}
           </Typography>
           <TextField
             multiline
             minRows={3}
             fullWidth
-            placeholder="How can we help? Share your question and we’ll reply by email."
+            placeholder={t('help.notePlaceholder')}
             variant="outlined"
             size="small"
           />
@@ -259,7 +268,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
               } 
             }}
           >
-            SEND MESSAGE
+            {t('help.sendMessage')}
           </Button>
         </Paper>
       </Box>

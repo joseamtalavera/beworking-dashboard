@@ -1,0 +1,217 @@
+{
+  "tabs": {
+    "Overview": "Overview",
+    "Contacts": "Contacts",
+    "Business Address": "Business Address",
+    "Booking": "Meeting Rooms",
+    "Invoices": "Invoices",
+    "Expenses": "Expenses",
+    "BankReconciliation": "Banks",
+    "CryptWallet": "Crypto Wallet",
+    "PasswordManagement": "Passwords",
+    "DigitalSignature": "Signature",
+    "Integrations": "Integrations",
+    "Automation": "Automation",
+    "Community": "Community",
+    "Events": "Events",
+    "Storage": "Storage",
+    "Tickets": "Tickets",
+    "Reports": "Reports",
+    "Marketplace": "Marketplace",
+    "SpaceCatalog": "Space Catalog"
+  },
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "header": {
+    "subtitle": "Here's the latest across your spaces.",
+    "search": "Search…",
+    "clearSearch": "Clear search",
+    "openNav": "Open navigation",
+    "action": "Action",
+    "addBloqueo": "Add bloqueo",
+    "createInvoice": "Create invoice",
+    "addContact": "Add contact",
+    "settings": "Settings",
+    "help": "Help",
+    "helpSupport": "Help & Support"
+  },
+  "search": {
+    "tenant": "tenant",
+    "room": "room",
+    "automation": "automation",
+    "code": "Code"
+  },
+  "sidebar": {
+    "settings": "Settings",
+    "logout": "Logout",
+    "soon": "Soon"
+  },
+  "app": {
+    "redirecting": "Redirecting to login…"
+  },
+  "language": {
+    "toggle": "ES",
+    "current": "English"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading…",
+    "noResults": "No results",
+    "error": "Error",
+    "success": "Success",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "all": "All",
+    "none": "None",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "download": "Download",
+    "upload": "Upload",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "total": "Total",
+    "date": "Date",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "actions": "Actions",
+    "comingSoon": "Coming soon",
+    "viewReport": "View report",
+    "refresh": "Refresh"
+  },
+  "stubs": {
+    "community": {
+      "title": "Community Hub",
+      "description": "Our community forums and discussion boards are coming soon. Connect with other users, share ideas, and get support from peers."
+    },
+    "events": {
+      "title": "Events Calendar",
+      "description": "The events management system is on its way. You'll soon be able to track, create, and manage both virtual and in-person events."
+    },
+    "expenses": {
+      "title": "Expenses",
+      "subtitle": "Track and manage your business expenses, receipts, and reimbursements.",
+      "cardTitle": "Expenses Management",
+      "cardDesc": "Track your business expenses, upload receipts, and manage reimbursements all in one place.",
+      "cardHint": "This feature is coming soon and will include expense tracking, receipt management, and automated categorization."
+    },
+    "storage": {
+      "totalSpace": "Total Space",
+      "usedSpace": "Used Space",
+      "files": "Files",
+      "folders": "Folders",
+      "recentFiles": "Recent Files",
+      "uploadFile": "Upload File",
+      "name": "Name",
+      "size": "Size",
+      "lastModified": "Last Modified",
+      "actions": "Actions"
+    },
+    "agent": {
+      "title": "AI Agent",
+      "online": "Online",
+      "greeting": "Hello! I'm your AI assistant. How can I help you today?",
+      "response": "I understand your request. Let me help you with that.",
+      "placeholder": "Type your message..."
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "subtitle": "Discover and connect with professional service providers for your business needs.",
+      "browseByCategory": "Browse by Category",
+      "allServices": "All Services",
+      "marketing": "Marketing",
+      "legal": "Legal",
+      "accounting": "Accounting",
+      "technology": "Technology",
+      "featured": "Featured",
+      "services": "Services:",
+      "more": "+{{count}} more",
+      "reviews": "reviews",
+      "contactNow": "Contact Now - {{price}}",
+      "noServices": "No services found in this category",
+      "noServicesHint": "Try selecting a different category or check back later for new services."
+    },
+    "integrations": {
+      "title": "Integrations hub",
+      "subtitle": "Connect the SaaS tools your teams rely on and stream their data into a single BeWorking dashboard.",
+      "connectedApps": "Connected apps",
+      "liveDataSources": "Live data sources",
+      "dataChannels": "Data channels",
+      "feedsSyncing": "Feeds syncing into dashboards",
+      "pendingRequests": "Pending requests",
+      "availableToConnect": "Available to connect",
+      "activeConnections": "Active connections",
+      "activeConnectionsHint": "Data pushes occur automatically based on the sync interval configured for each integration.",
+      "availableIntegrations": "Available integrations",
+      "requestAccess": "Request access",
+      "roadmap": "Roadmap",
+      "roadmapHint": "These integrations are already in development. Vote for priority or register early access.",
+      "notifyMe": "Notify me",
+      "lastSync": "Last sync",
+      "dataStreams": "Data streams",
+      "syncHealth": "Sync health",
+      "syncNow": "Sync now",
+      "connected": "Connected",
+      "actionRequired": "Action required",
+      "disconnected": "Disconnected",
+      "autoSyncEnabled": "Auto-sync enabled",
+      "autoSyncDisabled": "Auto-sync disabled"
+    },
+    "automation": {
+      "title": "Automation canvas",
+      "subtitle": "Sketch BeWorking automations visually. Drag nodes, connect steps, and sync the workflow with your n8n instance.",
+      "palette": "Palette",
+      "paletteHint": "Choose blocks to add to the flow.",
+      "nodeDetails": "Node details",
+      "configure": "Configure",
+      "displayName": "Display name",
+      "quickActions": "Quick actions",
+      "duplicate": "DUPLICATE",
+      "delete": "DELETE",
+      "duplicateNode": "Duplicate node",
+      "deleteNode": "Delete node",
+      "connectTo": "Connect to…",
+      "linkedEdges": "Linked edges",
+      "noEdges": "No edges yet. Connect this node to another step.",
+      "removeConnection": "Remove connection",
+      "remove": "Remove",
+      "testNode": "TEST NODE",
+      "selectNode": "Select a node",
+      "selectNodeHint": "Choose a block in the canvas to edit configuration and connections."
+    },
+    "reports": {
+      "title": "Analytics & reports",
+      "subtitle": "Connect your data warehouse or BI layer to export curated dashboards."
+    },
+    "adminBookings": {
+      "title": "Bookings overview",
+      "subtitle": "All reservations across BeWorking locations. Integrate with your booking API to surface real data.",
+      "bookingId": "Booking ID",
+      "tenant": "Tenant",
+      "room": "Room",
+      "date": "Date",
+      "time": "Time",
+      "status": "Status"
+    },
+    "tickets": {
+      "title": "Support tickets",
+      "subtitle": "Track tenant requests and SLA across the workspace.",
+      "openTicket": "OPEN TICKET"
+    }
+  }
+}

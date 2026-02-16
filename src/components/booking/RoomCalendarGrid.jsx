@@ -11,6 +11,10 @@ import TableRow from '@mui/material/TableRow';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esBooking from '../../i18n/locales/es/booking.json';
+import enBooking from '../../i18n/locales/en/booking.json';
 import {
   buildTimeSlots,
   buildTimeSlotsFromBloqueos,
@@ -20,6 +24,11 @@ import {
   mapStatusKey,
   statusStyles
 } from '../../utils/calendarUtils';
+
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 export const CalendarLegendItem = ({ label, color }) => (
   <Stack direction="row" spacing={1} alignItems="center">
@@ -41,20 +50,22 @@ export const CalendarLegendItem = ({ label, color }) => (
 
 export const CalendarLegend = ({ styles: stylesProp }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const styles = stylesProp || statusStyles(theme);
 
   return (
     <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-      <CalendarLegendItem label="Available" color={styles.available} />
-      <CalendarLegendItem label="Paid" color={styles.paid} />
-      <CalendarLegendItem label="Invoiced" color={styles.invoiced} />
-      <CalendarLegendItem label="Booked" color={styles.created} />
+      <CalendarLegendItem label={t('status.available')} color={styles.available} />
+      <CalendarLegendItem label={t('status.paid')} color={styles.paid} />
+      <CalendarLegendItem label={t('status.invoiced')} color={styles.invoiced} />
+      <CalendarLegendItem label={t('status.booked')} color={styles.created} />
     </Stack>
   );
 };
 
 const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onSelectSlot, interactive = !!onSelectSlot, isDesk = false, deskSlotInfo = null, deskCount = 16 }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const timeSlots = useMemo(() => isDesk ? buildTimeSlots() : buildTimeSlotsFromBloqueos(bloqueos), [isDesk, bloqueos]);
   const resolvedStatusStyles = useMemo(() => statusStyles(theme), [theme]);
   const tableMinWidth = useMemo(() => {
@@ -89,7 +100,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
       <Stack spacing={3} sx={{ p: 3 }}>
         <Stack spacing={0.5}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Availability · {room?.name || 'Meeting room'}
+            {t('detail.availability')} · {room?.name || t('steps.meetingRoom')}
           </Typography>
           {dateLabel ? (
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -137,7 +148,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
                     boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
                   }}
                 >
-                  Room
+                  {t('steps.room')}
                 </TableCell>
                 {timeSlots.map((slot) => (
                   <TableCell
@@ -176,10 +187,10 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
                 >
                   <Stack spacing={0.5}>
                     <Typography variant="body2" fontWeight="medium">
-                      {isDesk ? 'Desks' : (room?.name || room?.label || 'Meeting room')}
+                      {isDesk ? t('catalog.desks') : (room?.name || room?.label || t('steps.meetingRoom'))}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                      {isDesk ? `${deskCount} desks` : (room?.capacity ? `Capacity ${room.capacity} guests` : '')}
+                      {isDesk ? `${deskCount} ${t('catalog.desks').toLowerCase()}` : (room?.capacity ? `${t('steps.capacity')} ${room.capacity}` : '')}
                     </Typography>
                   </Stack>
                 </TableCell>
@@ -208,7 +219,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
                   const isSelected = selectedSlotKey === slotKey;
 
                   const tooltipText = isDesk
-                    ? (bloqueo ? 'All desks booked' : `${deskFreeCount} of ${deskCount} desks available`)
+                    ? (bloqueo ? t('status.booked') : `${deskFreeCount} / ${deskCount} ${t('status.available').toLowerCase()}`)
                     : (interactive ? describeBloqueo(bloqueo) : '');
 
                   return (

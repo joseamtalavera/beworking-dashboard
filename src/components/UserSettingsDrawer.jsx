@@ -28,9 +28,19 @@ import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n/i18n.js';
+import esSettings from '../i18n/locales/es/settings.json';
+import enSettings from '../i18n/locales/en/settings.json';
+
+if (!i18n.hasResourceBundle('es', 'settings')) {
+  i18n.addResourceBundle('es', 'settings', esSettings);
+  i18n.addResourceBundle('en', 'settings', enSettings);
+}
 
 const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) => {
   const theme = useTheme();
+  const { t } = useTranslation('settings');
   const accentColor = theme.palette.brand.green;
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -65,19 +75,19 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const subscriptionPlans = [
     {
       id: 'virtual-office',
-      name: 'Virtual Office',
+      name: t('plans.virtualOffice.name'),
       price: 15,
       currency: 'EUR',
-      description: 'Virtual office services with mail handling',
-      features: ['Mail handling', 'Virtual address', 'Mail forwarding', 'Business registration']
+      description: t('plans.virtualOffice.description'),
+      features: t('plans.virtualOffice.features', { returnObjects: true })
     },
     {
       id: 'automation',
-      name: 'Automation',
+      name: t('plans.automation.name'),
       price: 18,
       currency: 'EUR',
-      description: 'Advanced automation services',
-      features: ['Process automation', 'Workflow management', 'Integration tools', 'Advanced analytics']
+      description: t('plans.automation.description'),
+      features: t('plans.automation.features', { returnObjects: true })
     }
   ];
 
@@ -363,7 +373,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
         <Stack spacing={2}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Contact Information
+              {t('contact.title')}
             </Typography>
             {!isEditing ? (
               <Button 
@@ -387,7 +397,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   transition: 'all 0.2s ease-in-out'
                 }}
               >
-                EDIT
+                {t('actions.edit')}
               </Button>
             ) : (
               <Stack direction="row" spacing={1}>
@@ -414,26 +424,26 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     transition: 'all 0.2s ease-in-out'
                   }}
                 >
-                  CANCEL
+                  {t('actions.cancel')}
                 </Button>
                 <Button 
                   variant="contained" 
                   size="small" 
                   onClick={handleSaveProfile}
                   disabled={loading}
-                  sx={{ 
+                  sx={{
                     minWidth: 120,
                     height: 36,
                     textTransform: 'none',
                     fontWeight: 600,
-                    backgroundColor: accentColor, 
+                    backgroundColor: accentColor,
                     color: 'common.white',
-                    '&:hover': { 
-                      backgroundColor: theme.palette.brand.greenHover 
-                    } 
+                    '&:hover': {
+                      backgroundColor: theme.palette.brand.greenHover
+                    }
                   }}
                 >
-                  {loading ? 'SAVING...' : 'SAVE'}
+                  {loading ? t('actions.saving') : t('actions.save')}
                 </Button>
               </Stack>
             )}
@@ -441,7 +451,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
           
           <Stack spacing={2}>
             <TextField
-              label="Full Name"
+              label={t('contact.fullName')}
               value={formData.name}
               onChange={(e) => handleFormChange('name', e.target.value)}
               disabled={!isEditing}
@@ -463,7 +473,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             />
             
             <TextField
-              label="Email"
+              label={t('contact.email')}
               value={formData.email}
               onChange={(e) => handleFormChange('email', e.target.value)}
               disabled={!isEditing}
@@ -486,7 +496,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             />
             
             <TextField
-              label="Phone"
+              label={t('contact.phone')}
               value={formData.phone}
               onChange={(e) => handleFormChange('phone', e.target.value)}
               disabled={!isEditing}
@@ -508,7 +518,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             />
             
             <TextField
-              label="Address"
+              label={t('contact.address')}
               value={formData.address.line1}
               onChange={(e) => handleFormChange('address.line1', e.target.value)}
               disabled={!isEditing}
@@ -531,7 +541,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             
             <Stack direction="row" spacing={2}>
               <TextField
-                label="City"
+                label={t('contact.city')}
                 value={formData.address.city}
                 onChange={(e) => handleFormChange('address.city', e.target.value)}
                 disabled={!isEditing}
@@ -552,7 +562,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 }}
               />
               <TextField
-                label="Postal Code"
+                label={t('contact.postalCode')}
                 value={formData.address.postal}
                 onChange={(e) => handleFormChange('address.postal', e.target.value)}
                 disabled={!isEditing}
@@ -575,7 +585,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             </Stack>
             
             <TextField
-              label="Country"
+              label={t('contact.country')}
               value={formData.address.country}
               onChange={(e) => handleFormChange('address.country', e.target.value)}
               disabled={!isEditing}
@@ -602,7 +612,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
         <Stack spacing={2}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Profile Photo
+            {t('photo.title')}
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
             <Avatar 
@@ -643,11 +653,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     transition: 'all 0.2s ease-in-out'
                   }}
                 >
-                  CHANGE PHOTO
+                  {t('photo.change')}
                 </Button>
               </label>
               <Typography variant="caption" color="text.secondary">
-                Click to upload a new profile photo
+                {t('photo.hint')}
               </Typography>
             </Stack>
           </Stack>
@@ -657,7 +667,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
         <Stack spacing={2}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Account
+            {t('account.title')}
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center">
             <VerifiedRoundedIcon fontSize="small" sx={{ color: accentColor }} />
@@ -669,7 +679,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
         <Stack spacing={2}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Subscription
+            {t('subscription.title')}
           </Typography>
           {userSubscription ? (
             <Stack spacing={2}>
@@ -684,15 +694,15 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               <Stack spacing={1}>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" color="text.secondary">
-                    Status:
+                    {t('subscription.status')}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {userSubscription.status === 'active' ? 'Active' : userSubscription.status}
+                    {userSubscription.status === 'active' ? t('subscription.active') : userSubscription.status}
                   </Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" color="text.secondary">
-                    Price:
+                    {t('subscription.price')}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     €{userSubscription.price} + VAT
@@ -700,10 +710,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" color="text.secondary">
-                    Next billing:
+                    {t('subscription.nextBilling')}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {new Date(userSubscription.currentPeriodEnd).toLocaleDateString()}
+                    {new Date(userSubscription.currentPeriodEnd).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US')}
                   </Typography>
                 </Stack>
               </Stack>
@@ -712,7 +722,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             <Stack direction="row" spacing={1} alignItems="center">
               <CreditCardRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
               <Typography variant="body2" color="text.secondary">
-                No active subscription
+                {t('subscription.noActive')}
               </Typography>
             </Stack>
           )}
@@ -723,7 +733,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
         <Stack spacing={2}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Billing & Stripe
+            {t('billing.title')}
           </Typography>
             {!isEditingBilling ? (
               <Button 
@@ -747,7 +757,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   transition: 'all 0.2s ease-in-out'
                 }}
               >
-                EDIT PAYMENT METHOD
+                {t('billing.editPayment')}
               </Button>
             ) : (
               <Stack direction="row" spacing={1}>
@@ -774,26 +784,26 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     transition: 'all 0.2s ease-in-out'
                   }}
                 >
-                  CANCEL
+                  {t('actions.cancel')}
                 </Button>
                 <Button 
                   variant="contained" 
                   size="small" 
                   onClick={handleSaveBilling}
                   disabled={loading}
-                  sx={{ 
+                  sx={{
                     minWidth: 120,
                     height: 36,
                     textTransform: 'none',
                     fontWeight: 600,
-                    backgroundColor: accentColor, 
+                    backgroundColor: accentColor,
                     color: 'common.white',
-                    '&:hover': { 
-                      backgroundColor: theme.palette.brand.greenHover 
-                    } 
+                    '&:hover': {
+                      backgroundColor: theme.palette.brand.greenHover
+                    }
                   }}
                 >
-                  {loading ? 'SAVING...' : 'SAVE'}
+                  {loading ? t('actions.saving') : t('actions.save')}
                 </Button>
               </Stack>
             )}
@@ -810,14 +820,14 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 ) : (
                   <Stack spacing={2} sx={{ flex: 1 }}>
                     <TextField
-                      label="Card Brand"
+                      label={t('billing.cardBrand')}
                       value={billingData.brand}
                       onChange={(e) => handleBillingChange('brand', e.target.value)}
                       size="small"
                       fullWidth
                     />
                     <TextField
-                      label="Full Card Number"
+                      label={t('billing.fullCardNumber')}
                       value={billingData.fullCardNumber}
                       onChange={(e) => handleBillingChange('fullCardNumber', e.target.value)}
                       size="small"
@@ -827,7 +837,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                         maxLength: 19, // 16 digits + 3 spaces
                         pattern: "[0-9 ]*"
                       }}
-                      helperText="Enter the complete card number. Only last 4 digits will be saved."
+                      helperText={t('billing.cardHint')}
                     />
                   </Stack>
                 )}
@@ -836,16 +846,16 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               {!isEditingBilling ? (
                 <>
               <Typography variant="caption" color="text.secondary">
-                Expires {user.billing.expMonth}/{user.billing.expYear}
+                {t('billing.expires')} {user.billing.expMonth}/{user.billing.expYear}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Stripe customer ID: {user.billing.stripeCustomerId}
+                {t('billing.stripeCustomerId')} {user.billing.stripeCustomerId}
               </Typography>
                 </>
               ) : (
                 <Stack direction="row" spacing={2}>
                   <TextField
-                    label="Expiry Month"
+                    label={t('billing.expiryMonth')}
                     value={billingData.expMonth}
                     onChange={(e) => handleBillingChange('expMonth', e.target.value)}
                     size="small"
@@ -854,7 +864,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     sx={{ flex: 1 }}
                   />
                   <TextField
-                    label="Expiry Year"
+                    label={t('billing.expiryYear')}
                     value={billingData.expYear}
                     onChange={(e) => handleBillingChange('expYear', e.target.value)}
                     size="small"
@@ -867,7 +877,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               
               {isEditingBilling && (
                 <TextField
-                  label="Stripe Customer ID"
+                  label={t('billing.stripeCustomerId')}
                   value={billingData.stripeCustomerId}
                   onChange={(e) => handleBillingChange('stripeCustomerId', e.target.value)}
                   size="small"
@@ -882,7 +892,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
         <Stack spacing={2} sx={{ flex: 1, overflowY: 'auto' }}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Invoices
+            {t('invoices.title')}
           </Typography>
           {user.invoices.map((invoice) => (
             <Paper key={invoice.id} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
@@ -892,7 +902,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     {invoice.id}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Issued {invoice.issuedAt}
+                    {t('invoices.issued')} {invoice.issuedAt}
                   </Typography>
                 </Grid>
                 <Grid item xs={3}>
@@ -933,7 +943,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             }} 
             onClick={onLogout}
           >
-            LOGOUT
+            {t('actions.logout')}
           </Button>
           <Stack direction="row" spacing={1}>
             <Button 
@@ -957,7 +967,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               }} 
               onClick={onClose}
             >
-              CLOSE
+              {t('actions.close')}
             </Button>
             <Button 
               variant="contained" 
@@ -975,7 +985,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               }} 
               onClick={() => setSubscriptionDialogOpen(true)}
             >
-              {userSubscription ? 'MANAGE' : 'SUBSCRIBE'}
+              {userSubscription ? t('subscription.manage') : t('subscription.subscribe')}
             </Button>
           </Stack>
         </Stack>
@@ -990,10 +1000,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
       >
         <DialogTitle sx={{ pb: 1 }}>
           <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-            Choose Your Subscription Plan
+            {t('subscription.choosePlan')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Select a plan that best fits your needs
+            {t('subscription.selectPlan')}
           </Typography>
         </DialogTitle>
         
@@ -1022,7 +1032,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                         {plan.name}
                       </Typography>
                       <Chip 
-                        label={selectedPlan?.id === plan.id ? "Selected" : "Select"} 
+                        label={selectedPlan?.id === plan.id ? t('subscription.selected') : t('subscription.select')}
                         color={selectedPlan?.id === plan.id ? "primary" : "default"}
                         size="small"
                       />
@@ -1033,7 +1043,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                         €{plan.price}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        + VAT
+                        {t('subscription.vatSuffix')}
                       </Typography>
                     </Stack>
                     
@@ -1043,7 +1053,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     
                     <Stack spacing={1}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        Features included:
+                        {t('subscription.featuresIncluded')}
                       </Typography>
                       {plan.features.map((feature, index) => (
                         <Stack key={index} direction="row" alignItems="center" spacing={1}>
@@ -1073,7 +1083,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             onClick={() => setSubscriptionDialogOpen(false)}
             disabled={processingPayment}
           >
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button 
             variant="contained"
@@ -1088,10 +1098,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             {processingPayment ? (
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CircularProgress size={16} color="inherit" />
-                <Typography variant="body2">Processing...</Typography>
+                <Typography variant="body2">{t('subscription.processing')}</Typography>
               </Stack>
             ) : (
-              `Subscribe - €${selectedPlan?.price || 0} + VAT`
+              t('subscription.subscribePrice', { price: selectedPlan?.price || 0 })
             )}
           </Button>
         </DialogActions>

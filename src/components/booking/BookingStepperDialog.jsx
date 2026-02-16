@@ -12,6 +12,10 @@ import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esBooking from '../../i18n/locales/es/booking.json';
+import enBooking from '../../i18n/locales/en/booking.json';
 
 import { BookingFlowProvider, useBookingFlow } from './BookingFlowContext';
 import SelectDetailsStep from './steps/SelectDetailsStep';
@@ -19,7 +23,10 @@ import ContactBillingStep from './steps/ContactBillingStep';
 
 const PaymentStep = lazy(() => import('./steps/PaymentStep'));
 
-const STEP_LABELS = ['Select details', 'Contact & billing', 'Review & payment'];
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 function StepperContent({ onClose, onCreated, mode }) {
   const { state } = useBookingFlow();
@@ -51,7 +58,10 @@ function StepperContent({ onClose, onCreated, mode }) {
 
 function StepperDialogInner({ open, onClose, onCreated, defaultDate, mode }) {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const { state, reset } = useBookingFlow();
+
+  const STEP_LABELS = [t('stepper.selectDetails'), t('stepper.contactBilling'), t('stepper.reviewPayment')];
 
   useEffect(() => {
     if (open) {
@@ -84,10 +94,10 @@ function StepperDialogInner({ open, onClose, onCreated, defaultDate, mode }) {
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
           <Stack>
             <Typography variant="h5" fontWeight={700} color="text.primary">
-              Create reserva
+              {t('dialog.createReserva')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Add a new reservation to the system
+              {t('dialog.addReservation')}
             </Typography>
           </Stack>
           <IconButton onClick={onClose} size="small" sx={{ mt: 0.5 }}>

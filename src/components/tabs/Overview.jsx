@@ -1,4 +1,8 @@
 import { alpha, useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esOverview from '../../i18n/locales/es/overview.json';
+import enOverview from '../../i18n/locales/en/overview.json';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -17,6 +21,11 @@ import { useEffect, useState, useMemo } from 'react';
 import { fetchInvoices } from '../../api/invoices.js';
 import { fetchBloqueos, fetchBookingProductos } from '../../api/bookings.js';
 import { apiFetch } from '../../api/client.js';
+
+if (!i18n.hasResourceBundle('es', 'overview')) {
+  i18n.addResourceBundle('es', 'overview', esOverview);
+  i18n.addResourceBundle('en', 'overview', enOverview);
+}
 
 // Color palette for data visualization
 const dataColors = {
@@ -130,7 +139,7 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId }) =>
   if (!data || data.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-        <Typography variant="body2" color="text.secondary">No data</Typography>
+        <Typography variant="body2" color="text.secondary">{i18n.t('overview:charts.noData')}</Typography>
       </Box>
     );
   }
@@ -215,7 +224,7 @@ const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
       />
       {bookedHours !== undefined && (
         <Typography variant="caption" color="text.disabled" sx={{ mt: 0.25, display: 'block' }}>
-          {bookedHours}h booked of {totalHours}h
+          {i18n.t('overview:occupancy.bookedOf', { booked: bookedHours, total: totalHours })}
         </Typography>
       )}
     </Box>
@@ -224,6 +233,7 @@ const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
 
 const Overview = ({ userType = 'admin' }) => {
   const theme = useTheme();
+  const { t } = useTranslation('overview');
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -302,7 +312,7 @@ const Overview = ({ userType = 'admin' }) => {
   // Chart data
   const chartData = useMemo(() => {
     const months = Array(12).fill(null).map((_, i) => ({
-      month: new Date(selectedYear, i, 1).toLocaleDateString('en-US', { month: 'short' }),
+      month: new Date(selectedYear, i, 1).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { month: 'short' }),
       revenue: 0,
       pending: 0,
       overdue: 0
@@ -478,16 +488,16 @@ const Overview = ({ userType = 'admin' }) => {
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Quick Stats Row */}
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
-        <StatCard label="Meeting Rooms" value={todayBookings} sublabel="today" loading={statsLoading} theme={theme} />
-        <StatCard label="Desk Bookings" value={todayDeskBookings} sublabel="today" loading={statsLoading} theme={theme} />
-        <StatCard label="Business Addresses" value={activeBusinessAddresses} sublabel="active" loading={statsLoading} theme={theme} />
-        <StatCard label="Active Users" value={activeUsers} sublabel="with bookings" loading={statsLoading} theme={theme} />
+        <StatCard label={t('stats.meetingRooms')} value={todayBookings} sublabel={t('stats.today')} loading={statsLoading} theme={theme} />
+        <StatCard label={t('stats.deskBookings')} value={todayDeskBookings} sublabel={t('stats.today')} loading={statsLoading} theme={theme} />
+        <StatCard label={t('stats.businessAddresses')} value={activeBusinessAddresses} sublabel={t('stats.active')} loading={statsLoading} theme={theme} />
+        <StatCard label={t('stats.activeUsers')} value={activeUsers} sublabel={t('stats.withBookings')} loading={statsLoading} theme={theme} />
       </Box>
 
       {/* Financial Metrics */}
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' } }}>
         <MetricCard
-          label="Income YTD"
+          label={t('metrics.incomeYTD')}
           value={metrics.incomeYTD}
           change={getChange(metrics.incomeYTD, metrics.incomeLastYTD)}
           trend={metrics.incomeYTD >= metrics.incomeLastYTD ? 'up' : 'down'}
@@ -496,7 +506,7 @@ const Overview = ({ userType = 'admin' }) => {
           theme={theme}
         />
         <MetricCard
-          label="Pending YTD"
+          label={t('metrics.pendingYTD')}
           value={metrics.pendingYTD}
           change={getChange(metrics.pendingYTD, metrics.pendingLastYTD)}
           trend={metrics.pendingYTD >= metrics.pendingLastYTD ? 'up' : 'down'}
@@ -505,7 +515,7 @@ const Overview = ({ userType = 'admin' }) => {
           theme={theme}
         />
         <MetricCard
-          label="Income this month"
+          label={t('metrics.incomeMonth')}
           value={metrics.incomeMonth}
           change={getChange(metrics.incomeMonth, metrics.incomeLastMonth)}
           trend={metrics.incomeMonth >= metrics.incomeLastMonth ? 'up' : 'down'}
@@ -514,7 +524,7 @@ const Overview = ({ userType = 'admin' }) => {
           theme={theme}
         />
         <MetricCard
-          label="Pending this month"
+          label={t('metrics.pendingMonth')}
           value={metrics.pendingMonth}
           change={getChange(metrics.pendingMonth, metrics.pendingLastMonth)}
           trend={metrics.pendingMonth >= metrics.pendingLastMonth ? 'up' : 'down'}
@@ -523,7 +533,7 @@ const Overview = ({ userType = 'admin' }) => {
           theme={theme}
         />
         <MetricCard
-          label={`Overdue (${metrics.overdueCount})`}
+          label={t('metrics.overdue', { count: metrics.overdueCount })}
           value={metrics.overdueTotal}
           change={null}
           trend="flat"
@@ -537,18 +547,18 @@ const Overview = ({ userType = 'admin' }) => {
       <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Financial Overview
+            {t('charts.financialOverview')}
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
             <FormControl size="small" sx={{ minWidth: 90 }}>
-              <InputLabel>Year</InputLabel>
-              <Select value={selectedYear} label="Year" onChange={(e) => setSelectedYear(e.target.value)}>
+              <InputLabel>{t('charts.year')}</InputLabel>
+              <Select value={selectedYear} label={t('charts.year')} onChange={(e) => setSelectedYear(e.target.value)}>
                 {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(y => (
                   <MenuItem key={y} value={y}>{y}</MenuItem>
                 ))}
               </Select>
             </FormControl>
-            <Chip label={`${invoices.length} invoices`} size="small" sx={{ fontWeight: 600 }} />
+            <Chip label={t('charts.invoicesCount', { count: invoices.length })} size="small" sx={{ fontWeight: 600 }} />
           </Stack>
         </Stack>
 
@@ -556,7 +566,7 @@ const Overview = ({ userType = 'admin' }) => {
           <AreaChart
             data={chartData.revenue}
             loading={loading}
-            title="Revenue"
+            title={t('charts.revenue')}
             total={chartData.revenueTotal}
             color={dataColors.income}
             theme={theme}
@@ -565,7 +575,7 @@ const Overview = ({ userType = 'admin' }) => {
           <AreaChart
             data={chartData.pending}
             loading={loading}
-            title="Pending"
+            title={t('charts.pending')}
             total={chartData.pendingTotal}
             color={dataColors.pending}
             theme={theme}
@@ -574,7 +584,7 @@ const Overview = ({ userType = 'admin' }) => {
           <AreaChart
             data={chartData.overdue}
             loading={loading}
-            title="Overdue"
+            title={t('charts.overdue')}
             total={chartData.overdueTotal}
             color={dataColors.overdue}
             theme={theme}
@@ -588,10 +598,10 @@ const Overview = ({ userType = 'admin' }) => {
         <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Workspace Occupancy
+              {t('occupancy.title')}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              {new Date().toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { month: 'long', year: 'numeric' })}
             </Typography>
           </Stack>
 
@@ -601,7 +611,7 @@ const Overview = ({ userType = 'admin' }) => {
             </Box>
           ) : occupancyData.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-              No occupancy data available
+              {t('occupancy.noData')}
             </Typography>
           ) : (
             <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>

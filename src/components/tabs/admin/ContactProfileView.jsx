@@ -32,9 +32,20 @@ import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esContacts from '../../../i18n/locales/es/contacts.json';
+import enContacts from '../../../i18n/locales/en/contacts.json';
+
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 
+if (!i18n.hasResourceBundle('es', 'contacts')) {
+  i18n.addResourceBundle('es', 'contacts', esContacts);
+  i18n.addResourceBundle('en', 'contacts', enContacts);
+}
+
 const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile }) => {
+  const { t } = useTranslation('contacts');
   const theme = useTheme();
   const mapContactToDraft = (value) => {
     if (!value) {
@@ -136,7 +147,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       }
     } catch (error) {
       console.error('[ContactProfileView] Failed to save contact:', error);
-      setSaveError(error?.message || 'No se pudieron guardar los cambios.');
+      setSaveError(error?.message || t('profile.saveError'));
     } finally {
       setSaving(false);
     }
@@ -167,7 +178,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         {onBack && (
           <Button startIcon={<ArrowBackRoundedIcon />} onClick={onBack}>
-            Back to contacts
+            {t('profile.backToContacts')}
           </Button>
         )}
         <Button 
@@ -191,7 +202,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             transition: 'all 0.2s ease-in-out'
           }}
         >
-          EDIT PROFILE
+          {t('profile.editProfile')}
         </Button>
       </Stack>
 
@@ -226,13 +237,13 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 <Typography variant="h4" fontWeight={700}>
                   {contact.name}
                 </Typography>
-                <Chip label={statusLabel} color={statusColor} sx={{ borderRadius: 2 }} />
+                <Chip label={t('status.' + statusLabel, { defaultValue: statusLabel })} color={statusColor} sx={{ borderRadius: 2 }} />
               </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 {contact.contact?.email || '—'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Joined {joinedLabel}
+                {t('profile.joined')} {joinedLabel}
               </Typography>
             </Box>
           </Stack>
@@ -248,7 +259,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         }}
       >
         <Box sx={{ gridColumn: '1 / -1' }}>
-          <InfoCard title="Highlights">
+          <InfoCard title={t('profile.highlights')}>
             <Box
               sx={{
                 display: 'grid',
@@ -259,92 +270,92 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 }
               }}
             >
-              <HighlightCard label="Bookings" value={contact.bookings || '0'} trend="Total bookings" />
-              <HighlightCard label="Expenditure" value={`€${contact.expenditure || '0'}`} trend="Bookings amount" />
-              <HighlightCard label="Storage used" value={`${contact.storageUsed || '0'}GB`} trend={`${contact.storagePercentage || '0'}%`} />
-              <HighlightCard label="Unread messages" value={contact.unreadMessages || '0'} trend="Communications" />
+              <HighlightCard label={t('profile.bookingsLabel')} value={contact.bookings || '0'} trend={t('profile.totalBookings')} />
+              <HighlightCard label={t('profile.expenditure')} value={`€${contact.expenditure || '0'}`} trend={t('profile.bookingsAmount')} />
+              <HighlightCard label={t('profile.storageUsed')} value={`${contact.storageUsed || '0'}GB`} trend={`${contact.storagePercentage || '0'}%`} />
+              <HighlightCard label={t('profile.unreadMessages')} value={contact.unreadMessages || '0'} trend={t('profile.communications')} />
             </Box>
           </InfoCard>
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <InfoCard title="Basic data" icon={PersonOutlineRoundedIcon}>
+          <InfoCard title={t('profile.basicData')} icon={PersonOutlineRoundedIcon}>
             <Stack spacing={2} sx={{ width: '100%' }}>
-              <InfoRow label="Tenant ID" value={contact.id} pill />
-              <InfoRow label="Primary contact" value={contact.contact?.name} />
-              <InfoRow label="Email" value={contact.contact?.email} />
-              <InfoRow label="Phone" value={contact.phone_primary} />
-              <InfoRow label="Type of user" value={contact.user_type} />
-              <InfoRow label="Status" value={contact.status} />
-              <InfoRow label="Center" value={contact.center} />
+              <InfoRow label={t('profile.tenantId')} value={contact.id} pill />
+              <InfoRow label={t('profile.primaryContact')} value={contact.contact?.name} />
+              <InfoRow label={t('profile.email')} value={contact.contact?.email} />
+              <InfoRow label={t('profile.phone')} value={contact.phone_primary} />
+              <InfoRow label={t('profile.userType')} value={contact.user_type} />
+              <InfoRow label={t('profile.status')} value={contact.status ? t('status.' + contact.status, { defaultValue: contact.status }) : undefined} />
+              <InfoRow label={t('profile.center')} value={contact.center} />
             </Stack>
           </InfoCard>
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <SectionCard icon={CreditCardRoundedIcon} title="Billing details">
+          <SectionCard icon={CreditCardRoundedIcon} title={t('profile.billingDetails')}>
             <SectionList
-              description="Primary billing profile"
+              description={t('profile.primaryBillingProfile')}
               items={[
-                { label: 'Company', value: contact.billing?.company || contact.name },
-                { label: 'Billing email', value: contact.billing?.email || contact.contact?.email },
-                { label: 'Address', value: contact.billing?.address || '—' },
-                { label: 'Post code', value: contact.billing?.postal_code || '—' },
-                { label: 'County', value: contact.billing?.county || '—' },
-                { label: 'Country', value: contact.billing?.country || '—' },
-                { label: 'Tax ID', value: contact.billing?.tax_id || '—' }
+                { label: t('profile.billingCompany'), value: contact.billing?.company || contact.name },
+                { label: t('profile.billingEmail'), value: contact.billing?.email || contact.contact?.email },
+                { label: t('profile.billingAddress'), value: contact.billing?.address || '—' },
+                { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
+                { label: t('profile.billingCounty'), value: contact.billing?.county || '—' },
+                { label: t('profile.billingCountry'), value: contact.billing?.country || '—' },
+                { label: t('profile.billingTaxId'), value: contact.billing?.tax_id || '—' }
               ]}
             />
           </SectionCard>
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <SectionCard icon={EventAvailableRoundedIcon} title="Bookings">
+          <SectionCard icon={EventAvailableRoundedIcon} title={t('profile.bookingsLabel')}>
             <SectionList
-              description="Upcoming reservations for meeting rooms and desks"
+              description={t('profile.upcomingReservations')}
               items={[
-                { label: 'Next booking', value: 'Boardroom · Oct 12, 10:00' },
-                { label: 'Past month', value: '14 reservations' },
-                { label: 'No-shows', value: '1 (30 days)' }
+                { label: t('profile.nextBooking'), value: 'Boardroom · Oct 12, 10:00' },
+                { label: t('profile.pastMonth'), value: '14 reservations' },
+                { label: t('profile.noShows'), value: '1 (30 days)' }
               ]}
             />
           </SectionCard>
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <SectionCard icon={DescriptionRoundedIcon} title="Invoices">
+          <SectionCard icon={DescriptionRoundedIcon} title={t('profile.invoices')}>
             <SectionList
-              description="Recent billing and payments overview"
+              description={t('profile.recentBillingOverview')}
               items={[
-                { label: 'Outstanding', value: '$0.00' },
-                { label: 'Total billed YTD', value: '$24,890' },
-                { label: 'Last payment', value: 'Oct 03 · $500.00 (card)' }
+                { label: t('profile.outstanding'), value: '$0.00' },
+                { label: t('profile.totalBilledYTD'), value: '$24,890' },
+                { label: t('profile.lastPayment'), value: 'Oct 03 · $500.00 (card)' }
               ]}
             />
           </SectionCard>
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <SectionCard icon={CloudDoneRoundedIcon} title="Storage">
+          <SectionCard icon={CloudDoneRoundedIcon} title={t('profile.storage')}>
             <SectionList
-              description="Storage usage across shared drives"
+              description={t('profile.storageUsageDesc')}
               items={[
-                { label: 'Total capacity', value: '120 GB' },
-                { label: 'Used', value: '58.2 GB' },
-                { label: 'Recent upload', value: 'Brand assets (2 days ago)' }
+                { label: t('profile.totalCapacity'), value: '120 GB' },
+                { label: t('profile.used'), value: '58.2 GB' },
+                { label: t('profile.recentUpload'), value: 'Brand assets (2 days ago)' }
               ]}
             />
           </SectionCard>
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <SectionCard icon={ChatBubbleOutlineRoundedIcon} title="Communications">
+          <SectionCard icon={ChatBubbleOutlineRoundedIcon} title={t('profile.communications')}>
             <SectionList
-              description="Latest touchpoints and active channels"
+              description={t('profile.communicationsDesc')}
               items={[
-                { label: 'Success manager', value: contact.contact?.name },
-                { label: 'Last outreach', value: 'Oct 04 · Quarterly review' },
-                { label: 'Primary channel', value: contact.channel }
+                { label: t('profile.successManager'), value: contact.contact?.name },
+                { label: t('profile.lastOutreach'), value: 'Oct 04 · Quarterly review' },
+                { label: t('profile.primaryChannel'), value: contact.channel }
               ]}
             />
           </SectionCard>
@@ -378,10 +389,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             </Avatar>
             <Box>
               <Typography variant="h5" fontWeight={700}>
-                Edit User Profile
+                {t('profile.editUserProfile')}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Update user information and billing details
+                {t('profile.updateUserInfo')}
               </Typography>
             </Box>
           </Stack>
@@ -413,7 +424,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       <PersonRoundedIcon />
                     </Avatar>
                     <Typography variant="h6" fontWeight={600} color="text.primary">
-                      Basic Information
+                      {t('profile.basicInformation')}
                     </Typography>
                   </Stack>
                 </Box>
@@ -428,7 +439,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                     mb: 3 
                   }}>
                     <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: 'success.main' }}>
-                      📸 Profile Photo
+                      {t('profile.profilePhoto')}
                     </Typography>
                     <Stack direction="row" spacing={3} alignItems="center">
                       <Avatar 
@@ -471,11 +482,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                               } 
                             }}
                           >
-                            Change Photo
+                            {t('profile.changePhoto')}
                           </Button>
                         </label>
                         <Typography variant="caption" color="text.secondary">
-                          Click to upload a profile photo
+                          {t('profile.clickToUpload')}
                         </Typography>
                       </Stack>
                     </Stack>
@@ -483,10 +494,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   
                   <Grid container spacing={3}>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="User name" 
-                        value={draft?.name || ''} 
-                        onChange={handleChange('name')} 
+                      <TextField
+                        label={t('profile.userName')}
+                        value={draft?.name || ''}
+                        onChange={handleChange('name')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -501,10 +512,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Status" 
-                        value={draft?.status || ''} 
-                        onChange={handleChange('status')} 
+                      <TextField
+                        label={t('profile.status')}
+                        value={draft?.status || ''}
+                        onChange={handleChange('status')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -519,10 +530,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Primary contact" 
-                        value={draft?.contact?.name || ''} 
-                        onChange={handleContactChange('name')} 
+                      <TextField
+                        label={t('profile.primaryContact')}
+                        value={draft?.contact?.name || ''}
+                        onChange={handleContactChange('name')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -537,10 +548,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Email" 
-                        value={draft?.contact?.email || ''} 
-                        onChange={handleContactChange('email')} 
+                      <TextField
+                        label={t('profile.email')}
+                        value={draft?.contact?.email || ''}
+                        onChange={handleContactChange('email')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -555,10 +566,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Phone" 
-                        value={draft?.phone_primary || ''} 
-                        onChange={handleChange('phone_primary')} 
+                      <TextField
+                        label={t('profile.phone')}
+                        value={draft?.phone_primary || ''}
+                        onChange={handleChange('phone_primary')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -575,7 +586,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                     <Grid item xs={12} sm={6}>
                       <TextField
                         select
-                        label="User type"
+                        label={t('profile.userType')}
                         value={draft?.user_type && draft.user_type !== '—' ? draft.user_type : ''}
                         onChange={handleChange('user_type')}
                         fullWidth
@@ -592,7 +603,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         }}
                       >
                         <MenuItem value="">
-                          <em>Sin definir</em>
+                          <em>{t('profile.undefinedOption')}</em>
                         </MenuItem>
                         {availableUserTypes.map((type) => (
                           <MenuItem key={type} value={type}>
@@ -602,10 +613,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       </TextField>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Plan" 
-                        value={draft?.plan || ''} 
-                        onChange={handleChange('plan')} 
+                      <TextField
+                        label={t('profile.plan')}
+                        value={draft?.plan || ''}
+                        onChange={handleChange('plan')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -620,10 +631,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Center" 
-                        value={draft?.center || ''} 
-                        onChange={handleChange('center')} 
+                      <TextField
+                        label={t('profile.center')}
+                        value={draft?.center || ''}
+                        onChange={handleChange('center')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -663,17 +674,17 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       <BusinessRoundedIcon />
                     </Avatar>
                     <Typography variant="h6" fontWeight={600} color="text.primary">
-                      Billing Details
+                      {t('profile.billingDetails')}
                     </Typography>
                   </Stack>
                 </Box>
                 <Box sx={{ p: 3 }}>
                   <Grid container spacing={3}>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Company name" 
-                        value={draft?.billing?.company || ''} 
-                        onChange={handleBillingChange('company')} 
+                      <TextField
+                        label={t('profile.companyName')}
+                        value={draft?.billing?.company || ''}
+                        onChange={handleBillingChange('company')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -688,10 +699,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Billing email" 
-                        value={draft?.billing?.email || ''} 
-                        onChange={handleBillingChange('email')} 
+                      <TextField
+                        label={t('profile.billingEmail')}
+                        value={draft?.billing?.email || ''}
+                        onChange={handleBillingChange('email')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -706,10 +717,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField 
-                        label="Address" 
-                        value={draft?.billing?.address || ''} 
-                        onChange={handleBillingChange('address')} 
+                      <TextField
+                        label={t('profile.billingAddress')}
+                        value={draft?.billing?.address || ''}
+                        onChange={handleBillingChange('address')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -724,10 +735,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={4}>
-                      <TextField 
-                        label="Postal code" 
-                        value={draft?.billing?.postal_code || ''} 
-                        onChange={handleBillingChange('postal_code')} 
+                      <TextField
+                        label={t('profile.billingPostalCode')}
+                        value={draft?.billing?.postal_code || ''}
+                        onChange={handleBillingChange('postal_code')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -742,10 +753,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={4}>
-                      <TextField 
-                        label="County/State" 
-                        value={draft?.billing?.county || ''} 
-                        onChange={handleBillingChange('county')} 
+                      <TextField
+                        label={t('profile.countyState')}
+                        value={draft?.billing?.county || ''}
+                        onChange={handleBillingChange('county')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -760,10 +771,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={4}>
-                      <TextField 
-                        label="Country" 
-                        value={draft?.billing?.country || ''} 
-                        onChange={handleBillingChange('country')} 
+                      <TextField
+                        label={t('profile.billingCountry')}
+                        value={draft?.billing?.country || ''}
+                        onChange={handleBillingChange('country')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -778,10 +789,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField 
-                        label="Tax ID" 
-                        value={draft?.billing?.tax_id || ''} 
-                        onChange={handleBillingChange('tax_id')} 
+                      <TextField
+                        label={t('profile.billingTaxId')}
+                        value={draft?.billing?.tax_id || ''}
+                        onChange={handleBillingChange('tax_id')}
                         fullWidth 
                         variant="outlined"
                         sx={{
@@ -829,7 +840,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               transition: 'all 0.2s ease-in-out'
             }}
           >
-            CANCEL
+            {t('profile.cancelEdit')}
           </Button>
           <Button
             variant="contained" 
@@ -848,7 +859,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               }
             }}
           >
-            SAVE CHANGES
+            {t('profile.saveChanges')}
           </Button>
         </DialogActions>
       </Dialog>

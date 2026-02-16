@@ -19,9 +19,11 @@
     "@stripe/stripe-js": "^5.10.0",
     "date-fns": "^4.1.0",
     "html5-qrcode": "^2.3.8",
+    "i18next": "^25.8.10",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-i18next": "^16.5.4",
     "reactflow": "^11.10.2"
   },
   "devDependencies": {

@@ -26,6 +26,14 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import PublicIcon from '@mui/icons-material/Public';
 import WifiIcon from '@mui/icons-material/Wifi';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esMailbox from '../../i18n/locales/es/mailbox.json';
+import enMailbox from '../../i18n/locales/en/mailbox.json';
+if (!i18n.hasResourceBundle('es', 'mailbox')) {
+  i18n.addResourceBundle('es', 'mailbox', esMailbox);
+  i18n.addResourceBundle('en', 'mailbox', enMailbox);
+}
 
 const initialOfficeData = {
   name: 'BeWorking Coworking Málaga',
@@ -148,6 +156,7 @@ const TransportItem = ({ transport }) => (
 );
 
 const VirtualOfficeAddress = () => {
+  const { t } = useTranslation('mailbox');
   const theme = useTheme();
   const accentColor = theme.palette.primary.main;
   const accentHover = theme.palette.brand.accentSoft;
@@ -234,19 +243,19 @@ const VirtualOfficeAddress = () => {
       <Stack spacing={2}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
           <Typography variant="h5" fontWeight="bold" color="text.primary">
-            Office Address & Information
+            {t('address.title')}
           </Typography>
           <Stack direction="row" spacing={1}>
             <Button variant="outlined" onClick={() => setAddTransportOpen(true)} sx={{ borderRadius: 2 }}>
-              Add transport
+              {t('address.addTransport')}
             </Button>
             <Button variant="contained" onClick={openEditDialog} sx={{ borderRadius: 2 }}>
-              Edit details
+              {t('address.editDetails')}
             </Button>
           </Stack>
         </Stack>
         <Typography variant="body1" color="text.secondary">
-          Your virtual office location with complete address details, amenities, and how to get there.
+          {t('address.subtitle')}
         </Typography>
       </Stack>
 
@@ -273,7 +282,7 @@ const VirtualOfficeAddress = () => {
                 {officeData.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Your registered business address
+                {t('address.registeredAddress')}
               </Typography>
             </Box>
           </Stack>
@@ -301,7 +310,7 @@ const VirtualOfficeAddress = () => {
                 borderRadius: 2
               }}
             >
-              Get Directions
+              {t('address.getDirections')}
             </Button>
             <Button
               variant="outlined"
@@ -309,7 +318,7 @@ const VirtualOfficeAddress = () => {
               onClick={handleCallOffice}
               sx={{ borderRadius: 2 }}
             >
-              Call Office
+              {t('address.callOffice')}
             </Button>
           </Stack>
         </Stack>
@@ -321,7 +330,7 @@ const VirtualOfficeAddress = () => {
         <Grid item xs={12} md={6}>
           <InfoCard
             icon={<BusinessIcon />}
-            title="Contact Information"
+            title={t('address.contactInfo')}
             content={
               <Stack spacing={1}>
                 <Stack direction="row" spacing={2} alignItems="center">
@@ -358,17 +367,17 @@ const VirtualOfficeAddress = () => {
         <Grid item xs={12} md={6}>
           <InfoCard
             icon={<AccessTimeIcon />}
-            title="Office Hours"
+            title={t('address.officeHours')}
             content={
               <Stack spacing={1}>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2">Open hours</Typography>
+                  <Typography variant="body2">{t('address.openHours')}</Typography>
                   <Typography variant="body2" fontWeight="medium">
                     {officeData.hours.weekdays}
                   </Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary">
-                  Access available 24 hours a day, 7 days a week
+                  {t('address.access24h')}
                 </Typography>
               </Stack>
             }
@@ -379,11 +388,11 @@ const VirtualOfficeAddress = () => {
         <Grid item xs={12} md={6}>
           <InfoCard
             icon={<WifiIcon />}
-            title="Office Amenities"
+            title={t('address.amenities')}
             content={
               <Stack spacing={2}>
                 <Typography variant="body2" color="text.secondary">
-                  Everything you need for your virtual office experience
+                  {t('address.amenitiesDesc')}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {officeData.amenities.map((amenity, index) => (
@@ -424,61 +433,61 @@ const VirtualOfficeAddress = () => {
               onClick={handleGetDirections}
               sx={{ borderRadius: 2 }}
             >
-              Get directions
+              {t('address.getDirections')}
             </Button>
             <Button
               variant="outlined"
               onClick={handleGetDirections}
               sx={{ borderRadius: 2 }}
             >
-              Open in Google Maps
+              {t('address.openInGoogleMaps')}
             </Button>
           </Box>
         </Box>
       </Paper>
 
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Edit virtual office details</DialogTitle>
+        <DialogTitle>{t('address.editDialog.title')}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2}>
-            <TextField label="Office name" value={editForm.name} onChange={handleEditChange('name')} fullWidth />
-            <TextField label="Street" value={editForm.address.street} onChange={handleAddressChange('street')} fullWidth />
+            <TextField label={t('address.editDialog.officeName')} value={editForm.name} onChange={handleEditChange('name')} fullWidth />
+            <TextField label={t('address.editDialog.street')} value={editForm.address.street} onChange={handleAddressChange('street')} fullWidth />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField label="City" value={editForm.address.city} onChange={handleAddressChange('city')} fullWidth />
-              <TextField label="Postal code" value={editForm.address.postalCode} onChange={handleAddressChange('postalCode')} fullWidth />
-              <TextField label="Country" value={editForm.address.country} onChange={handleAddressChange('country')} fullWidth />
+              <TextField label={t('address.editDialog.city')} value={editForm.address.city} onChange={handleAddressChange('city')} fullWidth />
+              <TextField label={t('address.editDialog.postalCode')} value={editForm.address.postalCode} onChange={handleAddressChange('postalCode')} fullWidth />
+              <TextField label={t('address.editDialog.country')} value={editForm.address.country} onChange={handleAddressChange('country')} fullWidth />
             </Stack>
             <Divider />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField label="Phone" value={editForm.contact.phone} onChange={handleContactChange('phone')} fullWidth />
-              <TextField label="Email" value={editForm.contact.email} onChange={handleContactChange('email')} fullWidth />
-              <TextField label="Website" value={editForm.contact.website} onChange={handleContactChange('website')} fullWidth />
+              <TextField label={t('address.editDialog.phone')} value={editForm.contact.phone} onChange={handleContactChange('phone')} fullWidth />
+              <TextField label={t('address.editDialog.email')} value={editForm.contact.email} onChange={handleContactChange('email')} fullWidth />
+              <TextField label={t('address.editDialog.website')} value={editForm.contact.website} onChange={handleContactChange('website')} fullWidth />
             </Stack>
             <Divider />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField label="Weekdays" value={editForm.hours.weekdays} onChange={handleHoursChange('weekdays')} fullWidth />
-              <TextField label="Saturday" value={editForm.hours.saturday} onChange={handleHoursChange('saturday')} fullWidth />
-              <TextField label="Sunday" value={editForm.hours.sunday} onChange={handleHoursChange('sunday')} fullWidth />
+              <TextField label={t('address.editDialog.weekdays')} value={editForm.hours.weekdays} onChange={handleHoursChange('weekdays')} fullWidth />
+              <TextField label={t('address.editDialog.saturday')} value={editForm.hours.saturday} onChange={handleHoursChange('saturday')} fullWidth />
+              <TextField label={t('address.editDialog.sunday')} value={editForm.hours.sunday} onChange={handleHoursChange('sunday')} fullWidth />
             </Stack>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveEdit}>Save changes</Button>
+          <Button variant="outlined" onClick={() => setEditOpen(false)}>{t('address.editDialog.cancel')}</Button>
+          <Button variant="contained" onClick={handleSaveEdit}>{t('address.editDialog.save')}</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={addTransportOpen} onClose={() => setAddTransportOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add transport option</DialogTitle>
+        <DialogTitle>{t('address.transportDialog.title')}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2}>
-            <TextField label="Transport name" value={transportForm.name} onChange={(e) => setTransportForm((prev) => ({ ...prev, name: e.target.value }))} fullWidth />
-            <TextField label="Distance" value={transportForm.distance} onChange={(e) => setTransportForm((prev) => ({ ...prev, distance: e.target.value }))} fullWidth />
+            <TextField label={t('address.transportDialog.name')} value={transportForm.name} onChange={(e) => setTransportForm((prev) => ({ ...prev, name: e.target.value }))} fullWidth />
+            <TextField label={t('address.transportDialog.distance')} value={transportForm.distance} onChange={(e) => setTransportForm((prev) => ({ ...prev, distance: e.target.value }))} fullWidth />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={() => setAddTransportOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleAddTransport}>Add transport</Button>
+          <Button variant="outlined" onClick={() => setAddTransportOpen(false)}>{t('address.transportDialog.cancel')}</Button>
+          <Button variant="contained" onClick={handleAddTransport}>{t('address.transportDialog.add')}</Button>
         </DialogActions>
       </Dialog>
     </Stack>

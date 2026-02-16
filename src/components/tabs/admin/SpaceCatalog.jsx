@@ -5,6 +5,14 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 // Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esSpaceCatalog from '../../../i18n/locales/es/spaceCatalog.json';
+import enSpaceCatalog from '../../../i18n/locales/en/spaceCatalog.json';
+if (!i18n.hasResourceBundle('es', 'spaceCatalog')) {
+  i18n.addResourceBundle('es', 'spaceCatalog', esSpaceCatalog);
+  i18n.addResourceBundle('en', 'spaceCatalog', enSpaceCatalog);
+}
 import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -328,6 +336,7 @@ const createEmptyForm = () => ({
 });
 
 const SpaceCatalog = () => {
+  const { t } = useTranslation('spaceCatalog');
   const [rows, setRows] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formValues, setFormValues] = useState(createEmptyForm());
@@ -585,11 +594,10 @@ const SpaceCatalog = () => {
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Box>
           <Typography variant="h4" fontWeight={700}>
-            Space Catalog
+            {t('title')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Maintain the public booking metadata for each centro product. These values populate the
-            booking homepage cards.
+            {t('subtitle')}
           </Typography>
         </Box>
         <Button
@@ -602,7 +610,7 @@ const SpaceCatalog = () => {
             fontWeight: 600
           }}
         >
-          Add space
+          {t('addSpace')}
         </Button>
       </Stack>
 
@@ -622,19 +630,19 @@ const SpaceCatalog = () => {
         >
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: COLUMN_WIDTHS.displayName }}>Display name</TableCell>
-              <TableCell sx={{ width: COLUMN_WIDTHS.centro }}>Centro</TableCell>
-              <TableCell sx={{ width: COLUMN_WIDTHS.type }}>Type</TableCell>
-              <TableCell align="right" sx={{ width: COLUMN_WIDTHS.capacity }}>Capacity</TableCell>
-              <TableCell align="right" sx={{ width: COLUMN_WIDTHS.price }}>Price</TableCell>
+              <TableCell sx={{ width: COLUMN_WIDTHS.displayName }}>{t('table.displayName')}</TableCell>
+              <TableCell sx={{ width: COLUMN_WIDTHS.centro }}>{t('table.centro')}</TableCell>
+              <TableCell sx={{ width: COLUMN_WIDTHS.type }}>{t('table.type')}</TableCell>
+              <TableCell align="right" sx={{ width: COLUMN_WIDTHS.capacity }}>{t('table.capacity')}</TableCell>
+              <TableCell align="right" sx={{ width: COLUMN_WIDTHS.price }}>{t('table.price')}</TableCell>
               <TableCell align="center" sx={{ width: COLUMN_WIDTHS.instant }}>
-                <Stack alignItems="center">Instant booking</Stack>
+                <Stack alignItems="center">{t('table.instantBooking')}</Stack>
               </TableCell>
               <TableCell align="center" sx={{ width: COLUMN_WIDTHS.photos }}>
-                Photos
+                {t('table.photos')}
               </TableCell>
               <TableCell align="right" sx={{ width: COLUMN_WIDTHS.actions }}>
-                Actions
+                {t('table.actions')}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -660,7 +668,7 @@ const SpaceCatalog = () => {
                       />
                     ) : (
                       <Typography variant="caption" color="text.secondary">
-                        No hero image
+                        {t('table.noHeroImage')}
                       </Typography>
                     )}
                   </Stack>
@@ -674,7 +682,7 @@ const SpaceCatalog = () => {
                 <TableCell align="center">
                   {row.instantBooking && (
                     <Chip
-                      label="Instant"
+                      label={t('table.instant')}
                       size="small"
                       sx={{
                         backgroundColor: 'primary.main',
@@ -708,7 +716,7 @@ const SpaceCatalog = () => {
       </TableContainer>
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editingIndex != null ? 'Edit space' : 'Add space'}</DialogTitle>
+        <DialogTitle>{t(editingIndex != null ? 'dialog.editSpace' : 'dialog.addSpace')}</DialogTitle>
         <DialogContent sx={{ pt: 0 }}>
           <Tabs
             value={activeTab}
@@ -724,7 +732,7 @@ const SpaceCatalog = () => {
             }}
           >
             <Tab
-              label="General information"
+              label={t('dialog.generalTab')}
               value="general"
               sx={{
                 textTransform: 'none',
@@ -733,7 +741,7 @@ const SpaceCatalog = () => {
               }}
             />
             <Tab
-              label="Photos"
+              label={t('dialog.photosTab')}
               value="photos"
               sx={{
                 textTransform: 'none',
@@ -755,12 +763,12 @@ const SpaceCatalog = () => {
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                  Datos generales
+                  {t('dialog.generalData')}
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Centro"
+                      label={t('dialog.centro')}
                       name="centroCode"
                       value={formValues.centroCode}
                       onChange={handleChange}
@@ -777,7 +785,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Nombre"
+                      label={t('dialog.name')}
                       name="displayName"
                       value={formValues.displayName}
                       onChange={handleChange}
@@ -787,18 +795,18 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Código"
+                      label={t('dialog.code')}
                       name="code"
                       value={formValues.code}
                       onChange={handleChange}
                       fullWidth
                       size="small"
-                      helperText="Identificador único (ej. MA1A1)"
+                      helperText={t('dialog.codeHelper')}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Tipo"
+                      label={t('dialog.type')}
                       name="type"
                       value={formValues.type}
                       onChange={handleChange}
@@ -815,7 +823,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Estado"
+                      label={t('dialog.status')}
                       name="status"
                       value={formValues.status}
                       onChange={handleChange}
@@ -832,7 +840,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Fecha de creación"
+                      label={t('dialog.creationDate')}
                       name="creationDate"
                       value={formValues.creationDate}
                       onChange={handleChange}
@@ -844,7 +852,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Código producto"
+                      label={t('dialog.productCode')}
                       name="productCode"
                       value={formValues.productCode}
                       onChange={handleChange}
@@ -854,7 +862,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Capacidad"
+                      label={t('dialog.capacity')}
                       name="capacity"
                       value={formValues.capacity}
                       onChange={handleChange}
@@ -864,7 +872,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Tamaño (m²)"
+                      label={t('dialog.size')}
                       name="size"
                       value={formValues.size}
                       onChange={handleChange}
@@ -874,7 +882,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Precio desde"
+                      label={t('dialog.priceFrom')}
                       name="priceFrom"
                       value={formValues.priceFrom}
                       onChange={handleChange}
@@ -884,7 +892,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Unidad de precio"
+                      label={t('dialog.priceUnit')}
                       name="priceUnit"
                       value={formValues.priceUnit}
                       onChange={handleChange}
@@ -901,7 +909,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Puntuación"
+                      label={t('dialog.rating')}
                       name="rating"
                       value={formValues.rating}
                       onChange={handleChange}
@@ -911,7 +919,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Número de reseñas"
+                      label={t('dialog.reviewCount')}
                       name="reviewCount"
                       value={formValues.reviewCount}
                       onChange={handleChange}
@@ -921,7 +929,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Orden"
+                      label={t('dialog.order')}
                       name="order"
                       value={formValues.order}
                       onChange={handleChange}
@@ -931,7 +939,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Wifi"
+                      label={t('dialog.wifi')}
                       name="wifi"
                       value={formValues.wifi}
                       onChange={handleChange}
@@ -941,7 +949,7 @@ const SpaceCatalog = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      label="Hero image URL"
+                      label={t('dialog.heroImage')}
                       name="heroImage"
                       value={formValues.heroImage}
                       onChange={handleChange}
@@ -967,7 +975,7 @@ const SpaceCatalog = () => {
                       }}
                     />
                   }
-                  label="Permitir reserva instantánea"
+                  label={t('dialog.instantBooking')}
                 />
               </Paper>
 
@@ -980,7 +988,7 @@ const SpaceCatalog = () => {
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                  Amenities
+                  {t('dialog.amenities')}
                 </Typography>
                 <FormGroup>
                   <Grid container spacing={1}>
@@ -1015,11 +1023,11 @@ const SpaceCatalog = () => {
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
-                  Descripción pública
+                  {t('dialog.publicDescription')}
                 </Typography>
                 <Stack spacing={2}>
                   <TextField
-                    label="Título"
+                    label={t('dialog.titleField')}
                     name="subtitle"
                     value={formValues.subtitle}
                     onChange={handleChange}
@@ -1027,7 +1035,7 @@ const SpaceCatalog = () => {
                     size="small"
                   />
                   <TextField
-                    label="Descripción"
+                    label={t('dialog.description')}
                     name="description"
                     value={formValues.description}
                     onChange={handleChange}
@@ -1036,7 +1044,7 @@ const SpaceCatalog = () => {
                     multiline
                   />
                   <TextField
-                    label="Tags (separados por coma)"
+                    label={t('dialog.tags')}
                     name="tags"
                     value={formValues.tags}
                     onChange={handleChange}
@@ -1052,7 +1060,7 @@ const SpaceCatalog = () => {
             <Stack spacing={2}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography variant="subtitle1" fontWeight={600}>
-                  Galería de fotos (la primera imagen será la hero)
+                  {t('dialog.photoGallery')}
                 </Typography>
                 <Button
                   variant="outlined"
@@ -1069,7 +1077,7 @@ const SpaceCatalog = () => {
                     }
                   }}
                 >
-                  {uploading ? 'Uploading…' : 'Añadir fotos'}
+                  {uploading ? t('dialog.uploading') : t('dialog.addPhotos')}
                   <input type="file" hidden accept="image/*" multiple onChange={handleFileSelect} />
                 </Button>
               </Stack>
@@ -1116,13 +1124,13 @@ const SpaceCatalog = () => {
                             color: 'text.disabled'
                           }}
                         >
-                          Vista previa
+                          {t('dialog.preview')}
                         </Box>
                       )}
                       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: 2 }}>
                         <Stack spacing={0.5}>
                           <Typography variant="caption" color="text.secondary">
-                            URL de la imagen
+                            {t('dialog.imageUrl')}
                           </Typography>
                           <TextField
                             value={image.url}
@@ -1132,7 +1140,7 @@ const SpaceCatalog = () => {
                           />
                         </Stack>
                         <TextField
-                          label="Descripción"
+                          label={t('dialog.imageDescription')}
                           value={image.caption ?? ''}
                           onChange={updateImageField(index, 'caption')}
                           size="small"
@@ -1147,7 +1155,7 @@ const SpaceCatalog = () => {
                             rel="noreferrer"
                             sx={{ fontWeight: 600, color: BRAND_PRIMARY_HOVER }}
                           >
-                            Abrir
+                            {t('dialog.openImage')}
                           </Button>
                           <Button
                             variant="text"
@@ -1155,7 +1163,7 @@ const SpaceCatalog = () => {
                             startIcon={<DeleteOutlineRoundedIcon />}
                             sx={{ fontWeight: 600, color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.greenSoft } }}
                           >
-                            Eliminar
+                            {t('dialog.deleteImage')}
                           </Button>
                         </Stack>
                       </CardContent>
@@ -1177,7 +1185,7 @@ const SpaceCatalog = () => {
                       }}
                     >
                       <Typography variant="body2">
-                        Aún no hay imágenes. Pulsa «Añadir foto» para comenzar la galería.
+                        {t('dialog.noImages')}
                       </Typography>
                     </Paper>
                   </Grid>
@@ -1188,7 +1196,7 @@ const SpaceCatalog = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleCloseDialog} disabled={submitting} sx={{ fontWeight: 600 }}>
-            Cancel
+            {t('dialog.cancel')}
           </Button>
           <Button
             variant="contained"
@@ -1200,7 +1208,7 @@ const SpaceCatalog = () => {
               fontWeight: 700
             }}
           >
-            Save
+            {t('dialog.save')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AdminApp from './apps/admin/AdminApp.jsx';
 import UserApp from './apps/user/UserApp.jsx';
 import { useAuthProfile } from './components/hooks/useAuthProfile.js';
 
 const App = () => {
+  const { t } = useTranslation();
   const { status, profile, error, loginUrl, refreshProfile, logout } = useAuthProfile();
   
   if (status === 'loading') {
@@ -26,7 +28,7 @@ const App = () => {
     }
     return (
       <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-        <span>{error || 'Redirecting to login…'}</span>
+        <span>{error || t('app.redirecting')}</span>
       </div>
     );
   }

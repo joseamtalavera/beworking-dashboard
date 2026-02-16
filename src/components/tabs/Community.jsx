@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
@@ -10,12 +11,15 @@ const GenericCard = ({ title, children }) => (
   </Paper>
 );
 
-const Community = () => (
-  <GenericCard title="Community Hub">
-    <Typography color="text.secondary">
-      Our community forums and discussion boards are coming soon. Connect with other users, share ideas, and get support from peers.
-    </Typography>
-  </GenericCard>
-);
+const Community = () => {
+  const { t } = useTranslation();
+  return (
+    <GenericCard title={t('stubs.community.title')}>
+      <Typography color="text.secondary">
+        {t('stubs.community.description')}
+      </Typography>
+    </GenericCard>
+  );
+};
 
 export default Community;

@@ -1,0 +1,116 @@
+{
+  "contact": {
+    "title": "Contact Information",
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "postalCode": "Postal Code",
+    "country": "Country"
+  },
+  "photo": {
+    "title": "Profile Photo",
+    "change": "CHANGE PHOTO",
+    "hint": "Click to upload a new profile photo"
+  },
+  "account": {
+    "title": "Account"
+  },
+  "subscription": {
+    "title": "Subscription",
+    "noActive": "No active subscription",
+    "status": "Status:",
+    "price": "Price:",
+    "nextBilling": "Next billing:",
+    "active": "Active",
+    "manage": "MANAGE",
+    "subscribe": "SUBSCRIBE",
+    "choosePlan": "Choose Your Subscription Plan",
+    "selectPlan": "Select a plan that best fits your needs",
+    "selected": "Selected",
+    "select": "Select",
+    "vatSuffix": "+ VAT",
+    "featuresIncluded": "Features included:",
+    "processing": "Processing...",
+    "subscribePrice": "Subscribe - €{{price}} + VAT"
+  },
+  "billing": {
+    "title": "Billing & Stripe",
+    "editPayment": "EDIT PAYMENT METHOD",
+    "cardBrand": "Card Brand",
+    "fullCardNumber": "Full Card Number",
+    "cardHint": "Enter the complete card number. Only last 4 digits will be saved.",
+    "expires": "Expires",
+    "stripeCustomerId": "Stripe customer ID:",
+    "expiryMonth": "Expiry Month",
+    "expiryYear": "Expiry Year"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "issued": "Issued"
+  },
+  "actions": {
+    "edit": "EDIT",
+    "cancel": "CANCEL",
+    "save": "SAVE",
+    "saving": "SAVING...",
+    "logout": "LOGOUT",
+    "close": "CLOSE"
+  },
+  "help": {
+    "title": "Help & Support",
+    "subtitle": "Chat with us, search documentation, or watch quick walkthroughs.",
+    "liveChat": "Live chat",
+    "liveChatDesc": "Our support engineers respond within a few minutes during business hours.",
+    "startChat": "START CHAT",
+    "bookCall": "BOOK CALL",
+    "quickAnswers": "Quick answers",
+    "tapToOpen": "Tap to open the relevant article",
+    "documentation": "Documentation",
+    "tutorials": "Tutorials",
+    "leaveNote": "Leave us a note",
+    "notePlaceholder": "How can we help? Share your question and we'll reply by email.",
+    "sendMessage": "SEND MESSAGE",
+    "questions": {
+      "card": "How do I update my card on file?",
+      "invoices": "Where can I see all tenant invoices?",
+      "automations": "How do automations sync with n8n?",
+      "api": "Is there an API for booking rooms?"
+    },
+    "articles": {
+      "gettingStarted": {
+        "title": "Getting started with BeWorking",
+        "summary": "Set up your tenant spaces, invite teammates, and configure branding."
+      },
+      "billing": {
+        "title": "Manage billing and invoices",
+        "summary": "Understand Stripe charges, update payment methods, download invoices."
+      },
+      "automations": {
+        "title": "Build automations with n8n",
+        "summary": "Create workflows that connect your apps and streamline BeWorking tasks."
+      }
+    },
+    "videoIntro": {
+      "title": "Introduction to BeWorking dashboard",
+      "desc": "6 min video · core navigation, tabs, and key features"
+    },
+    "videoAutomations": {
+      "title": "Automations with n8n",
+      "desc": "9 min video · building flows and syncing executions"
+    }
+  },
+  "plans": {
+    "virtualOffice": {
+      "name": "Virtual Office",
+      "description": "Virtual office services with mail handling",
+      "features": ["Mail handling", "Virtual address", "Mail forwarding", "Business registration"]
+    },
+    "automation": {
+      "name": "Automation",
+      "description": "Advanced automation services",
+      "features": ["Process automation", "Workflow management", "Integration tools", "Advanced analytics"]
+    }
+  }
+}

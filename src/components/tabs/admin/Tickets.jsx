@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Paper from '@mui/material/Paper';
 import { alpha } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
@@ -20,67 +21,70 @@ const priorityColor = {
   Low: 'default'
 };
 
-const Tickets = () => (
-  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
-    <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: 3 }}>
-      <Stack spacing={0.5}>
-        <Typography variant="h6" fontWeight={700}>
-          Support tickets
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Track tenant requests and SLA across the workspace.
-        </Typography>
+const Tickets = () => {
+  const { t } = useTranslation();
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: 3 }}>
+        <Stack spacing={0.5}>
+          <Typography variant="h6" fontWeight={700}>
+            {t('stubs.tickets.title')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('stubs.tickets.subtitle')}
+          </Typography>
+        </Stack>
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{
+            minWidth: 120,
+            height: 36,
+            textTransform: 'none',
+            fontWeight: 600,
+            borderColor: 'secondary.main',
+            color: 'secondary.main',
+            '&:hover': {
+              borderColor: (theme) => theme.palette.brand.greenHover,
+              color: (theme) => theme.palette.brand.greenHover,
+              backgroundColor: (theme) => alpha(theme.palette.brand.green, 0.08),
+              transform: 'translateY(-1px)',
+              boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
+            },
+            transition: 'all 0.2s ease-in-out'
+          }}
+        >
+          {t('stubs.tickets.openTicket')}
+        </Button>
       </Stack>
-      <Button 
-        variant="outlined" 
-        size="small" 
-        sx={{ 
-          minWidth: 120,
-          height: 36,
-          textTransform: 'none',
-          fontWeight: 600,
-          borderColor: 'secondary.main', 
-          color: 'secondary.main', 
-          '&:hover': { 
-            borderColor: (theme) => theme.palette.brand.greenHover, 
-            color: (theme) => theme.palette.brand.greenHover,
-            backgroundColor: (theme) => alpha(theme.palette.brand.green, 0.08),
-            transform: 'translateY(-1px)',
-            boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
-          },
-          transition: 'all 0.2s ease-in-out'
-        }}
-      >
-        OPEN TICKET
-      </Button>
-    </Stack>
-    <List disablePadding>
-      {TICKETS.map((ticket) => (
-        <ListItem key={ticket.id} divider sx={{ alignItems: 'flex-start' }}>
-          <ListItemText
-            primary={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="body1" fontWeight={600}>
-                  {ticket.subject}
-                </Typography>
-                <Chip label={ticket.priority} size="small" color={priorityColor[ticket.priority] ?? 'default'} />
-              </Stack>
-            }
-            secondary={
-              <>
-                <Typography variant="caption" color="text.secondary">
-                  #{ticket.id} · {ticket.requester}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  Status: {ticket.status}
-                </Typography>
-              </>
-            }
-          />
-        </ListItem>
-      ))}
-    </List>
-  </Paper>
-);
+      <List disablePadding>
+        {TICKETS.map((ticket) => (
+          <ListItem key={ticket.id} divider sx={{ alignItems: 'flex-start' }}>
+            <ListItemText
+              primary={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="body1" fontWeight={600}>
+                    {ticket.subject}
+                  </Typography>
+                  <Chip label={ticket.priority} size="small" color={priorityColor[ticket.priority] ?? 'default'} />
+                </Stack>
+              }
+              secondary={
+                <>
+                  <Typography variant="caption" color="text.secondary">
+                    #{ticket.id} · {ticket.requester}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    {t('stubs.adminBookings.status')}: {ticket.status}
+                  </Typography>
+                </>
+              }
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Paper>
+  );
+};
 
 export default Tickets;

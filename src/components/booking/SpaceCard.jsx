@@ -11,8 +11,19 @@ import { alpha } from '@mui/material/styles';
 import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esBooking from '../../i18n/locales/es/booking.json';
+import enBooking from '../../i18n/locales/en/booking.json';
+
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 const SpaceCard = ({ space, onBookNow }) => {
+  const { t } = useTranslation('booking');
+
   if (!space) {
     return null;
   }
@@ -24,7 +35,7 @@ const SpaceCard = ({ space, onBookNow }) => {
   };
 
   const isMeetingRoom = space.type === 'meeting_room';
-  const deskLabel = space.availableCount ? ` (${space.availableCount} available)` : '';
+  const deskLabel = space.availableCount ? ` (${space.availableCount} ${t('card.available')})` : '';
 
   return (
     <Box
@@ -75,7 +86,7 @@ const SpaceCard = ({ space, onBookNow }) => {
           >
             {space.instantBooking && (
               <Chip
-                label="Instant booking"
+                label={t('card.instantBooking')}
                 size="small"
                 sx={{
                   backgroundColor: (theme) => alpha(theme.palette.common.white, 0.9),
@@ -168,7 +179,7 @@ const SpaceCard = ({ space, onBookNow }) => {
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
                 <BusinessRoundedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
                 <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                  {space.typeLabel || (isMeetingRoom ? 'Meeting room' : `Desk${deskLabel}`)}
+                  {space.typeLabel || (isMeetingRoom ? t('card.meetingRoom') : `${t('card.desk')}${deskLabel}`)}
                 </Typography>
               </Stack>
             </Stack>
@@ -196,7 +207,7 @@ const SpaceCard = ({ space, onBookNow }) => {
                 minWidth: 0
               }}
             >
-              From {space.price}
+              {t('card.from')} {space.price}
               {space.priceUnit}
             </Typography>
 
@@ -215,7 +226,7 @@ const SpaceCard = ({ space, onBookNow }) => {
               }}
               disabled={!space.isBookable}
             >
-              Book now
+              {t('card.bookNow')}
             </Button>
           </Stack>
         </CardContent>

@@ -1,0 +1,32 @@
+{
+  "stats": {
+    "meetingRooms": "Salas de Reunión",
+    "deskBookings": "Reservas de Escritorio",
+    "businessAddresses": "Domicilios Fiscales",
+    "activeUsers": "Usuarios Activos",
+    "today": "hoy",
+    "active": "activos",
+    "withBookings": "con reservas"
+  },
+  "metrics": {
+    "incomeYTD": "Ingresos del año",
+    "pendingYTD": "Pendiente del año",
+    "incomeMonth": "Ingresos del mes",
+    "pendingMonth": "Pendiente del mes",
+    "overdue": "Vencido ({{count}})"
+  },
+  "charts": {
+    "financialOverview": "Resumen Financiero",
+    "year": "Año",
+    "invoicesCount": "{{count}} facturas",
+    "revenue": "Ingresos",
+    "pending": "Pendiente",
+    "overdue": "Vencido",
+    "noData": "Sin datos"
+  },
+  "occupancy": {
+    "title": "Ocupación del Espacio",
+    "noData": "No hay datos de ocupación disponibles",
+    "bookedOf": "{{booked}}h reservadas de {{total}}h"
+  }
+}

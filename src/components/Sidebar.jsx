@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
@@ -22,6 +23,7 @@ export const collapsedDrawerWidth = 72;
 
 const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const accentColor = theme.palette.primary.main;
   const activeColor = theme.palette.primary.dark;
@@ -70,7 +72,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
         <List sx={{ px: collapsed ? 1 : 2, py: 2 }}>
           {tabs.map((tab) => (
             <ListItem key={tab.id} disablePadding>
-              <Tooltip title={collapsed ? tab.label : ''} placement="right" arrow>
+              <Tooltip title={collapsed ? t('tabs.' + tab.id, { defaultValue: tab.label }) : ''} placement="right" arrow>
                 <ListItemButton
                   selected={activeTab === tab.id}
                   onClick={() => handleTabClick(tab.id)}
@@ -105,10 +107,10 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                     <ListItemText
                       primary={
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>{tab.label}</Typography>
+                          <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>{t('tabs.' + tab.id, { defaultValue: tab.label })}</Typography>
                           {tab.soon && (
                             <Chip
-                              label="Soon"
+                              label={t('sidebar.soon')}
                               size="small"
                               variant="outlined"
                               sx={{
@@ -134,7 +136,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
       <Divider />
       <List sx={{ px: collapsed ? 1 : 2, py: 2, flexShrink: 0 }}>
         <ListItem disablePadding>
-          <Tooltip title={collapsed ? 'Settings' : ''} placement="right" arrow>
+          <Tooltip title={collapsed ? t('sidebar.settings') : ''} placement="right" arrow>
             <ListItemButton
               sx={{ borderRadius: 2, mb: 0.5, justifyContent: collapsed ? 'center' : 'initial', px: collapsed ? 1.5 : 2 }}
               onClick={onOpenSettings}
@@ -142,12 +144,12 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
               <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
                 <SettingsIcon sx={{ fontSize: 20 }} />
               </ListItemIcon>
-              {!collapsed && <ListItemText primary="Settings" />}
+              {!collapsed && <ListItemText primary={t('sidebar.settings')} />}
             </ListItemButton>
           </Tooltip>
         </ListItem>
         <ListItem disablePadding>
-          <Tooltip title={collapsed ? 'Logout' : ''} placement="right" arrow>
+          <Tooltip title={collapsed ? t('sidebar.logout') : ''} placement="right" arrow>
             <ListItemButton
               sx={{
                 borderRadius: 2,
@@ -166,7 +168,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
               <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
                 <LogoutRoundedIcon sx={{ fontSize: 20 }} />
               </ListItemIcon>
-              {!collapsed && <ListItemText primary="Logout" />}
+              {!collapsed && <ListItemText primary={t('sidebar.logout')} />}
             </ListItemButton>
           </Tooltip>
         </ListItem>

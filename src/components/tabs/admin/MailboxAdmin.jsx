@@ -57,6 +57,16 @@ import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esMailbox from '../../../i18n/locales/es/mailbox.json';
+import enMailbox from '../../../i18n/locales/en/mailbox.json';
+
+if (!i18n.hasResourceBundle('es', 'mailbox')) {
+  i18n.addResourceBundle('es', 'mailbox', esMailbox);
+  i18n.addResourceBundle('en', 'mailbox', enMailbox);
+}
+
 import {
   getMailboxDocumentDownloadUrl,
   listMailboxDocuments,
@@ -69,13 +79,6 @@ import {
 import { fetchBookingContacts } from '../../../api/bookings.js';
 
 // Using theme.secondary.main for all green colors
-
-const statusConfig = {
-  scanned: { label: 'New upload', color: 'primary', description: 'Ready to notify the user.' },
-  notified: { label: 'Email sent', color: 'success', description: 'User has been notified.' },
-  viewed: { label: 'Viewed online', color: 'success', description: 'User downloaded or viewed the file.' },
-  picked_up: { label: 'Picked up', color: 'info', description: 'Package has been collected.' }
-};
 
 const SummaryCard = ({ icon, title, value, helper, color, accentHover }) => (
   <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -121,8 +124,16 @@ const formatDateTime = (isoString) => {
 };
 
 const MailboxAdmin = () => {
+  const { t } = useTranslation('mailbox');
   const theme = useTheme();
   const accentColor = theme.palette.secondary.main;
+
+  const statusConfig = {
+    scanned: { label: t('status.scanned'), color: 'primary', description: t('status.scannedDesc') },
+    notified: { label: t('status.notified'), color: 'success', description: t('status.notifiedDesc') },
+    viewed: { label: t('status.viewed'), color: 'success', description: t('status.viewedDesc') },
+    picked_up: { label: t('status.picked_up'), color: 'info', description: t('status.pickedUpDesc') }
+  };
   const accentHover = `${theme.palette.secondary.main}1F`;
   const [documents, setDocuments] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -205,7 +216,7 @@ const MailboxAdmin = () => {
     } catch (error) {
       if (!isMountedRef.current) return;
       console.error('Failed to load mailbox documents', error);
-      showSnackbar(error.message || 'Failed to load mailbox documents.', 'error');
+      showSnackbar(error.message || t('admin.snackbar.loadError'), 'error');
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);
@@ -344,10 +355,10 @@ const MailboxAdmin = () => {
         await refreshDocuments();
       }
 
-      showSnackbar('Notification email sent to the tenant.');
+      showSnackbar(t('admin.snackbar.notificationSent'));
     } catch (error) {
       console.error('Failed to notify mailbox document', error);
-      showSnackbar(error.message || 'Unable to send notification email.', 'error');
+      showSnackbar(error.message || t('admin.snackbar.notifyError'), 'error');
     }
   };
 
@@ -373,10 +384,10 @@ const MailboxAdmin = () => {
         await refreshDocuments();
       }
 
-      showSnackbar('Document marked as viewed by the tenant.');
+      showSnackbar(t('admin.snackbar.markedViewed'));
     } catch (error) {
       console.error('Failed to mark mailbox document as viewed', error);
-      showSnackbar(error.message || 'Unable to mark document as viewed.', 'error');
+      showSnackbar(error.message || t('admin.snackbar.viewedError'), 'error');
     }
   };
 
@@ -393,15 +404,15 @@ const MailboxAdmin = () => {
         await refreshDocuments();
       }
 
-      showSnackbar('Package marked as picked up.');
+      showSnackbar(t('admin.snackbar.markedPickedUp'));
     } catch (error) {
       console.error('Failed to mark package as picked up', error);
-      showSnackbar(error.message || 'Unable to mark package as picked up.', 'error');
+      showSnackbar(error.message || t('admin.snackbar.pickupError'), 'error');
     }
   };
 
   const handleDeleteDocument = async (docId) => {
-    if (!window.confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+    if (!window.confirm(t('admin.deleteConfirm'))) {
       return;
     }
 
@@ -414,10 +425,10 @@ const MailboxAdmin = () => {
         return newStates;
       });
 
-      showSnackbar('Document deleted successfully.');
+      showSnackbar(t('admin.snackbar.deleted'));
     } catch (error) {
       console.error('Failed to delete document', error);
-      showSnackbar(error.message || 'Unable to delete document.', 'error');
+      showSnackbar(error.message || t('admin.snackbar.deleteError'), 'error');
     }
   };
 
@@ -438,7 +449,7 @@ const MailboxAdmin = () => {
       }));
     } catch (error) {
       console.error('Failed to open mailbox document preview', error);
-      showSnackbar('Unable to open document preview.', 'error');
+      showSnackbar(t('admin.snackbar.previewError'), 'error');
     }
   };
 
@@ -542,9 +553,9 @@ const MailboxAdmin = () => {
       setSearchResults([]);
 
       if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-        showSnackbar('Authentication required. Please refresh the page or log in again.', 'error');
+        showSnackbar(t('admin.snackbar.authRequired'), 'error');
       } else {
-        showSnackbar(`Search failed: ${error.message}`, 'error');
+        showSnackbar(t('admin.snackbar.searchFailed', { message: error.message }), 'error');
       }
     } finally {
       setIsSearching(false);
@@ -576,7 +587,7 @@ const MailboxAdmin = () => {
 
   const handleUploadSubmit = async () => {
     if (!uploadForm.contactName || !uploadForm.contactEmail || uploadForm.documents.length === 0) {
-      showSnackbar('Please fill in all fields and select at least one document', 'error');
+      showSnackbar(t('admin.snackbar.uploadFieldsRequired'), 'error');
       return;
     }
 
@@ -612,12 +623,11 @@ const MailboxAdmin = () => {
       setDocuments(prev => [...uploaded, ...prev]);
     }
 
-    const typeLabel = uploadForm.documentType === 'package' ? 'package' : 'document';
-    const notifyLabel = uploadForm.autoNotify ? ' and notified' : '';
+    const typeLabel = uploadForm.documentType === 'package' ? t('docType.package') : t('uploadDialog.typeDocument');
     if (failed.length === 0) {
-      showSnackbar(`${uploaded.length} ${typeLabel}${uploaded.length > 1 ? 's' : ''} uploaded${notifyLabel} successfully`);
+      showSnackbar(t('admin.snackbar.uploadSuccess', { count: uploaded.length, type: typeLabel }));
     } else {
-      showSnackbar(`${uploaded.length} uploaded${notifyLabel}, ${failed.length} failed`, 'warning');
+      showSnackbar(t('admin.snackbar.uploadPartial', { uploaded: uploaded.length, failed: failed.length }), 'warning');
     }
 
     setUploadProgress({ uploading: false, current: 0, total: 0, results: [] });
@@ -643,7 +653,7 @@ const MailboxAdmin = () => {
   const handleVerifyPickupByCode = async (code) => {
     const codeToVerify = code || pickupCode;
     if (!codeToVerify.trim()) {
-      showSnackbar('Please enter a pickup code', 'error');
+      showSnackbar(t('admin.snackbar.enterPickupCode'), 'error');
       return;
     }
 
@@ -664,11 +674,11 @@ const MailboxAdmin = () => {
         );
       }
 
-      showSnackbar('Package verified and marked as picked up!');
+      showSnackbar(t('admin.snackbar.pickupVerified'));
     } catch (error) {
       console.error('Pickup verification failed', error);
-      setPickupResult({ success: false, error: error.message || 'Verification failed' });
-      showSnackbar(error.message || 'Pickup verification failed.', 'error');
+      setPickupResult({ success: false, error: error.message || t('admin.snackbar.pickupFailed') });
+      showSnackbar(error.message || t('admin.snackbar.pickupFailed'), 'error');
     } finally {
       setPickupVerifying(false);
     }
@@ -704,7 +714,7 @@ const MailboxAdmin = () => {
       setScannerActive(true);
     } catch (error) {
       console.error('Failed to start QR scanner', error);
-      showSnackbar('Unable to access camera. Please enter the code manually.', 'warning');
+      showSnackbar(t('admin.snackbar.cameraError'), 'warning');
       setScannerActive(false);
     }
   };
@@ -732,41 +742,41 @@ const MailboxAdmin = () => {
     <Stack spacing={4}>
       <Stack spacing={2}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Mailbox
+          {t('admin.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Manage scanned mail and packages for your virtual office tenants. Upload new scans, notify recipients automatically, and track when files are viewed online.
+          {t('admin.subtitle')}
         </Typography>
       </Stack>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
         <SummaryCard
           icon={<ScannerOutlinedIcon />}
-          title="New uploads"
+          title={t('admin.summary.newUploads')}
           value={summary.scanned}
-          helper="Waiting to notify tenants"
+          helper={t('admin.summary.waitingToNotify')}
           accentHover={accentHover}
         />
         <SummaryCard
           icon={<MarkEmailReadOutlinedIcon />}
-          title="Notified"
+          title={t('admin.summary.notified')}
           value={summary.notified}
-          helper="Emails delivered in the last 7 days"
+          helper={t('admin.summary.emailsDelivered')}
           accentHover={accentHover}
         />
         <SummaryCard
           icon={<TaskAltOutlinedIcon />}
-          title="Viewed online"
+          title={t('admin.summary.viewedOnline')}
           value={summary.viewed}
-          helper="Tenant confirmed access"
+          helper={t('admin.summary.tenantConfirmed')}
           color="secondary.main"
           accentHover={accentHover}
         />
         <SummaryCard
           icon={<LocalShippingOutlinedIcon />}
-          title="Pending packages"
+          title={t('admin.summary.pendingPackages')}
           value={summary.pendingPackages}
-          helper="Awaiting pickup"
+          helper={t('admin.summary.awaitingPickup')}
           accentHover={accentHover}
         />
       </Stack>
@@ -780,10 +790,10 @@ const MailboxAdmin = () => {
         >
           <Box>
             <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Incoming documents
+              {t('admin.incomingDocuments')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Scan, notify, and track mail for every virtual office tenant.
+              {t('admin.incomingSubtitle')}
             </Typography>
           </Box>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -802,7 +812,7 @@ const MailboxAdmin = () => {
                 }
               }}
             >
-              Verify Pickup
+              {t('admin.verifyPickup')}
             </Button>
             <Button
               variant="outlined"
@@ -819,14 +829,14 @@ const MailboxAdmin = () => {
                 }
               }}
             >
-              Upload
+              {t('admin.upload')}
             </Button>
             <ToggleButtonGroup value={filter} exclusive onChange={handleFilterChange} size="small" color="success">
-              <ToggleButton value="all">All</ToggleButton>
-              <ToggleButton value="scanned">New Upload</ToggleButton>
-              <ToggleButton value="notified">Notified</ToggleButton>
-              <ToggleButton value="viewed">Viewed</ToggleButton>
-              <ToggleButton value="picked_up">Picked Up</ToggleButton>
+              <ToggleButton value="all">{t('filter.all')}</ToggleButton>
+              <ToggleButton value="scanned">{t('filter.newUpload')}</ToggleButton>
+              <ToggleButton value="notified">{t('filter.notified')}</ToggleButton>
+              <ToggleButton value="viewed">{t('filter.viewed')}</ToggleButton>
+              <ToggleButton value="picked_up">{t('filter.pickedUp')}</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
         </Stack>
@@ -834,13 +844,13 @@ const MailboxAdmin = () => {
         {/* Filters - Always visible like Contacts */}
         <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
           <Typography variant="h6" gutterBottom>
-            Filters
+            {t('admin.filters')}
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
-                label="Start Date"
+                label={t('admin.startDate')}
                 type="date"
                 value={dateFilters.startDate}
                 onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
@@ -851,7 +861,7 @@ const MailboxAdmin = () => {
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
-                label="End Date"
+                label={t('admin.endDate')}
                 type="date"
                 value={dateFilters.endDate}
                 onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
@@ -862,7 +872,7 @@ const MailboxAdmin = () => {
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
-                label="Search by Name"
+                label={t('admin.searchByName')}
                 value={mainSearchForm.nameSearch}
                 onChange={(e) => handleMainSearchChange('nameSearch', e.target.value)}
                 size="small"
@@ -878,7 +888,7 @@ const MailboxAdmin = () => {
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
-                label="Search by Email"
+                label={t('admin.searchByEmail')}
                 value={mainSearchForm.emailSearch}
                 onChange={(e) => handleMainSearchChange('emailSearch', e.target.value)}
                 size="small"
@@ -898,10 +908,10 @@ const MailboxAdmin = () => {
               size="small"
               onClick={clearFilters}
             >
-              Clear Filters
+              {t('admin.clearFilters')}
             </Button>
             <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
-              Showing {filteredDocuments.length} of {documents.length} documents
+              {t('admin.showingOf', { shown: filteredDocuments.length, total: documents.length })}
             </Typography>
           </Stack>
         </Paper>
@@ -912,12 +922,12 @@ const MailboxAdmin = () => {
           <Table size="medium">
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 'bold' }}>Document</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Contact</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Received</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('admin.table.document')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('admin.table.type')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('admin.table.contact')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('admin.table.received')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('admin.table.status')}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('admin.table.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -926,10 +936,10 @@ const MailboxAdmin = () => {
                   <TableCell colSpan={6}>
                     <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                       <Typography variant="subtitle1" fontWeight="bold">
-                        Loading documents...
+                        {t('admin.loadingDocuments')}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Fetching the latest mailbox records.
+                        {t('admin.fetchingRecords')}
                       </Typography>
                     </Stack>
                   </TableCell>
@@ -938,7 +948,7 @@ const MailboxAdmin = () => {
                 <>
                   {paginatedDocuments.map((doc, index) => {
                     const status = statusConfig[doc.status] || null;
-                    const contactName = doc.contactName || doc.recipient || 'Unknown contact';
+                    const contactName = doc.contactName || doc.recipient || t('admin.unknownContact', { defaultValue: 'Unknown contact' });
                     const avatarSeed = (contactName || doc.title || doc.id || '?').slice(0, 2).toUpperCase();
                     const pageCountLabel = doc.pages ?? '—';
                     const docIsPackage = isPackage(doc);
@@ -970,7 +980,7 @@ const MailboxAdmin = () => {
                         <TableCell>
                           <Chip
                             icon={docIsPackage ? <InventoryOutlinedIcon sx={{ fontSize: 16 }} /> : <MailOutlineIcon sx={{ fontSize: 16 }} />}
-                            label={docIsPackage ? 'Package' : 'Mail'}
+                            label={docIsPackage ? t('docType.package') : t('docType.mail')}
                             size="small"
                             variant="outlined"
                             sx={{
@@ -1012,7 +1022,7 @@ const MailboxAdmin = () => {
                         </TableCell>
                         <TableCell align="right">
                           <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <Tooltip title="Preview document" arrow>
+                            <Tooltip title={t('admin.tooltips.preview')} arrow>
                               <span>
                                 <IconButton
                                   size="small"
@@ -1026,7 +1036,7 @@ const MailboxAdmin = () => {
                                 </IconButton>
                               </span>
                             </Tooltip>
-                            <Tooltip title="Send notification email" arrow>
+                            <Tooltip title={t('admin.tooltips.sendEmail')} arrow>
                               <span>
                                 <IconButton
                                   size="small"
@@ -1041,7 +1051,7 @@ const MailboxAdmin = () => {
                               </span>
                             </Tooltip>
                             {docIsPackage ? (
-                              <Tooltip title="Mark as picked up" arrow>
+                              <Tooltip title={t('admin.tooltips.markPickedUp')} arrow>
                                 <span>
                                   <IconButton
                                     size="small"
@@ -1056,7 +1066,7 @@ const MailboxAdmin = () => {
                                 </span>
                               </Tooltip>
                             ) : (
-                              <Tooltip title="Mark as viewed" arrow>
+                              <Tooltip title={t('admin.tooltips.markViewed')} arrow>
                                 <span>
                                   <IconButton
                                     size="small"
@@ -1071,7 +1081,7 @@ const MailboxAdmin = () => {
                                 </span>
                               </Tooltip>
                             )}
-                            <Tooltip title="Delete document" arrow>
+                            <Tooltip title={t('admin.tooltips.delete')} arrow>
                               <span>
                                 <IconButton
                                   size="small"
@@ -1099,10 +1109,10 @@ const MailboxAdmin = () => {
                       <TableCell colSpan={6}>
                         <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                           <Typography variant="subtitle1" fontWeight="bold">
-                            No documents found
+                            {t('admin.noDocuments')}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Switch filters or upload a new scan to populate the queue.
+                            {t('admin.noDocumentsHint')}
                           </Typography>
                         </Stack>
                       </TableCell>
@@ -1132,10 +1142,10 @@ const MailboxAdmin = () => {
         {/* Pagination Info */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            Showing {startIndex + 1}-{Math.min(endIndex, filteredDocuments.length)} of {filteredDocuments.length} documents
+            {t('admin.showingRange', { start: startIndex + 1, end: Math.min(endIndex, filteredDocuments.length), total: filteredDocuments.length })}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Page {currentPage} of {totalPages}
+            {t('admin.pageOf', { page: currentPage, totalPages })}
           </Typography>
         </Box>
       </Paper>
@@ -1167,7 +1177,7 @@ const MailboxAdmin = () => {
               <UploadFileOutlinedIcon />
             </Box>
             <Typography variant="h6" fontWeight="bold">
-              Upload {uploadForm.documentType === 'package' ? 'Package Photo' : 'Document'}
+              {t('uploadDialog.title', { type: uploadForm.documentType === 'package' ? t('uploadDialog.typePackagePhoto') : t('uploadDialog.typeDocument') })}
             </Typography>
           </Stack>
         </DialogTitle>
@@ -1176,7 +1186,7 @@ const MailboxAdmin = () => {
             {/* Document Type Toggle */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 1 }}>
-                Type
+                {t('uploadDialog.type')}
               </Typography>
               <ToggleButtonGroup
                 value={uploadForm.documentType}
@@ -1193,11 +1203,11 @@ const MailboxAdmin = () => {
               >
                 <ToggleButton value="mail" sx={{ textTransform: 'none' }}>
                   <MailOutlineIcon sx={{ mr: 1, fontSize: 18 }} />
-                  Mail
+                  {t('uploadDialog.mail')}
                 </ToggleButton>
                 <ToggleButton value="package" sx={{ textTransform: 'none' }}>
                   <InventoryOutlinedIcon sx={{ mr: 1, fontSize: 18 }} />
-                  Package
+                  {t('uploadDialog.package')}
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
@@ -1205,11 +1215,11 @@ const MailboxAdmin = () => {
             {/* Search Section */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
-                Search Existing Contacts
+                {t('uploadDialog.searchContacts')}
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
-                  placeholder="Search user or contact"
+                  placeholder={t('uploadDialog.searchPlaceholder')}
                   value={searchForm.nameSearch}
                   onChange={(e) => handleSearchChange('nameSearch', e.target.value)}
                   InputProps={{
@@ -1247,7 +1257,7 @@ const MailboxAdmin = () => {
                   sx={{ flex: 1 }}
                 />
                 <TextField
-                  placeholder="Search by email"
+                  placeholder={t('uploadDialog.searchByEmail')}
                   value={searchForm.emailSearch}
                   onChange={(e) => handleSearchChange('emailSearch', e.target.value)}
                   InputProps={{
@@ -1290,7 +1300,7 @@ const MailboxAdmin = () => {
               {searchResults.length > 0 && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    Search Results:
+                    {t('uploadDialog.searchResults')}
                   </Typography>
                   <Stack spacing={1}>
                     {searchResults.map((contact) => (
@@ -1335,25 +1345,25 @@ const MailboxAdmin = () => {
             {/* Manual Entry Section */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
-                Or Enter Contact Details Manually
+                {t('uploadDialog.manualEntry')}
               </Typography>
               <Stack spacing={2}>
                 <TextField
-                  label="Contact Name"
+                  label={t('uploadDialog.contactName')}
                   value={uploadForm.contactName}
                   onChange={(e) => handleFormChange('contactName', e.target.value)}
                   fullWidth
                   required
-                  placeholder="Enter contact name"
+                  placeholder={t('uploadDialog.contactNamePlaceholder')}
                 />
                 <TextField
-                  label="Contact Email"
+                  label={t('uploadDialog.contactEmail')}
                   type="email"
                   value={uploadForm.contactEmail}
                   onChange={(e) => handleFormChange('contactEmail', e.target.value)}
                   fullWidth
                   required
-                  placeholder="Enter contact email"
+                  placeholder={t('uploadDialog.contactEmailPlaceholder')}
                 />
               </Stack>
             </Box>
@@ -1363,7 +1373,7 @@ const MailboxAdmin = () => {
             {/* Drag-and-Drop Document Selection */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
-                {uploadForm.documentType === 'package' ? 'Photo of Package' : 'Select Documents'}
+                {uploadForm.documentType === 'package' ? t('uploadDialog.photoOfPackage') : t('uploadDialog.selectDocuments')}
               </Typography>
               <Box
                 onDrop={handleDrop}
@@ -1393,12 +1403,12 @@ const MailboxAdmin = () => {
                 />
                 <CloudUploadOutlinedIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
                 <Typography variant="body1" fontWeight="medium" color="text.secondary">
-                  Drag & drop files here
+                  {t('uploadDialog.dragDrop')}
                 </Typography>
                 <Typography variant="caption" color="text.disabled">
                   {uploadForm.documentType === 'package'
-                    ? 'or click to browse — images only'
-                    : 'or click to browse — PDF and images accepted'
+                    ? t('uploadDialog.browseImages')
+                    : t('uploadDialog.browsePdfImages')
                   }
                 </Typography>
               </Box>
@@ -1427,7 +1437,7 @@ const MailboxAdmin = () => {
                     </Paper>
                   ))}
                   <Typography variant="caption" color="text.secondary">
-                    {uploadForm.documents.length} file{uploadForm.documents.length > 1 ? 's' : ''} selected
+                    {t('uploadDialog.filesSelected', { count: uploadForm.documents.length })}
                   </Typography>
                 </Stack>
               )}
@@ -1445,12 +1455,12 @@ const MailboxAdmin = () => {
               label={
                 <Stack>
                   <Typography variant="body2" fontWeight="medium">
-                    Auto-notify recipient
+                    {t('uploadDialog.autoNotify')}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {uploadForm.documentType === 'package'
-                      ? 'Send notification email with pickup code immediately after upload'
-                      : 'Send notification email immediately after upload'
+                      ? t('uploadDialog.autoNotifyPackage')
+                      : t('uploadDialog.autoNotifyMail')
                     }
                   </Typography>
                 </Stack>
@@ -1467,12 +1477,12 @@ const MailboxAdmin = () => {
                 sx={{ borderRadius: 2, height: 6, '& .MuiLinearProgress-bar': { bgcolor: 'secondary.main' } }}
               />
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                Uploading {uploadProgress.current} of {uploadProgress.total}...
+                {t('uploadDialog.uploadingProgress', { current: uploadProgress.current, total: uploadProgress.total })}
               </Typography>
             </Box>
           )}
           <Button onClick={handleDialogClose} disabled={uploadProgress.uploading} sx={{ color: 'text.secondary' }}>
-            Cancel
+            {t('uploadDialog.cancel')}
           </Button>
           <Button
             onClick={handleUploadSubmit}
@@ -1485,8 +1495,8 @@ const MailboxAdmin = () => {
             }}
           >
             {uploadProgress.uploading
-              ? 'Uploading...'
-              : `Upload ${uploadForm.documents.length || ''} ${uploadForm.documentType === 'package' ? 'photo' : 'document'}${uploadForm.documents.length > 1 ? 's' : ''}`
+              ? t('uploadDialog.uploading')
+              : t('uploadDialog.uploadCount', { count: uploadForm.documents.length || '', type: uploadForm.documentType === 'package' ? t('uploadDialog.typePackagePhoto') : t('uploadDialog.typeDocument') })
             }
           </Button>
         </DialogActions>
@@ -1517,7 +1527,7 @@ const MailboxAdmin = () => {
               <QrCodeScannerIcon />
             </Box>
             <Typography variant="h6" fontWeight="bold">
-              Verify Package Pickup
+              {t('pickupDialog.title')}
             </Typography>
           </Stack>
         </DialogTitle>
@@ -1526,7 +1536,7 @@ const MailboxAdmin = () => {
             {/* QR Scanner */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 1 }}>
-                Scan QR Code
+                {t('pickupDialog.scanQr')}
               </Typography>
               <Box
                 sx={{
@@ -1555,7 +1565,7 @@ const MailboxAdmin = () => {
                       '&:hover': { borderColor: '#ea580c', bgcolor: '#fff7ed' }
                     }}
                   >
-                    Start Camera
+                    {t('pickupDialog.startCamera')}
                   </Button>
                 )}
               </Box>
@@ -1565,21 +1575,21 @@ const MailboxAdmin = () => {
                   onClick={stopScanner}
                   sx={{ mt: 1, color: 'text.secondary' }}
                 >
-                  Stop Camera
+                  {t('pickupDialog.stopCamera')}
                 </Button>
               )}
             </Box>
 
             <Divider>
               <Typography variant="caption" color="text.secondary">
-                OR
+                {t('pickupDialog.or')}
               </Typography>
             </Divider>
 
             {/* Manual Code Entry */}
             <Box>
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 1 }}>
-                Enter Pickup Code Manually
+                {t('pickupDialog.enterManually')}
               </Typography>
               <Stack direction="row" spacing={2}>
                 <TextField
@@ -1609,7 +1619,7 @@ const MailboxAdmin = () => {
                     borderRadius: 2
                   }}
                 >
-                  {pickupVerifying ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Verify'}
+                  {pickupVerifying ? <CircularProgress size={20} sx={{ color: 'white' }} /> : t('pickupDialog.verify')}
                 </Button>
               </Stack>
             </Box>
@@ -1618,7 +1628,7 @@ const MailboxAdmin = () => {
             {pickupResult && (
               <Alert severity={pickupResult.success ? 'success' : 'error'} sx={{ borderRadius: 2 }}>
                 {pickupResult.success
-                  ? `Package "${pickupResult.document?.title || 'Package'}" verified and marked as picked up!`
+                  ? t('pickupDialog.verifiedSuccess', { title: pickupResult.document?.title || t('docType.package') })
                   : pickupResult.error
                 }
               </Alert>
@@ -1627,7 +1637,7 @@ const MailboxAdmin = () => {
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button onClick={handleClosePickupDialog} sx={{ color: 'text.secondary' }}>
-            Close
+            {t('pickupDialog.close')}
           </Button>
         </DialogActions>
       </Dialog>

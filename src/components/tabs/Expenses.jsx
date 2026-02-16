@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -7,15 +8,16 @@ import Typography from '@mui/material/Typography';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 
 const Expenses = () => {
+  const { t } = useTranslation();
   return (
     <Stack spacing={4}>
       {/* Header */}
       <Stack spacing={2}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Expenses
+          {t('stubs.expenses.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Track and manage your business expenses, receipts, and reimbursements.
+          {t('stubs.expenses.subtitle')}
         </Typography>
       </Stack>
 
@@ -38,13 +40,13 @@ const Expenses = () => {
           </Box>
           <Box>
             <Typography variant="h6" fontWeight="bold" color="text.primary" sx={{ mb: 1 }}>
-              Expenses Management
+              {t('stubs.expenses.cardTitle')}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-              Track your business expenses, upload receipts, and manage reimbursements all in one place.
+              {t('stubs.expenses.cardDesc')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              This feature is coming soon and will include expense tracking, receipt management, and automated categorization.
+              {t('stubs.expenses.cardHint')}
             </Typography>
           </Box>
         </Stack>

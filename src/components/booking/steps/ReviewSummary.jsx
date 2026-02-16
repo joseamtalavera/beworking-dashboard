@@ -9,7 +9,18 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esBooking from '../../../i18n/locales/es/booking.json';
+import enBooking from '../../../i18n/locales/en/booking.json';
+
 import { timeStringToMinutes } from '../../../utils/calendarUtils';
+
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 const VAT_RATE = 0.21;
 
@@ -31,6 +42,7 @@ function computePricing(state) {
 }
 
 export default function ReviewSummary({ state }) {
+  const { t } = useTranslation('booking');
   const { subtotal, vat, total, label } = computePricing(state);
   const heroImage = state.producto?.heroImage || state.producto?.imageUrl || null;
   const roomName = state.producto?.name || '—';
@@ -112,7 +124,7 @@ export default function ReviewSummary({ state }) {
                 })
               : '—'}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>Date</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.date')}</Typography>
         </Stack>
         <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
           <AccessTimeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
@@ -121,7 +133,7 @@ export default function ReviewSummary({ state }) {
               ? `${state.startTime} – ${state.endTime}`
               : '—'}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>Time</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.time')}</Typography>
         </Stack>
         {state.attendees && (
           <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
@@ -129,7 +141,7 @@ export default function ReviewSummary({ state }) {
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {state.attendees}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>Attendees</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.attendees')}</Typography>
           </Stack>
         )}
       </Stack>
@@ -138,19 +150,19 @@ export default function ReviewSummary({ state }) {
       <Stack sx={{ px: 2.5, py: 1.5, borderTop: '1px solid', borderColor: 'divider' }} spacing={0.5}>
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Subtotal{label ? ` (${label})` : ''}
+            {t('steps.subtotal')}{label ? ` (${label})` : ''}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             €{subtotal.toFixed(2)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>IVA (21%)</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.vatPercent', { percent: 21 })}</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>€{vat.toFixed(2)}</Typography>
         </Stack>
         <Divider sx={{ my: 0.5 }} />
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>Total</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>{t('steps.total')}</Typography>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>€{total.toFixed(2)}</Typography>
         </Stack>
       </Stack>

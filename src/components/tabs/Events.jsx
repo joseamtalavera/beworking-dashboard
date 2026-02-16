@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
@@ -10,12 +11,15 @@ const GenericCard = ({ title, children }) => (
   </Paper>
 );
 
-const Events = () => (
-  <GenericCard title="Events Calendar">
-    <Typography color="text.secondary">
-      The events management system is on its way. You'll soon be able to track, create, and manage both virtual and in-person events.
-    </Typography>
-  </GenericCard>
-);
+const Events = () => {
+  const { t } = useTranslation();
+  return (
+    <GenericCard title={t('stubs.events.title')}>
+      <Typography color="text.secondary">
+        {t('stubs.events.description')}
+      </Typography>
+    </GenericCard>
+  );
+};
 
 export default Events;

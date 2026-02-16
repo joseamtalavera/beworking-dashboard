@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -66,15 +67,16 @@ const FileRow = ({ name, size, date, typeIcon }) => (
 );
 
 const Storage = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
   return (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
-      <StatCard title="Total Space" value="500 GB" icon={<FolderIcon sx={{ color: accentColor, fontSize: 32 }} />} />
-      <StatCard title="Used Space" value="128.5 GB" icon={<ArchiveIcon sx={{ color: accentColor, fontSize: 32 }} />} />
+      <StatCard title={t('stubs.storage.totalSpace')} value="500 GB" icon={<FolderIcon sx={{ color: accentColor, fontSize: 32 }} />} />
+      <StatCard title={t('stubs.storage.usedSpace')} value="128.5 GB" icon={<ArchiveIcon sx={{ color: accentColor, fontSize: 32 }} />} />
       <StatCard
-        title="Files"
+        title={t('stubs.storage.files')}
         value="2,480"
         icon={(
           <Box
@@ -95,7 +97,7 @@ const Storage = () => {
         )}
       />
       <StatCard
-        title="Folders"
+        title={t('stubs.storage.folders')}
         value="125"
         icon={(
           <Box
@@ -118,7 +120,7 @@ const Storage = () => {
     </Box>
     <Card elevation={2} sx={{ borderRadius: 3, overflow: 'hidden' }}>
       <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderBottomColor: 'divider' }}>
-        <Typography variant="h6" fontWeight="bold" color="text.primary">Recent Files</Typography>
+        <Typography variant="h6" fontWeight="bold" color="text.primary">{t('stubs.storage.recentFiles')}</Typography>
         <Button
           variant="contained"
           sx={{
@@ -128,17 +130,17 @@ const Storage = () => {
             '&:hover': { bgcolor: theme.palette.brand.greenHover }
           }}
         >
-          Upload File
+          {t('stubs.storage.uploadFile')}
         </Button>
       </Box>
       <TableContainer>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Size</TableCell>
-              <TableCell>Last Modified</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>{t('stubs.storage.name')}</TableCell>
+              <TableCell>{t('stubs.storage.size')}</TableCell>
+              <TableCell>{t('stubs.storage.lastModified')}</TableCell>
+              <TableCell align="right">{t('stubs.storage.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

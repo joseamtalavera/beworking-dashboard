@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { alpha, useTheme } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -90,43 +91,6 @@ const COMING_SOON = [
   { id: 'salesforce', name: 'Salesforce', description: 'Pipeline visualisations and chatter updates.', logoUrl: 'https://logo.clearbit.com/salesforce.com' }
 ];
 
-const statusChipStyles = {
-  connected: { label: 'Connected', color: 'success' },
-  action_required: { label: 'Action required', color: 'primary' },
-  disconnected: { label: 'Disconnected', color: 'default' }
-};
-
-const SummaryCard = ({ title, value, helper, accent }) => (
-  <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-    <Stack direction="row" spacing={2} alignItems="center">
-      <Box
-        sx={{
-          width: 48,
-          height: 48,
-          borderRadius: '50%',
-          bgcolor: accent ? accentHover : 'grey.100',
-          color: accent ? accentColor : 'text.secondary',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 700,
-          fontSize: 18
-        }}
-      >
-        {value}
-      </Box>
-      <Box>
-        <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
-          {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {helper}
-        </Typography>
-      </Box>
-    </Stack>
-  </Paper>
-);
-
 const formatLastSynced = (isoString) => {
   if (!isoString) return 'Never';
   const last = new Date(isoString);
@@ -139,179 +103,217 @@ const formatLastSynced = (isoString) => {
   return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 };
 
-const IntegrationRow = ({ integration }) => {
-  const chip = statusChipStyles[integration.status] ?? statusChipStyles.disconnected;
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        p: 3,
-        border: '1px solid',
-        borderColor: 'divider',
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        gap: 2,
-        alignItems: { xs: 'flex-start', sm: 'center' }
-      }}
-    >
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 200 }}>
-        <Avatar
-          src={integration.logoUrl}
-          alt={integration.name}
-          sx={{ width: 48, height: 48, border: '3px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6) }}
-          imgProps={{ referrerPolicy: 'no-referrer' }}
-        />
-        <Box>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography variant="subtitle1" fontWeight="bold">
-              {integration.name}
-            </Typography>
-            <Chip label={chip.label} color={chip.color} size="small" />
-          </Stack>
-          <Typography variant="body2" color="text.secondary">
-            {integration.description}
-          </Typography>
-        </Box>
-      </Stack>
-
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} flex={1} alignItems={{ xs: 'flex-start', md: 'center' }}>
-        <Box sx={{ minWidth: 180 }}>
-          <Typography variant="caption" color="text.secondary">
-            Last sync
-          </Typography>
-          <Typography variant="body2" fontWeight={600}>
-            {formatLastSynced(integration.lastSynced)}
-          </Typography>
-        </Box>
-        <Box sx={{ minWidth: 200 }}>
-          <Typography variant="caption" color="text.secondary">
-            Data streams
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {integration.dataFeeds.map((feed) => (
-              <Chip key={feed} label={feed} size="small" variant="outlined" />
-            ))}
-          </Stack>
-        </Box>
-        <Box sx={{ flex: 1, minWidth: 220 }}>
-          <Typography variant="caption" color="text.secondary">
-            Sync health
-          </Typography>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <LinearProgress
-              variant="determinate"
-              value={integration.syncHealth}
-              sx={{ flex: 1, height: 6, borderRadius: 999 }}
-            />
-            <Typography variant="body2" fontWeight={600}>
-              {integration.syncHealth}%
-            </Typography>
-          </Stack>
-        </Box>
-      </Stack>
-
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Tooltip title={integration.autoSync ? 'Auto-sync enabled' : 'Auto-sync disabled'}>
-          <Switch checked={integration.autoSync} disabled size="small" />
-        </Tooltip>
-        <Button
-          variant="outlined"
-          size="small"
-          sx={{
-            borderRadius: 2,
-            borderColor: accentColor,
-            color: accentColor,
-            '&:hover': { borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover }
-          }}
-        >
-          Sync now
-        </Button>
-      </Stack>
-    </Paper>
-  );
-};
-
-const AvailableCard = ({ name, description, logoUrl }) => (
-  <Paper
-    elevation={0}
-    sx={{
-      borderRadius: 3,
-      p: 3,
-      border: '1px dashed',
-      borderColor: accentHover,
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 2
-    }}
-  >
-    <Stack direction="row" spacing={2} alignItems="center">
-      <Avatar
-        src={logoUrl}
-        alt={name}
-        sx={{ width: 44, height: 44, border: '3px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6) }}
-        imgProps={{ referrerPolicy: 'no-referrer' }}
-      />
-      <Typography variant="subtitle1" fontWeight="bold">
-        {name}
-      </Typography>
-    </Stack>
-    <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-      {description}
-    </Typography>
-    <Button
-      variant="contained"
-      size="small"
-      sx={{
-        borderRadius: 2,
-        bgcolor: accentColor,
-        alignSelf: 'flex-start',
-        '&:hover': { bgcolor: theme.palette.brand.greenHover }
-      }}
-    >
-      Request access
-    </Button>
-  </Paper>
-);
-
 const Integrations = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
   const accentHover = theme.palette.brand.greenSoft;
   const connectedCount = ACTIVE_INTEGRATIONS.filter((item) => item.status === 'connected').length;
   const totalFeeds = ACTIVE_INTEGRATIONS.reduce((acc, item) => acc + item.dataFeeds.length, 0);
 
+  const statusChipStyles = {
+    connected: { label: t('stubs.integrations.connected'), color: 'success' },
+    action_required: { label: t('stubs.integrations.actionRequired'), color: 'primary' },
+    disconnected: { label: t('stubs.integrations.disconnected'), color: 'default' }
+  };
+
+  const SummaryCard = ({ title, value, helper, accent }) => (
+    <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            bgcolor: accent ? accentHover : 'grey.100',
+            color: accent ? accentColor : 'text.secondary',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 700,
+            fontSize: 18
+          }}
+        >
+          {value}
+        </Box>
+        <Box>
+          <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+            {title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {helper}
+          </Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+
+  const IntegrationRow = ({ integration }) => {
+    const chip = statusChipStyles[integration.status] ?? statusChipStyles.disconnected;
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          p: 3,
+          border: '1px solid',
+          borderColor: 'divider',
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          alignItems: { xs: 'flex-start', sm: 'center' }
+        }}
+      >
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 200 }}>
+          <Avatar
+            src={integration.logoUrl}
+            alt={integration.name}
+            sx={{ width: 48, height: 48, border: '3px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6) }}
+            imgProps={{ referrerPolicy: 'no-referrer' }}
+          />
+          <Box>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="subtitle1" fontWeight="bold">
+                {integration.name}
+              </Typography>
+              <Chip label={chip.label} color={chip.color} size="small" />
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              {integration.description}
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} flex={1} alignItems={{ xs: 'flex-start', md: 'center' }}>
+          <Box sx={{ minWidth: 180 }}>
+            <Typography variant="caption" color="text.secondary">
+              {t('stubs.integrations.lastSync')}
+            </Typography>
+            <Typography variant="body2" fontWeight={600}>
+              {formatLastSynced(integration.lastSynced)}
+            </Typography>
+          </Box>
+          <Box sx={{ minWidth: 200 }}>
+            <Typography variant="caption" color="text.secondary">
+              {t('stubs.integrations.dataStreams')}
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {integration.dataFeeds.map((feed) => (
+                <Chip key={feed} label={feed} size="small" variant="outlined" />
+              ))}
+            </Stack>
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 220 }}>
+            <Typography variant="caption" color="text.secondary">
+              {t('stubs.integrations.syncHealth')}
+            </Typography>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <LinearProgress
+                variant="determinate"
+                value={integration.syncHealth}
+                sx={{ flex: 1, height: 6, borderRadius: 999 }}
+              />
+              <Typography variant="body2" fontWeight={600}>
+                {integration.syncHealth}%
+              </Typography>
+            </Stack>
+          </Box>
+        </Stack>
+
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Tooltip title={integration.autoSync ? t('stubs.integrations.autoSyncEnabled') : t('stubs.integrations.autoSyncDisabled')}>
+            <Switch checked={integration.autoSync} disabled size="small" />
+          </Tooltip>
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{
+              borderRadius: 2,
+              borderColor: accentColor,
+              color: accentColor,
+              '&:hover': { borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover }
+            }}
+          >
+            {t('stubs.integrations.syncNow')}
+          </Button>
+        </Stack>
+      </Paper>
+    );
+  };
+
+  const AvailableCard = ({ name, description, logoUrl }) => (
+    <Paper
+      elevation={0}
+      sx={{
+        borderRadius: 3,
+        p: 3,
+        border: '1px dashed',
+        borderColor: accentHover,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2
+      }}
+    >
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Avatar
+          src={logoUrl}
+          alt={name}
+          sx={{ width: 44, height: 44, border: '3px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6) }}
+          imgProps={{ referrerPolicy: 'no-referrer' }}
+        />
+        <Typography variant="subtitle1" fontWeight="bold">
+          {name}
+        </Typography>
+      </Stack>
+      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+        {description}
+      </Typography>
+      <Button
+        variant="contained"
+        size="small"
+        sx={{
+          borderRadius: 2,
+          bgcolor: accentColor,
+          alignSelf: 'flex-start',
+          '&:hover': { bgcolor: theme.palette.brand.greenHover }
+        }}
+      >
+        {t('stubs.integrations.requestAccess')}
+      </Button>
+    </Paper>
+  );
+
   return (
     <Stack spacing={4}>
       <Stack spacing={1}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Integrations hub
+          {t('stubs.integrations.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Connect the SaaS tools your teams rely on and stream their data into a single BeWorking dashboard.
+          {t('stubs.integrations.subtitle')}
         </Typography>
       </Stack>
 
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6} md={4}>
-          <SummaryCard title="Connected apps" value={connectedCount} helper="Live data sources" accent />
+          <SummaryCard title={t('stubs.integrations.connectedApps')} value={connectedCount} helper={t('stubs.integrations.liveDataSources')} accent />
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
-          <SummaryCard title="Data channels" value={totalFeeds} helper="Feeds syncing into dashboards" />
+          <SummaryCard title={t('stubs.integrations.dataChannels')} value={totalFeeds} helper={t('stubs.integrations.feedsSyncing')} />
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
-          <SummaryCard title="Pending requests" value={AVAILABLE_INTEGRATIONS.length} helper="Available to connect" />
+          <SummaryCard title={t('stubs.integrations.pendingRequests')} value={AVAILABLE_INTEGRATIONS.length} helper={t('stubs.integrations.availableToConnect')} />
         </Grid>
       </Grid>
 
       <Stack spacing={2}>
         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
           <Typography variant="h6" fontWeight="bold">
-            Active connections
+            {t('stubs.integrations.activeConnections')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Data pushes occur automatically based on the sync interval configured for each integration.
+            {t('stubs.integrations.activeConnectionsHint')}
           </Typography>
         </Stack>
         <Stack spacing={2}>
@@ -323,7 +325,7 @@ const Integrations = () => {
 
       <Stack spacing={2}>
         <Typography variant="h6" fontWeight="bold">
-          Available integrations
+          {t('stubs.integrations.availableIntegrations')}
         </Typography>
         <Grid container spacing={3}>
           {AVAILABLE_INTEGRATIONS.map((integration) => (
@@ -336,10 +338,10 @@ const Integrations = () => {
 
       <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Roadmap
+          {t('stubs.integrations.roadmap')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          These integrations are already in development. Vote for priority or register early access.
+          {t('stubs.integrations.roadmapHint')}
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <List disablePadding>
@@ -368,7 +370,7 @@ const Integrations = () => {
                 }
               />
               <Button size="small" variant="text" sx={{ color: accentColor }}>
-                Notify me
+                {t('stubs.integrations.notifyMe')}
               </Button>
             </ListItem>
           ))}

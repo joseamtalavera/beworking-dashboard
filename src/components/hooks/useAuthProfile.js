@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchCurrentUser } from '../../api/auth.js';
 import { getStoredToken, setStoredToken } from '../../api/client.js';
 
-const LOGIN_URL = import.meta.env.VITE_LOGIN_URL || 'http://localhost:3020/main/login';
+const LOGIN_URL = import.meta.env.VITE_LOGIN_URL || 'https://web.be-working.com/main/login';
 
 const BASE_PROFILE = {
   name: 'User',

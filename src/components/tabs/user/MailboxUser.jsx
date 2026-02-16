@@ -33,16 +33,19 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 
 import { QRCodeSVG } from 'qrcode.react';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esMailbox from '../../../i18n/locales/es/mailbox.json';
+import enMailbox from '../../../i18n/locales/en/mailbox.json';
+
+if (!i18n.hasResourceBundle('es', 'mailbox')) {
+  i18n.addResourceBundle('es', 'mailbox', esMailbox);
+  i18n.addResourceBundle('en', 'mailbox', enMailbox);
+}
+
 import { getMailboxDocumentDownloadUrl, listMailboxDocuments } from '../../../api/mailbox.js';
 
 // accentColor and accentHover are defined inside component using theme.palette.brand
-
-const statusConfig = {
-  scanned: { label: 'Awaiting review', color: 'primary', description: 'New document available.' },
-  notified: { label: 'Notified', color: 'primary', description: 'Notification email sent.' },
-  viewed: { label: 'Viewed', color: 'success', description: 'You already opened this document.' },
-  picked_up: { label: 'Picked up', color: 'info', description: 'Package has been collected.' }
-};
 
 const SummaryCard = ({ icon, title, value, helper, color }) => (
   <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -112,8 +115,16 @@ const normalizeDocuments = (payload) => {
 };
 
 const MailboxUser = ({ userProfile }) => {
+  const { t } = useTranslation('mailbox');
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
+
+  const statusConfig = {
+    scanned: { label: t('statusUser.scanned'), color: 'primary', description: t('statusUser.scannedDesc') },
+    notified: { label: t('statusUser.notified'), color: 'primary', description: t('statusUser.notifiedDesc') },
+    viewed: { label: t('statusUser.viewed'), color: 'success', description: t('statusUser.viewedDesc') },
+    picked_up: { label: t('statusUser.picked_up'), color: 'info', description: t('statusUser.pickedUpDesc') }
+  };
   const accentHover = theme.palette.brand.accentSoft;
   const [documents, setDocuments] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -196,10 +207,10 @@ const MailboxUser = ({ userProfile }) => {
     <Stack spacing={4}>
       <Stack spacing={2}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Your Mailbox
+          {t('user.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          View the mail and packages that have been processed for you. Open any document directly from the table below.
+          {t('user.subtitle')}
         </Typography>
         {error && <Alert severity="error">{error}</Alert>}
       </Stack>
@@ -207,28 +218,28 @@ const MailboxUser = ({ userProfile }) => {
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
         <SummaryCard
           icon={<RemoveRedEyeOutlinedIcon />}
-          title="New"
+          title={t('user.summary.new')}
           value={summary.scanned}
-          helper="Waiting for your review"
+          helper={t('user.summary.waitingReview')}
         />
         <SummaryCard
           icon={<RemoveRedEyeOutlinedIcon />}
-          title="Notified"
+          title={t('user.summary.notified')}
           value={summary.notified}
-          helper="Emails we sent to you"
+          helper={t('user.summary.emailsSent')}
         />
         <SummaryCard
           icon={<RemoveRedEyeOutlinedIcon />}
-          title="Viewed"
+          title={t('user.summary.viewed')}
           value={summary.viewed}
-          helper="Documents you already opened"
+          helper={t('user.summary.alreadyOpened')}
           color={accentColor}
         />
         <SummaryCard
           icon={<LocalShippingOutlinedIcon />}
-          title="Pending Packages"
+          title={t('user.summary.pendingPackages')}
           value={summary.pendingPackages}
-          helper="Awaiting your pickup"
+          helper={t('user.summary.awaitingPickup')}
         />
       </Stack>
 
@@ -241,18 +252,18 @@ const MailboxUser = ({ userProfile }) => {
         >
           <Box>
             <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Incoming documents
+              {t('user.incomingDocuments')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Filter by status and open any file to review it online.
+              {t('user.incomingSubtitle')}
             </Typography>
           </Box>
           <ToggleButtonGroup value={filter} exclusive onChange={handleFilterChange} size="small" color="primary">
-            <ToggleButton value="all">All</ToggleButton>
-            <ToggleButton value="scanned">New</ToggleButton>
-            <ToggleButton value="notified">Notified</ToggleButton>
-            <ToggleButton value="viewed">Viewed</ToggleButton>
-            <ToggleButton value="picked_up">Picked Up</ToggleButton>
+            <ToggleButton value="all">{t('filter.all')}</ToggleButton>
+            <ToggleButton value="scanned">{t('filter.new')}</ToggleButton>
+            <ToggleButton value="notified">{t('filter.notified')}</ToggleButton>
+            <ToggleButton value="viewed">{t('filter.viewed')}</ToggleButton>
+            <ToggleButton value="picked_up">{t('filter.pickedUp')}</ToggleButton>
           </ToggleButtonGroup>
         </Stack>
 
@@ -262,13 +273,13 @@ const MailboxUser = ({ userProfile }) => {
           <Table size="medium">
             <TableHead>
               <TableRow>
-                <TableCell>Document</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Recipient</TableCell>
-                <TableCell>Received</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Last notified</TableCell>
-                <TableCell align="right">Action</TableCell>
+                <TableCell>{t('user.table.document')}</TableCell>
+                <TableCell>{t('user.table.type')}</TableCell>
+                <TableCell>{t('user.table.recipient')}</TableCell>
+                <TableCell>{t('user.table.received')}</TableCell>
+                <TableCell>{t('user.table.status')}</TableCell>
+                <TableCell>{t('user.table.lastNotified')}</TableCell>
+                <TableCell align="right">{t('user.table.action')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -278,7 +289,7 @@ const MailboxUser = ({ userProfile }) => {
                     <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                       <CircularProgress size={28} thickness={4} />
                       <Typography variant="body2" color="text.secondary">
-                        Loading your documents...
+                        {t('user.loadingDocuments')}
                       </Typography>
                     </Stack>
                   </TableCell>
@@ -320,7 +331,7 @@ const MailboxUser = ({ userProfile }) => {
                       <TableCell>
                         <Chip
                           icon={docIsPackage ? <InventoryOutlinedIcon sx={{ fontSize: 16 }} /> : <MailOutlineIcon sx={{ fontSize: 16 }} />}
-                          label={docIsPackage ? 'Package' : 'Mail'}
+                          label={docIsPackage ? t('docType.package') : t('docType.mail')}
                           size="small"
                           variant="outlined"
                           sx={{
@@ -345,7 +356,7 @@ const MailboxUser = ({ userProfile }) => {
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} justifyContent="flex-end">
                           {showQrButton && (
-                            <Tooltip title="Show QR code for pickup" arrow>
+                            <Tooltip title={t('user.tooltips.showQr')} arrow>
                               <span>
                                 <IconButton
                                   size="small"
@@ -357,7 +368,7 @@ const MailboxUser = ({ userProfile }) => {
                               </span>
                             </Tooltip>
                           )}
-                          <Tooltip title="Open document" arrow>
+                          <Tooltip title={t('user.tooltips.openDocument')} arrow>
                             <span>
                               <IconButton size="small" onClick={() => doc.id && handlePreviewDocument(doc.id)} disabled={!doc.id}>
                                 <RemoveRedEyeOutlinedIcon fontSize="small" />
@@ -374,10 +385,10 @@ const MailboxUser = ({ userProfile }) => {
                   <TableCell colSpan={7}>
                     <Stack spacing={1} alignItems="center" sx={{ py: 6 }}>
                       <Typography variant="subtitle1" fontWeight="bold">
-                        No documents yet
+                        {t('user.noDocuments')}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        You will receive a notification when new mail is processed for you.
+                        {t('user.noDocumentsHint')}
                       </Typography>
                     </Stack>
                   </TableCell>
@@ -413,7 +424,7 @@ const MailboxUser = ({ userProfile }) => {
               <QrCode2Icon />
             </Box>
             <Typography variant="h6" fontWeight="bold">
-              Package Pickup Code
+              {t('user.qrDialog.title')}
             </Typography>
           </Stack>
         </DialogTitle>
@@ -435,7 +446,7 @@ const MailboxUser = ({ userProfile }) => {
                   {qrDialogDoc.pickupCode}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" textAlign="center">
-                  Show this QR code or tell the pickup code to the front desk to collect your package.
+                  {t('user.qrDialog.instructions')}
                 </Typography>
                 {qrDialogDoc.title && (
                   <Chip
@@ -450,7 +461,7 @@ const MailboxUser = ({ userProfile }) => {
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button onClick={handleCloseQrDialog} sx={{ color: 'text.secondary' }}>
-            Close
+            {t('user.qrDialog.close')}
           </Button>
         </DialogActions>
       </Dialog>

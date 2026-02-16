@@ -40,6 +40,16 @@ import InputLabel from '@mui/material/InputLabel';
 import { fetchBookingContacts } from '../../../api/bookings.js';
 import { fetchNextInvoiceNumber } from '../../../api/invoices.js';
 import { fetchCuentas, fetchNextInvoiceNumberByCodigo } from '../../../api/cuentas.js';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esInvoices from '../../../i18n/locales/es/invoices.json';
+import enInvoices from '../../../i18n/locales/en/invoices.json';
+import { formatCurrency } from '../../../i18n/formatters.js';
+
+if (!i18n.hasResourceBundle('es', 'invoices')) {
+  i18n.addResourceBundle('es', 'invoices', esInvoices);
+  i18n.addResourceBundle('en', 'invoices', enInvoices);
+}
 
 // A reasonably complete invoice editor UI in a Dialog.
 // onCreate(payload, { openPreview }) should be provided by the caller.
@@ -47,6 +57,7 @@ const DEFAULT_LINE = { description: '', quantity: 1, price: 0, vatPercent: 21 };
 
 const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   const theme = useTheme();
+  const { t } = useTranslation('invoices');
   const [client, setClient] = useState(initial.client || null);
   const [clientSearch, setClientSearch] = useState('');
   const [invoiceNum, setInvoiceNum] = useState(initial.invoiceNum || '');
@@ -114,12 +125,6 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
       console.error('Failed to create invoice:', error);
     }
   };
-
-  const formatCurrency = (v) => {
-    const n = Number(v || 0);
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n);
-  };
-
 
   useEffect(() => {
     let active = true;
@@ -298,10 +303,10 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
       }}>
         <Box>
           <Typography variant="h5" fontWeight="bold" color="text.primary">
-            New Invoice
+            {t('editor.title')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
-            Create and manage your invoice details
+            {t('editor.subtitle')}
           </Typography>
         </Box>
       </DialogTitle>
@@ -317,16 +322,16 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
             p: 3
           }}>
               <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
-                Invoice Details
+                {t('editor.invoiceDetails')}
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Box ref={searchContainerRef} sx={{ position: 'relative' }}>
-                    <TextField 
-                      label="Search by Name" 
-                      size="small" 
-                      fullWidth 
-                      placeholder="Search by name"
+                    <TextField
+                      label={t('editor.searchByName')}
+                      size="small"
+                      fullWidth
+                      placeholder={t('editor.searchByName')}
                       value={clientSearch}
                       onChange={(e) => {
                         setClientSearch(e.target.value);
@@ -351,7 +356,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                               color: 'success.main',
                               fontSize: '0.75rem'
                             }}>
-                              ✓ Selected
+                              ✓ {t('editor.selected')}
                             </Box>
                           </InputAdornment>
                         )
@@ -413,12 +418,12 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 </Grid>
                 <Grid item xs={12} md={3}>
                   <FormControl fullWidth size="small">
-                    <InputLabel id="user-type-label">User Type</InputLabel>
+                    <InputLabel id="user-type-label">{t('editor.userType')}</InputLabel>
                     <Select
                       labelId="user-type-label"
                       value={userType}
                       onChange={(e) => setUserType(e.target.value)}
-                      label="User Type"
+                      label={t('editor.userType')}
                       displayEmpty
                       startAdornment={
                         <InputAdornment position="start">
@@ -427,7 +432,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                       }
                     >
                       <MenuItem value="">
-                        <span style={{ color: theme.palette.text.disabled }}>Select user type</span>
+                        <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectUserType')}</span>
                       </MenuItem>
                       <MenuItem value="Distribuidor">Distribuidor</MenuItem>
                       <MenuItem value="Imported">Imported</MenuItem>
@@ -443,12 +448,12 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 </Grid>
                 <Grid item xs={12} md={3}>
                   <FormControl fullWidth size="small">
-                    <InputLabel id="center-label">Center</InputLabel>
+                    <InputLabel id="center-label">{t('editor.center')}</InputLabel>
                     <Select
                       labelId="center-label"
                       value={center}
                       onChange={(e) => setCenter(e.target.value)}
-                      label="Center"
+                      label={t('editor.center')}
                       displayEmpty
                       startAdornment={
                         <InputAdornment position="start">
@@ -457,7 +462,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                       }
                     >
                       <MenuItem value="">
-                        <span style={{ color: theme.palette.text.disabled }}>Select center</span>
+                        <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectCenter')}</span>
                       </MenuItem>
                       <MenuItem value="1">MALAGA DUMAS (MA1)</MenuItem>
                       <MenuItem value="8">Oficina Virtual (MAOV)</MenuItem>
@@ -466,12 +471,12 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 </Grid>
                 <Grid item xs={12} md={3}>
                   <FormControl fullWidth size="small">
-                    <InputLabel id="cuenta-label">Company</InputLabel>
+                    <InputLabel id="cuenta-label">{t('editor.company')}</InputLabel>
                     <Select
                       labelId="cuenta-label"
                       value={cuenta}
                       onChange={(e) => setCuenta(e.target.value)}
-                      label="Company"
+                      label={t('editor.company')}
                       displayEmpty
                       startAdornment={
                         <InputAdornment position="start">
@@ -480,7 +485,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                       }
                     >
                       <MenuItem value="">
-                        <span style={{ color: theme.palette.text.disabled }}>Select company</span>
+                        <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectCompany')}</span>
                       </MenuItem>
                       {cuentaOptions.map((cuentaOption) => (
                         <MenuItem key={cuentaOption.id} value={cuentaOption.codigo}>
@@ -491,23 +496,23 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                   </FormControl>
                 </Grid>
                 <Grid item xs={6} md={2}>
-                  <TextField 
-                    label="Invoice #" 
-                    value={invoiceNum} 
-                    onChange={(e) => setInvoiceNum(e.target.value)} 
-                    fullWidth 
-                    size="small" 
+                  <TextField
+                    label={t('editor.invoiceNumber')}
+                    value={invoiceNum}
+                    onChange={(e) => setInvoiceNum(e.target.value)}
+                    fullWidth
+                    size="small"
                   />
                 </Grid>
                 <Grid item xs={6} md={2}>
-                  <TextField 
-                    label="Date" 
-                    type="date" 
-                    value={date} 
-                    onChange={(e) => setDate(e.target.value)} 
-                    fullWidth 
-                    size="small" 
-                    InputLabelProps={{ shrink: true }} 
+                  <TextField
+                    label={t('editor.date')}
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    fullWidth
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
               </Grid>
@@ -550,11 +555,11 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                     }
                   }}
                 >
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Qty</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                    <TableCell align="right">VAT %</TableCell>
-                    <TableCell align="right">Line total</TableCell>
+                    <TableCell>{t('editor.description')}</TableCell>
+                    <TableCell align="right">{t('editor.qty')}</TableCell>
+                    <TableCell align="right">{t('editor.price')}</TableCell>
+                    <TableCell align="right">{t('editor.vatPercent')}</TableCell>
+                    <TableCell align="right">{t('editor.lineTotal')}</TableCell>
                     <TableCell sx={{ width: 60 }} />
                   </TableRow>
                 </TableHead>
@@ -567,7 +572,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                           onChange={(e) => updateLine(i, { description: e.target.value })} 
                           size="small" 
                           fullWidth 
-                          placeholder="Enter description"
+                          placeholder={t('editor.enterDescription')}
                         />
                       </TableCell>
                       <TableCell align="right">
@@ -631,7 +636,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                           }
                         }}
                       >
-                        Add line
+                        {t('editor.addLine')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -649,12 +654,12 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               backgroundColor: 'background.default'
             }}>
               <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
-                Invoice Summary
+                {t('editor.invoiceSummary')}
               </Typography>
               
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                  <Typography variant="body2" color="text.secondary">{t('editor.subtotal')}</Typography>
                   <Typography variant="body2" fontWeight={600} color="text.primary">
                     {formatCurrency(subtotal)}
                   </Typography>
@@ -663,7 +668,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 {Object.entries(vatTotals).map(([k, v]) => (
                   <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                      VAT {k}%
+                      {t('editor.vatAmount', { percent: k })}
                     </Typography>
                     <Typography variant="body2" fontWeight={600} color="text.primary">
                       {formatCurrency(v)}
@@ -674,7 +679,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                 <Divider sx={{ my: 2 }} />
                 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="h6" fontWeight={600} color="text.primary">Total</Typography>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">{t('editor.total')}</Typography>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
                     {formatCurrency(total)}
                   </Typography>
@@ -694,7 +699,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                     }
                   }}
                 >
-                  APPROVE INVOICE
+                  {t('editor.approveInvoice')}
                 </Button>
               </Box>
             </Paper>
@@ -708,17 +713,17 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               p: 3
             }}>
               <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
-                Additional Notes
+                {t('editor.additionalNotes')}
               </Typography>
-              <TextField 
-                label="Note" 
-                value={note} 
-                onChange={(e) => setNote(e.target.value)} 
-                  fullWidth 
-                multiline 
-                rows={3} 
+              <TextField
+                label={t('editor.note')}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                  fullWidth
+                multiline
+                rows={3}
                 size="small"
-                placeholder="Add any additional notes or terms for this invoice..."
+                placeholder={t('editor.notePlaceholder')}
               />
             </Paper>
         </Box>
@@ -743,7 +748,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               }
             }}
         >
-          Close
+          {t('editor.close')}
           </Button>
         </DialogActions>
 

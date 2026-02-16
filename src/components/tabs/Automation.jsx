@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { alpha, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -38,6 +39,7 @@ const palette = [
 ];
 
 const Automation = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
   const initialNodes = useMemo(
@@ -158,10 +160,10 @@ const Automation = () => {
     <Stack spacing={4} sx={{ height: '100%' }}>
       <Stack spacing={1}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Automation canvas
+          {t('stubs.automation.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Sketch BeWorking automations visually. Drag nodes, connect steps, and sync the workflow with your n8n instance.
+          {t('stubs.automation.subtitle')}
         </Typography>
       </Stack>
 
@@ -171,10 +173,10 @@ const Automation = () => {
             <Stack spacing={2}>
               <Stack spacing={0.5}>
                 <Typography variant="subtitle1" fontWeight="bold">
-                  Palette
+                  {t('stubs.automation.palette')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Choose blocks to add to the flow.
+                  {t('stubs.automation.paletteHint')}
                 </Typography>
               </Stack>
               <Divider />
@@ -241,14 +243,14 @@ const Automation = () => {
               <Stack spacing={2} sx={{ height: '100%' }}>
                 <Stack spacing={0.5}>
                   <Typography variant="subtitle1" fontWeight="bold">
-                    Node details
+                    {t('stubs.automation.nodeDetails')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Configure <strong>{selectedNode.data.label}</strong>.
+                    {t('stubs.automation.configure')} <strong>{selectedNode.data.label}</strong>.
                   </Typography>
                 </Stack>
                 <TextField
-                  label="Display name"
+                  label={t('stubs.automation.displayName')}
                   value={selectedNode.data.label}
                   onChange={(event) => handleNodeLabelChange(selectedNode.id, event.target.value)}
                   size="small"
@@ -256,15 +258,15 @@ const Automation = () => {
                 <Divider />
                 <Stack spacing={0.5}>
                   <Typography variant="subtitle2" fontWeight="bold">
-                    Quick actions
+                    {t('stubs.automation.quickActions')}
                   </Typography>
                   <Stack direction="row" spacing={1}>
-                    <Tooltip title="Duplicate node">
+                    <Tooltip title={t('stubs.automation.duplicateNode')}>
                       <Button
                         variant="outlined"
                         size="small"
                         startIcon={<ContentCopyRoundedIcon fontSize="small" />}
-                        sx={{ 
+                        sx={{
                           minWidth: 120,
                           height: 36,
                           textTransform: 'none',
@@ -282,23 +284,23 @@ const Automation = () => {
                         }}
                         onClick={() => handleDuplicateNode(selectedNode.id)}
                       >
-                        DUPLICATE
+                        {t('stubs.automation.duplicate')}
                       </Button>
                     </Tooltip>
-                    <Tooltip title="Delete node">
+                    <Tooltip title={t('stubs.automation.deleteNode')}>
                       <Button
                         variant="outlined"
                         size="small"
                         startIcon={<DeleteOutlineRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />}
-                        sx={{ 
+                        sx={{
                           minWidth: 120,
                           height: 36,
                           textTransform: 'none',
                           fontWeight: 600,
-                          borderColor: accentColor, 
-                          color: accentColor, 
-                          '&:hover': { 
-                            borderColor: theme.palette.brand.greenHover, 
+                          borderColor: accentColor,
+                          color: accentColor,
+                          '&:hover': {
+                            borderColor: theme.palette.brand.greenHover,
                             color: theme.palette.brand.greenHover,
                             backgroundColor: alpha(theme.palette.brand.greenHover, 0.08),
                             transform: 'translateY(-1px)',
@@ -308,7 +310,7 @@ const Automation = () => {
                         }}
                         onClick={() => handleDeleteNode(selectedNode.id)}
                       >
-                        DELETE
+                        {t('stubs.automation.delete')}
                       </Button>
                     </Tooltip>
                   </Stack>
@@ -316,7 +318,7 @@ const Automation = () => {
                 <Divider />
                 <Stack spacing={1}>
                   <Typography variant="subtitle2" fontWeight="bold">
-                    Connect to…
+                    {t('stubs.automation.connectTo')}
                   </Typography>
                   <MenuList dense sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, maxHeight: 160, overflowY: 'auto' }}>
                     {nodes
@@ -334,11 +336,11 @@ const Automation = () => {
                 <Divider />
                 <Stack spacing={1} sx={{ flex: 1, overflowY: 'auto' }}>
                   <Typography variant="subtitle2" fontWeight="bold">
-                    Linked edges
+                    {t('stubs.automation.linkedEdges')}
                   </Typography>
                   {edgesForSelected.length === 0 && (
                     <Typography variant="caption" color="text.secondary">
-                      No edges yet. Connect this node to another step.
+                      {t('stubs.automation.noEdges')}
                     </Typography>
                   )}
                   {edgesForSelected.map((edge) => {
@@ -349,14 +351,14 @@ const Automation = () => {
                       <Paper key={edge.id} elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', p: 1 }}>
                         <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                           <Typography variant="body2">{partner.data.label}</Typography>
-                          <Tooltip title="Remove connection">
+                          <Tooltip title={t('stubs.automation.removeConnection')}>
                             <Button
                               variant="text"
                               size="small"
                               onClick={() => handleRemoveEdge(edge.id)}
                               sx={{ color: 'secondary.main', '&:hover': { color: 'secondary.dark', bgcolor: (theme) => theme.palette.brand.greenSoft } }}
                             >
-                              Remove
+                              {t('stubs.automation.remove')}
                             </Button>
                           </Tooltip>
                         </Stack>
@@ -365,32 +367,32 @@ const Automation = () => {
                   })}
                 </Stack>
                 <Divider />
-                <Button 
-                  variant="contained" 
-                  size="small" 
-                  sx={{ 
+                <Button
+                  variant="contained"
+                  size="small"
+                  sx={{
                     minWidth: 120,
                     height: 36,
                     textTransform: 'none',
                     fontWeight: 600,
-                    backgroundColor: accentColor, 
+                    backgroundColor: accentColor,
                     color: 'common.white',
-                    '&:hover': { 
-                      backgroundColor: theme.palette.brand.greenHover 
-                    } 
-                  }} 
+                    '&:hover': {
+                      backgroundColor: theme.palette.brand.greenHover
+                    }
+                  }}
                   startIcon={<PlayArrowRoundedIcon />}
                 >
-                  TEST NODE
+                  {t('stubs.automation.testNode')}
                 </Button>
               </Stack>
             ) : (
               <Stack spacing={1.5} alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
                 <Typography variant="subtitle1" fontWeight="bold">
-                  Select a node
+                  {t('stubs.automation.selectNode')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" align="center">
-                  Choose a block in the canvas to edit configuration and connections.
+                  {t('stubs.automation.selectNodeHint')}
                 </Typography>
               </Stack>
             )}

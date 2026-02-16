@@ -20,6 +20,11 @@ import DialogContent from '@mui/material/DialogContent';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esBooking from '../../../i18n/locales/es/booking.json';
+import enBooking from '../../../i18n/locales/en/booking.json';
+
 import { createReserva, createPublicBooking, fetchBookingUsage } from '../../../api/bookings.js';
 import {
   createPaymentIntent,
@@ -29,6 +34,11 @@ import {
 } from '../../../api/stripe.js';
 import { useBookingFlow } from '../BookingFlowContext';
 import ReviewSummary, { computePricing } from './ReviewSummary';
+
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
@@ -85,6 +95,7 @@ function buildBookingPayload(state) {
    Admin Payment Options
    ───────────────────────────────────── */
 function AdminPaymentOptions({ onCreated }) {
+  const { t } = useTranslation('booking');
   const theme = useTheme();
   const { state, prevStep } = useBookingFlow();
   const [paymentOption, setPaymentOption] = useState(''); // 'charge' | 'invoice'
@@ -134,7 +145,7 @@ function AdminPaymentOptions({ onCreated }) {
 
       if (paymentOption === 'charge') {
         if (!selectedCard) {
-          setError('Please select a card.');
+          setError(t('steps.pleaseSelectCard'));
           setSubmitting(false);
           return;
         }
@@ -166,7 +177,7 @@ function AdminPaymentOptions({ onCreated }) {
       setCreatedResponse(response);
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Something went wrong.');
+      setError(err.message || t('steps.somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -186,12 +197,12 @@ function AdminPaymentOptions({ onCreated }) {
         <DialogContent sx={{ textAlign: 'center' }}>
           <Stack spacing={3} alignItems="center">
             <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>Reserva created</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('steps.reservaCreated')}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              The booking has been successfully created.
+              {t('steps.bookingSuccessDesc')}
             </Typography>
             <Button variant="contained" sx={pillButtonSx} onClick={() => onCreated?.(createdResponse)}>
-              Close
+              {t('steps.close')}
             </Button>
           </Stack>
         </DialogContent>
@@ -208,7 +219,7 @@ function AdminPaymentOptions({ onCreated }) {
           variant="outlined"
           sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
         >
-          <Typography variant="body2" color="text.secondary">Contact</Typography>
+          <Typography variant="body2" color="text.secondary">{t('steps.contact')}</Typography>
           <Typography variant="body1" fontWeight={500}>{contactName}</Typography>
           {contactEmail && (
             <Typography variant="body2" color="text.secondary">{contactEmail}</Typography>
@@ -223,7 +234,7 @@ function AdminPaymentOptions({ onCreated }) {
         sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
       >
         <Stack spacing={2}>
-          <Typography variant="subtitle1" fontWeight={700}>Payment</Typography>
+          <Typography variant="subtitle1" fontWeight={700}>{t('steps.payment')}</Typography>
 
           {cardsLoading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
@@ -235,18 +246,18 @@ function AdminPaymentOptions({ onCreated }) {
             <FormControlLabel
               value="charge"
               control={<Radio size="small" />}
-              label="Charge saved card"
+              label={t('steps.chargeSavedCard')}
               disabled={!contactEmail || cardsLoading || savedCards.length === 0}
             />
             {!cardsLoading && savedCards.length === 0 && contactEmail && (
               <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
-                No saved cards found for {contactEmail}
+                {t('steps.noSavedCards', { email: contactEmail })}
               </Typography>
             )}
             <FormControlLabel
               value="invoice"
               control={<Radio size="small" />}
-              label="Send Stripe invoice"
+              label={t('steps.sendStripeInvoice')}
               disabled={!contactEmail}
             />
           </RadioGroup>
@@ -255,7 +266,7 @@ function AdminPaymentOptions({ onCreated }) {
             <Box sx={{ pl: 4 }}>
               <TextField
                 fullWidth
-                label="Select card"
+                label={t('steps.selectCard')}
                 value={selectedCard}
                 onChange={(e) => setSelectedCard(e.target.value)}
                 select
@@ -277,7 +288,7 @@ function AdminPaymentOptions({ onCreated }) {
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
-                    label="Days until due"
+                    label={t('steps.daysUntilDue')}
                     type="number"
                     value={invoiceDueDays}
                     onChange={(e) => setInvoiceDueDays(Number(e.target.value))}
@@ -293,7 +304,7 @@ function AdminPaymentOptions({ onCreated }) {
 
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button onClick={prevStep} disabled={submitting} sx={backButtonSx}>
-          Back
+          {t('steps.back')}
         </Button>
         <Button
           variant="contained"
@@ -301,7 +312,7 @@ function AdminPaymentOptions({ onCreated }) {
           disabled={submitting || (paymentOption === 'charge' && !selectedCard)}
           sx={pillButtonSx}
         >
-          {submitting ? <CircularProgress size={22} color="inherit" /> : 'Create reserva'}
+          {submitting ? <CircularProgress size={22} color="inherit" /> : t('steps.createReserva')}
         </Button>
       </Stack>
     </Stack>
@@ -336,6 +347,7 @@ function buildPublicPayload(state, extra = {}) {
    User: Free Booking Form
    ───────────────────────────────────── */
 function UserFreeBookingForm({ onCreated, usage }) {
+  const { t } = useTranslation('booking');
   const { state, prevStep } = useBookingFlow();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -349,7 +361,7 @@ function UserFreeBookingForm({ onCreated, usage }) {
       await createPublicBooking(payload);
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Something went wrong.');
+      setError(err.message || t('steps.somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -360,12 +372,12 @@ function UserFreeBookingForm({ onCreated, usage }) {
       <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
         <Stack spacing={3} alignItems="center">
           <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>Booking confirmed!</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('steps.bookingConfirmed')}</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Free booking ({usage.used + 1} of {usage.freeLimit}) — no payment required.
+            {t('steps.freeBookingSuccess', { used: usage.used + 1, limit: usage.freeLimit })}
           </Typography>
           <Button variant="contained" sx={pillButtonSx} onClick={() => onCreated?.({})}>
-            Done
+            {t('steps.done')}
           </Button>
         </Stack>
       </Paper>
@@ -381,18 +393,17 @@ function UserFreeBookingForm({ onCreated, usage }) {
         <Stack spacing={1.5} alignItems="center" sx={{ py: 1 }}>
           <CheckCircleRoundedIcon sx={{ fontSize: 40, color: 'success.main' }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Free booking available
+            {t('steps.freeBookingAvailable')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
-            You have used {usage.used} of {usage.freeLimit} free bookings this month.
-            This booking will be free — no payment required.
+            {t('steps.freeBookingUsage', { used: usage.used, limit: usage.freeLimit })}
           </Typography>
         </Stack>
       </Paper>
 
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button onClick={prevStep} disabled={submitting} sx={backButtonSx}>
-          Back
+          {t('steps.back')}
         </Button>
         <Button
           variant="contained"
@@ -400,7 +411,7 @@ function UserFreeBookingForm({ onCreated, usage }) {
           disabled={submitting}
           sx={pillButtonSx}
         >
-          {submitting ? <CircularProgress size={22} color="inherit" /> : 'Confirm free booking'}
+          {submitting ? <CircularProgress size={22} color="inherit" /> : t('steps.confirmFreeBooking')}
         </Button>
       </Stack>
     </Stack>
@@ -411,6 +422,7 @@ function UserFreeBookingForm({ onCreated, usage }) {
    User: Stripe Payment Form (inner)
    ───────────────────────────────────── */
 function UserPaymentFormInner({ onCreated }) {
+  const { t } = useTranslation('booking');
   const stripe = useStripe();
   const elements = useElements();
   const { state, prevStep } = useBookingFlow();
@@ -431,7 +443,7 @@ function UserPaymentFormInner({ onCreated }) {
       });
 
       if (result.error) {
-        setError(result.error.message || 'Payment failed.');
+        setError(result.error.message || t('steps.somethingWentWrong'));
         setSubmitting(false);
         return;
       }
@@ -445,7 +457,7 @@ function UserPaymentFormInner({ onCreated }) {
         onCreated?.({});
       }
     } catch (err) {
-      setError(err.message || 'Something went wrong.');
+      setError(err.message || t('steps.somethingWentWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -456,9 +468,9 @@ function UserPaymentFormInner({ onCreated }) {
       <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
         <Stack spacing={3} alignItems="center">
           <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>Booking confirmed!</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('steps.bookingConfirmed')}</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Your payment of €{pricing.total.toFixed(2)} was successful.
+            {t('steps.paymentSuccessful', { amount: pricing.total.toFixed(2) })}
           </Typography>
         </Stack>
       </Paper>
@@ -475,7 +487,7 @@ function UserPaymentFormInner({ onCreated }) {
           <Stack direction="row" spacing={1} alignItems="center">
             <LockRoundedIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Secure payment powered by Stripe
+              {t('steps.securePaymentStripe')}
             </Typography>
           </Stack>
           <PaymentElement />
@@ -484,7 +496,7 @@ function UserPaymentFormInner({ onCreated }) {
 
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button onClick={prevStep} disabled={submitting} sx={backButtonSx}>
-          Back
+          {t('steps.back')}
         </Button>
         <Button
           variant="contained"
@@ -492,7 +504,7 @@ function UserPaymentFormInner({ onCreated }) {
           disabled={submitting || !stripe}
           sx={pillButtonSx}
         >
-          {submitting ? 'Processing...' : `Pay €${pricing.total.toFixed(2)}`}
+          {submitting ? t('steps.processing') : t('steps.payAmount', { amount: pricing.total.toFixed(2) })}
         </Button>
       </Stack>
     </Stack>
@@ -503,6 +515,7 @@ function UserPaymentFormInner({ onCreated }) {
    User Payment Form (checks free eligibility first)
    ───────────────────────────────────── */
 function UserPaymentForm({ onCreated }) {
+  const { t } = useTranslation('booking');
   const { state } = useBookingFlow();
   const pricing = useMemo(() => computePricing(state), [state]);
   const [clientSecret, setClientSecret] = useState(null);
@@ -552,7 +565,7 @@ function UserPaymentForm({ onCreated }) {
           <Stack spacing={2} alignItems="center">
             <CircularProgress size={28} />
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Checking booking eligibility...
+              {t('steps.checkingEligibility')}
             </Typography>
           </Stack>
         </Paper>
@@ -586,7 +599,7 @@ function UserPaymentForm({ onCreated }) {
               }}
             />
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Preparing secure payment...
+              {t('steps.preparingPayment')}
             </Typography>
           </Stack>
         </Paper>

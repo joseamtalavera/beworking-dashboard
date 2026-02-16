@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { alpha, useTheme } from '@mui/material/styles';
 import {
   Box,
@@ -21,13 +22,14 @@ import {
 } from '@mui/icons-material';
 
 const Agent = ({ onClose }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const accentColor = theme.palette.primary.main;
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your AI assistant. How can I help you today?",
+      text: t('stubs.agent.greeting'),
       sender: 'agent',
       timestamp: new Date()
     }
@@ -43,12 +45,12 @@ const Agent = ({ onClose }) => {
       };
       setMessages([...messages, newMessage]);
       setMessage('');
-      
+
       // Simulate agent response
       setTimeout(() => {
         const agentResponse = {
           id: messages.length + 2,
-          text: "I understand your request. Let me help you with that.",
+          text: t('stubs.agent.response'),
           sender: 'agent',
           timestamp: new Date()
         };
@@ -83,12 +85,12 @@ const Agent = ({ onClose }) => {
           </Avatar>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-              AI Agent
+              {t('stubs.agent.title')}
             </Typography>
             <Stack direction="row" alignItems="center" spacing={1}>
               <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
               <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                Online
+                {t('stubs.agent.online')}
               </Typography>
             </Stack>
           </Box>
@@ -109,8 +111,8 @@ const Agent = ({ onClose }) => {
       >
         <Stack spacing={2}>
           {messages.map((msg) => (
-            <Box key={msg.id} sx={{ 
-              display: 'flex', 
+            <Box key={msg.id} sx={{
+              display: 'flex',
               justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
               alignItems: 'flex-start',
               gap: 1
@@ -120,7 +122,7 @@ const Agent = ({ onClose }) => {
                   <SmartToyOutlined sx={{ fontSize: 16 }} />
                 </Avatar>
               )}
-              <Box sx={{ 
+              <Box sx={{
                 maxWidth: '80%',
                 bgcolor: msg.sender === 'user' ? accentColor : 'background.paper',
                 color: msg.sender === 'user' ? 'common.white' : 'text.primary',
@@ -133,7 +135,7 @@ const Agent = ({ onClose }) => {
                 <Typography variant="body2">
                   {msg.text}
                 </Typography>
-                <Typography variant="caption" sx={{ 
+                <Typography variant="caption" sx={{
                   color: msg.sender === 'user' ? alpha(theme.palette.common.white, 0.7) : 'text.disabled',
                   display: 'block',
                   mt: 0.5
@@ -166,7 +168,7 @@ const Agent = ({ onClose }) => {
           fullWidth
           multiline
           maxRows={4}
-          placeholder="Type your message..."
+          placeholder={t('stubs.agent.placeholder')}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}

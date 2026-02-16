@@ -1,0 +1,116 @@
+{
+  "contact": {
+    "title": "Información de Contacto",
+    "fullName": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "city": "Ciudad",
+    "postalCode": "Código Postal",
+    "country": "País"
+  },
+  "photo": {
+    "title": "Foto de Perfil",
+    "change": "CAMBIAR FOTO",
+    "hint": "Haz clic para subir una nueva foto de perfil"
+  },
+  "account": {
+    "title": "Cuenta"
+  },
+  "subscription": {
+    "title": "Suscripción",
+    "noActive": "Sin suscripción activa",
+    "status": "Estado:",
+    "price": "Precio:",
+    "nextBilling": "Próxima facturación:",
+    "active": "Activa",
+    "manage": "GESTIONAR",
+    "subscribe": "SUSCRIBIRSE",
+    "choosePlan": "Elige tu Plan de Suscripción",
+    "selectPlan": "Selecciona el plan que mejor se adapte a tus necesidades",
+    "selected": "Seleccionado",
+    "select": "Seleccionar",
+    "vatSuffix": "+ IVA",
+    "featuresIncluded": "Características incluidas:",
+    "processing": "Procesando...",
+    "subscribePrice": "Suscribirse - €{{price}} + IVA"
+  },
+  "billing": {
+    "title": "Facturación y Stripe",
+    "editPayment": "EDITAR MÉTODO DE PAGO",
+    "cardBrand": "Marca de Tarjeta",
+    "fullCardNumber": "Número Completo de Tarjeta",
+    "cardHint": "Ingresa el número completo de la tarjeta. Solo se guardarán los últimos 4 dígitos.",
+    "expires": "Expira",
+    "stripeCustomerId": "ID de cliente Stripe:",
+    "expiryMonth": "Mes de Vencimiento",
+    "expiryYear": "Año de Vencimiento"
+  },
+  "invoices": {
+    "title": "Facturas",
+    "issued": "Emitida"
+  },
+  "actions": {
+    "edit": "EDITAR",
+    "cancel": "CANCELAR",
+    "save": "GUARDAR",
+    "saving": "GUARDANDO...",
+    "logout": "CERRAR SESIÓN",
+    "close": "CERRAR"
+  },
+  "help": {
+    "title": "Ayuda y Soporte",
+    "subtitle": "Chatea con nosotros, busca documentación o mira tutoriales rápidos.",
+    "liveChat": "Chat en vivo",
+    "liveChatDesc": "Nuestros ingenieros de soporte responden en pocos minutos durante horario comercial.",
+    "startChat": "INICIAR CHAT",
+    "bookCall": "RESERVAR LLAMADA",
+    "quickAnswers": "Respuestas rápidas",
+    "tapToOpen": "Toca para abrir el artículo",
+    "documentation": "Documentación",
+    "tutorials": "Tutoriales",
+    "leaveNote": "Déjanos un mensaje",
+    "notePlaceholder": "¿Cómo podemos ayudarte? Comparte tu pregunta y te responderemos por correo.",
+    "sendMessage": "ENVIAR MENSAJE",
+    "questions": {
+      "card": "¿Cómo actualizo mi tarjeta de pago?",
+      "invoices": "¿Dónde puedo ver todas las facturas?",
+      "automations": "¿Cómo se sincronizan las automatizaciones con n8n?",
+      "api": "¿Hay una API para reservar salas?"
+    },
+    "articles": {
+      "gettingStarted": {
+        "title": "Primeros pasos con BeWorking",
+        "summary": "Configura tus espacios, invita a compañeros y personaliza tu marca."
+      },
+      "billing": {
+        "title": "Gestionar facturación y facturas",
+        "summary": "Entiende los cargos de Stripe, actualiza métodos de pago, descarga facturas."
+      },
+      "automations": {
+        "title": "Crear automatizaciones con n8n",
+        "summary": "Crea flujos de trabajo que conecten tus apps y optimicen tareas de BeWorking."
+      }
+    },
+    "videoIntro": {
+      "title": "Introducción al panel de BeWorking",
+      "desc": "Vídeo de 6 min · navegación principal, pestañas y funciones clave"
+    },
+    "videoAutomations": {
+      "title": "Automatizaciones con n8n",
+      "desc": "Vídeo de 9 min · crear flujos y sincronizar ejecuciones"
+    }
+  },
+  "plans": {
+    "virtualOffice": {
+      "name": "Oficina Virtual",
+      "description": "Servicios de oficina virtual con gestión de correo",
+      "features": ["Gestión de correo", "Dirección virtual", "Reenvío de correo", "Registro empresarial"]
+    },
+    "automation": {
+      "name": "Automatización",
+      "description": "Servicios avanzados de automatización",
+      "features": ["Automatización de procesos", "Gestión de flujos", "Herramientas de integración", "Analítica avanzada"]
+    }
+  }
+}

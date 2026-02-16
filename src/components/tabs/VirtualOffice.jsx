@@ -8,6 +8,14 @@ import Typography from '@mui/material/Typography';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import SpiralLoader from '../SpiralLoader.jsx';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esMailbox from '../../i18n/locales/es/mailbox.json';
+import enMailbox from '../../i18n/locales/en/mailbox.json';
+if (!i18n.hasResourceBundle('es', 'mailbox')) {
+  i18n.addResourceBundle('es', 'mailbox', esMailbox);
+  i18n.addResourceBundle('en', 'mailbox', enMailbox);
+}
 
 // Lazy load the subtab components
 const MailboxUser = React.lazy(() => import('./user/MailboxUser.jsx'));
@@ -15,6 +23,7 @@ const MailboxAdmin = React.lazy(() => import('./admin/MailboxAdmin.jsx'));
 const VirtualOfficeAddress = React.lazy(() => import('./VirtualOfficeAddress.jsx'));
 
 const VirtualOffice = ({ userType = 'user', userProfile }) => {
+  const { t } = useTranslation('mailbox');
   const [activeSubTab, setActiveSubTab] = useState(0);
 
   const handleSubTabChange = (event, newValue) => {
@@ -24,13 +33,13 @@ const VirtualOffice = ({ userType = 'user', userProfile }) => {
   const subtabs = [
     {
       id: 'mailbox',
-      label: 'Mailbox',
+      label: t('virtualOffice.mailboxTab'),
       icon: <MailOutlineIcon />,
       component: userType === 'admin' ? MailboxAdmin : MailboxUser
     },
     {
       id: 'address',
-      label: 'Office Address',
+      label: t('virtualOffice.addressTab'),
       icon: <LocationOnOutlinedIcon />,
       component: VirtualOfficeAddress
     }
@@ -43,10 +52,10 @@ const VirtualOffice = ({ userType = 'user', userProfile }) => {
       {/* Header */}
       <Stack spacing={2}>
         <Typography variant="h5" fontWeight="bold" color="text.primary">
-          Your Professional Business Address
+          {t('virtualOffice.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Manage your Business Address services including mail handling and office address information.
+          {t('virtualOffice.subtitle')}
         </Typography>
       </Stack>
 

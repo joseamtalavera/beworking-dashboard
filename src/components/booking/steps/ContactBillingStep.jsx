@@ -19,9 +19,19 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esBooking from '../../../i18n/locales/es/booking.json';
+import enBooking from '../../../i18n/locales/en/booking.json';
+
 import { fetchBookingContacts } from '../../../api/bookings.js';
 import { useBookingFlow } from '../BookingFlowContext';
 import ReviewSummary from './ReviewSummary';
+
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 const pillButtonSx = {
   borderRadius: 999,
@@ -49,6 +59,7 @@ const splitName = (fullName) => {
 };
 
 export default function ContactBillingStep({ mode = 'admin', userProfile }) {
+  const { t } = useTranslation('booking');
   const { state, setField, nextStep, prevStep } = useBookingFlow();
 
   // Admin contact search
@@ -106,7 +117,7 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
     setValidationError('');
     if (mode === 'admin') {
       if (!selectedContact?.id) {
-        setValidationError('Please select a contact.');
+        setValidationError(t('steps.pleaseSelectContact'));
         return;
       }
       setField('contact', selectedContact);
@@ -133,12 +144,12 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
         <Stack spacing={1} sx={{ mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Contact details
+            {t('steps.contactDetails')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             {mode === 'admin'
-              ? 'Search for an existing contact to assign this booking.'
-              : 'Booking will be confirmed under your account.'}
+              ? t('steps.searchContactDesc')
+              : t('steps.bookingUnderAccount')}
           </Typography>
         </Stack>
 
@@ -147,10 +158,10 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
           <Box sx={{ position: 'relative' }}>
             <TextField
               fullWidth
-              label="Search contact"
+              label={t('steps.searchContact')}
               value={contactInputValue}
               onChange={(e) => setContactInputValue(e.target.value)}
-              placeholder="Search by name"
+              placeholder={t('steps.searchByName')}
               required
               size="small"
               InputProps={{
@@ -216,7 +227,7 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
                 </Typography>
                 <Chip
                   icon={<CheckCircleOutlineRoundedIcon sx={{ fontSize: 16 }} />}
-                  label="Confirmed"
+                  label={t('steps.confirmed')}
                   size="small"
                   color="success"
                   variant="outlined"
@@ -245,10 +256,10 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
       {/* Navigation buttons */}
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button onClick={prevStep} sx={backButtonSx}>
-          Back
+          {t('steps.back')}
         </Button>
         <Button variant="contained" onClick={handleNext} sx={pillButtonSx}>
-          Continue to payment
+          {t('steps.continueToPayment')}
         </Button>
       </Stack>
     </Stack>

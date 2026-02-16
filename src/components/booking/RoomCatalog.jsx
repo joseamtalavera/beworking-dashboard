@@ -20,12 +20,22 @@ import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esBooking from '../../i18n/locales/es/booking.json';
+import enBooking from '../../i18n/locales/en/booking.json';
+
 import { fetchBookingCentros, fetchPublicProductos } from '../../api/bookings.js';
 import SpaceCard from './SpaceCard';
 
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
+
 const SPACE_TYPES = [
-  { value: 'meeting_room', label: 'Meeting Rooms', icon: <MeetingRoomRoundedIcon /> },
-  { value: 'desk', label: 'Desks', icon: <DeskRoundedIcon /> },
+  { value: 'meeting_room', labelKey: 'catalog.meetingRooms', icon: <MeetingRoomRoundedIcon /> },
+  { value: 'desk', labelKey: 'catalog.desks', icon: <DeskRoundedIcon /> },
 ];
 
 const standardFieldStyles = {
@@ -62,9 +72,10 @@ const isDeskProducto = (p) => {
 };
 
 export default function RoomCatalog({ onClose, onBookNow }) {
+  const { t } = useTranslation('booking');
   const [activeTab, setActiveTab] = useState(0);
   const [cityFilter, setCityFilter] = useState('');
-  const [cityOptions, setCityOptions] = useState([{ id: 'all', label: 'All locations', isAllOption: true }]);
+  const [cityOptions, setCityOptions] = useState([{ id: 'all', label: t('catalog.allLocations'), isAllOption: true }]);
   const [location, setLocation] = useState('');
   const [checkIn, setCheckIn] = useState('');
   const [people, setPeople] = useState('');
@@ -98,7 +109,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
             })
           : [];
 
-        setCentros([{ id: 'all', label: 'All Centros', isAllOption: true }, ...options]);
+        setCentros([{ id: 'all', label: t('catalog.allCentros'), isAllOption: true }, ...options]);
 
         const uniqueCities = Array.from(
           new Set(
@@ -109,13 +120,13 @@ export default function RoomCatalog({ onClose, onBookNow }) {
           )
         );
         setCityOptions([
-          { id: 'all', label: 'All locations', isAllOption: true },
+          { id: 'all', label: t('catalog.allLocations'), isAllOption: true },
           ...uniqueCities.map((c) => ({ id: c.toLowerCase(), label: c })),
         ]);
       } catch {
         if (active) {
           setCentros([]);
-          setCityOptions([{ id: 'all', label: 'All locations', isAllOption: true }]);
+          setCityOptions([{ id: 'all', label: t('catalog.allLocations'), isAllOption: true }]);
         }
       } finally {
         if (active) setCentrosLoading(false);
@@ -304,17 +315,16 @@ export default function RoomCatalog({ onClose, onBookNow }) {
             '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'text.primary' },
           }}
         >
-          Back to calendar
+          {t('catalog.backToCalendar')}
         </Button>
       )}
 
       {/* Title */}
       <Typography variant="h3" fontWeight={700} sx={{ mb: 1 }}>
-        Meeting rooms and desks in your city
+        {t('catalog.heroTitle')}
       </Typography>
       <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 4 }}>
-        Find the perfect workspace for your needs. Choose between meeting rooms for team collaboration
-        or individual desks for focused work.
+        {t('catalog.heroSubtitle')}
       </Typography>
 
       {/* Tabs */}
@@ -326,8 +336,8 @@ export default function RoomCatalog({ onClose, onBookNow }) {
           '& .MuiTab-root': { textTransform: 'none', fontWeight: 600, minHeight: 48 },
         }}
       >
-        {SPACE_TYPES.map((t) => (
-          <Tab key={t.value} icon={t.icon} label={t.label} iconPosition="start" />
+        {SPACE_TYPES.map((st) => (
+          <Tab key={st.value} icon={st.icon} label={t(st.labelKey)} iconPosition="start" />
         ))}
       </Tabs>
 
@@ -361,7 +371,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
                 <TextField
                   {...params}
                   fullWidth
-                  label="Location"
+                  label={t('catalog.location')}
                   InputProps={{
                     ...params.InputProps,
                     startAdornment: (
@@ -397,7 +407,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
                 <TextField
                   {...params}
                   fullWidth
-                  label="Centro"
+                  label={t('catalog.centro')}
                   InputProps={{
                     ...params.InputProps,
                     startAdornment: (
@@ -420,11 +430,11 @@ export default function RoomCatalog({ onClose, onBookNow }) {
           <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
             <TextField
               fullWidth
-              label="Number of Users"
+              label={t('catalog.numberOfUsers')}
               type="number"
               value={people}
               onChange={(e) => setPeople(e.target.value)}
-              placeholder="Number of Users"
+              placeholder={t('catalog.numberOfUsers')}
               size="small"
               InputProps={{
                 endAdornment: (
@@ -440,7 +450,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
           <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
             <TextField
               fullWidth
-              label="Check in"
+              label={t('catalog.checkIn')}
               type="date"
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
@@ -472,14 +482,14 @@ export default function RoomCatalog({ onClose, onBookNow }) {
                 '&:hover': { backgroundColor: 'primary.dark' },
               }}
             >
-              Search spaces
+              {t('catalog.searchSpaces')}
             </Button>
           </Grid>
         </Grid>
 
         <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1 }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-            Showing {filteredSpaces.length} {filteredSpaces.length === 1 ? 'space' : 'spaces'}
+            {t('catalog.showingCount', { count: filteredSpaces.length })}
           </Typography>
         </Stack>
       </Paper>
@@ -517,10 +527,10 @@ export default function RoomCatalog({ onClose, onBookNow }) {
       {!productosLoading && filteredSpaces.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography variant="h6" color="text.secondary">
-            No spaces found matching your criteria.
+            {t('catalog.noResults')}
           </Typography>
           <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-            Try adjusting your filters or switching tabs.
+            {t('catalog.noResultsHint')}
           </Typography>
         </Box>
       )}

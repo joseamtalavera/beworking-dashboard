@@ -1,10 +1,37 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { esES } from '@mui/material/locale';
+import { enUS } from '@mui/material/locale';
+import i18n from './i18n/i18n.js';
 import App from './App.jsx';
-import theme from './theme.js';
+import baseTheme from './theme.js';
 import './index.css';
+
+const MUI_LOCALES = { es: esES, en: enUS };
+
+const Root = () => {
+  const [lang, setLang] = useState(i18n.language);
+
+  useEffect(() => {
+    const handler = (lng) => setLang(lng);
+    i18n.on('languageChanged', handler);
+    return () => i18n.off('languageChanged', handler);
+  }, []);
+
+  const theme = useMemo(
+    () => createTheme(baseTheme, MUI_LOCALES[lang] || esES),
+    [lang]
+  );
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <App />
+    </ThemeProvider>
+  );
+};
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,9 +40,6 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <App />
-    </ThemeProvider>
+    <Root />
   </React.StrictMode>
 );

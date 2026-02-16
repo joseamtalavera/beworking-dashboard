@@ -60,6 +60,15 @@ import WarningRoundedIcon from '@mui/icons-material/WarningRounded';
 
 import ContactProfileView from './ContactProfileView';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esContacts from '../../../i18n/locales/es/contacts.json';
+import enContacts from '../../../i18n/locales/en/contacts.json';
+
+if (!i18n.hasResourceBundle('es', 'contacts')) {
+  i18n.addResourceBundle('es', 'contacts', esContacts);
+  i18n.addResourceBundle('en', 'contacts', enContacts);
+}
 
 const STATUS_COLOR = {
   Activo: { color: 'success', label: 'Activo' },
@@ -183,6 +192,7 @@ const MemoizedTextField = memo(({ label, value, onChange, ...props }) => (
 const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile }) => {
   const [form, setForm] = useState(ADD_USER_DEFAULT);
   const theme = useTheme();
+  const { t } = useTranslation('contacts');
   const contactFieldSx = {
     '& .MuiOutlinedInput-root': {
       borderRadius: 2,
@@ -275,10 +285,10 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
           </Avatar>
           <Box>
             <Typography variant="h5" fontWeight={700}>
-              Add New User
+              {t('addDialog.title')}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Create a new user profile with basic and billing information
+              {t('addDialog.subtitle')}
             </Typography>
           </Box>
         </Stack>
@@ -311,7 +321,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     <PersonRoundedIcon />
                   </Avatar>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
-                    Basic Information
+                    {t('addDialog.basicInfo')}
             </Typography>
                 </Stack>
               </Box>
@@ -326,7 +336,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   mb: 3 
                 }}>
                   <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: 'success.light' }}>
-                    📸 Profile Photo
+                    {"📸 " + t('addDialog.profilePhoto')}
                   </Typography>
                   <Stack direction="row" spacing={3} alignItems="center">
                     <Avatar 
@@ -382,7 +392,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
                     <MemoizedTextField
-                      label="User / Company name"
+                      label={t('addDialog.userName')}
                       value={form.name}
                       onChange={handleFieldChange('name')}
                       fullWidth
@@ -395,7 +405,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Status"
+                  label={t('addDialog.status')}
                   value={form.status}
                   onChange={handleFieldChange('status')}
                   fullWidth
@@ -413,7 +423,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={6}>
                 <TextField
-                      label="Primary contact"
+                      label={t('addDialog.primaryContact')}
                       value={form.primaryContact}
                       onChange={handleFieldChange('primaryContact')}
                       fullWidth
@@ -425,7 +435,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <MemoizedTextField
-                      label="Email"
+                      label={t('addDialog.email')}
                       type="email"
                       value={form.email}
                       onChange={handleFieldChange('email')}
@@ -439,7 +449,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      label="Phone"
+                      label={t('addDialog.phone')}
                       value={form.phone}
                       onChange={handleFieldChange('phone')}
                       fullWidth
@@ -450,8 +460,8 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField 
-                  label="User type"
+                    <TextField
+                  label={t('addDialog.userType')}
                   value={form.userType}
                   onChange={handleFieldChange('userType')}
                   fullWidth
@@ -469,7 +479,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Center"
+                  label={t('addDialog.center')}
                   value={form.center}
                   onChange={handleFieldChange('center')}
                   fullWidth
@@ -516,7 +526,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     <BusinessRoundedIcon />
                   </Avatar>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
-                    Billing Details
+                    {t('addDialog.billingInfo')}
             </Typography>
                 </Stack>
               </Box>
@@ -524,7 +534,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      label="Billing company"
+                      label={t('addDialog.billingCompany')}
                       value={form.billingCompany}
                       onChange={handleFieldChange('billingCompany')}
                       fullWidth
@@ -536,7 +546,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      label="Billing email"
+                      label={t('addDialog.billingEmail')}
                       value={form.billingEmail}
                       onChange={handleFieldChange('billingEmail')}
                       fullWidth
@@ -548,7 +558,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  label="Billing address"
+                  label={t('addDialog.billingAddress')}
                   value={form.billingAddress}
                   onChange={handleFieldChange('billingAddress')}
                   fullWidth
@@ -560,7 +570,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField
-                      label="Postal code"
+                      label={t('addDialog.postalCode')}
                       value={form.billingPostalCode}
                       onChange={handleFieldChange('billingPostalCode')}
                       fullWidth
@@ -572,7 +582,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField
-                      label="County"
+                      label={t('addDialog.county')}
                       value={form.billingCounty}
                       onChange={handleFieldChange('billingCounty')}
                       fullWidth
@@ -584,7 +594,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField
-                      label="Country"
+                      label={t('addDialog.country')}
                       value={form.billingCountry}
                       onChange={handleFieldChange('billingCountry')}
                       fullWidth
@@ -623,10 +633,10 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
           }}
           variant="outlined"
         >
-          Cancel
+          {t('addDialog.cancel')}
         </Button>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   startIcon={<SaveRoundedIcon />}
                   onClick={handleSubmit}
                   disabled={!form.name.trim() || !form.email.trim()}
@@ -649,7 +659,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     transition: 'all 0.2s ease-in-out'
                   }}
                 >
-          Save user
+          {t('addDialog.create')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -692,6 +702,7 @@ const buildQueryString = ({ page, search, status, email, userType }) => {
 
 const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const theme = useTheme();
+  const { t } = useTranslation('contacts');
   const [statusFilter, setStatusFilter] = useState('all');
   const [emailFilter, setEmailFilter] = useState('all');
   const [userTypeFilter, setUserTypeFilter] = useState('all');
@@ -1103,7 +1114,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 }}
                 onClick={() => setAddDialogOpen(true)}
               >
-                + New user
+                + {t('filters.addUser')}
               </Button>
             )}
             <Button 
@@ -1134,7 +1145,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
-                label="Search by Name"
+                label={t('filters.searchByName')}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 size="small"
@@ -1150,7 +1161,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
-                label="Search by Email"
+                label={t('filters.searchByEmail')}
                 value={emailFilter === 'all' ? '' : emailFilter}
                 onChange={(event) => setEmailFilter(event.target.value || 'all')}
                 size="small"
@@ -1165,13 +1176,13 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
-                <InputLabel>User Type</InputLabel>
+                <InputLabel>{t('filters.userType')}</InputLabel>
                 <Select
                   value={userTypeFilter}
                   onChange={(event) => setUserTypeFilter(event.target.value)}
-                  label="User Type"
+                  label={t('filters.userType')}
                 >
-                  <MenuItem value="all">All user types</MenuItem>
+                  <MenuItem value="all">{t('filters.allUserTypes')}</MenuItem>
                   {userTypeOptions.map((option) => (
                     <MenuItem key={option} value={option}>
                       {option}
@@ -1182,16 +1193,16 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
-                <InputLabel>Status</InputLabel>
+                <InputLabel>{t('filters.status')}</InputLabel>
                 <Select
                   value={statusFilter}
                   onChange={(event) => setStatusFilter(event.target.value)}
-                  label="Status"
+                  label={t('filters.status')}
                 >
-                  <MenuItem value="all">All statuses</MenuItem>
-                  <MenuItem value="Activo">Activo</MenuItem>
-                  <MenuItem value="Inactivo">Inactivo</MenuItem>
-                  <MenuItem value="Potencial">Potencial</MenuItem>
+                  <MenuItem value="all">{t('filters.allStatuses')}</MenuItem>
+                  <MenuItem value="Activo">{t('status.Activo')}</MenuItem>
+                  <MenuItem value="Inactivo">{t('status.Inactivo')}</MenuItem>
+                  <MenuItem value="Potencial">{t('status.Potencial')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -1217,11 +1228,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         <Table size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: 'grey.100' }}>
-              <TableCell sx={{ pl: 4, fontWeight: 'bold' }}>User</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Type of user</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Last activity</TableCell>
-              <TableCell align="right" sx={{ pr: 4, fontWeight: 'bold' }}>Actions</TableCell>
+              <TableCell sx={{ pl: 4, fontWeight: 'bold' }}>{t('table.user')}</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>{t('table.typeOfUser')}</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.status')}</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.lastActivity')}</TableCell>
+              <TableCell align="right" sx={{ pr: 4, fontWeight: 'bold' }}>{t('table.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1441,10 +1452,10 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             </Avatar>
             <Box>
               <Typography variant="h5" fontWeight={700}>
-                Delete User
+                {t('deleteDialog.title')}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                This action cannot be undone
+                {t('deleteDialog.warning')}
               </Typography>
             </Box>
           </Stack>
@@ -1452,10 +1463,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         <DialogContent sx={{ p: 4 }}>
           <Stack spacing={3}>
             <Typography variant="body1" color="text.primary">
-              Are you sure you want to delete <strong>{userToDelete?.name}</strong>?
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              This will permanently remove the user and all associated data from the system.
+              {t('deleteDialog.confirm')} <strong>{userToDelete?.name}</strong>?
             </Typography>
             {userToDelete?.contact?.email && (
               <Box sx={{ 
@@ -1500,10 +1508,10 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             }}
             variant="outlined"
           >
-            Cancel
+            {t('deleteDialog.cancel')}
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             startIcon={<DeleteRoundedIcon sx={{ color: 'text.secondary' }} />}
             onClick={() => handleDeleteUser(userToDelete?.id)}
             sx={{
@@ -1521,7 +1529,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               transition: 'all 0.2s ease-in-out'
             }}
           >
-            Delete User
+            {t('deleteDialog.delete')}
           </Button>
         </DialogActions>
       </Dialog>

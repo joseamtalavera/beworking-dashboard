@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../api/client.js';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -33,6 +34,7 @@ const spinAnimation = `
 
 const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab, onMenuToggle }) => {
   const theme = useTheme();
+  const { t, i18n } = useTranslation();
   const accentColor = theme.palette.brand.green;
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,12 +42,18 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
   const [isSearching, setIsSearching] = useState(false);
   const open = Boolean(anchorEl);
 
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'es' ? 'en' : 'es';
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('beworking_lang', newLang);
+  };
+
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  }, []);
+    if (hour < 12) return t('greeting.morning');
+    if (hour < 18) return t('greeting.afternoon');
+    return t('greeting.evening');
+  }, [t]);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -164,10 +172,10 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
   };
 
   const actionOptions = [
-    { label: 'Add bloqueo', icon: <EventNoteRoundedIcon />, action: () => console.log('Add bloqueo') },
-    { label: 'Create invoice', icon: <ReceiptRoundedIcon />, action: () => console.log('Create invoice') },
-    { label: 'Add contact', icon: <PersonAddRoundedIcon />, action: () => console.log('Add contact') },
-    { label: 'Settings', icon: <SettingsRoundedIcon />, action: () => console.log('Settings') }
+    { label: t('header.addBloqueo'), icon: <EventNoteRoundedIcon />, action: () => console.log('Add bloqueo') },
+    { label: t('header.createInvoice'), icon: <ReceiptRoundedIcon />, action: () => console.log('Create invoice') },
+    { label: t('header.addContact'), icon: <PersonAddRoundedIcon />, action: () => console.log('Add contact') },
+    { label: t('header.settings'), icon: <SettingsRoundedIcon />, action: () => console.log('Settings') }
   ];
 
   return (
@@ -181,23 +189,23 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
               <IconButton
                 onClick={onMenuToggle}
                 sx={{ display: { xs: 'inline-flex', md: 'none' }, color: 'text.primary', ml: -1 }}
-                aria-label="Open navigation"
+                aria-label={t('header.openNav')}
               >
                 <MenuRoundedIcon />
               </IconButton>
               <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' } }}>
-                {activeTab}
+                {t('tabs.' + activeTab, { defaultValue: activeTab })}
               </Typography>
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              {greeting}, {userProfile?.name || 'User'}. Here's the latest across your spaces.
+              {greeting}, {userProfile?.name || 'User'}. {t('header.subtitle')}
             </Typography>
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ width: { xs: '100%', md: 'auto' } }}>
             <Box sx={{ position: 'relative', width: { xs: '100%', sm: 220, md: 280, lg: 320 }, order: { xs: 1, sm: 0 } }}>
             <TextField
-              placeholder="Search…"
+              placeholder={t('header.search')}
               size="small"
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -227,7 +235,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                       <IconButton
                         size="small"
                         edge="end"
-                        aria-label="Clear search"
+                        aria-label={t('header.clearSearch')}
                         onClick={handleClearSearch}
                         sx={{
                           color: 'text.disabled',
@@ -341,12 +349,12 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                           )}
                           {result.code && (
                             <Typography variant="caption" color="text.secondary">
-                              Code: {result.code}
+                              {t('search.code')}: {result.code}
                             </Typography>
                           )}
                         </Stack>
                         <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto', flexShrink: 0 }}>
-                          {result.type}
+                          {t('search.' + result.type, { defaultValue: result.type })}
                         </Typography>
                       </Stack>
                     </Box>
@@ -379,7 +387,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                   transition: 'all 0.2s ease-in-out'
                 }}
               >
-                Action
+                {t('header.action')}
               </Button>
               <Menu
                 anchorEl={anchorEl}
@@ -436,7 +444,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                   '&:hover': { bgcolor: theme.palette.brand.green }
                 }}
               >
-                Help
+                {t('header.help')}
               </Button>
               <IconButton
                 onClick={onOpenHelp}
@@ -444,10 +452,34 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                   display: { xs: 'inline-flex', sm: 'none' },
                   color: 'primary.main'
                 }}
-                aria-label="Help & Support"
+                aria-label={t('header.helpSupport')}
               >
                 <HelpOutlineIcon />
               </IconButton>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={toggleLanguage}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  minWidth: 40,
+                  px: 1.5,
+                  height: 36,
+                  borderColor: accentColor,
+                  color: accentColor,
+                  '&:hover': {
+                    borderColor: accentColor,
+                    color: accentColor,
+                    backgroundColor: theme.palette.brand.accentSoft,
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 4px 12px ${alpha(accentColor, 0.2)}`
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                {i18n.language === 'es' ? 'EN' : 'ES'}
+              </Button>
               <Avatar
                 src={userProfile?.avatar || userProfile?.photo}
                 alt={userProfile?.name || userProfile?.email || 'User'}

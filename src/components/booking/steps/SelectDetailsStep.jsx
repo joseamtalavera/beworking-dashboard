@@ -12,10 +12,20 @@ import Typography from '@mui/material/Typography';
 
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esBooking from '../../../i18n/locales/es/booking.json';
+import enBooking from '../../../i18n/locales/en/booking.json';
+
 import { useBookingFlow } from '../BookingFlowContext';
 import { fetchPublicAvailability } from '../../../api/bookings';
 import RoomCalendarGrid, { CalendarLegend } from '../RoomCalendarGrid';
 import { addMinutesToTime } from '../../../utils/calendarUtils';
+
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 const pillSx = {
   borderRadius: 999,
@@ -27,6 +37,7 @@ const pillSx = {
 };
 
 export default function SelectDetailsStep() {
+  const { t } = useTranslation('booking');
   const { state, setField, setFields, nextStep } = useBookingFlow();
   const [validationError, setValidationError] = useState('');
 
@@ -93,11 +104,11 @@ export default function SelectDetailsStep() {
 
   const handleNext = () => {
     if (!state.dateFrom || !state.dateTo) {
-      setValidationError('Both start and end dates are required.');
+      setValidationError(t('steps.datesRequired'));
       return;
     }
     if (state.dateFrom > state.dateTo) {
-      setValidationError('Start date must be before end date.');
+      setValidationError(t('steps.startDateBeforeEnd'));
       return;
     }
     setValidationError('');
@@ -142,8 +153,8 @@ export default function SelectDetailsStep() {
               {state.centro?.name || state.centro?.label || ''}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              {state.producto.capacity ? `Capacity ${state.producto.capacity}` : ''}
-              {state.producto.priceFrom ? ` · from ${state.producto.priceFrom} ${state.producto.priceUnit || 'EUR'}/h` : ''}
+              {state.producto.capacity ? `${t('steps.capacity')} ${state.producto.capacity}` : ''}
+              {state.producto.priceFrom ? ` · ${t('steps.from')} ${state.producto.priceFrom} ${state.producto.priceUnit || 'EUR'}/h` : ''}
             </Typography>
           </Stack>
         </Paper>
@@ -154,16 +165,16 @@ export default function SelectDetailsStep() {
         <Stack spacing={2.5}>
           <Stack spacing={0.5}>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              Pick your date &amp; time
+              {t('steps.pickDateTime')}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Select a date and click an available slot, or set the time manually.
+              {t('steps.pickDateTimeDesc')}
             </Typography>
           </Stack>
 
           <TextField
             size="small"
-            label="Date"
+            label={t('steps.date')}
             type="date"
             value={state.dateFrom || ''}
             onChange={(e) => {
@@ -177,7 +188,7 @@ export default function SelectDetailsStep() {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
               size="small"
-              label="Start time"
+              label={t('steps.startTime')}
               type="time"
               value={state.startTime || '09:00'}
               onChange={(e) => setField('startTime', e.target.value)}
@@ -186,7 +197,7 @@ export default function SelectDetailsStep() {
             />
             <TextField
               size="small"
-              label="End time"
+              label={t('steps.endTime')}
               type="time"
               value={state.endTime || '10:00'}
               onChange={(e) => setField('endTime', e.target.value)}
@@ -211,7 +222,7 @@ export default function SelectDetailsStep() {
               <RoomCalendarGrid
                 room={{
                   id: state.producto?.id || 'room',
-                  name: state.producto?.name || 'Meeting room',
+                  name: state.producto?.name || t('steps.meetingRoom'),
                   capacity: state.producto?.capacity,
                 }}
                 dateLabel={dateLabel}
@@ -228,12 +239,12 @@ export default function SelectDetailsStep() {
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Additional details
+            {t('steps.additionalDetails')}
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
               size="small"
-              label="Number of attendees"
+              label={t('steps.numberOfAttendees')}
               type="number"
               value={state.attendees || ''}
               onChange={(e) => setField('attendees', e.target.value)}
@@ -250,13 +261,13 @@ export default function SelectDetailsStep() {
           </Stack>
           <TextField
             size="small"
-            label="Notes (optional)"
+            label={t('steps.notesOptional')}
             value={state.note || ''}
             onChange={(e) => setField('note', e.target.value)}
             fullWidth
             multiline
             minRows={2}
-            placeholder="Any special requirements or requests..."
+            placeholder={t('steps.notesRequirementsPlaceholder')}
           />
         </Stack>
       </Paper>
@@ -269,7 +280,7 @@ export default function SelectDetailsStep() {
           disabled={isContinueDisabled}
           sx={pillSx}
         >
-          Continue
+          {t('steps.continue')}
         </Button>
       </Box>
     </Stack>

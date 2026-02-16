@@ -1,0 +1,32 @@
+{
+  "stats": {
+    "meetingRooms": "Meeting Rooms",
+    "deskBookings": "Desk Bookings",
+    "businessAddresses": "Business Addresses",
+    "activeUsers": "Active Users",
+    "today": "today",
+    "active": "active",
+    "withBookings": "with bookings"
+  },
+  "metrics": {
+    "incomeYTD": "Income YTD",
+    "pendingYTD": "Pending YTD",
+    "incomeMonth": "Income this month",
+    "pendingMonth": "Pending this month",
+    "overdue": "Overdue ({{count}})"
+  },
+  "charts": {
+    "financialOverview": "Financial Overview",
+    "year": "Year",
+    "invoicesCount": "{{count}} invoices",
+    "revenue": "Revenue",
+    "pending": "Pending",
+    "overdue": "Overdue",
+    "noData": "No data"
+  },
+  "occupancy": {
+    "title": "Workspace Occupancy",
+    "noData": "No occupancy data available",
+    "bookedOf": "{{booked}}h booked of {{total}}h"
+  }
+}

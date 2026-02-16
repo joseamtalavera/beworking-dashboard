@@ -34,13 +34,16 @@ import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, 
 import InvoiceEditor from './InvoiceEditor.jsx';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esInvoices from '../../../i18n/locales/es/invoices.json';
+import enInvoices from '../../../i18n/locales/en/invoices.json';
+import { formatCurrency } from '../../../i18n/formatters.js';
 
-const formatCurrency = (value) => {
-  if (value == null) return '\u2014';
-  const number = Number(value);
-  if (Number.isNaN(number)) return String(value);
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(number);
-};
+if (!i18n.hasResourceBundle('es', 'invoices')) {
+  i18n.addResourceBundle('es', 'invoices', esInvoices);
+  i18n.addResourceBundle('en', 'invoices', enInvoices);
+}
 
 const isPaid = (estado) => {
   const key = (estado || '').toLowerCase();
@@ -51,6 +54,7 @@ const PAGE_SIZE = 100; // Server-side pagination - 100 invoices per page
 
 const Invoices = ({ mode = 'admin', userProfile }) => {
   const theme = useTheme();
+  const { t } = useTranslation('invoices');
   const isAdmin = mode === 'admin';
   const [page, setPage] = useState(0); // Backend uses 0-based pagination
   const [loading, setLoading] = useState(false);
@@ -206,17 +210,17 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
     <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack spacing={0.5} sx={{ mb: 3 }}>
         <Typography variant="h6" fontWeight={700}>
-          {isAdmin ? 'Billing & invoices' : 'My invoices'}
+          {t(isAdmin ? 'title' : 'titleUser')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {isAdmin ? 'Filter and manage your invoices.' : 'View and download your invoices.'}
+          {t(isAdmin ? 'subtitle' : 'subtitleUser')}
         </Typography>
       </Stack>
 
       {/* Filters Section */}
       <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
         <Typography variant="h6" gutterBottom>
-          Filters
+          {t('filters')}
         </Typography>
         <Grid container spacing={3}>
           {/* Admin-only filters: name, email, user type */}
@@ -225,10 +229,10 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               <Grid item xs={12} sm={6} md={3}>
                 <TextField
                   fullWidth
-                  label="Search by Name"
+                  label={t('searchByName')}
                   value={filters.name}
                   onChange={handleFilterChange('name')}
-                  placeholder="Search by name"
+                  placeholder={t('searchByName')}
                   size="small"
                   InputProps={{
                     startAdornment: (
@@ -242,10 +246,10 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               <Grid item xs={12} sm={6} md={3}>
                 <TextField
                   fullWidth
-                  label="Search by Email"
+                  label={t('searchByEmail')}
                   value={filters.email}
                   onChange={handleFilterChange('email')}
-                  placeholder="Search by email"
+                  placeholder={t('searchByEmail')}
                   size="small"
                   InputProps={{
                     startAdornment: (
@@ -261,10 +265,10 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
-              label="Invoice ID"
+              label={t('invoiceId')}
               value={filters.idFactura}
               onChange={handleFilterChange('idFactura')}
-              placeholder="Search by ID"
+              placeholder={t('searchById')}
               size="small"
               InputProps={{
                 startAdornment: (
@@ -277,30 +281,30 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           </Grid>
           <Grid item xs={12} sm={6} md={isAdmin ? 1.5 : 3}>
             <FormControl fullWidth size="small">
-              <InputLabel shrink>Status</InputLabel>
+              <InputLabel shrink>{t('status')}</InputLabel>
               <Select
                 value={filters.status}
                 onChange={handleFilterChange('status')}
-                label="Status"
+                label={t('status')}
                 displayEmpty
               >
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="paid">Paid</MenuItem>
-                <MenuItem value="unpaid">Unpaid</MenuItem>
+                <MenuItem value="">{t('all')}</MenuItem>
+                <MenuItem value="paid">{t('paid')}</MenuItem>
+                <MenuItem value="unpaid">{t('unpaid')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           {isAdmin && (
             <Grid item xs={12} sm={6} md={1.5}>
               <FormControl fullWidth size="small">
-                <InputLabel shrink>User Type</InputLabel>
+                <InputLabel shrink>{t('userType')}</InputLabel>
                 <Select
                   value={filters.tenantType}
                   onChange={handleFilterChange('tenantType')}
-                  label="User Type"
+                  label={t('userType')}
                   displayEmpty
                 >
-                  <MenuItem value="">All user types</MenuItem>
+                  <MenuItem value="">{t('allUserTypes')}</MenuItem>
                   <MenuItem value="Distribuidor">Distribuidor</MenuItem>
                   <MenuItem value="Proveedor">Proveedor</MenuItem>
                   <MenuItem value="Servicios">Servicios</MenuItem>
@@ -318,10 +322,10 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
-              label="Product"
+              label={t('product')}
               value={filters.product}
               onChange={handleFilterChange('product')}
-              placeholder="Search by product"
+              placeholder={t('searchByProduct')}
               size="small"
               InputProps={{
                 startAdornment: (
@@ -335,7 +339,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           <Grid item xs={12} sm={6} md={2}>
             <TextField
               fullWidth
-              label="Start Date"
+              label={t('startDate')}
               type="date"
               value={filters.startDate}
               onChange={handleFilterChange('startDate')}
@@ -346,7 +350,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           <Grid item xs={12} sm={6} md={2}>
             <TextField
               fullWidth
-              label="End Date"
+              label={t('endDate')}
               type="date"
               value={filters.endDate}
               onChange={handleFilterChange('endDate')}
@@ -387,7 +391,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 transition: 'all 0.2s ease-in-out'
               }}
             >
-              Reset
+              {t('reset')}
             </Button>
             {isAdmin && (
               <Button
@@ -406,17 +410,17 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   }
                 }}
               >
-                New invoice
+                {t('newInvoice')}
               </Button>
             )}
           </Stack>
           <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap justifyContent="space-between">
             <Typography variant="body2" color="text.secondary">
-              Showing {rows.length} invoices
+              {t('showingInvoices', { count: rows.length })}
             </Typography>
             {isAdmin && totalRevenue > 0 && (
               <Typography variant="body2" color="text.primary" sx={{ fontWeight: 'bold' }}>
-                Total Revenue: {formatCurrency(totalRevenue)}
+                {t('totalRevenue', { amount: formatCurrency(totalRevenue) })}
               </Typography>
             )}
           </Stack>
@@ -439,14 +443,14 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           <Table size="small" sx={{ minWidth: isAdmin ? 820 : 600, '& .MuiTableCell-root': { px: 1.5, whiteSpace: 'nowrap' } }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Invoice ID</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>Client</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>User type</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 140, whiteSpace: 'normal' }}>Products</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', minWidth: 90 }}>Total</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 90 }}>Issued</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 70 }}>Document</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>Actions</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>{t('table.invoiceId')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>{t('table.client')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>{t('table.userType')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 140, whiteSpace: 'normal' }}>{t('table.products')}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold', minWidth: 90 }}>{t('table.total')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 90 }}>{t('table.issued')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.document')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>{t('table.actions')}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -457,7 +461,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   {isAdmin && <TableCell>{inv.tenantType || '\u2014'}</TableCell>}
                   <TableCell sx={{ whiteSpace: 'normal' }}>{inv.products || '\u2014'}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title={isPaid(inv.estado) ? 'Paid' : 'Unpaid'} arrow>
+                    <Tooltip title={isPaid(inv.estado) ? t('paid') : t('unpaid')} arrow>
                       <Chip
                         label={formatCurrency(inv.total)}
                         size="small"
@@ -512,15 +516,15 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       variant="outlined"
                       onClick={async () => {
                         const invoiceNum = inv.holdedInvoiceNum || inv.idFactura || inv.id;
-                        const shouldCredit = window.confirm(`Create a refund invoice for ${invoiceNum}? This action is irreversible.`);
+                        const shouldCredit = window.confirm(t('creditConfirm', { invoiceNum }));
                         if (!shouldCredit) return;
                         try {
                           const result = await creditInvoice(inv.id, {});
                           const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
-                          setSnackbar({ open: true, message: `Refund invoice created: ${refundId}`, severity: 'success' });
+                          setSnackbar({ open: true, message: t('refundCreated', { refundId }), severity: 'success' });
                           await refreshList();
                         } catch (e) {
-                          setSnackbar({ open: true, message: e.message || 'Failed to create refund invoice.', severity: 'error' });
+                          setSnackbar({ open: true, message: e.message || t('refundError'), severity: 'error' });
                         }
                       }}
                       sx={{
@@ -540,7 +544,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                         transition: 'all 0.2s ease-in-out'
                       }}
                     >
-                      Credit
+                      {t('credit')}
                     </Button>
                   </TableCell>
                   )}
@@ -549,7 +553,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               {paginatedRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={isAdmin ? 8 : 6} align="center" sx={{ py: 6 }}>
-                    <Typography variant="body2" color="text.secondary">No invoices found.</Typography>
+                    <Typography variant="body2" color="text.secondary">{t('noInvoices')}</Typography>
                   </TableCell>
                 </TableRow>
               )}
@@ -599,10 +603,10 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           >
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Typography variant="body2" color="text.secondary">
-                {rows.length === 0 ? '0 results' : `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, data.totalElements || 0)} of ${data.totalElements || 0}`}
+                {rows.length === 0 ? t('results') : t('pageRange', { start: page * PAGE_SIZE + 1, end: Math.min((page + 1) * PAGE_SIZE, data.totalElements || 0), total: data.totalElements || 0 })}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Page {page + 1} of {totalPages}
+                {t('pageOf', { page: page + 1, totalPages })}
               </Typography>
             </Stack>
           </Box>
@@ -619,7 +623,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 const created = payload?.lineItems?.length
                   ? await createManualInvoice(payload)
                   : await createInvoice(payload);
-                setSnackbar({ open: true, message: 'Invoice created', severity: 'success' });
+                setSnackbar({ open: true, message: t('invoiceCreated'), severity: 'success' });
                 setNewInvoiceOpen(false);
                 await refreshList();
                 try {
@@ -628,7 +632,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 } catch {}
                 return created;
               } catch (e) {
-                setSnackbar({ open: true, message: e.message || 'Failed to create invoice', severity: 'error' });
+                setSnackbar({ open: true, message: e.message || t('invoiceCreateError'), severity: 'error' });
                 throw e;
               } finally {
                 setLoading(false);

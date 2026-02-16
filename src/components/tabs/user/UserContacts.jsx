@@ -5,9 +5,19 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esContacts from '../../../i18n/locales/es/contacts.json';
+import enContacts from '../../../i18n/locales/en/contacts.json';
+
 import { apiFetch } from '../../../api/client';
 import ContactProfileView from '../admin/ContactProfileView.jsx';
 import { normalizeUserTypeLabel, CANONICAL_USER_TYPES } from '../admin/contactConstants';
+
+if (!i18n.hasResourceBundle('es', 'contacts')) {
+  i18n.addResourceBundle('es', 'contacts', esContacts);
+  i18n.addResourceBundle('en', 'contacts', enContacts);
+}
 
 const normalizeContact = (entry = {}) => {
   const contact = entry.contact ?? {};
@@ -62,6 +72,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { t } = useTranslation('contacts');
 
   const tenantId = userProfile?.tenantId;
   const email = userProfile?.email;
@@ -101,12 +112,12 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
           if (data) {
             setContact(normalizeContact(data));
           } else {
-            setError('No contact profile found for your account.');
+            setError(t('errors.noProfile'));
           }
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err.message || 'Unable to load your profile.');
+          setError(err.message || t('errors.unableToLoad'));
         }
       } finally {
         if (!cancelled) {
@@ -116,7 +127,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
     };
 
     if (!tenantId && !email) {
-      setError('No contact profile linked to your account.');
+      setError(t('errors.noProfileLinked'));
       setLoading(false);
       return;
     }
@@ -208,7 +219,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
   if (!contact) {
     return (
       <Typography variant="body1" sx={{ color: 'text.secondary', textAlign: 'center', py: 6 }}>
-        No profile found.
+        {t('errors.noProfileFound')}
       </Typography>
     );
   }

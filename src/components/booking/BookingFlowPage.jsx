@@ -8,6 +8,10 @@ import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
 import Typography from '@mui/material/Typography';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esBooking from '../../i18n/locales/es/booking.json';
+import enBooking from '../../i18n/locales/en/booking.json';
 
 import { BookingFlowProvider, useBookingFlow } from './BookingFlowContext';
 import RoomCatalog from './RoomCatalog';
@@ -17,7 +21,10 @@ import ContactBillingStep from './steps/ContactBillingStep';
 
 const PaymentStep = lazy(() => import('./steps/PaymentStep'));
 
-const STEP_LABELS = ['Select details', 'Contact & billing', 'Review & payment'];
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 function StepperContent({ onClose, onCreated, mode, userProfile }) {
   const { state } = useBookingFlow();
@@ -47,7 +54,10 @@ function StepperContent({ onClose, onCreated, mode, userProfile }) {
 }
 
 function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom, onBackToDetail, userProfile, initialTime }) {
+  const { t } = useTranslation('booking');
   const { state, reset, setFields } = useBookingFlow();
+
+  const STEP_LABELS = [t('stepper.selectDetails'), t('stepper.contactBilling'), t('stepper.reviewPayment')];
 
   useEffect(() => {
     reset(defaultDate);
@@ -86,13 +96,13 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
         startIcon={<ArrowBackRoundedIcon />}
         sx={{ mb: 2, textTransform: 'none', color: 'text.secondary', fontWeight: 600 }}
       >
-        Back to room details
+        {t('dialog.backToRoom')}
       </Button>
 
       {productoName && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="overline" sx={{ color: 'text.disabled' }}>
-            Booking{centroName ? ` · ${centroName}` : ''}
+            {t('dialog.booking')}{centroName ? ` · ${centroName}` : ''}
           </Typography>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             {productoName}

@@ -98,6 +98,14 @@ import {
 } from '../../api/stripe.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n.js';
+import esBooking from '../../i18n/locales/es/booking.json';
+import enBooking from '../../i18n/locales/en/booking.json';
+if (!i18n.hasResourceBundle('es', 'booking')) {
+  i18n.addResourceBundle('es', 'booking', esBooking);
+  i18n.addResourceBundle('en', 'booking', enBooking);
+}
 
 const DEFAULT_START_HOUR = 6;
 const DEFAULT_END_HOUR = 24;
@@ -153,7 +161,7 @@ const userCalendarStatusStyles = () => ({
 });
 
 // Booking flow step labels
-const BOOKING_STEP_LABELS = ['Select details', 'Contact & billing', 'Review & payment'];
+const BOOKING_STEP_LABELS = ['stepper.selectDetails', 'stepper.contactBilling', 'stepper.reviewPayment'];
 
 // Unified view toggle tabs style (used by both admin and user views)
 const getViewToggleTabsStyle = (theme) => ({
@@ -248,8 +256,10 @@ const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created'];
 
 const Legend = () => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
-  
+  const statusToTranslationKey = { available: 'available', paid: 'paid', invoiced: 'invoiced', created: 'booked' };
+
   return (
     <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
       {LEGEND_STATUSES.map((status) => (
@@ -265,7 +275,7 @@ const Legend = () => {
             }}
           />
           <Typography variant="caption" color="text.secondary">
-            {statusLabels[status]}
+            {t('status.' + (statusToTranslationKey[status] || status))}
           </Typography>
         </Stack>
       ))}
@@ -520,7 +530,7 @@ const mapUserStatusKey = (status) => {
 };
 
 const describeBloqueoUser = (bloqueo) => {
-  if (!bloqueo) return 'Available slot';
+  if (!bloqueo) return i18n.t('admin.availableSlot', { ns: 'booking' });
   const pieces = [];
   if (bloqueo.cliente?.nombre) pieces.push(bloqueo.cliente.nombre);
   if (bloqueo.centro?.nombre) pieces.push(bloqueo.centro.nombre);
@@ -690,6 +700,7 @@ const composeRooms = (bloqueos) => {
 
 const BookingsTable = ({ bookings, onSelect }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
   const [page, setPage] = useState(0);
   const rowsPerPage = 25;
@@ -764,27 +775,27 @@ const BookingsTable = ({ bookings, onSelect }) => {
           >
             <TableRow
             >
-              <TableCell>User</TableCell>
-              <TableCell>Product</TableCell>
-              <TableCell>Start</TableCell>
-              <TableCell>Finish</TableCell>
-              <TableCell align="center">People</TableCell>
-              <TableCell>Payment status</TableCell>
+              <TableCell>{t('admin.user')}</TableCell>
+              <TableCell>{t('admin.product')}</TableCell>
+              <TableCell>{t('admin.start')}</TableCell>
+              <TableCell>{t('admin.finish')}</TableCell>
+              <TableCell align="center">{t('admin.people')}</TableCell>
+              <TableCell>{t('admin.paymentStatus')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginated.map((booking) => {
               const statusKey = mapStatusKey(booking.status);
               const statusStyle = statusStyles[statusKey] || statusStyles.created;
-              const statusLabel = booking.status || statusLabels[statusKey] || 'Booked';
+              const statusLabel = booking.status || t('status.' + (statusKey === 'created' ? 'booked' : statusKey)) || t('status.booked');
               const centerLabel = booking.centerName || booking.centerCode || '—';
               const productLabel = booking.productName || booking.productType || '—';
-              const startHour = booking.timeFrom ? booking.timeFrom : 'All day';
+              const startHour = booking.timeFrom ? booking.timeFrom : t('admin.allDay');
               const finishHour = booking.timeTo
                 ? booking.timeTo
                 : booking.timeFrom
                 ? '—'
-                : 'All day';
+                : t('admin.allDay');
               return (
                 <TableRow
                   key={booking.id}
@@ -839,6 +850,7 @@ const BookingsTable = ({ bookings, onSelect }) => {
 
 const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
   const sortedBloqueos = useMemo(() => {
     const clone = [...bloqueos];
@@ -880,28 +892,28 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                   fontWeight: 'bold'
                 }}
               >
-                User
+                {t('admin.user')}
               </TableCell>
-              <TableCell align="right" sx={{ width: 140, fontWeight: 'bold' }}>Product</TableCell>
-              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>Start</TableCell>
-              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>Finish</TableCell>
-              <TableCell align="right" sx={{ width: 90, fontWeight: 'bold' }}>People</TableCell>
-              <TableCell align="right" sx={{ width: 160, fontWeight: 'bold' }}>Payment status</TableCell>
-              {onDelete ? <TableCell align="right" sx={{ width: 72, fontWeight: 'bold' }}>Actions</TableCell> : null}
+              <TableCell align="right" sx={{ width: 140, fontWeight: 'bold' }}>{t('admin.product')}</TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('admin.start')}</TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('admin.finish')}</TableCell>
+              <TableCell align="right" sx={{ width: 90, fontWeight: 'bold' }}>{t('admin.people')}</TableCell>
+              <TableCell align="right" sx={{ width: 160, fontWeight: 'bold' }}>{t('admin.paymentStatus')}</TableCell>
+              {onDelete ? <TableCell align="right" sx={{ width: 72, fontWeight: 'bold' }}>{t('userView.actions')}</TableCell> : null}
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedBloqueos.map((bloqueo) => {
               const statusKey = mapStatusKey(bloqueo.estado);
               const statusStyle = statusStyles[statusKey] || statusStyles.created;
-              const statusLabel = statusLabels[statusKey] || 'Booked';
+              const statusLabel = t('status.' + (statusKey === 'created' ? 'booked' : statusKey));
               const rawStatusLabel = bloqueo.estado || '';
-              const startHour = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : 'All day';
+              const startHour = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : t('admin.allDay');
               const finishHour = bloqueo.fechaFin
                 ? bloqueo.fechaFin.split('T')[1]
                 : bloqueo.fechaIni
                 ? '—'
-                : 'All day';
+                : t('admin.allDay');
               const attendees = Number.isFinite(bloqueo.asistentes)
                 ? bloqueo.asistentes
                 : bloqueo.asistentes != null
@@ -959,7 +971,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
               </TableCell>
                   {onDelete ? (
                     <TableCell align="right" sx={{ width: 72 }}>
-                      <Tooltip title="Delete bloqueo">
+                      <Tooltip title={t('admin.deleteBloqueo')}>
                         <span>
                           <IconButton
                             size="small"
@@ -1000,6 +1012,7 @@ const ReservaDialog = ({
   initialBloqueo
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const isEditMode = mode === 'edit';
     const baseInputStyles = {
       minHeight: 40,
@@ -1050,11 +1063,11 @@ const ReservaDialog = ({
       },
       '& .MuiInputLabel-root': baseLabelStyles
     };
-  const dialogTitle = isEditMode ? 'Edit bloqueo' : 'Create reserva';
+  const dialogTitle = isEditMode ? t('admin.editBloqueo') : t('dialog.createReserva');
   const dialogSubtitle = isEditMode
-    ? 'Update the bloqueo details before saving.'
-    : 'Add a new reservation to the system';
-  const primaryActionLabel = isEditMode ? 'Save changes' : 'Create reserva';
+    ? t('admin.editReservation')
+    : t('dialog.addReservation');
+  const primaryActionLabel = isEditMode ? t('admin.saveChanges') : t('dialog.createReserva');
   const DialogIcon = isEditMode ? EditRoundedIcon : AddRoundedIcon;
 
   const buildInitialState = useCallback(() => {
@@ -1248,7 +1261,7 @@ const ReservaDialog = ({
           setContactOptions(list);
         })
         .catch((fetchError) => {
-          setContactFetchError(fetchError.message || 'Unable to load contacts.');
+          setContactFetchError(fetchError.message || t('admin.unableToLoadContacts'));
         })
         .finally(() => {
           setContactsLoading(false);
@@ -1315,7 +1328,7 @@ const ReservaDialog = ({
       })
       .catch((lookupErr) => {
         if (active) {
-          setLookupError(lookupErr.message || 'Unable to load centros and productos.');
+          setLookupError(lookupErr.message || t('admin.unableToLoadCentrosProductos'));
         }
       })
       .finally(() => {
@@ -1427,31 +1440,31 @@ const ReservaDialog = ({
     const productoId = formState.producto?.id;
 
     if (!contactId) {
-      setError('Please select a contact.');
+      setError(t('steps.pleaseSelectContact'));
       return;
     }
     if (!centroId) {
-      setError('Please select a centro.');
+      setError(t('admin.pleaseSelectCentro'));
       return;
     }
     if (!productoId) {
-      setError('Please select a producto.');
+      setError(t('admin.pleaseSelectProducto'));
       return;
     }
 
     if (!formState.dateFrom || !formState.dateTo) {
-      setError('Both start and end dates are required.');
+      setError(t('steps.datesRequired'));
       return;
     }
 
     if (formState.dateFrom > formState.dateTo) {
-      setError('Start date must be before end date.');
+      setError(t('steps.startDateBeforeEnd'));
       return;
     }
 
     const attendees = formState.attendees === '' ? null : Number(formState.attendees);
     if (formState.attendees !== '' && !Number.isInteger(attendees)) {
-      setError('Attendees must be a whole number.');
+      setError(t('admin.attendeesWholeNumber'));
       return;
     }
 
@@ -1460,7 +1473,7 @@ const ReservaDialog = ({
       formState.producto?.centerCode &&
       formState.producto.centerCode.toLowerCase() !== formState.centro.code.toLowerCase()
     ) {
-      setError('Selected product does not belong to the chosen centro.');
+      setError(t('admin.productNotInCentro'));
       return;
     }
 
@@ -1503,7 +1516,7 @@ const ReservaDialog = ({
       }
     } catch (apiError) {
       setError(
-        apiError.message || (isEditMode ? 'Unable to update bloqueo.' : 'Unable to create reserva.')
+        apiError.message || (isEditMode ? t('admin.unableToUpdateBloqueo') : t('admin.unableToCreateReserva'))
       );
     } finally {
       setSubmitting(false);
@@ -1584,10 +1597,10 @@ const ReservaDialog = ({
                     <Box sx={{ position: 'relative' }}>
                       <TextField
                         fullWidth
-                        label="Search by Name"
+                        label={t('admin.searchByName')}
                         value={contactInputValue}
                         onChange={(e) => setContactInputValue(e.target.value)}
-                        placeholder="Search by name"
+                        placeholder={t('admin.searchByName')}
                         required
                         size="small"
                         sx={fieldStyles}
@@ -1660,19 +1673,19 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      label="Centro"
+                      label={t('admin.centro')}
                       value={formState.centro?.name || ''}
                       onChange={(e) => {
                         const selectedCentro = centroOptions.find(c => c.name === e.target.value);
                         setFormState((prev) => ({ ...prev, centro: selectedCentro || null }));
                       }}
-                      placeholder="Select centro"
+                      placeholder={t('admin.selectCentro')}
                       required
                       size="small"
                       select
                       SelectProps={{
                         displayEmpty: true,
-                        renderValue: (value) => value === '' ? 'All centros' : value
+                        renderValue: (value) => value === '' ? t('admin.allCentros') : value
                       }}
                       sx={selectFieldStyles}
                       InputProps={{
@@ -1683,7 +1696,7 @@ const ReservaDialog = ({
                         ),
                       }}
                     >
-                      <MenuItem value="">All centros</MenuItem>
+                      <MenuItem value="">{t('admin.allCentros')}</MenuItem>
                       {centroOptions.map((option) => (
                         <MenuItem key={option.id} value={option.name}>
                           {option.code ? `${option.code} · ` : ''}
@@ -1697,16 +1710,16 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
-                      label="User Type"
+                      label={t('admin.userType')}
                       value={formState.userType}
                       onChange={handleUserTypeChange}
-                      placeholder="Select user type"
+                      placeholder={t('admin.selectUserType')}
                       required
                       size="small"
                       select
                       SelectProps={{
                         displayEmpty: true,
-                        renderValue: (value) => value === '' ? 'All user types' : value
+                        renderValue: (value) => value === '' ? t('admin.allUserTypes') : value
                       }}
                       sx={selectFieldStyles}
                       InputProps={{
@@ -1717,7 +1730,7 @@ const ReservaDialog = ({
                         ),
                       }}
                     >
-                      <MenuItem value="">All user types</MenuItem>
+                      <MenuItem value="">{t('admin.allUserTypes')}</MenuItem>
                       {userTypeOptions.map((option) => (
                         <MenuItem key={option} value={option}>
                           {option}
@@ -1730,19 +1743,19 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
-                      label="Producto"
+                      label={t('admin.producto')}
                       value={formState.producto?.name || ''}
                       onChange={(e) => {
                         const selectedProduct = availableProducts.find(p => p.name === e.target.value);
                         setFormState((prev) => ({ ...prev, producto: selectedProduct || null }));
                       }}
-                      placeholder="Select product"
+                      placeholder={t('admin.selectProducto')}
                       required
                       size="small"
                       select
                       SelectProps={{
                         displayEmpty: true,
-                        renderValue: (value) => value === '' ? 'All products' : value
+                        renderValue: (value) => value === '' ? t('admin.allProducts') : value
                       }}
                       sx={selectFieldStyles}
                       InputProps={{
@@ -1753,7 +1766,7 @@ const ReservaDialog = ({
                         ),
                       }}
                     >
-                      <MenuItem value="">All products</MenuItem>
+                      <MenuItem value="">{t('admin.allProducts')}</MenuItem>
                       {availableProducts.map((option) => (
                         <MenuItem key={option.id} value={option.name}>
                           {option.name || '—'}
@@ -1767,16 +1780,16 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
-                      label="Reservation Type"
+                      label={t('admin.reservationType')}
                       value={formState.reservationType}
                       onChange={handleReservationTypeChange}
-                      placeholder="Select reservation type"
+                      placeholder={t('admin.selectReservationType')}
                       required
                       size="small"
                       select
                       SelectProps={{
                         displayEmpty: true,
-                        renderValue: (value) => value === '' ? 'All reservation types' : value
+                        renderValue: (value) => value === '' ? t('admin.allReservationTypes') : t('reservationType.' + value)
                       }}
                       sx={selectFieldStyles}
                       InputProps={{
@@ -1787,10 +1800,10 @@ const ReservaDialog = ({
                         ),
                       }}
                     >
-                      <MenuItem value="">All reservation types</MenuItem>
+                      <MenuItem value="">{t('admin.allReservationTypes')}</MenuItem>
                       {RESERVATION_TYPE_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
-                          {option}
+                          {t('reservationType.' + option)}
                         </MenuItem>
                       ))}
                     </TextField>
@@ -1800,16 +1813,16 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
-                      label="Status"
+                      label={t('admin.status')}
                       value={formState.status}
                       onChange={handleFieldChange('status')}
-                      placeholder="Select status"
+                      placeholder={t('admin.selectStatus')}
                       required
                       size="small"
                       select
                       SelectProps={{
                         displayEmpty: true,
-                        renderValue: (value) => value === '' ? 'All statuses' : value
+                        renderValue: (value) => value === '' ? t('admin.allStatuses') : t('status.' + value.toLowerCase())
                       }}
                       sx={selectFieldStyles}
                       InputProps={{
@@ -1820,10 +1833,10 @@ const ReservaDialog = ({
                         ),
                       }}
                     >
-                      <MenuItem value="">All statuses</MenuItem>
-                      <MenuItem value="Booked">Booked</MenuItem>
-                      <MenuItem value="Pendiente">Pendiente</MenuItem>
-                      <MenuItem value="Paid">Paid</MenuItem>
+                      <MenuItem value="">{t('admin.allStatuses')}</MenuItem>
+                      <MenuItem value="Booked">{t('status.booked')}</MenuItem>
+                      <MenuItem value="Pendiente">{t('status.pending')}</MenuItem>
+                      <MenuItem value="Paid">{t('status.paid')}</MenuItem>
                     </TextField>
                   </Grid>
 
@@ -1831,10 +1844,10 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
-                      label="Tarifa (€)"
+                      label={t('admin.tarifaLabel')}
                       value={formState.tarifa}
                       onChange={handleFieldChange('tarifa')}
-                      placeholder="Enter tarifa"
+                      placeholder={t('admin.enterTarifa')}
                       required
                       size="small"
                       sx={fieldStyles}
@@ -1880,7 +1893,7 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={3}>
                     <TextField
                       type="date"
-                      label="Date from"
+                      label={t('admin.dateFrom')}
                       value={formState.dateFrom}
                       onChange={handleFieldChange('dateFrom')}
                       InputLabelProps={{ shrink: true }}
@@ -1893,7 +1906,7 @@ const ReservaDialog = ({
                   <Grid item xs={12} md={3}>
                     <TextField
                       type="date"
-                      label="Date to"
+                      label={t('admin.dateTo')}
                       value={formState.dateTo}
                       onChange={handleFieldChange('dateTo')}
                       InputLabelProps={{ shrink: true }}
@@ -1907,7 +1920,7 @@ const ReservaDialog = ({
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <Grid item xs={12} md={3}>
                         <TimePicker
-                          label="Start time"
+                          label={t('admin.startTime')}
                           value={timeStringToDate(formState.startTime)}
                           onChange={(newValue) => {
                             const timeString = dateToTimeString(newValue);
@@ -1927,7 +1940,7 @@ const ReservaDialog = ({
                       </Grid>
                       <Grid item xs={12} md={3}>
                         <TimePicker
-                          label="End time"
+                          label={t('admin.endTime')}
                           value={timeStringToDate(formState.endTime)}
                           onChange={(newValue) => {
                             const timeString = dateToTimeString(newValue);
@@ -1979,7 +1992,7 @@ const ReservaDialog = ({
                               disabled={submitting}
                             />
                           }
-                          label={day.shortLabel}
+                          label={t('days.' + day.value.slice(0, 3))}
                         />
                       ))}
                     </FormGroup>
@@ -1994,7 +2007,7 @@ const ReservaDialog = ({
                           disabled={submitting}
                         />
                       }
-                      label="Open ended"
+                      label={t('admin.openEnded')}
                     />
                   </Box>
                 ) : null}
@@ -2029,7 +2042,7 @@ const ReservaDialog = ({
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Attendees"
+                      label={t('admin.attendees')}
                       value={formState.attendees}
                       onChange={handleFieldChange('attendees')}
                       fullWidth
@@ -2046,7 +2059,7 @@ const ReservaDialog = ({
               </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Configuración"
+                      label={t('admin.configuracion')}
                       value={formState.configuracion}
                       onChange={handleFieldChange('configuracion')}
                       fullWidth
@@ -2182,11 +2195,12 @@ const DetailTile = ({ icon, label, primary, secondary, children }) => {
 
 const BookingDetailsDialog = ({ booking, onClose }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
   const open = Boolean(booking);
   const statusKey = mapStatusKey(booking?.status);
   const statusColor = statusStyles[statusKey] || statusStyles.created;
-  const statusLabel = statusLabels[statusKey] || booking?.status || 'Booked';
+  const statusLabel = t('status.' + (statusKey === 'created' ? 'booked' : statusKey));
   const clientInitials = useMemo(() => getInitials(booking?.clientName), [booking]);
   const attendees =
     typeof booking?.attendees === 'number' ? booking.attendees : booking?.attendees || '—';
@@ -2235,7 +2249,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
               </Avatar>
               <Stack spacing={0.5}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {booking?.clientName || 'Booking details'}
+                  {booking?.clientName || t('admin.bookingDetails')}
                 </Typography>
                 {booking?.clientEmail ? (
                   <Typography variant="body2" color="text.secondary">
@@ -2260,7 +2274,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                 />
               ) : null}
               <IconButton
-                aria-label="Close booking details"
+                aria-label={t('admin.closeBookingDetails')}
                 edge="end"
                 onClick={onClose}
                 size="small"
@@ -2291,7 +2305,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
               <Grid item xs={12} sm={6}>
                 <DetailTile
                   icon={<LocationOnRoundedIcon fontSize="small" />}
-                  label="Center / Room"
+                  label={t('admin.centro') + ' / ' + t('userView.room')}
                   primary={booking.centerName || booking.centerCode}
                   secondary={booking.productName || booking.productType || '—'}
                 />
@@ -2299,32 +2313,32 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
               <Grid item xs={12} sm={6}>
                 <DetailTile
                   icon={<CalendarMonthRoundedIcon fontSize="small" />}
-                  label="Date range"
+                  label={t('admin.dateRange')}
                   primary={formatDateRange(booking.dateFrom, booking.dateTo)}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <DetailTile
                   icon={<AccessTimeRoundedIcon fontSize="small" />}
-                  label="Time"
+                  label={t('admin.time')}
                   primary={formatTimeRange(booking.timeFrom, booking.timeTo)}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <DetailTile
                   icon={<EventRepeatRoundedIcon fontSize="small" />}
-                  label="Reservation type"
-                  primary={booking.reservationType}
+                  label={t('admin.reservationType')}
+                  primary={booking.reservationType ? t('reservationType.' + booking.reservationType) : '—'}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <DetailTile
                   icon={<CalendarViewWeekRoundedIcon fontSize="small" />}
-                  label="Days"
+                  label={t('admin.days')}
                   primary={
                     booking.days && booking.days.length
                       ? `${booking.days.length} selected`
-                      : 'No days selected'
+                      : t('admin.noDaysSelected')
                   }
                 >
                   {booking.days && booking.days.length ? (
@@ -2336,7 +2350,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                       }}
                     >
                       {booking.days.map((day) => {
-                        const chipLabel = day.charAt(0).toUpperCase() + day.slice(1);
+                        const chipLabel = t('days.' + day);
                         return (
                           <Chip
                             key={day}
@@ -2357,7 +2371,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
               <Grid item xs={12} sm={6}>
                 <DetailTile
                   icon={<PeopleAltRoundedIcon fontSize="small" />}
-                  label="Attendees"
+                  label={t('admin.attendees')}
                   primary={attendees}
                 />
               </Grid>
@@ -2388,13 +2402,13 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                     <StickyNote2RoundedIcon fontSize="small" />
                   </Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  Notes
+                  {t('admin.notes')}
                 </Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
                   {booking.notes && booking.notes.trim()
                     ? booking.notes
-                    : 'No notes have been added for this booking.'}
+                    : t('admin.noNotesAdded')}
                 </Typography>
               </Stack>
             </Paper>
@@ -2421,7 +2435,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                 startIcon={<EuroRoundedIcon fontSize="small" />}
                 disabled={invoiceLoading}
               >
-                Invoice bloqueo
+                {t('admin.invoice')}
               </Button>
             ) : null}
             {canEdit ? (
@@ -2436,11 +2450,11 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                 startIcon={<EditRoundedIcon fontSize="small" />}
                 sx={{ textTransform: 'none', fontWeight: 600, mr: 1 }}
               >
-                Edit bloqueo
+                {t('admin.editBloqueo')}
               </Button>
             ) : null}
             <Button onClick={onClose} variant="contained" sx={{ textTransform: 'none', fontWeight: 600 }}>
-              Close
+              {t('steps.close')}
             </Button>
       </DialogActions>
     </Dialog>
@@ -2448,30 +2462,31 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
 };
 
     const InvoiceFormDialog = ({ open, bloqueo, form, onFieldChange, onClose, onSubmit, submitting, error }) => {
+      const { t } = useTranslation('booking');
       const tarifaLabel = bloqueo?.tarifa ? `€${Number(bloqueo.tarifa).toLocaleString()}` : '—';
       return (
         <Dialog open={Boolean(open)} onClose={onClose} maxWidth="md" fullWidth>
-          <DialogTitle>Confirm invoice for bloqueo</DialogTitle>
+          <DialogTitle>{t('admin.createInvoice')}</DialogTitle>
           <DialogContent dividers>
             <Stack spacing={2}>
-              <Typography variant="subtitle1">Client: {bloqueo?.cliente?.nombre || '—'}</Typography>
-              <Typography variant="body2" color="text.secondary">Center / Product: {bloqueo?.producto?.nombre || bloqueo?.producto?.centerCode || '—'}</Typography>
-              <Typography variant="body2">Start: {bloqueo ? formatDateTime(bloqueo.fechaInicio || bloqueo.start) : '—'}</Typography>
-              <Typography variant="body2">End: {bloqueo ? formatDateTime(bloqueo.fechaFin || bloqueo.end) : '—'}</Typography>
-              <Typography variant="body2">Rate: {tarifaLabel}</Typography>
-              <TextField label="Description" fullWidth multiline minRows={2} value={form.description} onChange={onFieldChange('description')} />
-              <TextField label="Reference" fullWidth value={form.reference} onChange={onFieldChange('reference')} />
-              <TextField label="VAT %" value={form.vat} onChange={onFieldChange('vat')} sx={{ width: 140 }} />
+              <Typography variant="subtitle1">{t('admin.contact')}: {bloqueo?.cliente?.nombre || '—'}</Typography>
+              <Typography variant="body2" color="text.secondary">{t('admin.centro')} / {t('admin.producto')}: {bloqueo?.producto?.nombre || bloqueo?.producto?.centerCode || '—'}</Typography>
+              <Typography variant="body2">{t('admin.start')}: {bloqueo ? formatDateTime(bloqueo.fechaInicio || bloqueo.start) : '—'}</Typography>
+              <Typography variant="body2">{t('admin.end')}: {bloqueo ? formatDateTime(bloqueo.fechaFin || bloqueo.end) : '—'}</Typography>
+              <Typography variant="body2">{t('admin.tarifaLabel')}: {tarifaLabel}</Typography>
+              <TextField label={t('admin.description')} fullWidth multiline minRows={2} value={form.description} onChange={onFieldChange('description')} />
+              <TextField label={t('admin.reference')} fullWidth value={form.reference} onChange={onFieldChange('reference')} />
+              <TextField label={`${t('steps.vat')} %`} value={form.vat} onChange={onFieldChange('vat')} sx={{ width: 140 }} />
               <Alert severity="warning">
-                Once you create an invoice the invoice cannot be deleted for legal reasons. If you need to correct it you must create a credit (rectification).
+                {t('admin.invoiceWarning')}
               </Alert>
               {error ? <Alert severity="error">{error}</Alert> : null}
             </Stack>
       </DialogContent>
       <DialogActions>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose}>{t('admin.cancel')}</Button>
             <Button onClick={onSubmit} variant="contained" disabled={submitting}>
-              {submitting ? <CircularProgress size={18} /> : 'Create invoice'}
+              {submitting ? <CircularProgress size={18} /> : t('admin.createInvoice')}
             </Button>
       </DialogActions>
     </Dialog>
@@ -2480,6 +2495,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
 
 const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const open = Boolean(bloqueo);
   const canEdit = Boolean(onEdit);
   const canInvoice = Boolean(onInvoice);
@@ -2580,7 +2596,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       setIsEditMode(false);
       onClose?.();
     } catch (saveError) {
-      setError(saveError.message || 'Unable to update bloqueo.');
+      setError(saveError.message || t('admin.unableToUpdateBloqueo'));
     } finally {
       setSaving(false);
     }
@@ -2598,7 +2614,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
 
       if (paymentOption === 'charge') {
         if (!selectedCard) {
-          setError('Please select a card.');
+          setError(t('steps.pleaseSelectCard'));
           setPaymentSubmitting(false);
           return;
         }
@@ -2649,10 +2665,10 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
     },
   };
 
-  const dialogTitle = isEditMode ? 'Edit Bloqueo' : 'Bloqueo Details';
+  const dialogTitle = isEditMode ? t('admin.editBloqueo') : t('admin.bloqueoDetails');
   const dialogSubtitle = isEditMode
-    ? 'Update the bloqueo details before saving.'
-    : 'View booking information and schedule';
+    ? t('admin.editReservation')
+    : t('admin.viewReservation');
 
   return (
     <Dialog
@@ -2731,20 +2747,20 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           <PersonRoundedIcon />
                         </Avatar>
                         <Typography variant="h6" fontWeight={600} color="text.primary">
-                          Booking Information
+                          {t('admin.bookingDetails')}
                         </Typography>
                       </Stack>
                     </Box>
                     <Box sx={{ p: 3 }}>
                       <Grid container spacing={3}>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Contact" value={formState.cliente || ''} onChange={(e) => handleFieldChange('cliente', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.contact')} value={formState.cliente || ''} onChange={(e) => handleFieldChange('cliente', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Centro" value={formState.centro || ''} onChange={(e) => handleFieldChange('centro', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.centro')} value={formState.centro || ''} onChange={(e) => handleFieldChange('centro', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="User type" value={formState.userType || ''} onChange={(e) => handleFieldChange('userType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
+                          <TextField fullWidth label={t('admin.userType')} value={formState.userType || ''} onChange={(e) => handleFieldChange('userType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
                             <MenuItem value="">—</MenuItem>
                             <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
                             <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
@@ -2752,34 +2768,34 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           </TextField>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Producto" value={formState.producto || ''} onChange={(e) => handleFieldChange('producto', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.producto')} value={formState.producto || ''} onChange={(e) => handleFieldChange('producto', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                          <TextField fullWidth label="Reservation type" value={formState.reservationType || 'Por Horas'} onChange={(e) => handleFieldChange('reservationType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
-                            <MenuItem value="Por Horas">Por Horas</MenuItem>
-                            <MenuItem value="Diaria">Diaria</MenuItem>
-                            <MenuItem value="Mensual">Mensual</MenuItem>
+                          <TextField fullWidth label={t('admin.reservationType')} value={formState.reservationType || 'Por Horas'} onChange={(e) => handleFieldChange('reservationType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
+                            <MenuItem value="Por Horas">{t('reservationType.Por Horas')}</MenuItem>
+                            <MenuItem value="Diaria">{t('reservationType.Diaria')}</MenuItem>
+                            <MenuItem value="Mensual">{t('reservationType.Mensual')}</MenuItem>
                           </TextField>
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                          <TextField fullWidth label="Status" value={formState.status || 'Booked'} onChange={(e) => handleFieldChange('status', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
-                            <MenuItem value="Booked">Booked</MenuItem>
-                            <MenuItem value="Pendiente">Pendiente</MenuItem>
-                            <MenuItem value="Paid">Paid</MenuItem>
-                            <MenuItem value="Invoiced">Invoiced</MenuItem>
+                          <TextField fullWidth label={t('admin.status')} value={formState.status || 'Booked'} onChange={(e) => handleFieldChange('status', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
+                            <MenuItem value="Booked">{t('status.booked')}</MenuItem>
+                            <MenuItem value="Pendiente">{t('status.pending')}</MenuItem>
+                            <MenuItem value="Paid">{t('status.paid')}</MenuItem>
+                            <MenuItem value="Invoiced">{t('status.invoiced')}</MenuItem>
                           </TextField>
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                          <TextField fullWidth label="Tarifa (€)" value={formState.tarifa ?? ''} onChange={(e) => handleFieldChange('tarifa', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.tarifaLabel')} value={formState.tarifa ?? ''} onChange={(e) => handleFieldChange('tarifa', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Attendees" value={formState.asistentes ?? ''} onChange={(e) => handleFieldChange('asistentes', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.attendees')} value={formState.asistentes ?? ''} onChange={(e) => handleFieldChange('asistentes', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Configuración" value={formState.configuracion || ''} onChange={(e) => handleFieldChange('configuracion', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.configuracion')} value={formState.configuracion || ''} onChange={(e) => handleFieldChange('configuracion', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
                         <Grid item xs={12}>
-                          <TextField fullWidth label="Notes" value={formState.nota || ''} onChange={(e) => handleFieldChange('nota', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" multiline minRows={2} maxRows={4} sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.notes')} value={formState.nota || ''} onChange={(e) => handleFieldChange('nota', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" multiline minRows={2} maxRows={4} sx={fieldSx} />
                         </Grid>
                       </Grid>
                     </Box>
@@ -2807,7 +2823,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           <AccessTimeRoundedIcon />
                         </Avatar>
                         <Typography variant="h6" fontWeight={600} color="text.primary">
-                          Schedule
+                          {t('steps.date')}
                         </Typography>
                       </Stack>
                     </Box>
@@ -2815,14 +2831,14 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <Grid container spacing={3}>
                           <Grid item xs={12} sm={3}>
-                            <TextField type="date" label="Date from" value={formState.dateFrom || ''} onChange={(e) => handleFieldChange('dateFrom', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                            <TextField type="date" label={t('admin.dateFrom')} value={formState.dateFrom || ''} onChange={(e) => handleFieldChange('dateFrom', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                           </Grid>
                           <Grid item xs={12} sm={3}>
-                            <TextField type="date" label="Date to" value={formState.dateTo || ''} onChange={(e) => handleFieldChange('dateTo', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                            <TextField type="date" label={t('admin.dateTo')} value={formState.dateTo || ''} onChange={(e) => handleFieldChange('dateTo', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                           </Grid>
                           <Grid item xs={12} sm={3}>
                             <TimePicker
-                              label="Start time"
+                              label={t('admin.startTime')}
                               value={formState.horaIni ? timeStringToDate(formState.horaIni) : null}
                               onChange={(time) => handleFieldChange('horaIni', time ? dateToTimeString(time) : '')}
                               slotProps={{ textField: { fullWidth: true, disabled: !isEditMode, size: 'small', variant: 'outlined', InputLabelProps: { shrink: true }, sx: fieldSx } }}
@@ -2831,7 +2847,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           </Grid>
                           <Grid item xs={12} sm={3}>
                             <TimePicker
-                              label="End time"
+                              label={t('admin.endTime')}
                               value={formState.horaFin ? timeStringToDate(formState.horaFin) : null}
                               onChange={(time) => handleFieldChange('horaFin', time ? dateToTimeString(time) : '')}
                               slotProps={{ textField: { fullWidth: true, disabled: !isEditMode, size: 'small', variant: 'outlined', InputLabelProps: { shrink: true }, sx: fieldSx } }}
@@ -2867,7 +2883,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                             <EuroRoundedIcon />
                           </Avatar>
                           <Typography variant="h6" fontWeight={600} color="text.primary">
-                            Payment
+                            {t('steps.payment')}
                           </Typography>
                         </Stack>
                       </Box>
@@ -2884,18 +2900,18 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                               <FormControlLabel
                                 value="charge"
                                 control={<Radio size="small" />}
-                                label="Charge saved card"
+                                label={t('admin.chargeSavedCard')}
                                 disabled={savedCards.length === 0}
                               />
                               {savedCards.length === 0 && contactEmail && (
                                 <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
-                                  No saved cards found for {contactEmail}
+                                  {t('steps.noSavedCards', { email: contactEmail })}
                                 </Typography>
                               )}
                               <FormControlLabel
                                 value="invoice"
                                 control={<Radio size="small" />}
-                                label="Send Stripe invoice"
+                                label={t('admin.sendStripeInvoice')}
                                 disabled={!contactEmail}
                               />
                               {!contactEmail && (
@@ -2910,7 +2926,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                             <Box sx={{ pl: 4 }}>
                               <TextField
                                 fullWidth
-                                label="Select card"
+                                label={t('admin.selectCard')}
                                 value={selectedCard}
                                 onChange={(e) => setSelectedCard(e.target.value)}
                                 select
@@ -2929,7 +2945,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           {paymentOption === 'invoice' && (
                             <Box sx={{ pl: 4 }}>
                               <TextField
-                                label="Days until due"
+                                label={t('admin.daysUntilDue')}
                                 type="number"
                                 value={invoiceDueDays}
                                 onChange={(e) => setInvoiceDueDays(Number(e.target.value))}
@@ -2969,7 +2985,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 }
               }}
             >
-              {paymentSubmitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : (paymentOption === 'charge' ? 'Charge Card' : 'Send Invoice')}
+              {paymentSubmitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : (paymentOption === 'charge' ? t('admin.chargeCard') : t('admin.sendInvoice'))}
             </Button>
           ) : null}
           {/* Legacy invoice button for non-Booked statuses */}
@@ -2989,7 +3005,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 }
               }}
             >
-              {invoiceLoading ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : 'Invoice'}
+              {invoiceLoading ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : t('admin.invoice')}
             </Button>
           ) : null}
           {canEdit && !isEditMode ? (
@@ -3010,7 +3026,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 }
               }}
             >
-              Edit
+              {t('admin.editBloqueo')}
             </Button>
           ) : null}
           {isEditMode ? (
@@ -3049,7 +3065,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                   }
                 }}
               >
-                {saving ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : 'Save Changes'}
+                {saving ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : t('admin.saveChanges')}
               </Button>
             </>
           ) : null}
@@ -3060,9 +3076,10 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
 };
 
 const InvoicePreviewDialog = ({ open, invoice, pdfUrl, loading, onClose }) => {
+  const { t } = useTranslation('booking');
   return (
     <Dialog open={Boolean(open)} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>Invoice preview</DialogTitle>
+      <DialogTitle>{t('admin.invoicePdf')}</DialogTitle>
       <DialogContent sx={{ minHeight: 480 }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -3072,9 +3089,9 @@ const InvoicePreviewDialog = ({ open, invoice, pdfUrl, loading, onClose }) => {
           <iframe title="Invoice PDF" src={pdfUrl} style={{ width: '100%', height: '600px', border: 'none' }} />
         ) : (
           <Stack spacing={2}>
-            <Typography variant="body1">Invoice has been created.</Typography>
+            <Typography variant="body1">{t('admin.invoiceCreated')}</Typography>
             <Typography variant="body2" color="text.secondary">
-              No preview available. Use the Invoices tab to download or open the PDF.
+              {t('admin.noPreviewAvailable')}
             </Typography>
             {invoice?.id ? (
               <Button
@@ -3085,14 +3102,14 @@ const InvoicePreviewDialog = ({ open, invoice, pdfUrl, loading, onClose }) => {
                   window.open(url, '_blank');
                 }}
               >
-                Open invoice page
+                {t('admin.openInvoicePage')}
               </Button>
             ) : null}
           </Stack>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose}>{t('admin.close')}</Button>
       </DialogActions>
     </Dialog>
   );
@@ -3114,18 +3131,22 @@ const UserCalendarLegendItem = ({ label, color }) => (
   </Stack>
 );
 
-const UserCalendarLegend = ({ styles }) => (
-  <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-    <UserCalendarLegendItem label="Available" color={styles.available} />
-    <UserCalendarLegendItem label="Paid" color={styles.paid} />
-    <UserCalendarLegendItem label="Invoiced" color={styles.invoiced} />
-    <UserCalendarLegendItem label="Booked" color={styles.created} />
-  </Stack>
-);
+const UserCalendarLegend = ({ styles }) => {
+  const { t } = useTranslation('booking');
+  return (
+    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
+      <UserCalendarLegendItem label={t('status.available')} color={styles.available} />
+      <UserCalendarLegendItem label={t('status.paid')} color={styles.paid} />
+      <UserCalendarLegendItem label={t('status.invoiced')} color={styles.invoiced} />
+      <UserCalendarLegendItem label={t('status.booked')} color={styles.created} />
+    </Stack>
+  );
+};
 
 // Room Calendar Grid for user booking
 const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onSelectSlot }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const timeSlots = useMemo(() => buildTimeSlotsFromBloqueosUser(bloqueos), [bloqueos]);
   const tableMinWidth = useMemo(() => Math.max(720, 220 + timeSlots.length * 64 + 32), [timeSlots.length]);
   const resolvedUserCalendarStatusStyles = useMemo(() => userCalendarStatusStyles(theme), [theme]);
@@ -3153,7 +3174,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
       <Stack spacing={3} sx={{ p: 3 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
           <Stack spacing={0.5}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Availability · {room?.name || 'Meeting room'}</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{t('userView.availability')} · {room?.name || t('userView.meetingRoom')}</Typography>
             {dateLabel && <Typography variant="body2" sx={{ color: 'text.secondary' }}>{dateLabel}</Typography>}
           </Stack>
           <UserCalendarLegend styles={resolvedUserCalendarStatusStyles} />
@@ -3189,7 +3210,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
                     boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
                   }}
                 >
-                  Room
+                  {t('userView.room')}
                 </TableCell>
                 {timeSlots.map((slot) => (
                   <TableCell key={slot.id} align="center" sx={{ position: 'sticky', top: 0, width: 64, maxWidth: 64, backgroundColor: 'background.paper', zIndex: 3 }}>
@@ -3214,8 +3235,8 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
                   }}
                 >
                   <Stack spacing={0.5}>
-                    <Typography variant="body2" fontWeight="medium">{room?.name || room?.label || 'Meeting room'}</Typography>
-                    {room?.capacity && <Typography variant="caption" sx={{ color: 'text.disabled' }}>Capacity {room.capacity} guests</Typography>}
+                    <Typography variant="body2" fontWeight="medium">{room?.name || room?.label || t('userView.meetingRoom')}</Typography>
+                    {room?.capacity && <Typography variant="caption" sx={{ color: 'text.disabled' }}>{t('detail.capacityGuests', { capacity: room.capacity })}</Typography>}
                   </Stack>
                 </TableCell>
                 {timeSlots.map((slot) => {
@@ -3256,17 +3277,21 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
 };
 
 // Booking Stepper Component
-const UserBookingStepper = ({ activeStep }) => (
-  <Stepper activeStep={activeStep} alternativeLabel sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 2 }}>
-    {BOOKING_STEP_LABELS.map((label) => (
-      <Step key={label}><StepLabel>{label}</StepLabel></Step>
-    ))}
-  </Stepper>
-);
+const UserBookingStepper = ({ activeStep }) => {
+  const { t } = useTranslation('booking');
+  return (
+    <Stepper activeStep={activeStep} alternativeLabel sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 2 }}>
+      {BOOKING_STEP_LABELS.map((label) => (
+        <Step key={label}><StepLabel>{t(label)}</StepLabel></Step>
+      ))}
+    </Stepper>
+  );
+};
 
 // Select Booking Details Step
 const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, centroOptions, productOptions }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const [formState, setFormState] = useState({
     customerName: '',
     centro: null,
@@ -3313,7 +3338,7 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
     setError('');
     fetchPublicAvailability({ date: schedule.date, products: [room.productName] })
       .then(data => { if (active) setBloqueos(Array.isArray(data) ? data : []); })
-      .catch(err => { if (active) setError(err.message || 'Failed to load availability'); })
+      .catch(err => { if (active) setError(err.message || t('admin.failedToLoadAvailability')); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [schedule.date, room?.productName]);
@@ -3353,13 +3378,13 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
         <Stack spacing={2}>
           <Stack spacing={0.5}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Who & where</Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>Provide basic booking details so we can secure the right space for you.</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{t('steps.whoAndWhere')}</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.whoAndWhereDesc')}</Typography>
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField label="Your name" placeholder="Your name" fullWidth value={formState.customerName} onChange={(e) => setFormState(prev => ({ ...prev, customerName: e.target.value }))}
+            <TextField label={t('form.yourName')} placeholder={t('form.yourName')} fullWidth value={formState.customerName} onChange={(e) => setFormState(prev => ({ ...prev, customerName: e.target.value }))}
               InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
-            <TextField label="Centro" select fullWidth value={formState.centro?.name || ''} onChange={(e) => {
+            <TextField label={t('admin.centro')} select fullWidth value={formState.centro?.name || ''} onChange={(e) => {
               const selected = centroOptions.find(c => c.label === e.target.value);
               if (selected) setFormState(prev => ({ ...prev, centro: { id: selected.id, name: selected.label, code: selected.code } }));
             }} InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles}>
@@ -3367,20 +3392,20 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
             </TextField>
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField label="User type" select fullWidth value={formState.userType} onChange={(e) => setFormState(prev => ({ ...prev, userType: e.target.value }))}
+            <TextField label={t('admin.userType')} select fullWidth value={formState.userType} onChange={(e) => setFormState(prev => ({ ...prev, userType: e.target.value }))}
               InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles}>
               {['Usuario Aulas', 'Usuario Virtual', 'Usuario Mesa'].map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
             </TextField>
-            <TextField label="Producto" fullWidth value={formState.producto?.name || room?.name || ''} disabled
+            <TextField label={t('admin.producto')} fullWidth value={formState.producto?.name || room?.name || ''} disabled
               InputProps={{ startAdornment: <InputAdornment position="start"><SettingsSuggestRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField label="Reservation type" select fullWidth value={formState.reservationType} onChange={(e) => setFormState(prev => ({ ...prev, reservationType: e.target.value }))}
+            <TextField label={t('admin.reservationType')} select fullWidth value={formState.reservationType} onChange={(e) => setFormState(prev => ({ ...prev, reservationType: e.target.value }))}
               InputProps={{ startAdornment: <InputAdornment position="start"><EventRepeatRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles}>
-              {RESERVATION_TYPE_OPTIONS.map(opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+              {RESERVATION_TYPE_OPTIONS.map(opt => <MenuItem key={opt} value={opt}>{t('reservationType.' + opt)}</MenuItem>)}
             </TextField>
-            <TextField label="Status" fullWidth value={formState.status} disabled InputProps={{ startAdornment: <InputAdornment position="start"><FlagRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
-            <TextField label="Tarifa (€)" fullWidth value={formState.tarifa} disabled InputProps={{ startAdornment: <InputAdornment position="start"><EuroRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+            <TextField label={t('admin.status')} fullWidth value={formState.status} disabled InputProps={{ startAdornment: <InputAdornment position="start"><FlagRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
+            <TextField label={t('admin.tarifaLabel')} fullWidth value={formState.tarifa} disabled InputProps={{ startAdornment: <InputAdornment position="start"><EuroRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
           </Stack>
         </Stack>
       </Paper>
@@ -3388,26 +3413,26 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
         <Stack spacing={2}>
           <Stack spacing={0.5}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Schedule & status</Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>Select your preferred dates and times.</Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{t('steps.scheduleAndStatus')}</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.scheduleAndStatusDesc')}</Typography>
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField label="Date from" type="date" value={schedule.date || ''} onChange={(e) => setSchedule(prev => ({ ...prev, date: e.target.value, dateTo: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+            <TextField label={t('admin.dateFrom')} type="date" value={schedule.date || ''} onChange={(e) => setSchedule(prev => ({ ...prev, date: e.target.value, dateTo: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
               InputProps={{ startAdornment: <InputAdornment position="start"><CalendarMonthRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
-            <TextField label="Date to" type="date" value={schedule.dateTo || schedule.date || ''} onChange={(e) => setSchedule(prev => ({ ...prev, dateTo: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+            <TextField label={t('admin.dateTo')} type="date" value={schedule.dateTo || schedule.date || ''} onChange={(e) => setSchedule(prev => ({ ...prev, dateTo: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
               InputProps={{ startAdornment: <InputAdornment position="start"><CalendarMonthRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField label="Start time" type="time" value={schedule.startTime || '09:00'} onChange={(e) => setSchedule(prev => ({ ...prev, startTime: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+            <TextField label={t('admin.startTime')} type="time" value={schedule.startTime || '09:00'} onChange={(e) => setSchedule(prev => ({ ...prev, startTime: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
               InputProps={{ startAdornment: <InputAdornment position="start"><AccessTimeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
-            <TextField label="End time" type="time" value={schedule.endTime || '10:00'} onChange={(e) => setSchedule(prev => ({ ...prev, endTime: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
+            <TextField label={t('admin.endTime')} type="time" value={schedule.endTime || '10:00'} onChange={(e) => setSchedule(prev => ({ ...prev, endTime: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth
               InputProps={{ startAdornment: <InputAdornment position="start"><AccessTimeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
           </Stack>
           <FormGroup row sx={{ gap: 1 }}>
             {WEEKDAY_OPTIONS.map(wd => (
-              <FormControlLabel key={wd.value} control={<Checkbox checked={formState.weekdays.includes(wd.value)} onChange={handleWeekdayToggle(wd.value)} />} label={wd.shortLabel} />
+              <FormControlLabel key={wd.value} control={<Checkbox checked={formState.weekdays.includes(wd.value)} onChange={handleWeekdayToggle(wd.value)} />} label={t('days.' + wd.value.slice(0, 3))} />
             ))}
-            <FormControlLabel control={<Switch checked={formState.openEnded} onChange={(_, checked) => setFormState(prev => ({ ...prev, openEnded: checked }))} />} label="Open ended" />
+            <FormControlLabel control={<Switch checked={formState.openEnded} onChange={(_, checked) => setFormState(prev => ({ ...prev, openEnded: checked }))} />} label={t('admin.openEnded')} />
           </FormGroup>
           <Divider sx={{ my: 1 }} />
           {error && <Alert severity="error">{error}</Alert>}
@@ -3421,18 +3446,18 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
 
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
         <Stack spacing={2}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Additional details</Typography>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{t('steps.additionalDetails')}</Typography>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField label="Attendees" type="number" value={schedule.attendees || ''} onChange={(e) => setSchedule(prev => ({ ...prev, attendees: parseInt(e.target.value) || 1 }))} fullWidth
+            <TextField label={t('admin.attendees')} type="number" value={schedule.attendees || ''} onChange={(e) => setSchedule(prev => ({ ...prev, attendees: parseInt(e.target.value) || 1 }))} fullWidth
               InputProps={{ startAdornment: <InputAdornment position="start"><PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }} sx={inputStyles} />
-            <TextField label="Configuración" value={formState.configuracion} onChange={(e) => setFormState(prev => ({ ...prev, configuracion: e.target.value }))} fullWidth sx={inputStyles} />
+            <TextField label={t('admin.configuracion')} value={formState.configuracion} onChange={(e) => setFormState(prev => ({ ...prev, configuracion: e.target.value }))} fullWidth sx={inputStyles} />
           </Stack>
-          <TextField label="Notas" value={formState.note} onChange={(e) => setFormState(prev => ({ ...prev, note: e.target.value }))} fullWidth multiline minRows={2} sx={inputStyles} />
+          <TextField label={t('form.notas')} value={formState.note} onChange={(e) => setFormState(prev => ({ ...prev, note: e.target.value }))} fullWidth multiline minRows={2} sx={inputStyles} />
         </Stack>
       </Paper>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" onClick={() => onContinue(formState)} disabled={isContinueDisabled} sx={{ textTransform: 'none', fontWeight: 600 }}>Continue</Button>
+        <Button variant="contained" onClick={() => onContinue(formState)} disabled={isContinueDisabled} sx={{ textTransform: 'none', fontWeight: 600 }}>{t('steps.continue')}</Button>
       </Box>
     </Stack>
   );
@@ -3440,6 +3465,7 @@ const UserSelectBookingDetails = ({ room, schedule, setSchedule, onContinue, cen
 
 // Contact & Billing Step
 const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
+  const { t } = useTranslation('booking');
   const [formState, setFormState] = useState({
     firstName: '', lastName: '', email: '', phone: '', company: '', taxId: '',
     addressLine1: '', addressLine2: '', city: '', postalCode: '', country: 'Spain'
@@ -3448,23 +3474,23 @@ const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
 
   const summaryItems = useMemo(() => {
     const items = [];
-    if (room?.name) items.push({ label: 'Room', value: room.name });
-    if (schedule?.date) items.push({ label: 'Date', value: new Date(schedule.date).toLocaleDateString() });
-    if (schedule?.startTime && schedule?.endTime) items.push({ label: 'Time', value: `${schedule.startTime} – ${schedule.endTime}` });
-    if (schedule?.attendees) items.push({ label: 'Attendees', value: `${schedule.attendees}` });
+    if (room?.name) items.push({ label: t('userView.room'), value: room.name });
+    if (schedule?.date) items.push({ label: t('userView.date'), value: new Date(schedule.date).toLocaleDateString() });
+    if (schedule?.startTime && schedule?.endTime) items.push({ label: t('userView.time'), value: `${schedule.startTime} – ${schedule.endTime}` });
+    if (schedule?.attendees) items.push({ label: t('userView.attendees'), value: `${schedule.attendees}` });
     return items;
   }, [room?.name, schedule]);
 
   const validate = () => {
     const errs = {};
-    if (!formState.firstName.trim()) errs.firstName = 'First name is required';
-    if (!formState.lastName.trim()) errs.lastName = 'Last name is required';
-    if (!formState.email.trim()) errs.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email)) errs.email = 'Enter a valid email';
-    if (!formState.phone.trim()) errs.phone = 'Phone is required';
-    if (!formState.addressLine1.trim()) errs.addressLine1 = 'Address is required';
-    if (!formState.city.trim()) errs.city = 'City is required';
-    if (!formState.postalCode.trim()) errs.postalCode = 'Postal code is required';
+    if (!formState.firstName.trim()) errs.firstName = t('form.firstNameRequired');
+    if (!formState.lastName.trim()) errs.lastName = t('form.lastNameRequired');
+    if (!formState.email.trim()) errs.email = t('form.emailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email)) errs.email = t('form.emailInvalid');
+    if (!formState.phone.trim()) errs.phone = t('form.phoneRequired');
+    if (!formState.addressLine1.trim()) errs.addressLine1 = t('form.addressRequired');
+    if (!formState.city.trim()) errs.city = t('form.cityRequired');
+    if (!formState.postalCode.trim()) errs.postalCode = t('form.postalCodeRequired');
     return errs;
   };
 
@@ -3480,36 +3506,36 @@ const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
       <Stack spacing={3}>
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={1}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Contact details</Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>Enter your contact and billing information.</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('steps.contactDetailsHeader')}</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.contactDetailsDesc')}</Typography>
           </Stack>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}><TextField label="First name" value={formState.firstName} onChange={(e) => setFormState(prev => ({ ...prev, firstName: e.target.value }))} required error={Boolean(errors.firstName)} helperText={errors.firstName} fullWidth /></Grid>
-            <Grid item xs={12} sm={6}><TextField label="Last name" value={formState.lastName} onChange={(e) => setFormState(prev => ({ ...prev, lastName: e.target.value }))} required error={Boolean(errors.lastName)} helperText={errors.lastName} fullWidth /></Grid>
-            <Grid item xs={12} sm={6}><TextField label="Email" type="email" value={formState.email} onChange={(e) => setFormState(prev => ({ ...prev, email: e.target.value }))} required error={Boolean(errors.email)} helperText={errors.email} fullWidth /></Grid>
-            <Grid item xs={12} sm={6}><TextField label="Phone" value={formState.phone} onChange={(e) => setFormState(prev => ({ ...prev, phone: e.target.value }))} required error={Boolean(errors.phone)} helperText={errors.phone} fullWidth /></Grid>
-            <Grid item xs={12} sm={6}><TextField label="Company" value={formState.company} onChange={(e) => setFormState(prev => ({ ...prev, company: e.target.value }))} fullWidth /></Grid>
-            <Grid item xs={12} sm={6}><TextField label="VAT / Tax ID" value={formState.taxId} onChange={(e) => setFormState(prev => ({ ...prev, taxId: e.target.value }))} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label={t('form.firstName')} value={formState.firstName} onChange={(e) => setFormState(prev => ({ ...prev, firstName: e.target.value }))} required error={Boolean(errors.firstName)} helperText={errors.firstName} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label={t('form.lastName')} value={formState.lastName} onChange={(e) => setFormState(prev => ({ ...prev, lastName: e.target.value }))} required error={Boolean(errors.lastName)} helperText={errors.lastName} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label={t('form.email')} type="email" value={formState.email} onChange={(e) => setFormState(prev => ({ ...prev, email: e.target.value }))} required error={Boolean(errors.email)} helperText={errors.email} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label={t('form.phone')} value={formState.phone} onChange={(e) => setFormState(prev => ({ ...prev, phone: e.target.value }))} required error={Boolean(errors.phone)} helperText={errors.phone} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label={t('form.company')} value={formState.company} onChange={(e) => setFormState(prev => ({ ...prev, company: e.target.value }))} fullWidth /></Grid>
+            <Grid item xs={12} sm={6}><TextField label={t('steps.taxId')} value={formState.taxId} onChange={(e) => setFormState(prev => ({ ...prev, taxId: e.target.value }))} fullWidth /></Grid>
           </Grid>
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={1}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Billing address</Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>This information will appear on invoices.</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('steps.billingAddress')}</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.billingAddressDesc')}</Typography>
           </Stack>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}><TextField label="Address line 1" value={formState.addressLine1} onChange={(e) => setFormState(prev => ({ ...prev, addressLine1: e.target.value }))} required error={Boolean(errors.addressLine1)} helperText={errors.addressLine1} fullWidth /></Grid>
-            <Grid item xs={12}><TextField label="Address line 2" value={formState.addressLine2} onChange={(e) => setFormState(prev => ({ ...prev, addressLine2: e.target.value }))} fullWidth /></Grid>
-            <Grid item xs={12} sm={4}><TextField label="City" value={formState.city} onChange={(e) => setFormState(prev => ({ ...prev, city: e.target.value }))} required error={Boolean(errors.city)} helperText={errors.city} fullWidth /></Grid>
-            <Grid item xs={12} sm={4}><TextField label="Postal code" value={formState.postalCode} onChange={(e) => setFormState(prev => ({ ...prev, postalCode: e.target.value }))} required error={Boolean(errors.postalCode)} helperText={errors.postalCode} fullWidth /></Grid>
-            <Grid item xs={12} sm={4}><TextField label="Country" value={formState.country} onChange={(e) => setFormState(prev => ({ ...prev, country: e.target.value }))} fullWidth /></Grid>
+            <Grid item xs={12}><TextField label={t('form.addressLine1')} value={formState.addressLine1} onChange={(e) => setFormState(prev => ({ ...prev, addressLine1: e.target.value }))} required error={Boolean(errors.addressLine1)} helperText={errors.addressLine1} fullWidth /></Grid>
+            <Grid item xs={12}><TextField label={t('form.addressLine2')} value={formState.addressLine2} onChange={(e) => setFormState(prev => ({ ...prev, addressLine2: e.target.value }))} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label={t('form.city')} value={formState.city} onChange={(e) => setFormState(prev => ({ ...prev, city: e.target.value }))} required error={Boolean(errors.city)} helperText={errors.city} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label={t('form.postalCode')} value={formState.postalCode} onChange={(e) => setFormState(prev => ({ ...prev, postalCode: e.target.value }))} required error={Boolean(errors.postalCode)} helperText={errors.postalCode} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label={t('form.country')} value={formState.country} onChange={(e) => setFormState(prev => ({ ...prev, country: e.target.value }))} fullWidth /></Grid>
           </Grid>
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={1}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Reservation summary</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('steps.reservationSummary')}</Typography>
           </Stack>
           <Stack spacing={1} sx={{ mt: 1 }}>
             {summaryItems.map(item => (
@@ -3522,8 +3548,8 @@ const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
         </Paper>
 
         <Stack direction="row" spacing={1} justifyContent="space-between">
-          <Button onClick={onBack} sx={{ textTransform: 'none' }}>Back</Button>
-          <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 600 }}>Continue to payment</Button>
+          <Button onClick={onBack} sx={{ textTransform: 'none' }}>{t('steps.back')}</Button>
+          <Button type="submit" variant="contained" sx={{ textTransform: 'none', fontWeight: 600 }}>{t('steps.continueToPayment')}</Button>
         </Stack>
       </Stack>
     </Box>
@@ -3532,6 +3558,7 @@ const UserContactBillingStep = ({ room, schedule, onBack, onContinue }) => {
 
 // Review & Payment Step
 const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) => {
+  const { t } = useTranslation('booking');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -3562,7 +3589,7 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
       await createReserva(payload);
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Failed to create booking');
+      setError(err.message || t('form.failedToCreate'));
     } finally {
       setSubmitting(false);
     }
@@ -3575,12 +3602,12 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
           <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: 'success.light', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Typography variant="h4">✓</Typography>
           </Box>
-          <Typography variant="h5" fontWeight={700}>Booking Request Submitted!</Typography>
+          <Typography variant="h5" fontWeight={700}>{t('steps.bookingSubmitted')}</Typography>
           <Typography variant="body1" color="text.secondary">
-            Thank you for your booking request. We'll review your reservation and send you a confirmation email with payment instructions shortly.
+            {t('steps.bookingSubmittedDesc')}
           </Typography>
           <Button variant="contained" onClick={onComplete} sx={{ textTransform: 'none', fontWeight: 600, backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}>
-            Back to Spaces
+            {t('steps.backToSpaces')}
           </Button>
         </Stack>
       </Paper>
@@ -3590,11 +3617,11 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
   return (
     <Stack spacing={3}>
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Review your booking</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>{t('steps.reviewYourBooking')}</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Stack spacing={2}>
-              <Typography variant="subtitle2" fontWeight={600}>Space</Typography>
+              <Typography variant="subtitle2" fontWeight={600}>{t('steps.space')}</Typography>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Box sx={{ width: 80, height: 60, borderRadius: 2, overflow: 'hidden', flexShrink: 0 }}>
                   <img src={room?.image || room?.heroImage} alt={room?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -3608,15 +3635,15 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
           </Grid>
           <Grid item xs={12} md={6}>
             <Stack spacing={1}>
-              <Typography variant="subtitle2" fontWeight={600}>Schedule</Typography>
-              <Typography variant="body2">Date: {schedule?.date ? new Date(schedule.date).toLocaleDateString() : '—'}</Typography>
-              <Typography variant="body2">Time: {schedule?.startTime} – {schedule?.endTime}</Typography>
-              <Typography variant="body2">Attendees: {schedule?.attendees || 1}</Typography>
+              <Typography variant="subtitle2" fontWeight={600}>{t('steps.schedule')}</Typography>
+              <Typography variant="body2">{t('userView.date')}: {schedule?.date ? new Date(schedule.date).toLocaleDateString() : '—'}</Typography>
+              <Typography variant="body2">{t('userView.time')}: {schedule?.startTime} – {schedule?.endTime}</Typography>
+              <Typography variant="body2">{t('userView.attendees')}: {schedule?.attendees || 1}</Typography>
             </Stack>
           </Grid>
           <Grid item xs={12} md={6}>
             <Stack spacing={1}>
-              <Typography variant="subtitle2" fontWeight={600}>Contact</Typography>
+              <Typography variant="subtitle2" fontWeight={600}>{t('steps.contact')}</Typography>
               <Typography variant="body2">{contact?.firstName} {contact?.lastName}</Typography>
               <Typography variant="body2">{contact?.email}</Typography>
               <Typography variant="body2">{contact?.phone}</Typography>
@@ -3624,7 +3651,7 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
           </Grid>
           <Grid item xs={12} md={6}>
             <Stack spacing={1}>
-              <Typography variant="subtitle2" fontWeight={600}>Billing Address</Typography>
+              <Typography variant="subtitle2" fontWeight={600}>{t('steps.billingAddress')}</Typography>
               <Typography variant="body2">{contact?.addressLine1}</Typography>
               {contact?.addressLine2 && <Typography variant="body2">{contact.addressLine2}</Typography>}
               <Typography variant="body2">{contact?.city}, {contact?.postalCode}</Typography>
@@ -3634,21 +3661,21 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
         </Grid>
         <Divider sx={{ my: 3 }} />
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" fontWeight={700}>Estimated Total</Typography>
+          <Typography variant="h6" fontWeight={700}>{t('steps.estimatedTotal')}</Typography>
           <Typography variant="h5" fontWeight={700} color="primary">{calculateTotal()}</Typography>
         </Stack>
       </Paper>
 
       <Alert severity="info">
-        After submitting your booking request, our team will review it and send you a confirmation email with payment instructions. Payment will be processed securely via Stripe.
+        {t('steps.afterSubmitInfo')}
       </Alert>
 
       {error && <Alert severity="error">{error}</Alert>}
 
       <Stack direction="row" spacing={1} justifyContent="space-between">
-        <Button onClick={onBack} disabled={submitting} sx={{ textTransform: 'none' }}>Back</Button>
+        <Button onClick={onBack} disabled={submitting} sx={{ textTransform: 'none' }}>{t('steps.back')}</Button>
         <Button variant="contained" onClick={handleSubmit} disabled={submitting} sx={{ textTransform: 'none', fontWeight: 600, backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}>
-          {submitting ? <CircularProgress size={20} color="inherit" /> : 'Submit Booking Request'}
+          {submitting ? <CircularProgress size={20} color="inherit" /> : t('form.submitBooking')}
         </Button>
       </Stack>
     </Stack>
@@ -3658,6 +3685,7 @@ const UserReviewPaymentStep = ({ room, schedule, contact, onBack, onComplete }) 
 // Room Detail View with Gallery
 const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const [galleryOpen, setGalleryOpen] = useState(false);
   
   const galleryImages = useMemo(() => {
@@ -3671,21 +3699,21 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
   const amenities = room?.amenities || room?.tags || [];
 
   const cancellationPolicy = [
-    'La fecha de la reserva podrá modificarse hasta 24 h antes del inicio.',
-    'La modificación debe confirmarse por email.',
-    'No se realizará devolución en caso de no asistencia.'
+    t('detail.cancellationPolicy1'),
+    t('detail.cancellationPolicy2'),
+    t('detail.cancellationPolicy3')
   ];
 
   const bookingInstructions = [
-    'Solicita el día de tu reserva.',
-    'Te confirmaremos disponibilidad y enviaremos la factura.',
-    'Tras el pago recibirás instrucciones de acceso.'
+    t('detail.instruction1'),
+    t('detail.instruction2'),
+    t('detail.instruction3')
   ];
 
   return (
     <Box>
       <Button startIcon={<ArrowBackRoundedIcon />} onClick={onBack} sx={{ mb: 2, textTransform: 'none', color: 'text.secondary' }}>
-        Back to spaces
+        {t('detail.backToSpaces')}
       </Button>
 
       <Stack spacing={4}>
@@ -3694,11 +3722,11 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
             <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: 1.2 }}>{room?.centro || 'Málaga Workspace'}</Typography>
             <Typography variant="h4" sx={{ fontWeight: 800 }}>{room?.name}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Capacity {room?.capacity} persons · from €{room?.priceFrom || '—'}/h
+              {t('detail.capacityLine', { capacity: room?.capacity, price: `€${room?.priceFrom || '—'}`, unit: '/h' })}
             </Typography>
           </Stack>
           <Button size="small" startIcon={<IosShareOutlinedIcon />} variant="text" onClick={() => navigator.clipboard?.writeText(window.location.href)} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.primary' }}>
-            Share
+            {t('detail.share')}
           </Button>
         </Stack>
 
@@ -3726,7 +3754,7 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
                   boxShadow: theme.shadows[6]
                 }}
               >
-                Show all photos
+                {t('detail.showAllPhotos')}
               </Button>
             )}
           </Box>
@@ -3736,13 +3764,13 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
           <Grid item xs={12} md={7}>
             <Stack spacing={4}>
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Description</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>{t('detail.description')}</Typography>
                 <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.65 }}>{room?.description}</Typography>
               </section>
 
               {amenities.length > 0 && (
                 <section>
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>Included services</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>{t('detail.includedServices')}</Typography>
                   <Grid container spacing={1.5}>
                     {amenities.map(amenity => (
                       <Grid item xs={12} sm={6} md={4} key={amenity}>
@@ -3783,7 +3811,7 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
               )}
 
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Cancellation policy</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>{t('detail.cancellationPolicy')}</Typography>
                 <Stack spacing={1.25}>
                   {cancellationPolicy.map(item => (
                     <Stack direction="row" spacing={1.5} key={item}>
@@ -3795,7 +3823,7 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
               </section>
 
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Instructions</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>{t('detail.instructions')}</Typography>
                 <Stack spacing={1.25}>
                   {bookingInstructions.map(item => (
                     <Stack direction="row" spacing={1.5} key={item}>
@@ -3810,21 +3838,21 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
 
           <Grid item xs={12} md={5}>
             <Stack spacing={3} sx={{ border: '1px solid', borderColor: 'grey.200', borderRadius: 3, p: 3, bgcolor: 'background.paper' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>Ready to book?</Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>Select your preferred date and time, provide your contact details, and submit your booking request.</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('detail.readyToBook')}</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('detail.readyToBookDesc')}</Typography>
               <Divider />
               <Stack spacing={1}>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2" color="text.secondary">Price from</Typography>
+                  <Typography variant="body2" color="text.secondary">{t('detail.priceFrom')}</Typography>
                   <Typography variant="body1" fontWeight={600}>€{room?.priceFrom || '—'}/h</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2" color="text.secondary">Capacity</Typography>
-                  <Typography variant="body1" fontWeight={600}>{room?.capacity} persons</Typography>
+                  <Typography variant="body2" color="text.secondary">{t('detail.capacity')}</Typography>
+                  <Typography variant="body1" fontWeight={600}>{room?.capacity} {t('detail.persons')}</Typography>
                 </Stack>
               </Stack>
               <Button onClick={onStartBooking} variant="contained" size="large" sx={{ textTransform: 'none', fontWeight: 700, backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' }, borderRadius: 999 }}>
-                Start booking
+                {t('detail.startBooking')}
               </Button>
             </Stack>
           </Grid>
@@ -3849,6 +3877,7 @@ const UserRoomDetailView = ({ room, onBack, onStartBooking }) => {
 
 // Booking Flow View (multi-step)
 const UserBookingFlowView = ({ room, centroOptions, productOptions, onBack, onComplete }) => {
+  const { t } = useTranslation('booking');
   const [activeStep, setActiveStep] = useState(0);
   const [schedule, setSchedule] = useState({ date: '', dateTo: '', startTime: '09:00', endTime: '10:00', attendees: 1 });
   const [contact, setContact] = useState(null);
@@ -3867,12 +3896,12 @@ const UserBookingFlowView = ({ room, centroOptions, productOptions, onBack, onCo
   return (
     <Box>
       <Button startIcon={<ArrowBackRoundedIcon />} onClick={activeStep === 0 ? onBack : () => setActiveStep(prev => prev - 1)} sx={{ mb: 2, textTransform: 'none', color: 'text.secondary' }}>
-        {activeStep === 0 ? 'Back to room details' : 'Back'}
+        {activeStep === 0 ? t('dialog.backToRoom') : t('steps.back')}
       </Button>
 
       <Stack spacing={4}>
         <Box>
-          <Typography variant="overline" sx={{ color: 'text.disabled' }}>Booking · {room?.centro || 'Málaga Workspace'}</Typography>
+          <Typography variant="overline" sx={{ color: 'text.disabled' }}>{t('dialog.booking')} · {room?.centro || 'Málaga Workspace'}</Typography>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>{room?.name}</Typography>
         </Box>
 
@@ -3897,6 +3926,7 @@ const UserBookingFlowView = ({ room, centroOptions, productOptions, onBack, onCo
 // Space card component for user booking view
 const SpaceCardUser = ({ space, onBookNow }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   if (!space) return null;
 
   const handleClick = () => {
@@ -3938,7 +3968,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
           <Stack direction="row" spacing={1} sx={{ position: 'absolute', top: 10, left: 10 }}>
             {space.instantBooking && (
               <Chip
-                label="Instant booking"
+                label={t('card.instantBooking')}
                 size="small"
                 sx={{ backgroundColor: alpha(theme.palette.common.white, 0.9), color: 'text.primary', fontWeight: 500, fontSize: '0.75rem' }}
               />
@@ -3975,7 +4005,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
                 <BusinessRoundedIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
                 <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-                  {space.typeLabel || (isMeetingRoom ? 'Meeting room' : `Desk${deskLabel}`)}
+                  {space.typeLabel || (isMeetingRoom ? t('card.meetingRoom') : `${t('card.desk')}${deskLabel}`)}
                 </Typography>
               </Stack>
             </Stack>
@@ -3983,7 +4013,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
 
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 'auto', width: '100%', gap: 1 }}>
             <Typography variant="subtitle1" fontWeight={600} color="primary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '0 1 auto', minWidth: 0 }}>
-              From {space.price}{space.priceUnit}
+              {t('card.from')} {space.price}{space.priceUnit}
             </Typography>
             <Button
               variant="contained"
@@ -3998,7 +4028,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
               }}
               disabled={!space.isBookable}
             >
-              Book now
+              {t('card.bookNow')}
             </Button>
           </Stack>
         </CardContent>
@@ -4010,6 +4040,7 @@ const SpaceCardUser = ({ space, onBookNow }) => {
 // User Bookings Table - shows the user's own bookings
 const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -4024,7 +4055,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
     if (statusLower.includes('paid') || statusLower.includes('pag')) {
       return (
         <Chip
-          label="Paid"
+          label={t('status.paid')}
           size="small"
           sx={{ bgcolor: alpha(theme.palette.success.main, 0.15), color: theme.palette.success.dark, fontWeight: 600 }}
         />
@@ -4033,7 +4064,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
     if (statusLower.includes('invoice') || statusLower.includes('fact')) {
       return (
         <Chip
-          label="Invoiced"
+          label={t('status.invoiced')}
           size="small"
           sx={{ bgcolor: alpha(theme.palette.warning.main, 0.2), color: theme.palette.warning.dark, fontWeight: 600 }}
         />
@@ -4041,7 +4072,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
     }
     return (
       <Chip
-        label="Pending"
+        label={t('userView.pending')}
         size="small"
         sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.15), color: theme.palette.secondary.dark, fontWeight: 600 }}
       />
@@ -4059,9 +4090,9 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
   if (!bloqueos || bloqueos.length === 0) {
     return (
       <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" color="text.secondary">No bookings found</Typography>
+        <Typography variant="h6" color="text.secondary">{t('form.noBookingsFound')}</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          You don't have any bookings yet. Browse spaces to make your first reservation.
+          {t('form.noBookingsDesc')}
         </Typography>
       </Paper>
     );
@@ -4075,12 +4106,12 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
         <Table>
           <TableHead>
             <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'background.default' }}>
-              <TableCell sx={{ fontWeight: 600 }}>Space</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Time</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Location</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{t('userView.space')}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{t('userView.date')}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{t('userView.time')}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{t('userView.location')}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>{t('userView.status')}</TableCell>
+              <TableCell sx={{ fontWeight: 600 }} align="right">{t('userView.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -4111,7 +4142,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
                   <TableCell>{getStatusChip(bloqueo.estado)}</TableCell>
                   <TableCell align="right">
                     <Button size="small" onClick={() => onViewDetails?.(bloqueo)} sx={{ textTransform: 'none' }}>
-                      View Details
+                      {t('userView.viewDetails')}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -4135,6 +4166,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
 
 // User Booking Details Dialog
 const UserBookingDetailsDialog = ({ bloqueo, onClose }) => {
+  const { t } = useTranslation('booking');
   const open = Boolean(bloqueo);
   if (!bloqueo) return null;
 
@@ -4144,42 +4176,42 @@ const UserBookingDetailsDialog = ({ bloqueo, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" fontWeight={600}>Booking Details</Typography>
+        <Typography variant="h6" fontWeight={600}>{t('userView.bookingDetails')}</Typography>
         <IconButton onClick={onClose} size="small"><CloseRoundedIcon /></IconButton>
       </DialogTitle>
       <DialogContent dividers>
         <Stack spacing={3}>
           <Box>
-            <Typography variant="overline" color="text.secondary">Space</Typography>
+            <Typography variant="overline" color="text.secondary">{t('userView.space')}</Typography>
             <Typography variant="h6" fontWeight={600}>{bloqueo.producto?.nombre || '—'}</Typography>
             <Typography variant="body2" color="text.secondary">{bloqueo.centro?.nombre || '—'}</Typography>
           </Box>
           <Divider />
           <Grid container spacing={2}>
             <Grid item xs={6}>
-              <Typography variant="overline" color="text.secondary">Date</Typography>
+              <Typography variant="overline" color="text.secondary">{t('userView.date')}</Typography>
               <Typography variant="body1">{startDate ? startDate.toLocaleDateString() : '—'}</Typography>
             </Grid>
             <Grid item xs={6}>
-              <Typography variant="overline" color="text.secondary">Time</Typography>
+              <Typography variant="overline" color="text.secondary">{t('userView.time')}</Typography>
               <Typography variant="body1">
                 {startDate ? startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} - {endDate ? endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
               </Typography>
             </Grid>
             <Grid item xs={6}>
-              <Typography variant="overline" color="text.secondary">Attendees</Typography>
+              <Typography variant="overline" color="text.secondary">{t('userView.attendees')}</Typography>
               <Typography variant="body1">{bloqueo.asistentes || '—'}</Typography>
             </Grid>
             <Grid item xs={6}>
-              <Typography variant="overline" color="text.secondary">Status</Typography>
-              <Typography variant="body1">{bloqueo.estado || 'Pending'}</Typography>
+              <Typography variant="overline" color="text.secondary">{t('userView.status')}</Typography>
+              <Typography variant="body1">{bloqueo.estado || t('userView.pending')}</Typography>
             </Grid>
           </Grid>
           {bloqueo.nota && (
             <>
               <Divider />
               <Box>
-                <Typography variant="overline" color="text.secondary">Notes</Typography>
+                <Typography variant="overline" color="text.secondary">{t('userView.notes')}</Typography>
                 <Typography variant="body2">{bloqueo.nota}</Typography>
               </Box>
             </>
@@ -4187,7 +4219,7 @@ const UserBookingDetailsDialog = ({ bloqueo, onClose }) => {
         </Stack>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} sx={{ textTransform: 'none' }}>Close</Button>
+        <Button onClick={onClose} sx={{ textTransform: 'none' }}>{t('userView.close')}</Button>
       </DialogActions>
     </Dialog>
   );
@@ -4196,10 +4228,11 @@ const UserBookingDetailsDialog = ({ bloqueo, onClose }) => {
 // User booking view component
 const UserBookingView = () => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const [mainView, setMainView] = useState('spaces'); // 'spaces' or 'bookings'
   const [spaceTypeTab, setSpaceTypeTab] = useState(0);
   const [cityFilter, setCityFilter] = useState('');
-  const [cityOptions, setCityOptions] = useState([{ id: 'all', label: 'All locations', isAllOption: true }]);
+  const [cityOptions, setCityOptions] = useState([{ id: 'all', label: t('userView.allLocations'), isAllOption: true }]);
   const [location, setLocation] = useState('');
   const [people, setPeople] = useState('');
   const [checkIn, setCheckIn] = useState('');
@@ -4214,9 +4247,9 @@ const UserBookingView = () => {
   // Room data now comes from the API (Room entity via /public/productos)
 
   const spaceTypes = [
-    { value: 'all', label: 'All Spaces', icon: <BusinessRoundedIcon /> },
-    { value: 'meeting_room', label: 'Meeting Rooms', icon: <MeetingRoomRoundedIcon /> },
-    { value: 'desk', label: 'Desks', icon: <DeskRoundedIcon /> }
+    { value: 'all', label: t('userView.allSpaces'), icon: <BusinessRoundedIcon /> },
+    { value: 'meeting_room', label: t('userView.meetingRoomsFilter'), icon: <MeetingRoomRoundedIcon /> },
+    { value: 'desk', label: t('userView.desks'), icon: <DeskRoundedIcon /> }
   ];
 
   // Load user's bookings
@@ -4272,7 +4305,7 @@ const UserBookingView = () => {
           };
         }) : [];
         
-        const centrosWithAll = [{ id: 'all', label: 'All Centros', isAllOption: true }, ...options];
+        const centrosWithAll = [{ id: 'all', label: t('userView.allCentros'), isAllOption: true }, ...options];
         setCentros(centrosWithAll);
 
         const uniqueCities = Array.from(new Set(options
@@ -4280,14 +4313,14 @@ const UserBookingView = () => {
           .filter(city => typeof city === 'string' && city.trim() !== '')
           .map(city => city.trim())));
         const cityList = [
-          { id: 'all', label: 'All locations', isAllOption: true },
+          { id: 'all', label: t('userView.allLocations'), isAllOption: true },
           ...uniqueCities.map(city => ({ id: city.toLowerCase(), label: city }))
         ];
         setCityOptions(cityList);
       } catch (error) {
         if (active) {
           setCentros([]);
-          setCityOptions([{ id: 'all', label: 'All locations', isAllOption: true }]);
+          setCityOptions([{ id: 'all', label: t('userView.allLocations'), isAllOption: true }]);
         }
       } finally {
         if (active) {
@@ -4559,12 +4592,12 @@ const UserBookingView = () => {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} sx={{ mb: 3 }}>
           <Stack spacing={1}>
             <Typography variant="h5" fontWeight="bold" color="text.primary">
-              {mainView === 'spaces' ? 'Meeting Rooms' : 'My Bookings'}
+              {mainView === 'spaces' ? t('userView.meetingRooms') : t('userView.myBookings')}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {mainView === 'spaces' 
-                ? 'Find and book meeting rooms or desks at BeWorking locations.'
-                : 'View and manage your reservations.'}
+              {mainView === 'spaces'
+                ? t('steps.spacesSubtitle')
+                : t('steps.bookingsSubtitle')}
             </Typography>
           </Stack>
           <Tabs
@@ -4572,8 +4605,8 @@ const UserBookingView = () => {
             onChange={handleMainViewChange}
             sx={getViewToggleTabsStyle(theme)}
           >
-            <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Spaces" />
-            <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Bookings" />
+            <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.spacesTab')} />
+            <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.bookingsTab')} />
           </Tabs>
         </Stack>
 
@@ -4639,7 +4672,7 @@ const UserBookingView = () => {
                   <TextField
                     {...params}
                     fullWidth
-                    label="Location"
+                    label={t('userView.location')}
                     InputProps={{
                       ...params.InputProps,
                       startAdornment: (
@@ -4674,7 +4707,7 @@ const UserBookingView = () => {
                   <TextField
                     {...params}
                     fullWidth
-                    label="Centro"
+                    label={t('userView.centro')}
                     InputProps={{
                       ...params.InputProps,
                       startAdornment: (
@@ -4696,11 +4729,11 @@ const UserBookingView = () => {
             <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
               <TextField
                 fullWidth
-                label="Number of Users"
+                label={t('userView.numberOfUsers')}
                 type="number"
                 value={people}
                 onChange={(e) => setPeople(e.target.value)}
-                placeholder="Number of Users"
+                placeholder={t('userView.numberOfUsers')}
                 size="small"
                 InputProps={{
                   endAdornment: (
@@ -4715,7 +4748,7 @@ const UserBookingView = () => {
             <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
               <TextField
                 fullWidth
-                label="Check in"
+                label={t('userView.checkIn')}
                 type="date"
                 value={checkIn}
                 onChange={(e) => setCheckIn(e.target.value)}
@@ -4746,7 +4779,7 @@ const UserBookingView = () => {
                   '&:hover': { backgroundColor: 'primary.dark' }
                 }}
               >
-                SEARCH SPACES
+                {t('catalog.searchSpaces').toUpperCase()}
               </Button>
             </Grid>
           </Grid>
@@ -4754,7 +4787,7 @@ const UserBookingView = () => {
           {/* Results Count */}
           <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1 }}>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              {productosLoading ? 'Loading...' : `Showing ${filteredSpaces.length} ${filteredSpaces.length === 1 ? 'space' : 'spaces'}`}
+              {productosLoading ? t('userView.loadingSpaces') : t('userView.showingSpaces', { count: filteredSpaces.length })}
             </Typography>
           </Stack>
         </Paper>
@@ -4766,9 +4799,9 @@ const UserBookingView = () => {
           </Box>
         ) : filteredSpaces.length === 0 ? (
           <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="h6" color="text.secondary">No spaces found</Typography>
+            <Typography variant="h6" color="text.secondary">{t('userView.noSpacesFound')}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Try adjusting your filters or check back later for availability.
+              {t('userView.noSpacesFoundDesc')}
             </Typography>
           </Paper>
         ) : (
@@ -4800,6 +4833,7 @@ const UserBookingView = () => {
 
 const Booking = ({ mode = 'user', userProfile }) => {
   const theme = useTheme();
+  const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
   const isAdmin = mode === 'admin';
   console.log('Booking component - mode:', mode, 'isAdmin:', isAdmin);
@@ -4959,7 +4993,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
         setInvoicePreview({ open: true, invoice: response, pdfUrl: null, loading: false });
       }
     } catch (err) {
-      setInvoiceError(err.message || 'Unable to create invoice.');
+      setInvoiceError(err.message || t('admin.unableToCreateInvoice'));
     } finally {
       setInvoiceSubmitting(false);
     }
@@ -5017,7 +5051,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
       setBloqueos((prev) => (Array.isArray(prev) ? prev.filter((item) => item?.id !== bloqueoId) : prev));
     } catch (deleteError) {
       console.error('Failed to delete bloqueo', deleteError);
-      setError(deleteError.message || 'Unable to delete bloqueo');
+      setError(deleteError.message || t('admin.failedToDelete'));
     } finally {
       setDeletingBloqueoId(null);
       setConfirmDialog({ open: false, bloqueoId: null });
@@ -5074,7 +5108,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
         if (fetchError.status === 404) {
           setError('Bloqueos API endpoint not yet implemented. Please check backend configuration.');
         } else {
-          setError(fetchError.message || 'Unable to load bloqueos');
+          setError(fetchError.message || t('admin.failedToLoad'));
         }
         setBloqueos([]);
       }
@@ -5354,8 +5388,8 @@ const Booking = ({ mode = 'user', userProfile }) => {
         </Stack>
         <Stack direction="row" spacing={2} alignItems="center">
           <Tabs value={view} onChange={handleViewChange} sx={getViewToggleTabsStyle(theme)}>
-            <Tab icon={<CalendarMonthRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Calendar" value="calendar" />
-            <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Bookings" value="agenda" />
+            <Tab icon={<CalendarMonthRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.calendarTab')} value="calendar" />
+            <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.agendaTab')} value="agenda" />
           </Tabs>
           <Button
             variant="contained"
@@ -5380,7 +5414,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
               }
             }}
           >
-            Reserva
+            {t('admin.reserva')}
           </Button>
         </Stack>
       </Stack>
@@ -5393,7 +5427,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
             <Grid item xs={12} sm={6} md={4}>
               <TextField
                 type="date"
-                label="Select date"
+                label={t('admin.selectDate')}
                 value={calendarDate}
                 onChange={handleCalendarDateChange}
                 InputLabelProps={{ shrink: true }}
@@ -5449,7 +5483,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                           boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
                         }}
                       >
-                        Room
+                        {t('admin.room')}
                       </TableCell>
                       {timeSlots.map((slot) => (
                         <TableCell key={slot.id} align="center">
@@ -5491,7 +5525,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                             >
                               <Tooltip
                                 arrow
-                                title={bloqueo ? describeBloqueo(bloqueo) : 'Available slot'}
+                                title={bloqueo ? describeBloqueo(bloqueo) : t('admin.availableSlot')}
                               >
                                 <Box
                                   onClick={() => bloqueo ? handleSelectBloqueo(bloqueo) : handleAvailableSlotClick(room, slot)}
@@ -5536,13 +5570,13 @@ const Booking = ({ mode = 'user', userProfile }) => {
           {/* Filters - Always visible like Contacts/MailboxAdmin */}
           <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
             <Typography variant="h6" gutterBottom>
-              Filters
+              {t('admin.filters')}
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6} md={2}>
                     <TextField
                   fullWidth
-                  label="Bookings Date"
+                  label={t('admin.bookingsDate')}
               type="date"
               value={agendaDate}
               onChange={handleAgendaDateChange}
@@ -5553,7 +5587,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
               <Grid item xs={12} sm={6} md={2}>
                 <TextField
                   fullWidth
-                  label="Search by Name"
+                  label={t('admin.searchByName')}
                   value={filterUser}
                   onChange={(event) => setFilterUser(event.target.value)}
                   size="small"
@@ -5569,7 +5603,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
               <Grid item xs={12} sm={6} md={2}>
                 <TextField
                   fullWidth
-                  label="Search by Email"
+                  label={t('admin.searchByEmail')}
                   value={filterEmail}
                   onChange={(event) => setFilterEmail(event.target.value)}
                   size="small"
@@ -5584,16 +5618,16 @@ const Booking = ({ mode = 'user', userProfile }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth size="small">
-                  <InputLabel shrink>Centro</InputLabel>
+                  <InputLabel shrink>{t('admin.filterCentro')}</InputLabel>
                   <Select
                     value={filterCenter}
                     onChange={(event) => setFilterCenter(event.target.value)}
-                    label="Centro"
+                    label={t('admin.filterCentro')}
                     displayEmpty
-                    renderValue={(value) => (value ? value : 'All centros')}
+                    renderValue={(value) => (value ? value : t('admin.allCentros'))}
                   >
                     <MenuItem value="">
-                      All centros
+                      {t('admin.allCentros')}
                     </MenuItem>
                     {(filterOptions.centers || []).map((option) => (
                       <MenuItem key={option} value={option}>
@@ -5605,16 +5639,16 @@ const Booking = ({ mode = 'user', userProfile }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth size="small">
-                  <InputLabel shrink>User Type</InputLabel>
+                  <InputLabel shrink>{t('admin.filterUserType')}</InputLabel>
                   <Select
                     value={filterUserType}
                     onChange={(event) => setFilterUserType(event.target.value)}
-                    label="User Type"
+                    label={t('admin.filterUserType')}
                     displayEmpty
-                    renderValue={(value) => (value ? value : 'All user types')}
+                    renderValue={(value) => (value ? value : t('admin.allUserTypes'))}
                   >
                     <MenuItem value="">
-                      All user types
+                      {t('admin.allUserTypes')}
                     </MenuItem>
                     {(filterOptions.userTypes || []).map((option) => (
                       <MenuItem key={option} value={option}>
@@ -5626,16 +5660,16 @@ const Booking = ({ mode = 'user', userProfile }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth size="small">
-                  <InputLabel shrink>Producto</InputLabel>
+                  <InputLabel shrink>{t('admin.filterProducto')}</InputLabel>
                   <Select
                       value={filterProduct}
                       onChange={(event) => setFilterProduct(event.target.value)}
-                    label="Producto"
+                    label={t('admin.filterProducto')}
                     displayEmpty
-                    renderValue={(value) => (value ? value : 'All products')}
+                    renderValue={(value) => (value ? value : t('admin.allProducts'))}
                   >
                     <MenuItem value="">
-                      All products
+                      {t('admin.allProducts')}
                     </MenuItem>
                     {(filterOptions.products || []).map((option) => (
                       <MenuItem key={option} value={option}>
@@ -5660,10 +5694,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
                   }
                 }}
               >
-                RESET
+                {t('admin.reset').toUpperCase()}
                     </Button>
               <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
-              Showing {agendaBloqueos.length} of {agendaTotalLabel} bookings
+              {t('admin.showingBookings', { shown: agendaBloqueos.length, total: agendaTotalLabel })}
             </Typography>
             </Stack>
           </Paper>
@@ -5726,24 +5760,24 @@ const Booking = ({ mode = 'user', userProfile }) => {
         onClose={handleCloseConfirm}
         aria-labelledby="delete-bloqueo-title"
       >
-        <DialogTitle id="delete-bloqueo-title">Delete bloqueo</DialogTitle>
+        <DialogTitle id="delete-bloqueo-title">{t('admin.deleteConfirmTitle')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            This will remove the bloqueo from the agenda. This action cannot be undone.
+            {t('admin.deleteConfirmBody')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseConfirm}>Cancel</Button>
+          <Button onClick={handleCloseConfirm}>{t('admin.cancel')}</Button>
           <Button
             onClick={handleConfirmDelete}
             variant="contained"
             disabled={Boolean(deletingBloqueoId)}
-            sx={{ 
-              backgroundColor: 'secondary.main', 
-              '&:hover': { backgroundColor: 'secondary.dark' } 
+            sx={{
+              backgroundColor: 'secondary.main',
+              '&:hover': { backgroundColor: 'secondary.dark' }
             }}
           >
-            Delete
+            {t('admin.delete')}
           </Button>
         </DialogActions>
       </Dialog>

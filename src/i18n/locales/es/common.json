@@ -1,0 +1,217 @@
+{
+  "tabs": {
+    "Overview": "Resumen",
+    "Contacts": "Contactos",
+    "Business Address": "Domicilio Fiscal",
+    "Booking": "Salas de Reunión",
+    "Invoices": "Facturas",
+    "Expenses": "Gastos",
+    "BankReconciliation": "Bancos",
+    "CryptWallet": "Crypto Wallet",
+    "PasswordManagement": "Contraseñas",
+    "DigitalSignature": "Firma",
+    "Integrations": "Integraciones",
+    "Automation": "Automatización",
+    "Community": "Comunidad",
+    "Events": "Eventos",
+    "Storage": "Almacenamiento",
+    "Tickets": "Tickets",
+    "Reports": "Informes",
+    "Marketplace": "Marketplace",
+    "SpaceCatalog": "Catálogo de Espacios"
+  },
+  "greeting": {
+    "morning": "Buenos días",
+    "afternoon": "Buenas tardes",
+    "evening": "Buenas noches"
+  },
+  "header": {
+    "subtitle": "Aquí tienes lo último de tus espacios.",
+    "search": "Buscar…",
+    "clearSearch": "Limpiar búsqueda",
+    "openNav": "Abrir navegación",
+    "action": "Acción",
+    "addBloqueo": "Añadir bloqueo",
+    "createInvoice": "Crear factura",
+    "addContact": "Añadir contacto",
+    "settings": "Ajustes",
+    "help": "Ayuda",
+    "helpSupport": "Ayuda y Soporte"
+  },
+  "search": {
+    "tenant": "contacto",
+    "room": "sala",
+    "automation": "automatización",
+    "code": "Código"
+  },
+  "sidebar": {
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión",
+    "soon": "Pronto"
+  },
+  "app": {
+    "redirecting": "Redirigiendo al inicio de sesión…"
+  },
+  "language": {
+    "toggle": "EN",
+    "current": "Español"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "loading": "Cargando…",
+    "noResults": "Sin resultados",
+    "error": "Error",
+    "success": "Éxito",
+    "yes": "Sí",
+    "no": "No",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "all": "Todos",
+    "none": "Ninguno",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "download": "Descargar",
+    "upload": "Subir",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "total": "Total",
+    "date": "Fecha",
+    "name": "Nombre",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "actions": "Acciones",
+    "comingSoon": "Próximamente",
+    "viewReport": "Ver informe",
+    "refresh": "Actualización"
+  },
+  "stubs": {
+    "community": {
+      "title": "Centro de Comunidad",
+      "description": "Nuestros foros de comunidad y tablones de discusión estarán disponibles próximamente. Conecta con otros usuarios, comparte ideas y obtén ayuda de tus compañeros."
+    },
+    "events": {
+      "title": "Calendario de Eventos",
+      "description": "El sistema de gestión de eventos está en camino. Pronto podrás rastrear, crear y gestionar eventos tanto virtuales como presenciales."
+    },
+    "expenses": {
+      "title": "Gastos",
+      "subtitle": "Rastrea y gestiona tus gastos empresariales, recibos y reembolsos.",
+      "cardTitle": "Gestión de Gastos",
+      "cardDesc": "Rastrea tus gastos empresariales, sube recibos y gestiona reembolsos en un solo lugar.",
+      "cardHint": "Esta función estará disponible próximamente e incluirá seguimiento de gastos, gestión de recibos y categorización automática."
+    },
+    "storage": {
+      "totalSpace": "Espacio Total",
+      "usedSpace": "Espacio Usado",
+      "files": "Archivos",
+      "folders": "Carpetas",
+      "recentFiles": "Archivos Recientes",
+      "uploadFile": "Subir Archivo",
+      "name": "Nombre",
+      "size": "Tamaño",
+      "lastModified": "Última Modificación",
+      "actions": "Acciones"
+    },
+    "agent": {
+      "title": "Agente IA",
+      "online": "En línea",
+      "greeting": "¡Hola! Soy tu asistente de IA. ¿En qué puedo ayudarte hoy?",
+      "response": "Entiendo tu solicitud. Déjame ayudarte con eso.",
+      "placeholder": "Escribe tu mensaje..."
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "subtitle": "Descubre y conecta con proveedores de servicios profesionales para las necesidades de tu negocio.",
+      "browseByCategory": "Explorar por Categoría",
+      "allServices": "Todos los Servicios",
+      "marketing": "Marketing",
+      "legal": "Legal",
+      "accounting": "Contabilidad",
+      "technology": "Tecnología",
+      "featured": "Destacado",
+      "services": "Servicios:",
+      "more": "+{{count}} más",
+      "reviews": "reseñas",
+      "contactNow": "Contactar Ahora - {{price}}",
+      "noServices": "No se encontraron servicios en esta categoría",
+      "noServicesHint": "Prueba seleccionando una categoría diferente o vuelve más tarde para nuevos servicios."
+    },
+    "integrations": {
+      "title": "Hub de integraciones",
+      "subtitle": "Conecta las herramientas SaaS en las que confían tus equipos y envía sus datos a un único dashboard de BeWorking.",
+      "connectedApps": "Apps conectadas",
+      "liveDataSources": "Fuentes de datos en vivo",
+      "dataChannels": "Canales de datos",
+      "feedsSyncing": "Feeds sincronizados en dashboards",
+      "pendingRequests": "Solicitudes pendientes",
+      "availableToConnect": "Disponibles para conectar",
+      "activeConnections": "Conexiones activas",
+      "activeConnectionsHint": "Los envíos de datos ocurren automáticamente según el intervalo de sincronización configurado para cada integración.",
+      "availableIntegrations": "Integraciones disponibles",
+      "requestAccess": "Solicitar acceso",
+      "roadmap": "Hoja de ruta",
+      "roadmapHint": "Estas integraciones ya están en desarrollo. Vota por prioridad o regístrate para acceso anticipado.",
+      "notifyMe": "Notificarme",
+      "lastSync": "Última sincronización",
+      "dataStreams": "Flujos de datos",
+      "syncHealth": "Salud de sincronización",
+      "syncNow": "Sincronizar ahora",
+      "connected": "Conectado",
+      "actionRequired": "Acción requerida",
+      "disconnected": "Desconectado",
+      "autoSyncEnabled": "Sincronización automática habilitada",
+      "autoSyncDisabled": "Sincronización automática deshabilitada"
+    },
+    "automation": {
+      "title": "Lienzo de automatización",
+      "subtitle": "Diseña automatizaciones de BeWorking visualmente. Arrastra nodos, conecta pasos y sincroniza el flujo de trabajo con tu instancia de n8n.",
+      "palette": "Paleta",
+      "paletteHint": "Elige bloques para añadir al flujo.",
+      "nodeDetails": "Detalles del nodo",
+      "configure": "Configurar",
+      "displayName": "Nombre de visualización",
+      "quickActions": "Acciones rápidas",
+      "duplicate": "DUPLICAR",
+      "delete": "ELIMINAR",
+      "duplicateNode": "Duplicar nodo",
+      "deleteNode": "Eliminar nodo",
+      "connectTo": "Conectar a…",
+      "linkedEdges": "Aristas enlazadas",
+      "noEdges": "Aún no hay aristas. Conecta este nodo a otro paso.",
+      "removeConnection": "Eliminar conexión",
+      "remove": "Eliminar",
+      "testNode": "PROBAR NODO",
+      "selectNode": "Selecciona un nodo",
+      "selectNodeHint": "Elige un bloque en el lienzo para editar configuración y conexiones."
+    },
+    "reports": {
+      "title": "Analíticas e informes",
+      "subtitle": "Conecta tu almacén de datos o capa BI para exportar dashboards curados."
+    },
+    "adminBookings": {
+      "title": "Resumen de reservas",
+      "subtitle": "Todas las reservas en las ubicaciones de BeWorking. Integra con tu API de reservas para mostrar datos reales.",
+      "bookingId": "ID Reserva",
+      "tenant": "Inquilino",
+      "room": "Sala",
+      "date": "Fecha",
+      "time": "Hora",
+      "status": "Estado"
+    },
+    "tickets": {
+      "title": "Tickets de soporte",
+      "subtitle": "Rastrea solicitudes de inquilinos y SLA en el espacio de trabajo.",
+      "openTicket": "ABRIR TICKET"
+    }
+  }
+}

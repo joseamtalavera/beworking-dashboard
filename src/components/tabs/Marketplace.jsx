@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -14,14 +15,15 @@ import {
 } from '@mui/material';
 
 const Marketplace = () => {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const categories = [
-    { id: 'all', label: 'All Services' },
-    { id: 'marketing', label: 'Marketing' },
-    { id: 'legal', label: 'Legal' },
-    { id: 'accounting', label: 'Accounting' },
-    { id: 'tech', label: 'Technology' }
+    { id: 'all', label: t('stubs.marketplace.allServices') },
+    { id: 'marketing', label: t('stubs.marketplace.marketing') },
+    { id: 'legal', label: t('stubs.marketplace.legal') },
+    { id: 'accounting', label: t('stubs.marketplace.accounting') },
+    { id: 'tech', label: t('stubs.marketplace.technology') }
   ];
 
   const services = [
@@ -79,23 +81,23 @@ const Marketplace = () => {
     }
   ];
 
-  const filteredServices = selectedCategory === 'all' 
-    ? services 
+  const filteredServices = selectedCategory === 'all'
+    ? services
     : services.filter(service => service.category === selectedCategory);
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-          Marketplace
+          {t('stubs.marketplace.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Discover and connect with professional service providers for your business needs.
+          {t('stubs.marketplace.subtitle')}
         </Typography>
-        
+
         <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-            Browse by Category
+            {t('stubs.marketplace.browseByCategory')}
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             {categories.map((category) => (
@@ -115,19 +117,19 @@ const Marketplace = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {filteredServices.map((service) => (
-          <Grid item xs={12} sm={6} lg={4} key={service.id}>
-            <Card 
-              sx={{ 
-                height: '100%', 
-                display: 'flex', 
+        {filteredServices.map((svc) => (
+          <Grid item xs={12} sm={6} lg={4} key={svc.id}>
+            <Card
+              sx={{
+                height: '100%',
+                display: 'flex',
                 flexDirection: 'column',
                 position: 'relative'
               }}
             >
-              {service.featured && (
+              {svc.featured && (
                 <Chip
-                  label="Featured"
+                  label={t('stubs.marketplace.featured')}
                   color="primary"
                   size="small"
                   sx={{
@@ -139,37 +141,37 @@ const Marketplace = () => {
                   }}
                 />
               )}
-              
+
               <CardContent sx={{ flexGrow: 1, pb: 1 }}>
                 <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
-                  {service.name}
+                  {svc.name}
                 </Typography>
-                
+
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-                  {service.company}
+                  {svc.company}
                 </Typography>
-                
+
                 <Typography variant="body2" sx={{ mb: 2, minHeight: 40 }}>
-                  {service.description}
+                  {svc.description}
                 </Typography>
-                
+
                 <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-                  <Rating value={service.rating} precision={0.1} size="small" readOnly />
+                  <Rating value={svc.rating} precision={0.1} size="small" readOnly />
                   <Typography variant="body2" color="text.secondary">
-                    {service.rating} ({service.reviews} reviews)
+                    {svc.rating} ({svc.reviews} {t('stubs.marketplace.reviews')})
                   </Typography>
                 </Stack>
-                
+
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  📍 {service.location}
+                  {svc.location}
                 </Typography>
-                
+
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                    Services:
+                    {t('stubs.marketplace.services')}
                   </Typography>
                   <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                    {service.services.slice(0, 3).map((serviceItem, index) => (
+                    {svc.services.slice(0, 3).map((serviceItem, index) => (
                       <Chip
                         key={index}
                         label={serviceItem}
@@ -178,9 +180,9 @@ const Marketplace = () => {
                         sx={{ fontSize: '0.75rem', height: 24 }}
                       />
                     ))}
-                    {service.services.length > 3 && (
+                    {svc.services.length > 3 && (
                       <Chip
-                        label={`+${service.services.length - 3} more`}
+                        label={t('stubs.marketplace.more', { count: svc.services.length - 3 })}
                         size="small"
                         variant="outlined"
                         sx={{ fontSize: '0.75rem', height: 24 }}
@@ -189,7 +191,7 @@ const Marketplace = () => {
                   </Stack>
                 </Box>
               </CardContent>
-              
+
               <CardActions sx={{ p: 2, pt: 0 }}>
                 <Button
                   variant="contained"
@@ -205,7 +207,7 @@ const Marketplace = () => {
                     textTransform: 'none'
                   }}
                 >
-                  Contact Now - {service.price}
+                  {t('stubs.marketplace.contactNow', { price: svc.price })}
                 </Button>
               </CardActions>
             </Card>
@@ -216,10 +218,10 @@ const Marketplace = () => {
       {filteredServices.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-            No services found in this category
+            {t('stubs.marketplace.noServices')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Try selecting a different category or check back later for new services.
+            {t('stubs.marketplace.noServicesHint')}
           </Typography>
         </Box>
       )}

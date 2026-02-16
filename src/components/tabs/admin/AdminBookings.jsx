@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -20,43 +21,46 @@ const statusColor = {
   Cancelled: 'default'
 };
 
-const AdminBookings = () => (
-  <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
-    <Stack spacing={0.5} sx={{ mb: 3 }}>
-      <Typography variant="h6" fontWeight={700}>
-        Bookings overview
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        All reservations across BeWorking locations. Integrate with your booking API to surface real data.
-      </Typography>
-    </Stack>
-    <Table size="small">
-      <TableHead>
-        <TableRow>
-          <TableCell>Booking ID</TableCell>
-          <TableCell>Tenant</TableCell>
-          <TableCell>Room</TableCell>
-          <TableCell>Date</TableCell>
-          <TableCell>Time</TableCell>
-          <TableCell>Status</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {BOOKINGS.map((row) => (
-          <TableRow key={row.id} hover>
-            <TableCell>{row.id}</TableCell>
-            <TableCell>{row.tenant}</TableCell>
-            <TableCell>{row.room}</TableCell>
-            <TableCell>{row.date}</TableCell>
-            <TableCell>{row.time}</TableCell>
-            <TableCell>
-              <Chip label={row.status} color={statusColor[row.status] ?? 'default'} size="small" variant="outlined" />
-            </TableCell>
+const AdminBookings = () => {
+  const { t } = useTranslation();
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Stack spacing={0.5} sx={{ mb: 3 }}>
+        <Typography variant="h6" fontWeight={700}>
+          {t('stubs.adminBookings.title')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {t('stubs.adminBookings.subtitle')}
+        </Typography>
+      </Stack>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>{t('stubs.adminBookings.bookingId')}</TableCell>
+            <TableCell>{t('stubs.adminBookings.tenant')}</TableCell>
+            <TableCell>{t('stubs.adminBookings.room')}</TableCell>
+            <TableCell>{t('stubs.adminBookings.date')}</TableCell>
+            <TableCell>{t('stubs.adminBookings.time')}</TableCell>
+            <TableCell>{t('stubs.adminBookings.status')}</TableCell>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </Paper>
-);
+        </TableHead>
+        <TableBody>
+          {BOOKINGS.map((row) => (
+            <TableRow key={row.id} hover>
+              <TableCell>{row.id}</TableCell>
+              <TableCell>{row.tenant}</TableCell>
+              <TableCell>{row.room}</TableCell>
+              <TableCell>{row.date}</TableCell>
+              <TableCell>{row.time}</TableCell>
+              <TableCell>
+                <Chip label={row.status} color={statusColor[row.status] ?? 'default'} size="small" variant="outlined" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Paper>
+  );
+};
 
 export default AdminBookings;
