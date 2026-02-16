@@ -134,7 +134,7 @@ const CALENDAR_COLORS = {
   available: { bg: '#a1a1aa', border: '#a1a1aa', text: '#52525b' },
   paid:      { bg: '#009624', border: '#009624', text: '#007a1d' },
   invoiced:  { bg: '#ef4444', border: '#dc2626', text: '#b91c1c' },
-  created:   { bg: '#2ecc71', border: '#2ecc71', text: '#27ae60' }
+  created:   { bg: '#f59e0b', border: '#f59e0b', text: '#d97706' }
 };
 
 const userCalendarStatusStyles = () => ({
