@@ -58,7 +58,7 @@ jobs:
           tags: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ inputs.image_tag || 'main' }}
           build-args: |
             VITE_STRIPE_PUBLISHABLE_KEY=${{ steps.stripe.outputs.pk }}
-            VITE_PAYMENTS_BASE_URL=/payments/api
+            VITE_PAYMENTS_BASE_URL=/payments
             VITE_STRIPE_TENANT=beworking
 
       - name: Download current task definition
