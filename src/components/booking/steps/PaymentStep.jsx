@@ -98,7 +98,7 @@ function AdminPaymentOptions({ onCreated }) {
   const { t } = useTranslation('booking');
   const theme = useTheme();
   const { state, prevStep } = useBookingFlow();
-  const [paymentOption, setPaymentOption] = useState(''); // 'charge' | 'invoice'
+  const [paymentOption, setPaymentOption] = useState(''); // 'free' | 'charge' | 'invoice'
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState('');
   const [cardsLoading, setCardsLoading] = useState(false);
@@ -107,32 +107,41 @@ function AdminPaymentOptions({ onCreated }) {
   const [success, setSuccess] = useState(false);
   const [createdResponse, setCreatedResponse] = useState(null);
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
+  const [freeUsage, setFreeUsage] = useState(null); // { used, freeLimit, isFree }
 
   const contactEmail = state.contact?.email || '';
   const contactName = state.contact?.name || state.contact?.code || '';
+  const productName = state.producto?.name || state.producto?.nombre || '';
   const pricing = useMemo(() => computePricing(state), [state]);
 
-  // Eager card fetch on mount — auto-select charge or invoice
+  // Check free booking eligibility + fetch saved cards
   useEffect(() => {
     if (!contactEmail) return;
     setCardsLoading(true);
-    fetchCustomerPaymentMethods(contactEmail)
-      .then((res) => {
-        const methods = res.paymentMethods || [];
-        setSavedCards(methods);
-        if (methods.length > 0) {
-          setSelectedCard(methods[0].id);
-          setPaymentOption('charge');
-        } else {
-          setPaymentOption('invoice');
-        }
-      })
-      .catch(() => {
-        setSavedCards([]);
+
+    const cardPromise = fetchCustomerPaymentMethods(contactEmail)
+      .then((res) => res.paymentMethods || [])
+      .catch(() => []);
+
+    const usagePromise = productName
+      ? fetchBookingUsage(contactEmail, productName).catch(() => null)
+      : Promise.resolve(null);
+
+    Promise.all([cardPromise, usagePromise]).then(([methods, usage]) => {
+      setSavedCards(methods);
+      setFreeUsage(usage);
+
+      if (usage?.isFree) {
+        setPaymentOption('free');
+      } else if (methods.length > 0) {
+        setSelectedCard(methods[0].id);
+        setPaymentOption('charge');
+      } else {
         setPaymentOption('invoice');
-      })
-      .finally(() => setCardsLoading(false));
-  }, [contactEmail]);
+      }
+      setCardsLoading(false);
+    });
+  }, [contactEmail, productName]);
 
   const handleSubmit = async () => {
     setError('');
@@ -143,7 +152,12 @@ function AdminPaymentOptions({ onCreated }) {
       const amountCents = Math.round(pricing.total * 100);
       const description = `Reserva: ${state.producto?.name || ''} (${state.dateFrom})`;
 
-      if (paymentOption === 'charge') {
+      if (paymentOption === 'free') {
+        const used = freeUsage?.used ?? 0;
+        const limit = freeUsage?.freeLimit ?? 5;
+        bookingPayload.status = 'Paid';
+        bookingPayload.note = `Free booking (${used + 1} of ${limit})`;
+      } else if (paymentOption === 'charge') {
         if (!selectedCard) {
           setError(t('steps.pleaseSelectCard'));
           setSubmitting(false);
@@ -243,6 +257,18 @@ function AdminPaymentOptions({ onCreated }) {
           )}
 
           <RadioGroup value={paymentOption} onChange={(e) => setPaymentOption(e.target.value)}>
+            {freeUsage?.isFree && (
+              <FormControlLabel
+                value="free"
+                control={<Radio size="small" />}
+                label={t('steps.freeBookingAvailable')}
+              />
+            )}
+            {freeUsage?.isFree && paymentOption === 'free' && (
+              <Typography variant="caption" sx={{ pl: 4, color: 'success.main', fontWeight: 500 }}>
+                {t('steps.freeBookingUsage', { used: freeUsage.used, limit: freeUsage.freeLimit })}
+              </Typography>
+            )}
             <FormControlLabel
               value="charge"
               control={<Radio size="small" />}
@@ -312,7 +338,11 @@ function AdminPaymentOptions({ onCreated }) {
           disabled={submitting || (paymentOption === 'charge' && !selectedCard)}
           sx={pillButtonSx}
         >
-          {submitting ? <CircularProgress size={22} color="inherit" /> : t('steps.createReserva')}
+          {submitting
+            ? <CircularProgress size={22} color="inherit" />
+            : paymentOption === 'free'
+              ? t('steps.confirmFreeBooking')
+              : t('steps.createReserva')}
         </Button>
       </Stack>
     </Stack>
