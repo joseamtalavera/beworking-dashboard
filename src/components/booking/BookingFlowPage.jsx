@@ -14,6 +14,7 @@ import esBooking from '../../i18n/locales/es/booking.json';
 import enBooking from '../../i18n/locales/en/booking.json';
 
 import { BookingFlowProvider, useBookingFlow } from './BookingFlowContext';
+import { fetchBookingProductos } from '../../api/bookings';
 import RoomCatalog from './RoomCatalog';
 import RoomDetail from './RoomDetail';
 import SelectDetailsStep from './steps/SelectDetailsStep';
@@ -83,6 +84,22 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
     }
     if (Object.keys(fields).length > 0) {
       setFields(fields);
+    }
+
+    // Enrich product with pricing if missing (calendar slot provides minimal data)
+    if (producto && producto.priceFrom == null) {
+      const centerCode = producto.centerCode || producto.centroCodigo || centro?.code || null;
+      fetchBookingProductos({ centerCode })
+        .then((products) => {
+          if (!Array.isArray(products)) return;
+          const match = products.find(
+            (p) => p.id === producto.id || (p.name && producto.name && p.name.toLowerCase() === producto.name.toLowerCase())
+          );
+          if (match && match.priceFrom != null) {
+            setFields({ producto: { ...producto, ...match } });
+          }
+        })
+        .catch(() => {});
     }
   }, [selectedRoom, initialTime, setFields]);
 
