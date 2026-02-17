@@ -153,10 +153,14 @@ function AdminPaymentOptions({ onCreated }) {
       const description = `Reserva: ${state.producto?.name || ''} (${state.dateFrom})`;
 
       if (paymentOption === 'free') {
-        const used = freeUsage?.used ?? 0;
-        const limit = freeUsage?.freeLimit ?? 5;
         bookingPayload.status = 'Paid';
-        bookingPayload.note = `Free booking (${used + 1} of ${limit})`;
+        if (freeUsage?.unlimited) {
+          bookingPayload.note = 'Free booking (desk user)';
+        } else {
+          const used = freeUsage?.used ?? 0;
+          const limit = freeUsage?.freeLimit ?? 5;
+          bookingPayload.note = `Free booking (${used + 1} of ${limit})`;
+        }
       } else if (paymentOption === 'charge') {
         if (!selectedCard) {
           setError(t('steps.pleaseSelectCard'));
@@ -266,7 +270,9 @@ function AdminPaymentOptions({ onCreated }) {
             )}
             {freeUsage?.isFree && paymentOption === 'free' && (
               <Typography variant="caption" sx={{ pl: 4, color: 'success.main', fontWeight: 500 }}>
-                {t('steps.freeBookingUsage', { used: freeUsage.used, limit: freeUsage.freeLimit })}
+                {freeUsage.unlimited
+                  ? t('steps.freeBookingUnlimited')
+                  : t('steps.freeBookingUsage', { used: freeUsage.used, limit: freeUsage.freeLimit })}
               </Typography>
             )}
             <FormControlLabel

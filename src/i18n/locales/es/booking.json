@@ -166,6 +166,7 @@
     "bookingConfirmed": "¡Reserva confirmada!",
     "freeBookingAvailable": "Reserva gratuita disponible",
     "freeBookingUsage": "Has utilizado {{used}} de {{limit}} reservas gratuitas este mes. Esta reserva será gratuita — no se requiere pago.",
+    "freeBookingUnlimited": "Reserva gratuita — no se requiere pago.",
     "freeBookingSuccess": "Reserva gratuita ({{used}} de {{limit}}) — no se requiere pago.",
     "confirmFreeBooking": "Confirmar reserva gratuita",
     "securePaymentStripe": "Pago seguro con Stripe",
