@@ -289,8 +289,8 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 displayEmpty
               >
                 <MenuItem value="">{t('all')}</MenuItem>
-                <MenuItem value="paid">{t('paid')}</MenuItem>
-                <MenuItem value="unpaid">{t('unpaid')}</MenuItem>
+                <MenuItem value="pagado">{t('paid')}</MenuItem>
+                <MenuItem value="pendiente">{t('unpaid')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
