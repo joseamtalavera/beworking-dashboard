@@ -13,7 +13,10 @@ const stripeRequest = async (path, options = {}) => {
   const res = await fetch(`${PAYMENTS_BASE_URL}${path}`, config);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `Stripe request failed (${res.status})`);
+    const detail = Array.isArray(err.detail)
+      ? err.detail.map((d) => d.msg || d.message || String(d)).join(', ')
+      : err.detail;
+    throw new Error(detail || `Stripe request failed (${res.status})`);
   }
   return res.json();
 };
