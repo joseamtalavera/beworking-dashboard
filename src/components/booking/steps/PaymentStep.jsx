@@ -129,8 +129,10 @@ function AdminPaymentOptions({ onCreated }) {
   }, [contactEmail]);
 
   // Build the manual invoice payload from booking state + pricing
-  const buildInvoicePayload = (invoiceStatus) => {
+  const buildInvoicePayload = (invoiceStatus, isFree = false) => {
     const description = `${productName} · ${state.dateFrom} ${state.startTime}-${state.endTime}`;
+    const linePrice = isFree ? 0 : pricing.subtotal;
+    const vatPct = isFree ? 0 : Math.round(pricing.vatRate * 100);
     return {
       clientName: contactName,
       clientId: state.contact?.id || null,
@@ -142,13 +144,13 @@ function AdminPaymentOptions({ onCreated }) {
       lineItems: [{
         description,
         quantity: 1,
-        price: pricing.subtotal,
-        vatPercent: Math.round(pricing.vatRate * 100),
+        price: linePrice,
+        vatPercent: vatPct,
       }],
       computed: {
-        subtotal: pricing.subtotal,
-        totalVat: pricing.vat,
-        total: pricing.total,
+        subtotal: isFree ? 0 : pricing.subtotal,
+        totalVat: isFree ? 0 : pricing.vat,
+        total: isFree ? 0 : pricing.total,
       },
     };
   };
@@ -208,7 +210,7 @@ function AdminPaymentOptions({ onCreated }) {
       const bloqueoId = bookingResponse.bloqueos?.[0]?.id;
 
       // ── Step 3: Create the internal invoice (facturas record) ──
-      const invoicePayload = buildInvoicePayload(invoiceStatus);
+      const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
       const invoiceResponse = await createManualInvoice(invoicePayload);
       const invoiceId = invoiceResponse?.id;
 
