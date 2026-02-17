@@ -14,7 +14,7 @@ import esBooking from '../../i18n/locales/es/booking.json';
 import enBooking from '../../i18n/locales/en/booking.json';
 
 import { BookingFlowProvider, useBookingFlow } from './BookingFlowContext';
-import { fetchBookingProductos } from '../../api/bookings';
+import { fetchBookingProductos, fetchBookingCentros } from '../../api/bookings';
 import RoomCatalog from './RoomCatalog';
 import RoomDetail from './RoomDetail';
 import SelectDetailsStep from './steps/SelectDetailsStep';
@@ -86,17 +86,34 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
       setFields(fields);
     }
 
-    // Enrich product with pricing if missing (calendar slot provides minimal data)
-    if (producto && producto.priceFrom == null) {
+    // Enrich product with pricing and centro if missing (calendar slot provides minimal data)
+    if (producto && (producto.priceFrom == null || !centro)) {
       const centerCode = producto.centerCode || producto.centroCodigo || centro?.code || null;
-      fetchBookingProductos({ centerCode })
-        .then((products) => {
-          if (!Array.isArray(products)) return;
-          const match = products.find(
-            (p) => p.id === producto.id || (p.name && producto.name && p.name.toLowerCase() === producto.name.toLowerCase())
-          );
-          if (match && match.priceFrom != null) {
-            setFields({ producto: { ...producto, ...match } });
+      Promise.all([
+        fetchBookingProductos({ centerCode }),
+        !centro ? fetchBookingCentros() : Promise.resolve(null),
+      ])
+        .then(([products, centros]) => {
+          const updates = {};
+          if (Array.isArray(products)) {
+            const match = products.find(
+              (p) => p.id === producto.id || (p.name && producto.name && p.name.toLowerCase() === producto.name.toLowerCase())
+            );
+            if (match) {
+              updates.producto = { ...producto, ...match };
+              // Resolve centro from product's centerCode
+              if (!centro && match.centerCode && Array.isArray(centros)) {
+                const matchingCentro = centros.find(
+                  (c) => c.code && c.code.toLowerCase() === match.centerCode.toLowerCase()
+                );
+                if (matchingCentro) {
+                  updates.centro = matchingCentro;
+                }
+              }
+            }
+          }
+          if (Object.keys(updates).length > 0) {
+            setFields(updates);
           }
         })
         .catch(() => {});
