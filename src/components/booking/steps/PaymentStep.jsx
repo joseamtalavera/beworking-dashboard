@@ -143,7 +143,7 @@ function AdminPaymentOptions({ onCreated }) {
         description,
         quantity: 1,
         price: pricing.subtotal,
-        vatPercent: 21,
+        vatPercent: Math.round(pricing.vatRate * 100),
       }],
       computed: {
         subtotal: pricing.subtotal,

@@ -22,28 +22,33 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('en', 'booking', enBooking);
 }
 
-const VAT_RATE = 0.21;
+function getVatRate(state) {
+  const taxId = (state.contact?.billingTaxId || '').trim().toUpperCase();
+  if (taxId && (taxId.startsWith('ES') || taxId.startsWith('EE'))) return 0;
+  return 0.21;
+}
 
 function computePricing(state) {
   const priceFrom = state.producto?.priceFrom;
-  if (!priceFrom) return { subtotal: 0, vat: 0, total: 0, label: '' };
+  if (!priceFrom) return { subtotal: 0, vat: 0, total: 0, label: '', vatRate: 0.21 };
 
   const start = timeStringToMinutes(state.startTime);
   const end = timeStringToMinutes(state.endTime);
   if (start == null || end == null || end <= start) {
-    return { subtotal: 0, vat: 0, total: 0, label: '' };
+    return { subtotal: 0, vat: 0, total: 0, label: '', vatRate: 0.21 };
   }
 
+  const vatRate = getVatRate(state);
   const hours = (end - start) / 60;
   const subtotal = hours * priceFrom;
-  const vat = +(subtotal * VAT_RATE).toFixed(2);
+  const vat = +(subtotal * vatRate).toFixed(2);
   const total = +(subtotal + vat).toFixed(2);
-  return { subtotal, vat, total, label: `${hours.toFixed(1)}h` };
+  return { subtotal, vat, total, label: `${hours.toFixed(1)}h`, vatRate };
 }
 
 export default function ReviewSummary({ state }) {
   const { t } = useTranslation('booking');
-  const { subtotal, vat, total, label } = computePricing(state);
+  const { subtotal, vat, total, label, vatRate } = computePricing(state);
   const heroImage = state.producto?.heroImage || state.producto?.imageUrl || null;
   const roomName = state.producto?.name || '—';
   const centroName = state.centro?.name || state.centro?.code || '—';
@@ -157,7 +162,7 @@ export default function ReviewSummary({ state }) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.vatPercent', { percent: 21 })}</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.vatPercent', { percent: Math.round(vatRate * 100) })}</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>€{vat.toFixed(2)}</Typography>
         </Stack>
         <Divider sx={{ my: 0.5 }} />
