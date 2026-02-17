@@ -25,7 +25,8 @@ import i18n from '../../../i18n/i18n.js';
 import esBooking from '../../../i18n/locales/es/booking.json';
 import enBooking from '../../../i18n/locales/en/booking.json';
 
-import { createReserva, createPublicBooking, fetchBookingUsage } from '../../../api/bookings.js';
+import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation } from '../../../api/bookings.js';
+import { createManualInvoice, sendInvoiceEmail } from '../../../api/invoices.js';
 import {
   createPaymentIntent,
   fetchCustomerPaymentMethods,
@@ -92,13 +93,13 @@ function buildBookingPayload(state) {
 }
 
 /* ─────────────────────────────────────
-   Admin Payment Options
+   Admin Payment Options (4 options)
    ───────────────────────────────────── */
 function AdminPaymentOptions({ onCreated }) {
   const { t } = useTranslation('booking');
   const theme = useTheme();
   const { state, prevStep } = useBookingFlow();
-  const [paymentOption, setPaymentOption] = useState(''); // 'free' | 'charge' | 'invoice'
+  const [paymentOption, setPaymentOption] = useState('free'); // 'free' | 'charge' | 'stripe' | 'transfer'
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState('');
   const [cardsLoading, setCardsLoading] = useState(false);
@@ -107,41 +108,50 @@ function AdminPaymentOptions({ onCreated }) {
   const [success, setSuccess] = useState(false);
   const [createdResponse, setCreatedResponse] = useState(null);
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
-  const [freeUsage, setFreeUsage] = useState(null); // { used, freeLimit, isFree }
 
   const contactEmail = state.contact?.email || '';
   const contactName = state.contact?.name || state.contact?.code || '';
   const productName = state.producto?.name || state.producto?.nombre || '';
   const pricing = useMemo(() => computePricing(state), [state]);
 
-  // Check free booking eligibility + fetch saved cards
+  // Fetch saved cards
   useEffect(() => {
     if (!contactEmail) return;
     setCardsLoading(true);
+    fetchCustomerPaymentMethods(contactEmail)
+      .then((res) => {
+        const methods = res.paymentMethods || [];
+        setSavedCards(methods);
+        if (methods.length > 0) setSelectedCard(methods[0].id);
+      })
+      .catch(() => setSavedCards([]))
+      .finally(() => setCardsLoading(false));
+  }, [contactEmail]);
 
-    const cardPromise = fetchCustomerPaymentMethods(contactEmail)
-      .then((res) => res.paymentMethods || [])
-      .catch(() => []);
-
-    const usagePromise = productName
-      ? fetchBookingUsage(contactEmail, productName).catch(() => null)
-      : Promise.resolve(null);
-
-    Promise.all([cardPromise, usagePromise]).then(([methods, usage]) => {
-      setSavedCards(methods);
-      setFreeUsage(usage);
-
-      if (usage?.isFree) {
-        setPaymentOption('free');
-      } else if (methods.length > 0) {
-        setSelectedCard(methods[0].id);
-        setPaymentOption('charge');
-      } else {
-        setPaymentOption('invoice');
-      }
-      setCardsLoading(false);
-    });
-  }, [contactEmail, productName]);
+  // Build the manual invoice payload from booking state + pricing
+  const buildInvoicePayload = (invoiceStatus) => {
+    const description = `${productName} · ${state.dateFrom} ${state.startTime}-${state.endTime}`;
+    return {
+      clientName: contactName,
+      clientId: state.contact?.id || null,
+      userType: state.contact?.tenantType || null,
+      center: state.centro?.name || state.centro?.code || null,
+      cuenta: 'PT',
+      date: state.dateFrom,
+      status: invoiceStatus,
+      lineItems: [{
+        description,
+        quantity: 1,
+        price: pricing.subtotal,
+        vatPercent: 21,
+      }],
+      computed: {
+        subtotal: pricing.subtotal,
+        totalVat: pricing.vat,
+        total: pricing.total,
+      },
+    };
+  };
 
   const handleSubmit = async () => {
     setError('');
@@ -150,17 +160,14 @@ function AdminPaymentOptions({ onCreated }) {
     try {
       const bookingPayload = buildBookingPayload(state);
       const amountCents = Math.round(pricing.total * 100);
-      const description = `Reserva: ${state.producto?.name || ''} (${state.dateFrom})`;
+      const description = `Reserva: ${productName} (${state.dateFrom})`;
+      let invoiceStatus;
 
+      // ── Step 1: Option-specific actions ──
       if (paymentOption === 'free') {
         bookingPayload.status = 'Paid';
-        if (freeUsage?.unlimited) {
-          bookingPayload.note = 'Free booking (desk user)';
-        } else {
-          const used = freeUsage?.used ?? 0;
-          const limit = freeUsage?.freeLimit ?? 5;
-          bookingPayload.note = `Free booking (${used + 1} of ${limit})`;
-        }
+        bookingPayload.note = 'Reserva gratuita (admin)';
+        invoiceStatus = 'Pagado';
       } else if (paymentOption === 'charge') {
         if (!selectedCard) {
           setError(t('steps.pleaseSelectCard'));
@@ -177,7 +184,8 @@ function AdminPaymentOptions({ onCreated }) {
         });
         bookingPayload.stripePaymentIntentId = chargeResult.paymentIntentId;
         bookingPayload.status = 'Paid';
-      } else if (paymentOption === 'invoice') {
+        invoiceStatus = 'Pagado';
+      } else if (paymentOption === 'stripe') {
         const invoiceResult = await createStripeInvoice({
           customerEmail: contactEmail,
           customerName: contactName,
@@ -189,10 +197,36 @@ function AdminPaymentOptions({ onCreated }) {
         });
         bookingPayload.stripeInvoiceId = invoiceResult.invoiceId;
         bookingPayload.status = 'Invoiced';
+        invoiceStatus = 'Pendiente';
+      } else if (paymentOption === 'transfer') {
+        bookingPayload.status = 'Invoiced';
+        invoiceStatus = 'Pendiente';
       }
 
-      const response = await createReserva(bookingPayload);
-      setCreatedResponse(response);
+      // ── Step 2: Create the booking ──
+      const bookingResponse = await createReserva(bookingPayload);
+      const bloqueoId = bookingResponse.bloqueos?.[0]?.id;
+
+      // ── Step 3: Create the internal invoice (facturas record) ──
+      const invoicePayload = buildInvoicePayload(invoiceStatus);
+      const invoiceResponse = await createManualInvoice(invoicePayload);
+      const invoiceId = invoiceResponse?.id;
+
+      // ── Step 4: Option-specific post-actions ──
+      if (paymentOption === 'transfer' && invoiceId) {
+        await sendInvoiceEmail(invoiceId).catch((err) =>
+          console.warn('Failed to send invoice email:', err)
+        );
+      }
+
+      // ── Step 5: Send booking confirmation email ──
+      if (bloqueoId) {
+        sendBookingConfirmation(bloqueoId).catch((err) =>
+          console.warn('Failed to send confirmation email:', err)
+        );
+      }
+
+      setCreatedResponse(bookingResponse);
       setSuccess(true);
     } catch (err) {
       setError(err.message || t('steps.somethingWentWrong'));
@@ -261,24 +295,16 @@ function AdminPaymentOptions({ onCreated }) {
           )}
 
           <RadioGroup value={paymentOption} onChange={(e) => setPaymentOption(e.target.value)}>
-            {freeUsage?.isFree && (
-              <FormControlLabel
-                value="free"
-                control={<Radio size="small" />}
-                label={t('steps.freeBookingAvailable')}
-              />
-            )}
-            {freeUsage?.isFree && paymentOption === 'free' && (
-              <Typography variant="caption" sx={{ pl: 4, color: 'success.main', fontWeight: 500 }}>
-                {freeUsage.unlimited
-                  ? t('steps.freeBookingUnlimited')
-                  : t('steps.freeBookingUsage', { used: freeUsage.used, limit: freeUsage.freeLimit })}
-              </Typography>
-            )}
+            <FormControlLabel
+              value="free"
+              control={<Radio size="small" />}
+              label={t('steps.freeBooking')}
+            />
+
             <FormControlLabel
               value="charge"
               control={<Radio size="small" />}
-              label={t('steps.chargeSavedCard')}
+              label={t('steps.chargeCard')}
               disabled={!contactEmail || cardsLoading || savedCards.length === 0}
             />
             {!cardsLoading && savedCards.length === 0 && contactEmail && (
@@ -286,12 +312,25 @@ function AdminPaymentOptions({ onCreated }) {
                 {t('steps.noSavedCards', { email: contactEmail })}
               </Typography>
             )}
+
             <FormControlLabel
-              value="invoice"
+              value="stripe"
               control={<Radio size="small" />}
-              label={t('steps.sendStripeInvoice')}
+              label={t('steps.stripeInvoice')}
               disabled={!contactEmail}
             />
+
+            <FormControlLabel
+              value="transfer"
+              control={<Radio size="small" />}
+              label={t('steps.bankTransfer')}
+              disabled={!contactEmail}
+            />
+            {paymentOption === 'transfer' && (
+              <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
+                {t('steps.bankTransferDesc')}
+              </Typography>
+            )}
           </RadioGroup>
 
           {paymentOption === 'charge' && savedCards.length > 0 && (
@@ -314,7 +353,7 @@ function AdminPaymentOptions({ onCreated }) {
             </Box>
           )}
 
-          {paymentOption === 'invoice' && (
+          {paymentOption === 'stripe' && (
             <Box sx={{ pl: 4 }}>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>

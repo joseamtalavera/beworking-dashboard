@@ -54,6 +54,12 @@ export const creditInvoice = (id, payload = {}, options = {}) =>
 export const fetchNextInvoiceNumber = (options = {}) =>
   apiFetch('/invoices/next-number', options);
 
+export const sendInvoiceEmail = (id, options = {}) =>
+  apiFetch(`/invoices/${String(id)}/send-email`, {
+    method: 'POST',
+    ...options
+  });
+
 export const fetchTotalRevenue = (
   { name, email, idFactura, status, tenantType, product, startDate, endDate, from, to } = {},
   options = {}

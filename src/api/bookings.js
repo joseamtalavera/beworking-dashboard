@@ -126,3 +126,9 @@ export const createPublicBooking = (payload, options = {}) =>
     body: payload,
     ...options
   });
+
+export const sendBookingConfirmation = (id, options = {}) =>
+  apiFetch(`/bookings/${String(id)}/confirm-email`, {
+    method: 'POST',
+    ...options
+  });
