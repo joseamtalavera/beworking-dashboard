@@ -772,7 +772,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           </Button>
           <Button
             variant="contained"
-            color="warning"
+            color="success"
             onClick={async () => {
               const inv = creditDialog.invoice;
               setCreditDialog({ open: false, invoice: null });
