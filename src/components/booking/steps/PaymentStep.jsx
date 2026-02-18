@@ -164,6 +164,7 @@ function AdminPaymentOptions({ onCreated }) {
       const amountCents = Math.round(pricing.total * 100);
       const description = `Reserva: ${productName} (${state.dateFrom})`;
       let invoiceStatus;
+      let stripeInvoiceId = null;
 
       // ── Step 1: Option-specific actions ──
       if (paymentOption === 'free') {
@@ -197,7 +198,8 @@ function AdminPaymentOptions({ onCreated }) {
           reference: String(state.producto?.id || ''),
           dueDays: invoiceDueDays,
         });
-        bookingPayload.stripeInvoiceId = invoiceResult.invoiceId;
+        stripeInvoiceId = invoiceResult.invoiceId;
+        bookingPayload.stripeInvoiceId = stripeInvoiceId;
         bookingPayload.status = 'Invoiced';
         invoiceStatus = 'Pendiente';
       } else if (paymentOption === 'transfer') {
@@ -211,6 +213,9 @@ function AdminPaymentOptions({ onCreated }) {
 
       // ── Step 3: Create the internal invoice (facturas record) ──
       const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
+      if (stripeInvoiceId) {
+        invoicePayload.stripeInvoiceId = stripeInvoiceId;
+      }
       const invoiceResponse = await createManualInvoice(invoicePayload);
       const invoiceId = invoiceResponse?.id;
 
