@@ -659,6 +659,7 @@ const SpaceCatalog = () => {
                         component="img"
                         src={row.heroImage}
                         alt={row.displayName || 'Hero image'}
+                        loading="lazy"
                         onError={(e) => { e.target.style.display = 'none'; }}
                         sx={{
                           width: 96,
@@ -687,11 +688,9 @@ const SpaceCatalog = () => {
                     <Chip
                       label={t('table.instant')}
                       size="small"
-                      sx={{
-                        backgroundColor: 'primary.main',
-                        color: 'primary.contrastText',
-                        fontWeight: 600
-                      }}
+                      variant="outlined"
+                      color="success"
+                      sx={{ fontWeight: 600 }}
                     />
                   )}
                 </TableCell>
