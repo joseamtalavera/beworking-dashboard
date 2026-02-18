@@ -32,6 +32,11 @@ import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 
 import { fetchInvoices, fetchInvoice, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoice, updateInvoiceStatus, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useTranslation } from 'react-i18next';
@@ -97,6 +102,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null); // { id, ...initial data }
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null });
 
   // Build the effective filters: for user mode, always filter by user email
   const effectiveFilters = useMemo(() => {
@@ -612,19 +618,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       <Button
                         size="small"
                         variant="outlined"
-                        onClick={async () => {
-                          const invoiceNum = inv.holdedInvoiceNum || inv.idFactura || inv.id;
-                          const shouldCredit = window.confirm(t('creditConfirm', { invoiceNum }));
-                          if (!shouldCredit) return;
-                          try {
-                            const result = await creditInvoice(inv.id, {});
-                            const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
-                            setSnackbar({ open: true, message: t('refundCreated', { refundId }), severity: 'success' });
-                            await refreshList();
-                          } catch (e) {
-                            setSnackbar({ open: true, message: e.message || t('refundError'), severity: 'error' });
-                          }
-                        }}
+                        onClick={() => setCreditDialog({ open: true, invoice: inv })}
                         sx={{
                           minWidth: 60,
                           height: 28,
@@ -761,6 +755,41 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           }}
         />
       )}
+      <Dialog
+        open={creditDialog.open}
+        onClose={() => setCreditDialog({ open: false, invoice: null })}
+        PaperProps={{ sx: { borderRadius: 3, px: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>{t('credit')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('creditConfirm', { invoiceNum: creditDialog.invoice?.holdedInvoiceNum || creditDialog.invoice?.idFactura || creditDialog.invoice?.id })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setCreditDialog({ open: false, invoice: null })} color="inherit">
+            {t('editor.close')}
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={async () => {
+              const inv = creditDialog.invoice;
+              setCreditDialog({ open: false, invoice: null });
+              try {
+                const result = await creditInvoice(inv.id, {});
+                const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
+                setSnackbar({ open: true, message: t('refundCreated', { refundId }), severity: 'success' });
+                await refreshList();
+              } catch (e) {
+                setSnackbar({ open: true, message: e.message || t('refundError'), severity: 'error' });
+              }
+            }}
+          >
+            {t('credit')}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
         <Alert onClose={() => setSnackbar((s) => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
