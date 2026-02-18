@@ -51,14 +51,14 @@ const BRAND_PRIMARY_HOVER = '#007a1d';
 const BRAND_MUTED_BG = 'rgba(0, 150, 36, 0.08)';
 
 const COLUMN_WIDTHS = {
-  displayName: 260,
-  centro: 120,
-  type: 120,
-  capacity: 90,
-  price: 120,
-  instant: 140,
-  photos: 90,
-  actions: 120
+  displayName: 180,
+  centro: 80,
+  type: 80,
+  capacity: 70,
+  price: 90,
+  instant: 100,
+  photos: 60,
+  actions: 90
 };
 
 const EMPTY_FORM = {
@@ -619,13 +619,15 @@ const SpaceCatalog = () => {
         sx={{
           borderRadius: 3,
           border: '1px solid',
-          borderColor: (theme) => theme.palette.primary.light + '80'
+          borderColor: (theme) => theme.palette.primary.light + '80',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch'
         }}
       >
         <Table
           sx={{
             tableLayout: 'fixed',
-            minWidth: 900
+            minWidth: 650
           }}
         >
           <TableHead>

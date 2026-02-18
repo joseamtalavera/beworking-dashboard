@@ -440,17 +440,17 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       ) : (
         <>
           <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ minWidth: isAdmin ? 820 : 600, '& .MuiTableCell-root': { px: 1.5, whiteSpace: 'nowrap' } }}>
+          <Table size="small" sx={{ minWidth: isAdmin ? 650 : 480, '& .MuiTableCell-root': { px: 1.5, whiteSpace: 'nowrap' } }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>{t('table.invoiceId')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 120 }}>{t('table.client')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>{t('table.userType')}</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 140, whiteSpace: 'normal' }}>{t('table.products')}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', minWidth: 90 }}>{t('table.total')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 90 }}>{t('table.issued')}</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.document')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>{t('table.actions')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 60 }}>{t('table.invoiceId')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 90 }}>{t('table.client')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>{t('table.userType')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 100, whiteSpace: 'normal' }}>{t('table.products')}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.total')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.issued')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 50 }}>{t('table.document')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.actions')}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
