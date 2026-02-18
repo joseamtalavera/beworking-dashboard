@@ -441,18 +441,18 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       ) : (
         <>
           <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ minWidth: isAdmin ? 650 : 480, '& .MuiTableCell-root': { px: 1, whiteSpace: 'nowrap' } }}>
+          <Table size="small" sx={{ tableLayout: 'fixed', width: '100%', '& .MuiTableCell-root': { px: 0.75, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 60 }}>{t('table.invoiceId')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.client')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 60 }}>{t('table.userType')}</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 100, whiteSpace: 'normal' }}>{t('table.products')}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.total')}</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 60 }}>{t('status')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.issued')}</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 50 }}>{t('table.document')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.actions')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('table.invoiceId')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: isAdmin ? '13%' : '20%' }}>{t('table.client')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', width: '9%' }}>{t('table.userType')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', width: isAdmin ? '20%' : '30%' }}>{t('table.products')}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('table.total')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', width: '8%' }}>{t('status')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '9%' }}>{t('table.issued')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', width: '5%' }}>{t('table.document')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('table.actions')}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -461,7 +461,11 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   <TableCell>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                   <TableCell>{inv.clientName || '\u2014'}</TableCell>
                   {isAdmin && <TableCell>{inv.tenantType || '\u2014'}</TableCell>}
-                  <TableCell sx={{ whiteSpace: 'normal' }}>{inv.products || '\u2014'}</TableCell>
+                  <TableCell>
+                    <Tooltip title={inv.products || ''} placement="top-start" enterDelay={500}>
+                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.products || '\u2014'}</span>
+                    </Tooltip>
+                  </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.8rem' }}>
                       {formatCurrency(inv.total)}

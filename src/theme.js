@@ -210,9 +210,11 @@ const theme = createTheme({
           fontWeight: 500,
         },
         filled: {
-          backgroundColor: 'rgba(0, 0, 0, 0.06)',
-          '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.08)',
+          '&.MuiChip-colorDefault': {
+            backgroundColor: 'rgba(0, 0, 0, 0.06)',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+            },
           },
         },
         outlined: {
