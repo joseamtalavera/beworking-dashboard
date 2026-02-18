@@ -91,6 +91,9 @@ export const apiFetch = async (path, options = {}) => {
       console.error('Token refresh failed', error);
     }
     setStoredToken(null);
+    const loginUrl = import.meta.env.VITE_LOGIN_URL || 'https://web.be-working.com/main/login';
+    window.location.href = loginUrl;
+    return new Promise(() => {}); // prevent further execution while redirecting
   }
 
   if (!response.ok) {
