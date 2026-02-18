@@ -30,7 +30,7 @@ import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 
-import { fetchInvoices, fetchInvoice, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoice, creditInvoice } from '../../../api/invoices.js';
+import { fetchInvoices, fetchInvoice, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoice, updateInvoiceStatus, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -441,14 +441,15 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       ) : (
         <>
           <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ minWidth: isAdmin ? 650 : 480, '& .MuiTableCell-root': { px: 1.5, whiteSpace: 'nowrap' } }}>
+          <Table size="small" sx={{ minWidth: isAdmin ? 650 : 480, '& .MuiTableCell-root': { px: 1, whiteSpace: 'nowrap' } }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
                 <TableCell sx={{ fontWeight: 'bold', minWidth: 60 }}>{t('table.invoiceId')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 90 }}>{t('table.client')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 80 }}>{t('table.userType')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.client')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 60 }}>{t('table.userType')}</TableCell>}
                 <TableCell sx={{ fontWeight: 'bold', minWidth: 100, whiteSpace: 'normal' }}>{t('table.products')}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.total')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 60 }}>{t('status')}</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.issued')}</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', minWidth: 50 }}>{t('table.document')}</TableCell>
                 {isAdmin && <TableCell sx={{ fontWeight: 'bold', minWidth: 70 }}>{t('table.actions')}</TableCell>}
@@ -462,20 +463,42 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   {isAdmin && <TableCell>{inv.tenantType || '\u2014'}</TableCell>}
                   <TableCell sx={{ whiteSpace: 'normal' }}>{inv.products || '\u2014'}</TableCell>
                   <TableCell align="right">
-                    <Tooltip title={isPaid(inv.estado) ? t('paid') : t('unpaid')} arrow>
+                    <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.8rem' }}>
+                      {formatCurrency(inv.total)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    {isAdmin ? (
                       <Chip
-                        label={formatCurrency(inv.total)}
+                        label={isPaid(inv.estado) ? t('paid') : t('unpaid')}
                         size="small"
-                        variant="outlined"
                         color={isPaid(inv.estado) ? 'success' : 'error'}
+                        clickable
+                        onClick={async () => {
+                          const newStatus = isPaid(inv.estado) ? 'Pendiente' : 'Pagado';
+                          try {
+                            await updateInvoiceStatus(inv.id, newStatus);
+                            await refreshList();
+                            setSnackbar({ open: true, message: t('invoiceUpdated'), severity: 'success' });
+                          } catch (e) {
+                            setSnackbar({ open: true, message: e.message || t('invoiceUpdateError'), severity: 'error' });
+                          }
+                        }}
                         sx={{
                           fontWeight: 600,
-                          fontSize: '0.75rem',
-                          minWidth: 80,
+                          fontSize: '0.7rem',
                           height: 24,
+                          cursor: 'pointer',
                         }}
                       />
-                    </Tooltip>
+                    ) : (
+                      <Chip
+                        label={isPaid(inv.estado) ? t('paid') : t('unpaid')}
+                        size="small"
+                        color={isPaid(inv.estado) ? 'success' : 'error'}
+                        sx={{ fontWeight: 600, fontSize: '0.7rem', height: 24 }}
+                      />
+                    )}
                   </TableCell>
                   <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '\u2014'}</TableCell>
                   <TableCell align="center">
@@ -604,7 +627,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               ))}
               {paginatedRows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 8 : 6} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={isAdmin ? 9 : 7} align="center" sx={{ py: 6 }}>
                     <Typography variant="body2" color="text.secondary">{t('noInvoices')}</Typography>
                   </TableCell>
                 </TableRow>

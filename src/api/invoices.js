@@ -54,6 +54,13 @@ export const updateInvoice = (id, payload, options = {}) =>
     ...options
   });
 
+export const updateInvoiceStatus = (id, status, options = {}) =>
+  apiFetch(`/invoices/${String(id)}/status`, {
+    method: 'PATCH',
+    body: { status },
+    ...options
+  });
+
 export const creditInvoice = (id, payload = {}, options = {}) =>
   apiFetch(`/invoices/${String(id)}/credit`, {
     method: 'POST',
