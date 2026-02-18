@@ -50,6 +50,28 @@ const isPaid = (estado) => {
   return key.includes('pag') || key.includes('paid');
 };
 
+const isRectificado = (estado) => {
+  const key = (estado || '').toLowerCase();
+  return key.includes('rectificad');
+};
+
+const isCreditNote = (inv) => {
+  return inv.total != null && Number(inv.total) < 0;
+};
+
+const getStatusInfo = (inv, t) => {
+  if (isRectificado(inv.estado)) {
+    return { label: t('rectificado'), color: 'warning' };
+  }
+  if (isCreditNote(inv)) {
+    return { label: t('credited'), color: 'warning' };
+  }
+  if (isPaid(inv.estado)) {
+    return { label: t('paid'), color: 'success' };
+  }
+  return { label: t('unpaid'), color: 'error' };
+};
+
 const PAGE_SIZE = 100; // Server-side pagination - 100 invoices per page
 
 const Invoices = ({ mode = 'admin', userProfile }) => {
@@ -472,37 +494,35 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    {isAdmin ? (
-                      <Chip
-                        label={isPaid(inv.estado) ? t('paid') : t('unpaid')}
-                        size="small"
-                        color={isPaid(inv.estado) ? 'success' : 'error'}
-                        clickable
-                        onClick={async () => {
-                          const newStatus = isPaid(inv.estado) ? 'Pendiente' : 'Pagado';
-                          try {
-                            await updateInvoiceStatus(inv.id, newStatus);
-                            await refreshList();
-                            setSnackbar({ open: true, message: t('invoiceUpdated'), severity: 'success' });
-                          } catch (e) {
-                            setSnackbar({ open: true, message: e.message || t('invoiceUpdateError'), severity: 'error' });
-                          }
-                        }}
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.7rem',
-                          height: 24,
-                          cursor: 'pointer',
-                        }}
-                      />
-                    ) : (
-                      <Chip
-                        label={isPaid(inv.estado) ? t('paid') : t('unpaid')}
-                        size="small"
-                        color={isPaid(inv.estado) ? 'success' : 'error'}
-                        sx={{ fontWeight: 600, fontSize: '0.7rem', height: 24 }}
-                      />
-                    )}
+                    {(() => {
+                      const si = getStatusInfo(inv, t);
+                      const isClickable = isAdmin && !isRectificado(inv.estado) && !isCreditNote(inv);
+                      return (
+                        <Chip
+                          label={si.label}
+                          size="small"
+                          color={si.color}
+                          clickable={isClickable}
+                          onClick={isClickable ? async () => {
+                            const newStatus = isPaid(inv.estado) ? 'Pendiente' : 'Pagado';
+                            try {
+                              await updateInvoiceStatus(inv.id, newStatus);
+                              await refreshList();
+                              setSnackbar({ open: true, message: t('invoiceUpdated'), severity: 'success' });
+                            } catch (e) {
+                              setSnackbar({ open: true, message: e.message || t('invoiceUpdateError'), severity: 'error' });
+                            }
+                          } : undefined}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.7rem',
+                            height: 24,
+                            minWidth: 80,
+                            cursor: isClickable ? 'pointer' : 'default',
+                          }}
+                        />
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '\u2014'}</TableCell>
                   <TableCell align="center">

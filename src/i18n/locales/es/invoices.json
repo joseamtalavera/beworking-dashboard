@@ -12,6 +12,8 @@
   "all": "Todos",
   "paid": "Pagada",
   "unpaid": "Pendiente",
+  "rectificado": "Rectificado",
+  "credited": "Rectificado",
   "userType": "Tipo de usuario",
   "allUserTypes": "Todos los tipos",
   "product": "Producto",
