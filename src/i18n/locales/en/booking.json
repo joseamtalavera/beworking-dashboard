@@ -234,6 +234,8 @@
     "pending": "Pending"
   },
   "admin": {
+    "title": "Workspace Bookings",
+    "subtitle": "Browse every booking across BeWorking locations. Switch between calendar and bookings views.",
     "calendarTab": "Calendar",
     "agendaTab": "Bookings",
     "selectDate": "Select date",

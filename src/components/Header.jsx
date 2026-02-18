@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../api/client.js';
+import { useColorMode } from '../main.jsx';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -20,6 +21,8 @@ import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -35,6 +38,7 @@ const spinAnimation = `
 const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab, onMenuToggle }) => {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
+  const { mode, toggleColorMode } = useColorMode();
   const accentColor = theme.palette.brand.green;
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -455,6 +459,21 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                 aria-label={t('header.helpSupport')}
               >
                 <HelpOutlineIcon />
+              </IconButton>
+              <IconButton
+                onClick={toggleColorMode}
+                size="small"
+                sx={{
+                  color: accentColor,
+                  width: 36,
+                  height: 36,
+                  '&:hover': {
+                    backgroundColor: theme.palette.brand.accentSoft,
+                  },
+                }}
+                aria-label="Toggle dark mode"
+              >
+                {mode === 'dark' ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}
               </IconButton>
               <Button
                 variant="outlined"

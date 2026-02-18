@@ -1101,10 +1101,10 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={3}>
           <Stack spacing={1}>
             <Typography variant="h5" fontWeight={700}>
-              Contacts
+              {t('header.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Track onboarding progress, ownership, and engagement health across every user.
+              {t('header.subtitle')}
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }}>

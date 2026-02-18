@@ -659,6 +659,7 @@ const SpaceCatalog = () => {
                         component="img"
                         src={row.heroImage}
                         alt={row.displayName || 'Hero image'}
+                        onError={(e) => { e.target.style.display = 'none'; }}
                         sx={{
                           width: 96,
                           height: 64,

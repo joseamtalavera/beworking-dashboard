@@ -5411,10 +5411,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
       >
         <Stack spacing={1}>
           <Typography variant="h5" fontWeight="bold" color="text.primary">
-            Workspace Bookings
+            {t('admin.title')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Browse every booking across BeWorking locations. Switch between calendar and bookings views.
+            {t('admin.subtitle')}
           </Typography>
         </Stack>
         <Stack direction="row" spacing={2} alignItems="center">

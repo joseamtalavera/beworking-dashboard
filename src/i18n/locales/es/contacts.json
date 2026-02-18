@@ -160,6 +160,10 @@
     "joined": "Registrado",
     "saveError": "No se pudieron guardar los cambios."
   },
+  "header": {
+    "title": "Contactos",
+    "subtitle": "Seguimiento del progreso de incorporación, titularidad y estado de cada usuario."
+  },
   "errors": {
     "noProfile": "No se encontró perfil de contacto para tu cuenta.",
     "unableToLoad": "No se pudo cargar tu perfil.",

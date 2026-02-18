@@ -160,6 +160,10 @@
     "joined": "Joined",
     "saveError": "Could not save changes."
   },
+  "header": {
+    "title": "Contacts",
+    "subtitle": "Track onboarding progress, ownership, and engagement health across every user."
+  },
   "errors": {
     "noProfile": "No contact profile found for your account.",
     "unableToLoad": "Unable to load your profile.",

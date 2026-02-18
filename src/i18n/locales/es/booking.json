@@ -234,6 +234,8 @@
     "pending": "Pendiente"
   },
   "admin": {
+    "title": "Reservas de Espacios",
+    "subtitle": "Consulta todas las reservas en las sedes de BeWorking. Alterna entre vista de calendario y listado.",
     "calendarTab": "Calendario",
     "agendaTab": "Reservas",
     "selectDate": "Seleccionar fecha",
