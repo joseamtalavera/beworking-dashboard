@@ -2582,16 +2582,19 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
     setError('');
     try {
       await updateBloqueo(bloqueo.id, {
-        ...bloqueo,
-        cliente: { id: formState.clienteId },
-        centro: { id: formState.centroId },
-        producto: { id: formState.productoId },
-        fechaIni: `${formState.dateFrom}T${formState.horaIni}:00`,
-        fechaFin: `${formState.dateTo}T${formState.horaFin}:00`,
-        asistentes: formState.asistentes,
-        tarifa: formState.tarifa,
+        contactId: formState.clienteId,
+        centroId: formState.centroId,
+        productoId: formState.productoId,
+        reservationType: formState.reservationType || 'Por Horas',
+        dateFrom: formState.dateFrom,
+        dateTo: formState.dateTo,
+        timeSlots: [{ from: formState.horaIni, to: formState.horaFin }],
+        status: formState.status || 'Booked',
+        tarifa: formState.tarifa ? Number(formState.tarifa) : null,
+        attendees: formState.asistentes ? Number(formState.asistentes) : null,
         configuracion: formState.configuracion,
-        nota: formState.nota
+        note: formState.nota,
+        openEnded: formState.openEnded || false
       });
       setIsEditMode(false);
       onClose?.();
@@ -2626,7 +2629,21 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           description,
           reference: String(formState.productoId || ''),
         });
-        await updateBloqueo(bloqueo.id, { ...bloqueo, estado: 'Paid' });
+        await updateBloqueo(bloqueo.id, {
+          contactId: formState.clienteId,
+          centroId: formState.centroId,
+          productoId: formState.productoId,
+          reservationType: formState.reservationType || 'Por Horas',
+          dateFrom: formState.dateFrom,
+          dateTo: formState.dateTo,
+          timeSlots: [{ from: formState.horaIni, to: formState.horaFin }],
+          status: 'Paid',
+          tarifa: formState.tarifa ? Number(formState.tarifa) : null,
+          attendees: formState.asistentes ? Number(formState.asistentes) : null,
+          configuracion: formState.configuracion,
+          note: formState.nota,
+          openEnded: formState.openEnded || false
+        });
       } else if (paymentOption === 'invoice') {
         await createStripeInvoice({
           customerEmail: contactEmail,
@@ -2637,7 +2654,21 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           reference: String(formState.productoId || ''),
           dueDays: invoiceDueDays,
         });
-        await updateBloqueo(bloqueo.id, { ...bloqueo, estado: 'Invoiced' });
+        await updateBloqueo(bloqueo.id, {
+          contactId: formState.clienteId,
+          centroId: formState.centroId,
+          productoId: formState.productoId,
+          reservationType: formState.reservationType || 'Por Horas',
+          dateFrom: formState.dateFrom,
+          dateTo: formState.dateTo,
+          timeSlots: [{ from: formState.horaIni, to: formState.horaFin }],
+          status: 'Invoiced',
+          tarifa: formState.tarifa ? Number(formState.tarifa) : null,
+          attendees: formState.asistentes ? Number(formState.asistentes) : null,
+          configuracion: formState.configuracion,
+          note: formState.nota,
+          openEnded: formState.openEnded || false
+        });
       }
       onClose?.();
     } catch (payError) {
