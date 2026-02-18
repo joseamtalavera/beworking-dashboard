@@ -30,7 +30,7 @@ import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 
-import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, creditInvoice } from '../../../api/invoices.js';
+import { fetchInvoices, fetchInvoice, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoice, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -73,6 +73,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   });
   const [queryFilters, setQueryFilters] = useState(filters);
   const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
+  const [editInvoice, setEditInvoice] = useState(null); // { id, ...initial data }
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Build the effective filters: for user mode, always filter by user email
@@ -511,41 +512,92 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   </TableCell>
                   {isAdmin && (
                   <TableCell>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={async () => {
-                        const invoiceNum = inv.holdedInvoiceNum || inv.idFactura || inv.id;
-                        const shouldCredit = window.confirm(t('creditConfirm', { invoiceNum }));
-                        if (!shouldCredit) return;
-                        try {
-                          const result = await creditInvoice(inv.id, {});
-                          const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
-                          setSnackbar({ open: true, message: t('refundCreated', { refundId }), severity: 'success' });
-                          await refreshList();
-                        } catch (e) {
-                          setSnackbar({ open: true, message: e.message || t('refundError'), severity: 'error' });
-                        }
-                      }}
-                      sx={{
-                        minWidth: 80,
-                        height: 28,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        borderColor: 'secondary.main',
-                        color: 'secondary.main',
-                        '&:hover': {
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={async () => {
+                          try {
+                            const detail = await fetchInvoice(inv.id);
+                            const lineItems = (detail.lineItems || []).map((li) => ({
+                              description: li.conceptodesglose || '',
+                              quantity: Number(li.cantidaddesglose || 1),
+                              price: Number(li.precioundesglose || 0),
+                              vatPercent: 21
+                            }));
+                            setEditInvoice({
+                              id: inv.id,
+                              client: inv.clientName ? { label: inv.clientName, value: inv.idCliente } : null,
+                              clientName: inv.clientName || '',
+                              invoiceNum: inv.holdedInvoiceNum || String(inv.idFactura || ''),
+                              date: detail.fechacreacionreal ? String(detail.fechacreacionreal) : (inv.createdAt ? inv.createdAt.slice(0, 10) : ''),
+                              dueDate: detail.fechacobro1 ? String(detail.fechacobro1) : '',
+                              lines: lineItems.length > 0 ? lineItems : [{ description: '', quantity: 1, price: 0, vatPercent: 21 }],
+                              note: detail.notas || '',
+                              userType: inv.tenantType || '',
+                              center: detail.idcentro ? String(detail.idcentro) : '',
+                              cuenta: detail.holdedcuenta || '',
+                              status: inv.estado || 'Pendiente'
+                            });
+                          } catch (e) {
+                            setSnackbar({ open: true, message: e.message || t('invoiceUpdateError'), severity: 'error' });
+                          }
+                        }}
+                        sx={{
+                          minWidth: 60,
+                          height: 28,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          borderColor: 'primary.main',
+                          color: 'primary.main',
+                          '&:hover': {
+                            borderColor: 'primary.dark',
+                            color: 'primary.dark',
+                            backgroundColor: (theme) => `${theme.palette.primary.main}14`,
+                            transform: 'translateY(-1px)',
+                            boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`
+                          },
+                          transition: 'all 0.2s ease-in-out'
+                        }}
+                      >
+                        {t('edit')}
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={async () => {
+                          const invoiceNum = inv.holdedInvoiceNum || inv.idFactura || inv.id;
+                          const shouldCredit = window.confirm(t('creditConfirm', { invoiceNum }));
+                          if (!shouldCredit) return;
+                          try {
+                            const result = await creditInvoice(inv.id, {});
+                            const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
+                            setSnackbar({ open: true, message: t('refundCreated', { refundId }), severity: 'success' });
+                            await refreshList();
+                          } catch (e) {
+                            setSnackbar({ open: true, message: e.message || t('refundError'), severity: 'error' });
+                          }
+                        }}
+                        sx={{
+                          minWidth: 60,
+                          height: 28,
+                          textTransform: 'none',
+                          fontWeight: 600,
                           borderColor: 'secondary.main',
                           color: 'secondary.main',
-                          backgroundColor: (theme) => `${theme.palette.secondary.main}14`,
-                          transform: 'translateY(-1px)',
-                          boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
-                        },
-                        transition: 'all 0.2s ease-in-out'
-                      }}
-                    >
-                      {t('credit')}
-                    </Button>
+                          '&:hover': {
+                            borderColor: 'secondary.main',
+                            color: 'secondary.main',
+                            backgroundColor: (theme) => `${theme.palette.secondary.main}14`,
+                            transform: 'translateY(-1px)',
+                            boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
+                          },
+                          transition: 'all 0.2s ease-in-out'
+                        }}
+                      >
+                        {t('credit')}
+                      </Button>
+                    </Stack>
                   </TableCell>
                   )}
                 </TableRow>
@@ -637,6 +689,28 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               } finally {
                 setLoading(false);
               }
+          }}
+        />
+      )}
+      {isAdmin && editInvoice && (
+        <InvoiceEditor
+          open={!!editInvoice}
+          onClose={() => setEditInvoice(null)}
+          editMode
+          initial={editInvoice}
+          onUpdate={async (id, payload) => {
+            try {
+              setLoading(true);
+              await updateInvoice(id, payload);
+              setSnackbar({ open: true, message: t('invoiceUpdated'), severity: 'success' });
+              setEditInvoice(null);
+              await refreshList();
+            } catch (e) {
+              setSnackbar({ open: true, message: e.message || t('invoiceUpdateError'), severity: 'error' });
+              throw e;
+            } finally {
+              setLoading(false);
+            }
           }}
         />
       )}

@@ -51,11 +51,9 @@ if (!i18n.hasResourceBundle('es', 'invoices')) {
   i18n.addResourceBundle('en', 'invoices', enInvoices);
 }
 
-// A reasonably complete invoice editor UI in a Dialog.
-// onCreate(payload, { openPreview }) should be provided by the caller.
 const DEFAULT_LINE = { description: '', quantity: 1, price: 0, vatPercent: 21 };
 
-const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
+const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMode = false }) => {
   const theme = useTheme();
   const { t } = useTranslation('invoices');
   const [client, setClient] = useState(initial.client || null);
@@ -91,8 +89,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   const totalVat = useMemo(() => Object.values(vatTotals).reduce((a, b) => a + b, 0), [vatTotals]);
   const total = useMemo(() => subtotal + totalVat, [subtotal, totalVat]);
 
-  const handleCreate = async (status = 'Pendiente') => {
-    // Build a payload for manual invoice creation
+  const handleSubmit = async (status = 'Pendiente') => {
     const payload = {
       clientName: client?.label || client || '',
       clientId: client?.value || client?.id || undefined,
@@ -104,25 +101,23 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
       dueDate: dueDate || undefined,
       status,
       note: note || undefined,
-      lineItems: lines.map((l) => ({ 
-        description: l.description || 'Item', 
-        quantity: Number(l.quantity || 0), 
-        price: Number(l.price || 0), 
-        vatPercent: Number(l.vatPercent || 0) 
+      lineItems: lines.map((l) => ({
+        description: l.description || 'Item',
+        quantity: Number(l.quantity || 0),
+        price: Number(l.price || 0),
+        vatPercent: Number(l.vatPercent || 0)
       })),
       computed: { subtotal, totalVat, total }
     };
-    console.log('Creating manual invoice with payload:', payload);
-    console.log('Selected client:', client);
-    
+
     try {
-      if (!onCreate) {
-        throw new Error('No create handler provided');
+      if (editMode && onUpdate) {
+        await onUpdate(initial.id, payload);
+      } else if (onCreate) {
+        await onCreate(payload);
       }
-      const created = await onCreate(payload);
-      console.log('Invoice created successfully:', created);
     } catch (error) {
-      console.error('Failed to create invoice:', error);
+      console.error('Failed to save invoice:', error);
     }
   };
 
@@ -180,9 +175,9 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
     };
   }, [clientSearch]);
 
-  // Fetch next invoice number when dialog opens
+  // Fetch next invoice number when dialog opens (only for create mode)
   useEffect(() => {
-    if (open && !invoiceNum) {
+    if (open && !invoiceNum && !editMode) {
       fetchNextInvoiceNumber()
         .then(response => {
           if (response.nextNumber) {
@@ -193,7 +188,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
           console.error('Failed to fetch next invoice number:', error);
         });
     }
-  }, [open, invoiceNum]);
+  }, [open, invoiceNum, editMode]);
 
   // Load cuentas when dialog opens
   useEffect(() => {
@@ -230,15 +225,33 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
   // Reset states when dialog opens
   useEffect(() => {
     if (open) {
-      setClient(null);
-      setClientSearch('');
+      if (editMode && initial) {
+        setClient(initial.client || null);
+        setClientSearch(initial.clientName || initial.client?.label || '');
+        setInvoiceNum(initial.invoiceNum || '');
+        setDate(initial.date || new Date().toISOString().slice(0, 10));
+        setDueDate(initial.dueDate || '');
+        setLines(initial.lines && initial.lines.length > 0 ? initial.lines : [{ ...DEFAULT_LINE }]);
+        setNote(initial.note || '');
+        setUserType(initial.userType || '');
+        setCenter(initial.center || '');
+        setCuenta(initial.cuenta || '');
+      } else {
+        setClient(null);
+        setClientSearch('');
+        setInvoiceNum('');
+        setDate(new Date().toISOString().slice(0, 10));
+        setDueDate('');
+        setLines([{ ...DEFAULT_LINE }]);
+        setNote('');
+        setUserType('');
+        setCenter('');
+        setCuenta('');
+      }
       setContactOptions([]);
       setShowDropdown(false);
-      setUserType(''); // This will show the placeholder "Select user type"
-      setCenter(''); // This will show the placeholder "Select center"
-      setCuenta(''); // This will show the placeholder "Select cuenta"
     }
-  }, [open]);
+  }, [open, editMode, initial]);
 
   // Load initial contacts when dialog opens
   useEffect(() => {
@@ -303,10 +316,10 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
       }}>
         <Box>
           <Typography variant="h5" fontWeight="bold" color="text.primary">
-            {t('editor.title')}
+            {editMode ? t('editor.editTitle') : t('editor.title')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
-            {t('editor.subtitle')}
+            {editMode ? t('editor.editSubtitle') : t('editor.subtitle')}
           </Typography>
         </Box>
       </DialogTitle>
@@ -687,9 +700,9 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
               </Box>
               
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                <Button 
-                  variant="contained" 
-                  onClick={() => handleCreate('Pendiente')}
+                <Button
+                  variant="contained"
+                  onClick={() => handleSubmit(editMode ? (initial.status || 'Pendiente') : 'Pendiente')}
                   sx={{
                     backgroundColor: 'primary.main',
                     color: 'white',
@@ -699,7 +712,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, initial = {} }) => {
                     }
                   }}
                 >
-                  {t('editor.approveInvoice')}
+                  {editMode ? t('editor.saveChanges') : t('editor.approveInvoice')}
                 </Button>
               </Box>
             </Paper>

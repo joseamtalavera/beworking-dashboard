@@ -72,6 +72,12 @@
     "additionalNotes": "Additional Notes",
     "note": "Note",
     "notePlaceholder": "Add any additional notes or terms for this invoice...",
-    "close": "Close"
-  }
+    "close": "Close",
+    "editTitle": "Edit Invoice",
+    "editSubtitle": "Modify the invoice details",
+    "saveChanges": "SAVE CHANGES"
+  },
+  "edit": "Edit",
+  "invoiceUpdated": "Invoice updated",
+  "invoiceUpdateError": "Failed to update invoice"
 }

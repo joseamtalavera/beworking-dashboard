@@ -72,6 +72,12 @@
     "additionalNotes": "Notas adicionales",
     "note": "Nota",
     "notePlaceholder": "Añade notas o condiciones adicionales para esta factura...",
-    "close": "Cerrar"
-  }
+    "close": "Cerrar",
+    "editTitle": "Editar factura",
+    "editSubtitle": "Modifica los detalles de la factura",
+    "saveChanges": "GUARDAR CAMBIOS"
+  },
+  "edit": "Editar",
+  "invoiceUpdated": "Factura actualizada",
+  "invoiceUpdateError": "Error al actualizar la factura"
 }

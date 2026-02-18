@@ -20,6 +20,9 @@ export const fetchInvoices = (
   return apiFetch(`/invoices?${params.toString()}`, options);
 };
 
+export const fetchInvoice = (id, options = {}) =>
+  apiFetch(`/invoices/${String(id)}`, options);
+
 export const fetchInvoicePdfUrl = (id, options = {}) => {
   const params = new URLSearchParams();
   params.set('id', String(id));
@@ -40,6 +43,13 @@ export const createInvoice = (payload, options = {}) =>
 export const createManualInvoice = (payload, options = {}) =>
   apiFetch('/invoices/manual', {
     method: 'POST',
+    body: payload,
+    ...options
+  });
+
+export const updateInvoice = (id, payload, options = {}) =>
+  apiFetch(`/invoices/${String(id)}`, {
+    method: 'PUT',
     body: payload,
     ...options
   });
