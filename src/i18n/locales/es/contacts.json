@@ -13,6 +13,7 @@
     "center": "Centro",
     "billingInfo": "Información de Facturación",
     "billingCompany": "Empresa de facturación",
+    "billingTaxId": "NIF/CIF",
     "billingEmail": "Correo de facturación",
     "billingAddress": "Dirección de facturación",
     "postalCode": "Código postal",

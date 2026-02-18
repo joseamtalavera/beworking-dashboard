@@ -13,6 +13,7 @@
     "center": "Center",
     "billingInfo": "Billing Information",
     "billingCompany": "Billing company",
+    "billingTaxId": "Tax ID",
     "billingEmail": "Billing email",
     "billingAddress": "Billing address",
     "postalCode": "Postal code",
