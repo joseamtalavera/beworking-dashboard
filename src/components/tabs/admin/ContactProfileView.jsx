@@ -15,6 +15,10 @@ import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
+import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
+import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
+import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -23,12 +27,12 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
+import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
-import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
 
@@ -38,6 +42,17 @@ import esContacts from '../../../i18n/locales/es/contacts.json';
 import enContacts from '../../../i18n/locales/en/contacts.json';
 
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
+
+const STATUS_OPTIONS = [
+  { value: 'Activo', label: 'Activo' },
+  { value: 'Convertido', label: 'Convertido' },
+  { value: 'Potencial', label: 'Potencial' },
+  { value: 'Trial', label: 'Trial' },
+  { value: 'Suspended', label: 'Suspendido' },
+  { value: 'Inactive', label: 'Inactivo' },
+];
+
+const CENTER_OPTIONS = ['MA1 MALAGA DUMAS'];
 
 if (!i18n.hasResourceBundle('es', 'contacts')) {
   i18n.addResourceBundle('es', 'contacts', esContacts);
@@ -64,6 +79,23 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [draft, setDraft] = useState(() => mapContactToDraft(contact));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      minHeight: 40,
+      backgroundColor: theme.palette.common.white,
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.grey[400]
+      }
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: theme.palette.grey[300]
+    },
+    '& .MuiInputLabel-root': {
+      color: theme.palette.text.secondary
+    }
+  };
 
   useEffect(() => {
     setDraft(mapContactToDraft(contact));
@@ -301,6 +333,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 { label: t('profile.billingEmail'), value: contact.billing?.email || contact.contact?.email },
                 { label: t('profile.billingAddress'), value: contact.billing?.address || '—' },
                 { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
+                { label: t('profile.billingCity'), value: contact.billing?.city || '—' },
                 { label: t('profile.billingCounty'), value: contact.billing?.county || '—' },
                 { label: t('profile.billingCountry'), value: contact.billing?.country || '—' },
                 { label: t('profile.billingTaxId'), value: contact.billing?.tax_id || '—' }
@@ -403,24 +436,24 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <Stack spacing={4}>
               {saveError ? <Alert severity="error">{saveError}</Alert> : null}
               {/* Basic Information Section */}
-              <Paper 
+              <Paper
                 elevation={0}
-                sx={{ 
-                  borderRadius: 3, 
+                sx={{
+                  borderRadius: 3,
                   border: '1px solid',
-          borderColor: 'grey.200',
+                  borderColor: 'divider',
                   overflow: 'hidden',
-                  background: 'white'
+                  background: 'background.paper'
                 }}
               >
-                <Box sx={{ 
-                  p: 3, 
-                  background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[50]} 100%)`,
+                <Box sx={{
+                  p: 3,
+                  background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
                   borderBottom: '1px solid',
-                  borderBottomColor: 'grey.200'
+                  borderBottomColor: 'divider'
                 }}>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: 'success.main', width: 36, height: 36 }}>
+                    <Avatar sx={{ bgcolor: 'success.light', width: 36, height: 36 }}>
                       <PersonRoundedIcon />
                     </Avatar>
                     <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -430,22 +463,22 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 </Box>
                 <Box sx={{ p: 3 }}>
                   {/* Profile Photo Section */}
-                  <Box sx={{ 
-                    p: 3, 
+                  <Box sx={{
+                    p: 3,
                     border: '2px dashed',
-                    borderColor: 'success.main',
+                    borderColor: 'success.light',
                     borderRadius: 2,
-                    bgcolor: (theme) => `${theme.palette.success.main}0D`,
-                    mb: 3 
+                    bgcolor: (th) => `${th.palette.success.main}0D`,
+                    mb: 3
                   }}>
-                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: 'success.main' }}>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, color: 'success.light' }}>
                       {t('profile.profilePhoto')}
                     </Typography>
                     <Stack direction="row" spacing={3} alignItems="center">
-                      <Avatar 
-                        src={draft?.avatar} 
-                        alt={draft?.name} 
-                        sx={{ width: 80, height: 80, bgcolor: 'success.main', fontSize: 32, border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
+                      <Avatar
+                        src={draft?.avatar}
+                        alt={draft?.name}
+                        sx={{ width: 80, height: 80, bgcolor: 'success.light', fontSize: 32, border: (th) => `3px solid ${th.palette.primary.light}80` }}
                       >
                         {draft?.name ? draft.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
                       </Avatar>
@@ -468,18 +501,18 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                           }}
                         />
                         <label htmlFor="user-avatar-upload">
-                          <Button 
+                          <Button
                             component="span"
-                            variant="outlined" 
-                            size="medium" 
+                            variant="outlined"
+                            size="medium"
                             startIcon={<PhotoCameraRoundedIcon />}
-                            sx={{ 
-                              borderColor: 'success.main', 
-                              color: 'success.main',
+                            sx={{
+                              borderColor: 'success.light',
+                              color: 'success.light',
                               '&:hover': {
-                                borderColor: 'success.main', 
-                                backgroundColor: (theme) => `${theme.palette.success.main}10`
-                              } 
+                                borderColor: 'success.light',
+                                backgroundColor: (th) => `${th.palette.success.light}10`
+                              }
                             }}
                           >
                             {t('profile.changePhoto')}
@@ -491,60 +524,18 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       </Stack>
                     </Stack>
                   </Box>
-                  
+
                   <Grid container spacing={3}>
                     <Grid item xs={12} sm={6}>
                       <TextField
                         label={t('profile.userName')}
                         value={draft?.name || ''}
                         onChange={handleChange('name')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label={t('profile.status')}
-                        value={draft?.status || ''}
-                        onChange={handleChange('status')}
-                        fullWidth 
-                        variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label={t('profile.primaryContact')}
-                        value={draft?.contact?.name || ''}
-                        onChange={handleContactChange('name')}
-                        fullWidth 
-                        variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -552,17 +543,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         label={t('profile.email')}
                         value={draft?.contact?.email || ''}
                         onChange={handleContactChange('email')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlineRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -570,17 +555,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         label={t('profile.phone')}
                         value={draft?.phone_primary || ''}
                         onChange={handleChange('phone_primary')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><PhoneRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -591,16 +570,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         onChange={handleChange('user_type')}
                         fullWidth
                         variant="outlined"
+                        size="small"
+                        sx={fieldSx}
                         SelectProps={{ displayEmpty: true }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
                       >
                         <MenuItem value="">
                           <em>{t('profile.undefinedOption')}</em>
@@ -614,63 +586,68 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        label={t('profile.plan')}
-                        value={draft?.plan || ''}
-                        onChange={handleChange('plan')}
-                        fullWidth 
+                        select
+                        label={t('profile.status')}
+                        value={draft?.status || ''}
+                        onChange={handleChange('status')}
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
-                      />
+                        size="small"
+                        sx={fieldSx}
+                      >
+                        {STATUS_OPTIONS.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <TextField
+                        select
                         label={t('profile.center')}
                         value={draft?.center || ''}
                         onChange={handleChange('center')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.main'
-                            }
-                          }
-                        }}
-                      />
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
+                        SelectProps={{ displayEmpty: true }}
+                      >
+                        <MenuItem value="">
+                          <em>—</em>
+                        </MenuItem>
+                        {CENTER_OPTIONS.map((c) => (
+                          <MenuItem key={c} value={c}>
+                            {c}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                     </Grid>
                   </Grid>
                 </Box>
               </Paper>
 
               {/* Billing Information Section */}
-              <Paper 
+              <Paper
                 elevation={0}
-                sx={{ 
-                  borderRadius: 3, 
+                sx={{
+                  borderRadius: 3,
                   border: '1px solid',
-          borderColor: 'grey.200',
+                  borderColor: 'divider',
                   overflow: 'hidden',
-                  background: 'white'
+                  background: 'background.paper'
                 }}
               >
-                <Box sx={{ 
-                  p: 3, 
-                  background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[50]} 100%)`,
+                <Box sx={{
+                  p: 3,
+                  background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
                   borderBottom: '1px solid',
-                  borderBottomColor: 'grey.200'
+                  borderBottomColor: 'divider'
                 }}>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: 'success.dark', width: 36, height: 36 }}>
+                    <Avatar sx={{ bgcolor: 'success.light', width: 36, height: 36 }}>
                       <BusinessRoundedIcon />
                     </Avatar>
                     <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -685,17 +662,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         label={t('profile.companyName')}
                         value={draft?.billing?.company || ''}
                         onChange={handleBillingChange('company')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.dark'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -703,17 +674,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         label={t('profile.billingEmail')}
                         value={draft?.billing?.email || ''}
                         onChange={handleBillingChange('email')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.dark'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlineRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -721,71 +686,55 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         label={t('profile.billingAddress')}
                         value={draft?.billing?.address || ''}
                         onChange={handleBillingChange('address')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.dark'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={3}>
                       <TextField
                         label={t('profile.billingPostalCode')}
                         value={draft?.billing?.postal_code || ''}
                         onChange={handleBillingChange('postal_code')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.dark'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={3}>
+                      <TextField
+                        label={t('profile.billingCity')}
+                        value={draft?.billing?.city || ''}
+                        onChange={handleBillingChange('city')}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        sx={fieldSx}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
                       <TextField
                         label={t('profile.countyState')}
                         value={draft?.billing?.county || ''}
                         onChange={handleBillingChange('county')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.dark'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={3}>
                       <TextField
                         label={t('profile.billingCountry')}
                         value={draft?.billing?.country || ''}
                         onChange={handleBillingChange('country')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.dark'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -793,17 +742,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         label={t('profile.billingTaxId')}
                         value={draft?.billing?.tax_id || ''}
                         onChange={handleBillingChange('tax_id')}
-                        fullWidth 
+                        fullWidth
                         variant="outlined"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            minHeight: 56,
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: 'success.dark'
-                            }
-                          }
-                        }}
+                        size="small"
+                        sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><BadgeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
                   </Grid>
@@ -876,7 +819,6 @@ ContactProfileView.propTypes = {
       email: PropTypes.string
     }),
     phone_primary: PropTypes.string,
-    plan: PropTypes.string,
     status: PropTypes.string,
     user_type: PropTypes.string,
     center: PropTypes.string,
@@ -889,6 +831,7 @@ ContactProfileView.propTypes = {
       email: PropTypes.string,
       address: PropTypes.string,
       postal_code: PropTypes.string,
+      city: PropTypes.string,
       county: PropTypes.string,
       country: PropTypes.string,
       tax_id: PropTypes.string

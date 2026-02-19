@@ -1108,46 +1108,43 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             </Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <Button
+              variant="outlined"
+              sx={{
+                minWidth: 120,
+                height: 36,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: 'success.main',
+                color: 'success.main',
+                '&:hover': {
+                  borderColor: theme.palette.success.dark,
+                  color: theme.palette.success.dark,
+                  backgroundColor: alpha(theme.palette.success.main, 0.08),
+                }
+              }}
+            >
+              Export csv
+            </Button>
             {userType === 'admin' && (
               <Button
-                variant="outlined"
+                variant="contained"
                 sx={{
                   minWidth: 120,
                   height: 36,
                   textTransform: 'none',
                   fontWeight: 600,
-                  borderColor: 'success.main',
-                  color: 'success.main',
+                  backgroundColor: 'success.main',
+                  color: 'common.white',
                   '&:hover': {
-                    borderColor: theme.palette.success.dark,
-                    color: theme.palette.success.dark,
-                    backgroundColor: alpha(theme.palette.success.main, 0.08),
-                    transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.success.main, 0.2)}`
-                  },
-                  transition: 'all 0.2s ease-in-out'
+                    backgroundColor: 'success.dark',
+                  }
                 }}
                 onClick={() => setAddDialogOpen(true)}
               >
                 + {t('filters.addUser')}
               </Button>
             )}
-            <Button 
-              variant="contained"
-              sx={{
-                minWidth: 120,
-                height: 36,
-                textTransform: 'none',
-                fontWeight: 600,
-                backgroundColor: 'primary.main',
-                color: 'common.white',
-                '&:hover': {
-                  backgroundColor: 'primary.dark'
-                }
-              }}
-            >
-              Export csv
-            </Button>
           </Stack>
         </Stack>
 

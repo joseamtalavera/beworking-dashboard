@@ -106,6 +106,7 @@
     "billingEmail": "Correo",
     "billingAddress": "Dirección",
     "billingPostalCode": "Código postal",
+    "billingCity": "Ciudad",
     "billingCounty": "Provincia",
     "billingCountry": "País",
     "billingTaxId": "NIF/CIF",

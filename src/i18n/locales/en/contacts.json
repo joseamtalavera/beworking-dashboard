@@ -106,6 +106,7 @@
     "billingEmail": "Email",
     "billingAddress": "Address",
     "billingPostalCode": "Postal code",
+    "billingCity": "City",
     "billingCounty": "County",
     "billingCountry": "Country",
     "billingTaxId": "Tax ID",
