@@ -18,7 +18,12 @@ import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
 import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import MarkunreadMailboxRoundedIcon from '@mui/icons-material/MarkunreadMailboxRounded';
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
+import Autocomplete from '@mui/material/Autocomplete';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -42,6 +47,15 @@ import esContacts from '../../../i18n/locales/es/contacts.json';
 import enContacts from '../../../i18n/locales/en/contacts.json';
 
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
+import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
+
+const VIRTUAL_USER_BILLING = {
+  address: 'Calle Alejandro Dumas 17 - Oficinas',
+  country: 'España',
+  county: 'Málaga',
+  city: 'Málaga',
+  postal_code: '29004'
+};
 
 const STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
@@ -60,7 +74,8 @@ if (!i18n.hasResourceBundle('es', 'contacts')) {
 }
 
 const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile }) => {
-  const { t } = useTranslation('contacts');
+  const { t, i18n: i18nInstance } = useTranslation('contacts');
+  const lang = i18nInstance.language?.startsWith('en') ? 'en' : 'es';
   const theme = useTheme();
   const mapContactToDraft = (value) => {
     if (!value) {
@@ -71,7 +86,8 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       user_type:
         value.user_type && value.user_type !== '—'
           ? normalizeUserTypeLabel(value.user_type)
-          : ''
+          : '',
+      center: value.center || 'MA1 MALAGA DUMAS'
     };
   };
 
@@ -82,8 +98,23 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: 2,
-      minHeight: 40,
+      borderRadius: 1,
+      height: 36,
+      backgroundColor: theme.palette.common.white,
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.grey[400]
+      }
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: theme.palette.grey[300]
+    },
+    '& .MuiInputLabel-root': {
+      color: theme.palette.text.secondary
+    }
+  };
+  const autocompleteFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
       backgroundColor: theme.palette.common.white,
       '&:hover .MuiOutlinedInput-notchedOutline': {
         borderColor: theme.palette.grey[400]
@@ -126,10 +157,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   }
 
   const handleChange = (field) => (event) => {
-    setDraft((prev) => ({
-      ...prev,
-      [field]: event.target.value
-    }));
+    const value = event.target.value;
+    setDraft((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === 'user_type' && value === 'Usuario Virtual') {
+        next.billing = { ...prev.billing, ...VIRTUAL_USER_BILLING };
+      }
+      return next;
+    });
   };
 
   const handleContactChange = (field) => (event) => {
@@ -150,6 +185,33 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         [field]: event.target.value
       }
     }));
+  };
+
+  // Cascading geography options for billing address
+  const billingCountry = draft?.billing?.country || '';
+  const billingProvince = draft?.billing?.county || '';
+  const provinceOptions = useMemo(
+    () => (isSpain(billingCountry) ? SPAIN_PROVINCES : []),
+    [billingCountry]
+  );
+  const cityOptions = useMemo(
+    () => (isSpain(billingCountry) && billingProvince ? (SPAIN_CITIES[billingProvince] || []) : []),
+    [billingCountry, billingProvince]
+  );
+
+  const handleBillingCountryChange = (_event, newValue) => {
+    const val = typeof newValue === 'string' ? newValue : (newValue ? getCountryLabel(newValue, lang) : '');
+    setDraft((prev) => ({ ...prev, billing: { ...prev.billing, country: val, county: '', city: '' } }));
+  };
+
+  const handleBillingProvinceChange = (_event, newValue) => {
+    const val = typeof newValue === 'string' ? newValue : (newValue || '');
+    setDraft((prev) => ({ ...prev, billing: { ...prev.billing, county: val, city: '' } }));
+  };
+
+  const handleBillingCityChange = (_event, newValue) => {
+    const val = typeof newValue === 'string' ? newValue : (newValue || '');
+    setDraft((prev) => ({ ...prev, billing: { ...prev.billing, city: val } }));
   };
 
   const handleSave = async () => {
@@ -332,10 +394,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 { label: t('profile.billingCompany'), value: contact.billing?.company || contact.name },
                 { label: t('profile.billingEmail'), value: contact.billing?.email || contact.contact?.email },
                 { label: t('profile.billingAddress'), value: contact.billing?.address || '—' },
-                { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
-                { label: t('profile.billingCity'), value: contact.billing?.city || '—' },
-                { label: t('profile.billingCounty'), value: contact.billing?.county || '—' },
                 { label: t('profile.billingCountry'), value: contact.billing?.country || '—' },
+                { label: t('profile.billingCounty'), value: contact.billing?.county || '—' },
+                { label: t('profile.billingCity'), value: contact.billing?.city || '—' },
+                { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
                 { label: t('profile.billingTaxId'), value: contact.billing?.tax_id || '—' }
               ]}
             />
@@ -526,7 +588,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   </Box>
 
                   <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.userName')}
                         value={draft?.name || ''}
@@ -538,7 +600,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.email')}
                         value={draft?.contact?.email || ''}
@@ -550,7 +612,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlineRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.phone')}
                         value={draft?.phone_primary || ''}
@@ -562,7 +624,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         InputProps={{ startAdornment: <InputAdornment position="start"><PhoneRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         select
                         label={t('profile.userType')}
@@ -584,7 +646,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         ))}
                       </TextField>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         select
                         label={t('profile.status')}
@@ -602,7 +664,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         ))}
                       </TextField>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         select
                         label={t('profile.center')}
@@ -657,7 +719,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 </Box>
                 <Box sx={{ p: 3 }}>
                   <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.companyName')}
                         value={draft?.billing?.company || ''}
@@ -669,7 +731,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.billingEmail')}
                         value={draft?.billing?.email || ''}
@@ -681,7 +743,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlineRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.billingAddress')}
                         value={draft?.billing?.address || ''}
@@ -693,7 +755,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         InputProps={{ startAdornment: <InputAdornment position="start"><LocationOnRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={3}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.billingPostalCode')}
                         value={draft?.billing?.postal_code || ''}
@@ -702,42 +764,48 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         variant="outlined"
                         size="small"
                         sx={fieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><MarkunreadMailboxRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        label={t('profile.billingCity')}
-                        value={draft?.billing?.city || ''}
-                        onChange={handleBillingChange('city')}
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        sx={fieldSx}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        label={t('profile.countyState')}
-                        value={draft?.billing?.county || ''}
-                        onChange={handleBillingChange('county')}
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        sx={fieldSx}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        label={t('profile.billingCountry')}
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Autocomplete
+                        freeSolo
+                        options={COUNTRIES}
+                        getOptionLabel={(opt) => typeof opt === 'string' ? opt : getCountryLabel(opt, lang)}
+                        filterOptions={(opts, { inputValue }) => filterCountries(opts, inputValue)}
                         value={draft?.billing?.country || ''}
-                        onChange={handleBillingChange('country')}
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        sx={fieldSx}
+                        onChange={handleBillingCountryChange}
+                        onInputChange={(_e, val, reason) => { if (reason === 'input') setDraft((prev) => ({ ...prev, billing: { ...prev.billing, country: val } })); }}
+                        renderInput={(params) => (
+                          <TextField {...params} label={t('profile.billingCountry')} variant="outlined" size="small" sx={autocompleteFieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+                        )}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Autocomplete
+                        freeSolo
+                        options={provinceOptions}
+                        value={draft?.billing?.county || ''}
+                        onChange={handleBillingProvinceChange}
+                        onInputChange={(_e, val, reason) => { if (reason === 'input') setDraft((prev) => ({ ...prev, billing: { ...prev.billing, county: val } })); }}
+                        renderInput={(params) => (
+                          <TextField {...params} label={t('profile.countyState')} variant="outlined" size="small" sx={autocompleteFieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+                        )}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Autocomplete
+                        freeSolo
+                        options={cityOptions}
+                        value={draft?.billing?.city || ''}
+                        onChange={handleBillingCityChange}
+                        onInputChange={(_e, val, reason) => { if (reason === 'input') setDraft((prev) => ({ ...prev, billing: { ...prev.billing, city: val } })); }}
+                        renderInput={(params) => (
+                          <TextField {...params} label={t('profile.billingCity')} variant="outlined" size="small" sx={autocompleteFieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+                        )}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         label={t('profile.billingTaxId')}
                         value={draft?.billing?.tax_id || ''}

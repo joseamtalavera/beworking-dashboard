@@ -26,7 +26,7 @@ import esBooking from '../../../i18n/locales/es/booking.json';
 import enBooking from '../../../i18n/locales/en/booking.json';
 
 import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation } from '../../../api/bookings.js';
-import { createManualInvoice, sendInvoiceEmail } from '../../../api/invoices.js';
+import { createManualInvoice } from '../../../api/invoices.js';
 import {
   createPaymentIntent,
   fetchCustomerPaymentMethods,
@@ -100,7 +100,7 @@ function AdminPaymentOptions({ onCreated }) {
   const { t } = useTranslation('booking');
   const theme = useTheme();
   const { state, prevStep } = useBookingFlow();
-  const [paymentOption, setPaymentOption] = useState('free'); // 'free' | 'charge' | 'stripe' | 'transfer'
+  const [paymentOption, setPaymentOption] = useState('free'); // 'free' | 'charge' | 'invoice' | 'no_invoice'
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState('');
   const [cardsLoading, setCardsLoading] = useState(false);
@@ -194,7 +194,7 @@ function AdminPaymentOptions({ onCreated }) {
         bookingPayload.stripePaymentIntentId = chargeResult.paymentIntentId;
         bookingPayload.status = 'Paid';
         invoiceStatus = 'Pagado';
-      } else if (paymentOption === 'stripe') {
+      } else if (paymentOption === 'invoice') {
         const invoiceResult = await createStripeInvoice({
           customerEmail: contactEmail,
           customerName: contactName,
@@ -208,28 +208,22 @@ function AdminPaymentOptions({ onCreated }) {
         bookingPayload.stripeInvoiceId = stripeInvoiceId;
         bookingPayload.status = 'Invoiced';
         invoiceStatus = 'Pendiente';
-      } else if (paymentOption === 'transfer') {
-        bookingPayload.status = 'Invoiced';
-        invoiceStatus = 'Pendiente';
+      } else if (paymentOption === 'no_invoice') {
+        bookingPayload.status = 'Booked';
+        invoiceStatus = null;
       }
 
       // ── Step 2: Create the booking ──
       const bookingResponse = await createReserva(bookingPayload);
       const bloqueoId = bookingResponse.bloqueos?.[0]?.id;
 
-      // ── Step 3: Create the internal invoice (facturas record) ──
-      const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
-      if (stripeInvoiceId) {
-        invoicePayload.stripeInvoiceId = stripeInvoiceId;
-      }
-      const invoiceResponse = await createManualInvoice(invoicePayload);
-      const invoiceId = invoiceResponse?.id;
-
-      // ── Step 4: Option-specific post-actions ──
-      if (paymentOption === 'transfer' && invoiceId) {
-        await sendInvoiceEmail(invoiceId).catch((err) =>
-          console.warn('Failed to send invoice email:', err)
-        );
+      // ── Step 3: Create the internal invoice (facturas record) — skip for no_invoice ──
+      if (invoiceStatus) {
+        const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
+        if (stripeInvoiceId) {
+          invoicePayload.stripeInvoiceId = stripeInvoiceId;
+        }
+        await createManualInvoice(invoicePayload);
       }
 
       // ── Step 5: Send booking confirmation email ──
@@ -327,21 +321,20 @@ function AdminPaymentOptions({ onCreated }) {
             )}
 
             <FormControlLabel
-              value="stripe"
+              value="invoice"
               control={<Radio size="small" />}
-              label={t('steps.stripeInvoice')}
+              label={t('steps.sendInvoice')}
               disabled={!contactEmail}
             />
 
             <FormControlLabel
-              value="transfer"
+              value="no_invoice"
               control={<Radio size="small" />}
-              label={t('steps.bankTransfer')}
-              disabled={!contactEmail}
+              label={t('steps.noInvoice')}
             />
-            {paymentOption === 'transfer' && (
+            {paymentOption === 'no_invoice' && (
               <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
-                {t('steps.bankTransferDesc')}
+                {t('steps.noInvoiceDesc')}
               </Typography>
             )}
           </RadioGroup>
@@ -366,7 +359,7 @@ function AdminPaymentOptions({ onCreated }) {
             </Box>
           )}
 
-          {paymentOption === 'stripe' && (
+          {paymentOption === 'invoice' && (
             <Box sx={{ pl: 4 }}>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -398,9 +391,7 @@ function AdminPaymentOptions({ onCreated }) {
         >
           {submitting
             ? <CircularProgress size={22} color="inherit" />
-            : paymentOption === 'free'
-              ? t('steps.confirmFreeBooking')
-              : t('steps.createReserva')}
+            : t('steps.confirmBooking')}
         </Button>
       </Stack>
     </Stack>

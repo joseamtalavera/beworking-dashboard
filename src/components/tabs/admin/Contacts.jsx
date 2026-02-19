@@ -36,6 +36,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
@@ -60,6 +61,7 @@ import WarningRoundedIcon from '@mui/icons-material/WarningRounded';
 
 import ContactProfileView from './ContactProfileView';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
+import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
 import esContacts from '../../../i18n/locales/es/contacts.json';
@@ -96,16 +98,21 @@ const ADD_USER_STATUS_OPTIONS = [
   { value: 'Inactive', label: 'Inactivo' }
 ];
 
+const VIRTUAL_USER_BILLING = {
+  billingAddress: 'Calle Alejandro Dumas 17 - Oficinas',
+  billingCountry: 'España',
+  billingCounty: 'Málaga',
+  billingCity: 'Málaga',
+  billingPostalCode: '29004'
+};
+
 const ADD_USER_DEFAULT = {
   name: '',
-  primaryContact: '',
   email: '',
   phone: '',
-  plan: '',
   status: 'Activo',
   userType: 'Usuario Mesa',
   center: 'MA1 MALAGA DUMAS',
-  seats: '',
   channel: '',
   avatar: '',
   billingCompany: '',
@@ -113,6 +120,7 @@ const ADD_USER_DEFAULT = {
   billingEmail: '',
   billingAddress: '',
   billingPostalCode: '',
+  billingCity: '',
   billingCounty: '',
   billingCountry: ''
 };
@@ -139,6 +147,7 @@ const normalizeContact = (entry = {}) => {
     email: billing.email ?? entry.billing_email ?? entry.email_primary ?? null,
     address: billing.address ?? entry.billing_address ?? null,
     postal_code: billing.postal_code ?? entry.billing_postal_code ?? null,
+    city: billing.city ?? entry.billing_city ?? null,
     county: billing.county ?? entry.billing_province ?? null,
     country: billing.country ?? entry.billing_country ?? null,
     tax_id: billing.tax_id ?? entry.billing_tax_id ?? null
@@ -193,11 +202,29 @@ const MemoizedTextField = memo(({ label, value, onChange, ...props }) => (
 const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile }) => {
   const [form, setForm] = useState(ADD_USER_DEFAULT);
   const theme = useTheme();
-  const { t } = useTranslation('contacts');
+  const { t, i18n: i18nInstance } = useTranslation('contacts');
+  const lang = i18nInstance.language?.startsWith('en') ? 'en' : 'es';
   const contactFieldSx = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: 2,
-      minHeight: 40,
+      borderRadius: 1,
+      height: 36,
+      backgroundColor: theme.palette.common.white,
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: theme.palette.grey[400]
+      }
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: theme.palette.grey[300]
+    },
+    '& .MuiInputLabel-root': {
+      color: theme.palette.text.secondary
+    }
+  };
+  // Autocomplete fields need auto height — the fixed 36px squeezes text when
+  // combined with the popup/clear endAdornment icons MUI injects.
+  const autocompleteSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
       backgroundColor: theme.palette.common.white,
       '&:hover .MuiOutlinedInput-notchedOutline': {
         borderColor: theme.palette.grey[400]
@@ -246,10 +273,38 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
 
   const handleFieldChange = useCallback((field) => (event) => {
     const { value } = event.target;
-    setForm((prev) => ({
-      ...prev,
-      [field]: value
-    }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === 'userType' && value === 'Usuario Virtual') {
+        Object.assign(next, VIRTUAL_USER_BILLING);
+      }
+      return next;
+    });
+  }, []);
+
+  // Cascading geography options
+  const provinceOptions = useMemo(
+    () => (isSpain(form.billingCountry) ? SPAIN_PROVINCES : []),
+    [form.billingCountry]
+  );
+  const cityOptions = useMemo(
+    () => (isSpain(form.billingCountry) && form.billingCounty ? (SPAIN_CITIES[form.billingCounty] || []) : []),
+    [form.billingCountry, form.billingCounty]
+  );
+
+  const handleCountryChange = useCallback((_event, newValue) => {
+    const val = typeof newValue === 'string' ? newValue : (newValue ? getCountryLabel(newValue, lang) : '');
+    setForm((prev) => ({ ...prev, billingCountry: val, billingCounty: '', billingCity: '' }));
+  }, [lang]);
+
+  const handleProvinceChange = useCallback((_event, newValue) => {
+    const val = typeof newValue === 'string' ? newValue : (newValue || '');
+    setForm((prev) => ({ ...prev, billingCounty: val, billingCity: '' }));
+  }, []);
+
+  const handleCityChange = useCallback((_event, newValue) => {
+    const val = typeof newValue === 'string' ? newValue : (newValue || '');
+    setForm((prev) => ({ ...prev, billingCity: val }));
   }, []);
 
   const handleSubmit = useCallback(() => {
@@ -391,7 +446,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                 </Box>
                 
                 <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <MemoizedTextField
                       label={t('addDialog.userName')}
                       value={form.name}
@@ -404,7 +459,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label={t('addDialog.status')}
                   value={form.status}
@@ -422,19 +477,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   ))}
                 </TextField>
               </Grid>
-                  <Grid item xs={12} sm={6}>
-                <TextField
-                      label={t('addDialog.primaryContact')}
-                      value={form.primaryContact}
-                      onChange={handleFieldChange('primaryContact')}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      sx={contactFieldSx}
-                      InputProps={{ startAdornment: <InputAdornment position="start"><PersonRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <MemoizedTextField
                       label={t('addDialog.email')}
                       type="email"
@@ -448,7 +491,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlinedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       label={t('addDialog.phone')}
                       value={form.phone}
@@ -460,7 +503,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><PhoneRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                   label={t('addDialog.userType')}
                   value={form.userType}
@@ -478,7 +521,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   ))}
                 </TextField>
               </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label={t('addDialog.center')}
                   value={form.center}
@@ -496,7 +539,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   ))}
                 </TextField>
               </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
               </Grid>
             </Grid>
           </Box>
@@ -533,7 +576,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               </Box>
               <Box sx={{ p: 3 }}>
                 <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       label={t('addDialog.billingCompany')}
                       value={form.billingCompany}
@@ -545,7 +588,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       label={t('addDialog.billingTaxId')}
                       value={form.billingTaxId}
@@ -558,7 +601,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       label={t('addDialog.billingEmail')}
                       value={form.billingEmail}
@@ -570,19 +613,19 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlinedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label={t('addDialog.billingAddress')}
                   value={form.billingAddress}
                   onChange={handleFieldChange('billingAddress')}
                   fullWidth
-                      variant="outlined"
-                      size="small"
-                      sx={contactFieldSx}
-                      InputProps={{ startAdornment: <InputAdornment position="start"><HomeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
+                  variant="outlined"
+                  size="small"
+                  sx={contactFieldSx}
+                  InputProps={{ startAdornment: <InputAdornment position="start"><HomeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                 />
               </Grid>
-                  <Grid item xs={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       label={t('addDialog.postalCode')}
                       value={form.billingPostalCode}
@@ -593,31 +636,45 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       sx={contactFieldSx}
                       InputProps={{ startAdornment: <InputAdornment position="start"><MarkunreadMailboxRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
-              </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      label={t('addDialog.county')}
-                      value={form.billingCounty}
-                      onChange={handleFieldChange('billingCounty')}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      sx={contactFieldSx}
-                      InputProps={{ startAdornment: <InputAdornment position="start"><LocationCityRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Autocomplete
+                      freeSolo
+                      options={COUNTRIES}
+                      getOptionLabel={(opt) => typeof opt === 'string' ? opt : getCountryLabel(opt, lang)}
+                      filterOptions={(opts, { inputValue }) => filterCountries(opts, inputValue)}
+                      value={form.billingCountry || ''}
+                      onChange={handleCountryChange}
+                      onInputChange={(_e, val, reason) => { if (reason === 'input') setForm((prev) => ({ ...prev, billingCountry: val })); }}
+                      renderInput={(params) => (
+                        <TextField {...params} label={t('addDialog.country')} variant="outlined" size="small" sx={autocompleteSx} slotProps={{ inputLabel: { shrink: true } }} />
+                      )}
                     />
-              </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      label={t('addDialog.country')}
-                      value={form.billingCountry}
-                      onChange={handleFieldChange('billingCountry')}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      sx={contactFieldSx}
-                      InputProps={{ startAdornment: <InputAdornment position="start"><PublicRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Autocomplete
+                      freeSolo
+                      options={provinceOptions}
+                      value={form.billingCounty || ''}
+                      onChange={handleProvinceChange}
+                      onInputChange={(_e, val, reason) => { if (reason === 'input') setForm((prev) => ({ ...prev, billingCounty: val })); }}
+                      renderInput={(params) => (
+                        <TextField {...params} label={t('addDialog.county')} variant="outlined" size="small" sx={autocompleteSx} slotProps={{ inputLabel: { shrink: true } }} />
+                      )}
                     />
-              </Grid>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Autocomplete
+                      freeSolo
+                      options={cityOptions}
+                      value={form.billingCity || ''}
+                      onChange={handleCityChange}
+                      onInputChange={(_e, val, reason) => { if (reason === 'input') setForm((prev) => ({ ...prev, billingCity: val })); }}
+                      renderInput={(params) => (
+                        <TextField {...params} label={t('addDialog.billingCity')} variant="outlined" size="small" sx={autocompleteSx} slotProps={{ inputLabel: { shrink: true } }} />
+                      )}
+                    />
+                  </Grid>
             </Grid>
           </Box>
             </Paper>
@@ -1004,7 +1061,6 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       const userData = {
         name: values.name,
         email: values.email,
-        primaryContact: values.primaryContact,
         phone: values.phone,
         status: values.status || 'Potencial',
         userType: values.userType,
@@ -1015,6 +1071,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         billingEmail: values.billingEmail,
         billingAddress: values.billingAddress,
         billingPostalCode: values.billingPostalCode,
+        billingCity: values.billingCity,
         billingCounty: values.billingCounty,
         billingCountry: values.billingCountry
       };
@@ -1153,14 +1210,15 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           <Typography variant="h6" gutterBottom>
             Filters
           </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
+          <Grid container spacing={3} alignItems="center">
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 fullWidth
                 label={t('filters.searchByName')}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 size="small"
+                sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -1170,13 +1228,14 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 fullWidth
                 label={t('filters.searchByEmail')}
                 value={emailFilter === 'all' ? '' : emailFilter}
                 onChange={(event) => setEmailFilter(event.target.value || 'all')}
                 size="small"
+                sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -1186,8 +1245,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size="small">
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}>
                 <InputLabel>{t('filters.userType')}</InputLabel>
                 <Select
                   value={userTypeFilter}
@@ -1203,8 +1262,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size="small">
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}>
                 <InputLabel>{t('filters.status')}</InputLabel>
                 <Select
                   value={statusFilter}
@@ -1223,6 +1282,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             <Button
               variant="outlined"
               size="small"
+              sx={{ height: 36 }}
               onClick={handleResetFilters}
             >
               Clear Filters

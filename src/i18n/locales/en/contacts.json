@@ -17,6 +17,7 @@
     "billingEmail": "Billing email",
     "billingAddress": "Billing address",
     "postalCode": "Postal code",
+    "billingCity": "City",
     "county": "County",
     "country": "Country",
     "cancel": "Cancel",

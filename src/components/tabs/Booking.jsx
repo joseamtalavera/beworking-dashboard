@@ -599,6 +599,15 @@ const bloqueoAppliesToDate = (bloqueo, isoDate) => {
   return true;
 };
 
+const bloqueoAppliesToDateRange = (bloqueo, rangeFrom, rangeTo) => {
+  if (!bloqueo.fechaIni) return false;
+  const bFrom = bloqueo.fechaIni.split('T')[0];
+  const bTo = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : bFrom;
+  if (rangeFrom && bTo < rangeFrom) return false;
+  if (rangeTo && bFrom > rangeTo) return false;
+  return true;
+};
+
 const coversBloqueoSlot = (bloqueo, slot) => {
   const slotMinutes = timeStringToMinutes(slot.id);
   const startTime = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : '00:00';
@@ -894,6 +903,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
               >
                 {t('admin.user')}
               </TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('steps.date')}</TableCell>
               <TableCell align="right" sx={{ width: 140, fontWeight: 'bold' }}>{t('admin.product')}</TableCell>
               <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('admin.start')}</TableCell>
               <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('admin.finish')}</TableCell>
@@ -908,6 +918,8 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
               const statusStyle = statusStyles[statusKey] || statusStyles.created;
               const statusLabel = t('status.' + (statusKey === 'created' ? 'booked' : statusKey));
               const rawStatusLabel = bloqueo.estado || '';
+              const bookingDateRaw = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : '';
+              const bookingDate = bookingDateRaw ? format(parseISO(bookingDateRaw), 'dd/MM/yyyy') : '—';
               const startHour = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : t('admin.allDay');
               const finishHour = bloqueo.fechaFin
                 ? bloqueo.fechaFin.split('T')[1]
@@ -962,6 +974,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
               >
                 {bloqueo.cliente?.nombre || '—'}
                   </TableCell>
+              <TableCell align="right" sx={{ width: 120 }}>{bookingDate}</TableCell>
               <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
               <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
               <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
@@ -1216,6 +1229,11 @@ const ReservaDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Conflict resolution state
+  const [conflictData, setConflictData] = useState(null);
+  const [alternativeProducts, setAlternativeProducts] = useState([]);
+  const [loadingAlternatives, setLoadingAlternatives] = useState(false);
+
   const [contactOptions, setContactOptions] = useState([]);
   const [contactInputValue, setContactInputValue] = useState('');
   const [contactsLoading, setContactsLoading] = useState(false);
@@ -1233,6 +1251,8 @@ const ReservaDialog = ({
     }
     setFormState(buildInitialState());
     setError('');
+    setConflictData(null);
+    setAlternativeProducts([]);
     setContactInputValue('');
     setSelectedContact(null);
   }, [open, buildInitialState]);
@@ -1434,6 +1454,7 @@ const ReservaDialog = ({
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
+    setConflictData(null);
 
     const contactId = selectedContact?.id;
     const centroId = formState.centro?.id;
@@ -1515,9 +1536,29 @@ const ReservaDialog = ({
       onCreated?.(response);
       }
     } catch (apiError) {
-      setError(
-        apiError.message || (isEditMode ? t('admin.unableToUpdateBloqueo') : t('admin.unableToCreateReserva'))
-      );
+      const msg = apiError.message || '';
+      let parsed = null;
+      try { parsed = JSON.parse(msg); } catch (_) { /* not JSON */ }
+
+      if (parsed && Array.isArray(parsed.conflicts)) {
+        setConflictData(parsed);
+        setLoadingAlternatives(true);
+        fetchBookingProductos()
+          .then((products) => {
+            const all = Array.isArray(products) ? products : [];
+            const centroCode = formState.centro?.code || initialBloqueo?.centro?.code || initialBloqueo?.centro?.codigo || '';
+            const currentProductId = formState.producto?.id;
+            const filtered = all.filter((p) =>
+              p.id !== currentProductId &&
+              (!centroCode || !p.centerCode || p.centerCode.toLowerCase() === centroCode.toLowerCase())
+            );
+            setAlternativeProducts(filtered);
+          })
+          .catch(() => setAlternativeProducts([]))
+          .finally(() => setLoadingAlternatives(false));
+      } else {
+        setError(msg || (isEditMode ? t('admin.unableToUpdateBloqueo') : t('admin.unableToCreateReserva')));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -1564,6 +1605,57 @@ const ReservaDialog = ({
       <DialogContent dividers>
           <Stack spacing={3}>
             {error ? <Alert severity="error">{error}</Alert> : null}
+            {conflictData ? (
+              <Alert severity="warning" sx={{ alignItems: 'flex-start' }}>
+                <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+                  {t('admin.scheduleConflict')}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {t('admin.conflictExplanation', { room: formState.producto?.name || '' })}
+                </Typography>
+                {conflictData.conflicts.map((c, idx) => {
+                  const fmt = (v) => {
+                    try {
+                      if (typeof v === 'string') return format(parseISO(v), 'dd/MM/yyyy HH:mm');
+                      if (Array.isArray(v)) return format(new Date(v[0], (v[1] || 1) - 1, v[2] || 1, v[3] || 0, v[4] || 0), 'dd/MM/yyyy HH:mm');
+                    } catch (_) { /* ignore */ }
+                    return String(v ?? '');
+                  };
+                  return (
+                    <Typography key={idx} variant="body2" sx={{ fontWeight: 600, ml: 1 }}>
+                      {fmt(c.start)} — {fmt(c.end)}
+                    </Typography>
+                  );
+                })}
+                <Typography variant="body2" sx={{ mt: 1.5, mb: 1 }}>
+                  {t('admin.selectAlternativeRoom')}
+                </Typography>
+                {loadingAlternatives ? (
+                  <CircularProgress size={20} />
+                ) : alternativeProducts.length > 0 ? (
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {alternativeProducts.map((p) => (
+                      <Chip
+                        key={p.id}
+                        label={p.name}
+                        variant={formState.producto?.id === p.id ? 'filled' : 'outlined'}
+                        color={formState.producto?.id === p.id ? 'primary' : 'default'}
+                        onClick={() => {
+                          setFormState((prev) => ({ ...prev, producto: { id: p.id, name: p.name, type: p.type, centerCode: p.centerCode } }));
+                          setConflictData(null);
+                          setError('');
+                        }}
+                        sx={{ cursor: 'pointer' }}
+                      />
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('admin.noAlternativeRooms')}
+                  </Typography>
+                )}
+              </Alert>
+            ) : null}
             {lookupError ? <Alert severity="warning">{lookupError}</Alert> : null}
             {contactFetchError ? <Alert severity="warning">{contactFetchError}</Alert> : null}
             <Paper
@@ -2504,6 +2596,11 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Conflict resolution state
+  const [conflictData, setConflictData] = useState(null);
+  const [alternativeProducts, setAlternativeProducts] = useState([]);
+  const [loadingAlternatives, setLoadingAlternatives] = useState(false);
+
   // Payment state
   const [paymentOption, setPaymentOption] = useState('');
   const [savedCards, setSavedCards] = useState([]);
@@ -2543,6 +2640,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       setFormState(buildFormState(bloqueo));
       setIsEditMode(false);
       setError('');
+      setConflictData(null);
+      setAlternativeProducts([]);
       setPaymentOption('');
       setSavedCards([]);
       setSelectedCard('');
@@ -2562,14 +2661,12 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
         setSavedCards(methods);
         if (methods.length > 0) {
           setSelectedCard(methods[0].id);
-          setPaymentOption('charge');
-        } else {
-          setPaymentOption('invoice');
         }
+        setPaymentOption('free');
       })
       .catch(() => {
         setSavedCards([]);
-        setPaymentOption('invoice');
+        setPaymentOption('free');
       })
       .finally(() => setCardsLoading(false));
   }, [open, isBooked, contactEmail]);
@@ -2580,6 +2677,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
     if (!bloqueo) return;
     setSaving(true);
     setError('');
+    setConflictData(null);
     try {
       await updateBloqueo(bloqueo.id, {
         contactId: formState.clienteId,
@@ -2599,7 +2697,30 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       setIsEditMode(false);
       onClose?.();
     } catch (saveError) {
-      setError(saveError.message || t('admin.unableToUpdateBloqueo'));
+      const msg = saveError.message || '';
+      let parsed = null;
+      try { parsed = JSON.parse(msg); } catch (_) { /* not JSON */ }
+
+      if (parsed && Array.isArray(parsed.conflicts)) {
+        setConflictData(parsed);
+        // Fetch alternative products in the same center
+        setLoadingAlternatives(true);
+        fetchBookingProductos()
+          .then((products) => {
+            const all = Array.isArray(products) ? products : [];
+            // Filter to same center, exclude current product
+            const centroCode = bloqueo.centro?.code || bloqueo.centro?.codigo || bloqueo.centro?.centroCode || '';
+            const filtered = all.filter((p) =>
+              p.id !== formState.productoId &&
+              (!centroCode || !p.centerCode || p.centerCode.toLowerCase() === centroCode.toLowerCase())
+            );
+            setAlternativeProducts(filtered);
+          })
+          .catch(() => setAlternativeProducts([]))
+          .finally(() => setLoadingAlternatives(false));
+      } else {
+        setError(msg || t('admin.unableToUpdateBloqueo'));
+      }
     } finally {
       setSaving(false);
     }
@@ -2615,7 +2736,24 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       const amountCents = Math.round(tarifaNum * 100);
       const description = `Reserva: ${formState.producto || ''} (${formState.dateFrom})`;
 
-      if (paymentOption === 'charge') {
+      const basePayload = {
+        contactId: formState.clienteId,
+        centroId: formState.centroId,
+        productoId: formState.productoId,
+        reservationType: formState.reservationType || 'Por Horas',
+        dateFrom: formState.dateFrom,
+        dateTo: formState.dateTo,
+        timeSlots: [{ from: formState.horaIni, to: formState.horaFin }],
+        tarifa: formState.tarifa ? Number(formState.tarifa) : null,
+        attendees: formState.asistentes ? Number(formState.asistentes) : null,
+        configuracion: formState.configuracion,
+        note: formState.nota,
+        openEnded: formState.openEnded || false
+      };
+
+      if (paymentOption === 'free') {
+        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid', note: 'Reserva gratuita (admin)' });
+      } else if (paymentOption === 'charge') {
         if (!selectedCard) {
           setError(t('steps.pleaseSelectCard'));
           setPaymentSubmitting(false);
@@ -2629,21 +2767,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           description,
           reference: String(formState.productoId || ''),
         });
-        await updateBloqueo(bloqueo.id, {
-          contactId: formState.clienteId,
-          centroId: formState.centroId,
-          productoId: formState.productoId,
-          reservationType: formState.reservationType || 'Por Horas',
-          dateFrom: formState.dateFrom,
-          dateTo: formState.dateTo,
-          timeSlots: [{ from: formState.horaIni, to: formState.horaFin }],
-          status: 'Paid',
-          tarifa: formState.tarifa ? Number(formState.tarifa) : null,
-          attendees: formState.asistentes ? Number(formState.asistentes) : null,
-          configuracion: formState.configuracion,
-          note: formState.nota,
-          openEnded: formState.openEnded || false
-        });
+        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid' });
       } else if (paymentOption === 'invoice') {
         await createStripeInvoice({
           customerEmail: contactEmail,
@@ -2654,21 +2778,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           reference: String(formState.productoId || ''),
           dueDays: invoiceDueDays,
         });
-        await updateBloqueo(bloqueo.id, {
-          contactId: formState.clienteId,
-          centroId: formState.centroId,
-          productoId: formState.productoId,
-          reservationType: formState.reservationType || 'Por Horas',
-          dateFrom: formState.dateFrom,
-          dateTo: formState.dateTo,
-          timeSlots: [{ from: formState.horaIni, to: formState.horaFin }],
-          status: 'Invoiced',
-          tarifa: formState.tarifa ? Number(formState.tarifa) : null,
-          attendees: formState.asistentes ? Number(formState.asistentes) : null,
-          configuracion: formState.configuracion,
-          note: formState.nota,
-          openEnded: formState.openEnded || false
-        });
+        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
+      } else if (paymentOption === 'no_invoice') {
+        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
       }
       onClose?.();
     } catch (payError) {
@@ -2681,6 +2793,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const handleCancel = () => {
     setIsEditMode(false);
     setError('');
+    setConflictData(null);
+    setAlternativeProducts([]);
     if (bloqueo) setFormState(buildFormState(bloqueo));
   };
 
@@ -2753,6 +2867,58 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           <Box sx={{ p: 4 }}>
             <Stack spacing={4}>
               {error ? <Alert severity="error">{error}</Alert> : null}
+
+              {conflictData ? (
+                <Alert severity="warning" sx={{ alignItems: 'flex-start' }}>
+                  <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+                    {t('admin.scheduleConflict', 'Conflicto de horario')}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    {t('admin.conflictExplanation', 'La sala {{room}} ya tiene una reserva en el horario solicitado:', { room: formState.producto || '' })}
+                  </Typography>
+                  {conflictData.conflicts.map((c, idx) => {
+                    const fmt = (v) => {
+                      try {
+                        if (typeof v === 'string') return format(parseISO(v), 'dd/MM/yyyy HH:mm');
+                        if (Array.isArray(v)) return format(new Date(v[0], (v[1] || 1) - 1, v[2] || 1, v[3] || 0, v[4] || 0), 'dd/MM/yyyy HH:mm');
+                      } catch (_) { /* ignore */ }
+                      return String(v ?? '');
+                    };
+                    return (
+                      <Typography key={idx} variant="body2" sx={{ fontWeight: 600, ml: 1 }}>
+                        {fmt(c.start)} — {fmt(c.end)}
+                      </Typography>
+                    );
+                  })}
+                  <Typography variant="body2" sx={{ mt: 1.5, mb: 1 }}>
+                    {t('admin.selectAlternativeRoom', 'Selecciona otra sala disponible:')}
+                  </Typography>
+                  {loadingAlternatives ? (
+                    <CircularProgress size={20} />
+                  ) : alternativeProducts.length > 0 ? (
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      {alternativeProducts.map((p) => (
+                        <Chip
+                          key={p.id}
+                          label={p.name}
+                          variant={formState.productoId === p.id ? 'filled' : 'outlined'}
+                          color={formState.productoId === p.id ? 'primary' : 'default'}
+                          onClick={() => {
+                            setFormState((prev) => ({ ...prev, productoId: p.id, producto: p.name }));
+                            setConflictData(null);
+                            setError('');
+                          }}
+                          sx={{ cursor: 'pointer' }}
+                        />
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('admin.noAlternativeRooms', 'No hay otras salas disponibles en este centro.')}
+                    </Typography>
+                  )}
+                </Alert>
+              ) : null}
 
               {bloqueo ? (
                 <>
@@ -2929,9 +3095,14 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           {!cardsLoading && (
                             <RadioGroup value={paymentOption} onChange={(e) => setPaymentOption(e.target.value)}>
                               <FormControlLabel
+                                value="free"
+                                control={<Radio size="small" />}
+                                label={t('admin.freeBooking')}
+                              />
+                              <FormControlLabel
                                 value="charge"
                                 control={<Radio size="small" />}
-                                label={t('admin.chargeSavedCard')}
+                                label={t('admin.chargeCard')}
                                 disabled={savedCards.length === 0}
                               />
                               {savedCards.length === 0 && contactEmail && (
@@ -2942,12 +3113,17 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                               <FormControlLabel
                                 value="invoice"
                                 control={<Radio size="small" />}
-                                label={t('admin.sendStripeInvoice')}
+                                label={t('admin.sendInvoice')}
                                 disabled={!contactEmail}
                               />
-                              {!contactEmail && (
+                              <FormControlLabel
+                                value="no_invoice"
+                                control={<Radio size="small" />}
+                                label={t('admin.noInvoice')}
+                              />
+                              {paymentOption === 'no_invoice' && (
                                 <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
-                                  No email found for this contact
+                                  {t('admin.noInvoiceDesc')}
                                 </Typography>
                               )}
                             </RadioGroup>
@@ -3016,7 +3192,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                 }
               }}
             >
-              {paymentSubmitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : (paymentOption === 'charge' ? t('admin.chargeCard') : t('admin.sendInvoice'))}
+              {paymentSubmitting ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : paymentOption === 'charge' ? t('admin.chargeCard') : paymentOption === 'invoice' ? t('admin.sendInvoice') : paymentOption === 'free' ? t('admin.freeBooking') : t('admin.noInvoice')}
             </Button>
           ) : null}
           {/* Legacy invoice button for non-Booked statuses */}
@@ -4870,8 +5046,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
   console.log('Booking component - mode:', mode, 'isAdmin:', isAdmin);
   const defaultAgendaUserType = '';
   const [view, setView] = useState('calendar');
-  const [calendarDate, setCalendarDate] = useState(initialDateISO());
-  const [agendaDate, setAgendaDate] = useState(initialDateISO());
+  const [calendarDateFrom, setCalendarDateFrom] = useState(initialDateISO());
+  const [calendarDateTo, setCalendarDateTo] = useState(initialDateISO());
+  const [agendaDateFrom, setAgendaDateFrom] = useState(initialDateISO());
+  const [agendaDateTo, setAgendaDateTo] = useState(initialDateISO());
   const [bloqueos, setBloqueos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -5049,13 +5227,15 @@ const Booking = ({ mode = 'user', userProfile }) => {
 
         const primaryDate = result.bloqueos[0]?.fechaIni?.split?.('T')?.[0];
         if (primaryDate) {
-          setCalendarDate(primaryDate);
-          setAgendaDate(primaryDate);
+          setCalendarDateFrom(primaryDate);
+          setCalendarDateTo(primaryDate);
+          setAgendaDateFrom(primaryDate);
+          setAgendaDateTo(primaryDate);
         }
       }
       setBookingFlowActive(false);
     },
-    [setAgendaDate, setCalendarDate, setBloqueos]
+    [setAgendaDateFrom, setAgendaDateTo, setCalendarDateFrom, setCalendarDateTo, setBloqueos]
   );
 
   
@@ -5093,19 +5273,37 @@ const Booking = ({ mode = 'user', userProfile }) => {
     setConfirmDialog({ open: false, bloqueoId: null });
   }, []);
 
-  const monthKey = useMemo(() => calendarDate.slice(0, 7), [calendarDate]);
+  // Compute the fetch range from both views' dates.
+  // Always pad to full month boundaries. When dates are cleared, widen to ±6 months.
+  const fetchRange = useMemo(() => {
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const calendarCleared = !calendarDateFrom && !calendarDateTo;
+    const agendaCleared = !agendaDateFrom && !agendaDateTo;
 
-  useEffect(() => {
-    const [year, month] = monthKey.split('-').map((value) => Number.parseInt(value, 10));
-    if (!year || !month) {
-      return undefined;
+    if (calendarCleared && agendaCleared) {
+      const today = new Date();
+      const past = new Date(today); past.setMonth(today.getMonth() - 6);
+      const future = new Date(today); future.setMonth(today.getMonth() + 6);
+      return `${fmt(past)}|${fmt(future)}`;
     }
 
-    const rangeStart = new Date(Date.UTC(year, month - 1, 1));
-    const rangeEnd = new Date(Date.UTC(year, month, 0));
+    const dates = [calendarDateFrom, calendarDateTo, agendaDateFrom, agendaDateTo].filter(Boolean).sort();
+    // Pad: first day of earliest month → last day of latest month
+    const earliest = new Date(dates[0] + 'T00:00:00');
+    const latest = new Date(dates[dates.length - 1] + 'T00:00:00');
+    const monthStart = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+    const monthEnd = new Date(latest.getFullYear(), latest.getMonth() + 1, 0);
+    // If either view is cleared, also extend ±6 months
+    if (calendarCleared || agendaCleared) {
+      monthStart.setMonth(monthStart.getMonth() - 6);
+      monthEnd.setMonth(monthEnd.getMonth() + 6);
+    }
+    return `${fmt(monthStart)}|${fmt(monthEnd)}`;
+  }, [calendarDateFrom, calendarDateTo, agendaDateFrom, agendaDateTo]);
 
-    const from = `${rangeStart.getUTCFullYear()}-${`${rangeStart.getUTCMonth() + 1}`.padStart(2, '0')}-${`${rangeStart.getUTCDate()}`.padStart(2, '0')}`;
-    const to = `${rangeEnd.getUTCFullYear()}-${`${rangeEnd.getUTCMonth() + 1}`.padStart(2, '0')}-${`${rangeEnd.getUTCDate()}`.padStart(2, '0')}`;
+  useEffect(() => {
+    const [from, to] = fetchRange.split('|');
+    if (!from) return undefined;
 
     const controller = new AbortController();
     setLoading(true);
@@ -5115,10 +5313,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
       try {
         let data = await fetchBloqueos({ from, to }, { signal: controller.signal });
         let rows = Array.isArray(data) ? data : [];
-        if (!rows.length && calendarDate) {
+        if (!rows.length && calendarDateFrom) {
           try {
             const fallback = await fetchPublicAvailability({
-              date: calendarDate,
+              date: calendarDateFrom,
               products: Array.from(ALLOWED_PRODUCT_NAMES)
             });
             if (Array.isArray(fallback) && fallback.length) {
@@ -5135,7 +5333,6 @@ const Booking = ({ mode = 'user', userProfile }) => {
           return;
         }
         console.error('Error fetching bloqueos:', fetchError);
-        // If the API endpoint doesn't exist yet, show a helpful message
         if (fetchError.status === 404) {
           setError('Bloqueos API endpoint not yet implemented. Please check backend configuration.');
         } else {
@@ -5151,7 +5348,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
     load();
 
     return () => controller.abort();
-  }, [monthKey, mode, calendarDate]);
+  }, [fetchRange, mode, calendarDateFrom]);
 
   const filteredBloqueos = useMemo(() => {
     try {
@@ -5217,20 +5414,21 @@ const Booking = ({ mode = 'user', userProfile }) => {
     }
   }, [bloqueos]);
 
+  // Calendar uses raw bloqueos (not agenda-filtered) — only filter by allowed products + date range
   const calendarBloqueos = useMemo(() => {
     try {
-      return (filteredBloqueos || []).filter((bloqueo) => {
+      return (bloqueos || []).filter((bloqueo) => {
         const productName = bloqueo?.producto?.nombre || '';
         if (!ALLOWED_PRODUCT_NAMES.has(productName)) {
         return false;
       }
-        return bloqueoAppliesToDate(bloqueo, calendarDate);
+        return bloqueoAppliesToDateRange(bloqueo, calendarDateFrom, calendarDateTo);
       });
     } catch (error) {
       console.error('Error filtering day bloqueos:', error);
       return [];
     }
-  }, [filteredBloqueos, calendarDate]);
+  }, [bloqueos, calendarDateFrom, calendarDateTo]);
 
   const timeSlots = useMemo(() => {
     try {
@@ -5294,30 +5492,47 @@ const Booking = ({ mode = 'user', userProfile }) => {
   }, [bloqueos]);
 
   const agendaBloqueos = useMemo(() => {
-    if (!agendaDate) {
+    if (!agendaDateFrom && !agendaDateTo) {
       return filteredBloqueos || [];
     }
-    return (filteredBloqueos || []).filter((bloqueo) => bloqueoAppliesToDate(bloqueo, agendaDate));
-  }, [filteredBloqueos, agendaDate]);
+    return (filteredBloqueos || []).filter((bloqueo) => bloqueoAppliesToDateRange(bloqueo, agendaDateFrom, agendaDateTo));
+  }, [filteredBloqueos, agendaDateFrom, agendaDateTo]);
 
   const agendaRangeLabel = useMemo(() => {
-    if (!agendaDate) {
+    if (!agendaDateFrom && !agendaDateTo) {
       return 'Showing all bloqueos.';
     }
-    return `Showing bloqueos on ${formatDate(agendaDate)}.`;
-  }, [agendaDate]);
+    if (agendaDateFrom === agendaDateTo) {
+      return `${t('admin.showingBloqueos', { date: formatDate(agendaDateFrom) })}`;
+    }
+    return `${formatDate(agendaDateFrom)} — ${formatDate(agendaDateTo)}`;
+  }, [agendaDateFrom, agendaDateTo, t]);
 
   const agendaTotalLabel = useMemo(() => {
-    if (agendaDate) {
-      return agendaBloqueos.length;
-    }
     return totalAllowedBloqueos;
-  }, [agendaDate, agendaBloqueos.length, totalAllowedBloqueos]);
+  }, [totalAllowedBloqueos]);
 
-  const getSlotStatus = (room, slot) => {
+  // Compute the list of dates in the calendar range
+  const calendarDates = useMemo(() => {
+    const from = calendarDateFrom || initialDateISO();
+    const to = calendarDateTo || from;
+    const dates = [];
+    let current = new Date(from + 'T00:00:00');
+    const end = new Date(to + 'T00:00:00');
+    while (current <= end) {
+      dates.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`);
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }, [calendarDateFrom, calendarDateTo]);
+
+  const getSlotStatus = (room, slot, dateKey) => {
     try {
       const bloqueo = (calendarBloqueos || []).find(
-        (entry) => entry?.producto?.id === room.productId && coversBloqueoSlot(entry, slot)
+        (entry) =>
+          entry?.producto?.id === room.productId &&
+          bloqueoAppliesToDate(entry, dateKey) &&
+          coversBloqueoSlot(entry, slot)
       );
       if (!bloqueo) {
         return { status: 'available', bloqueo: null };
@@ -5335,12 +5550,26 @@ const Booking = ({ mode = 'user', userProfile }) => {
     }
   };
 
-  const handleCalendarDateChange = (event) => {
-    setCalendarDate(event.target.value);
+  const handleCalendarDateFromChange = (event) => {
+    const val = event.target.value;
+    setCalendarDateFrom(val);
+    if (val > calendarDateTo) setCalendarDateTo(val);
+  };
+  const handleCalendarDateToChange = (event) => {
+    const val = event.target.value;
+    setCalendarDateTo(val);
+    if (val < calendarDateFrom) setCalendarDateFrom(val);
   };
 
-  const handleAgendaDateChange = (event) => {
-    setAgendaDate(event.target.value);
+  const handleAgendaDateFromChange = (event) => {
+    const val = event.target.value;
+    setAgendaDateFrom(val);
+    if (val > agendaDateTo) setAgendaDateTo(val);
+  };
+  const handleAgendaDateToChange = (event) => {
+    const val = event.target.value;
+    setAgendaDateTo(val);
+    if (val < agendaDateFrom) setAgendaDateFrom(val);
   };
 
   const handleSelectBloqueo = (bloqueo) => {
@@ -5366,7 +5595,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
     setBookingFlowActive(true);
   }, [calendarBloqueos]);
 
-  const calendarDateLabel = useMemo(() => formatDate(calendarDate), [calendarDate]);
+  const calendarDateLabel = useMemo(() => {
+    if (calendarDateFrom === calendarDateTo) return formatDate(calendarDateFrom);
+    return `${formatDate(calendarDateFrom)} — ${formatDate(calendarDateTo)}`;
+  }, [calendarDateFrom, calendarDateTo]);
 
   const noDataMessage = isAdmin
     ? `No bloqueos found for ${calendarDateLabel}. Try a different range or center.`
@@ -5384,7 +5616,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
         <BookingFlowPage
           onClose={() => { handleCloseCreateDialog(); setSlotBookingRoom(null); setSlotBookingTime(null); }}
           onCreated={(res) => { handleReservaCreated(res); setSlotBookingRoom(null); setSlotBookingTime(null); }}
-          defaultDate={calendarDate}
+          defaultDate={calendarDateFrom}
           mode={mode}
           initialRoom={slotBookingRoom}
           initialTime={slotBookingTime}
@@ -5395,7 +5627,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
           onClose={handleCloseEditDialog}
           onUpdated={handleBloqueoUpdated}
           initialBloqueo={editBloqueo}
-          defaultDate={calendarDate}
+          defaultDate={calendarDateFrom}
         />
       </>
     );
@@ -5455,12 +5687,23 @@ const Booking = ({ mode = 'user', userProfile }) => {
       {view === 'calendar' ? (
         <Stack spacing={3}>
           <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={6} sm={3} md={2}>
               <TextField
                 type="date"
-                label={t('admin.selectDate')}
-                value={calendarDate}
-                onChange={handleCalendarDateChange}
+                label={t('admin.dateFrom')}
+                value={calendarDateFrom}
+                onChange={handleCalendarDateFromChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={6} sm={3} md={2}>
+              <TextField
+                type="date"
+                label={t('admin.dateTo')}
+                value={calendarDateTo}
+                onChange={handleCalendarDateToChange}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
                 size="small"
@@ -5501,27 +5744,72 @@ const Booking = ({ mode = 'user', userProfile }) => {
                   }}
                 >
                   <TableHead>
-                    <TableRow>
-                      <TableCell
-                        sx={{
-                          width: 220,
-                          position: 'sticky',
-                          left: 0,
-                          backgroundColor: 'background.paper',
-                          zIndex: 2,
-                          borderRight: '1px solid',
-                          borderRightColor: (theme) => alpha(theme.palette.divider, 0.8),
-                          boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
-                        }}
-                      >
-                        {t('admin.room')}
-                      </TableCell>
-                      {timeSlots.map((slot) => (
-                        <TableCell key={slot.id} align="center">
-                          <Typography variant="subtitle2" fontWeight="bold">
-                            {slot.label}
-                          </Typography>
+                    {/* Date header row — only shown for multi-day ranges */}
+                    {calendarDates.length > 1 ? (
+                      <TableRow>
+                        <TableCell
+                          rowSpan={2}
+                          sx={{
+                            width: 220,
+                            position: 'sticky',
+                            left: 0,
+                            backgroundColor: 'background.paper',
+                            zIndex: 3,
+                            borderRight: '1px solid',
+                            borderRightColor: (theme) => alpha(theme.palette.divider, 0.8),
+                            boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
+                          }}
+                        >
+                          {t('admin.room')}
                         </TableCell>
+                        {calendarDates.map((dateKey) => (
+                          <TableCell
+                            key={dateKey}
+                            align="center"
+                            colSpan={timeSlots.length}
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.875rem',
+                              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.06),
+                              borderLeft: '2px solid',
+                              borderLeftColor: 'primary.main'
+                            }}
+                          >
+                            {format(parseISO(dateKey), 'EEEE dd/MM', { locale: undefined })}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ) : null}
+                    {/* Time slot header row */}
+                    <TableRow>
+                      {calendarDates.length <= 1 ? (
+                        <TableCell
+                          sx={{
+                            width: 220,
+                            position: 'sticky',
+                            left: 0,
+                            backgroundColor: 'background.paper',
+                            zIndex: 2,
+                            borderRight: '1px solid',
+                            borderRightColor: (theme) => alpha(theme.palette.divider, 0.8),
+                            boxShadow: (theme) => `4px 0 12px ${alpha(theme.palette.common.black, 0.06)}`
+                          }}
+                        >
+                          {t('admin.room')}
+                        </TableCell>
+                      ) : null}
+                      {calendarDates.map((dateKey, dateIdx) => (
+                        timeSlots.map((slot, slotIdx) => (
+                          <TableCell
+                            key={`${dateKey}-${slot.id}`}
+                            align="center"
+                            sx={dateIdx > 0 && slotIdx === 0 ? { borderLeft: '2px solid', borderLeftColor: 'primary.main' } : undefined}
+                          >
+                            <Typography variant="subtitle2" fontWeight="bold">
+                              {slot.label}
+                            </Typography>
+                          </TableCell>
+                        ))
                       ))}
                     </TableRow>
                   </TableHead>
@@ -5545,49 +5833,54 @@ const Booking = ({ mode = 'user', userProfile }) => {
                             </Typography>
                           </Stack>
                         </TableCell>
-                        {timeSlots.map((slot) => {
-                          const { status, bloqueo } = getSlotStatus(room, slot);
-                          const styles = status ? (statusStyles[status] || statusStyles.created) : statusStyles.available;
-                          return (
-                            <TableCell
-                              key={`${room.id}-${slot.id}`}
-                              align="center"
-                              sx={{ p: 0.75, width: 64, maxWidth: 64 }}
-                            >
-                              <Tooltip
-                                arrow
-                                title={bloqueo ? describeBloqueo(bloqueo) : t('admin.availableSlot')}
+                        {calendarDates.map((dateKey, dateIdx) => (
+                          timeSlots.map((slot, slotIdx) => {
+                            const { status, bloqueo } = getSlotStatus(room, slot, dateKey);
+                            const styles = status ? (statusStyles[status] || statusStyles.created) : statusStyles.available;
+                            return (
+                              <TableCell
+                                key={`${room.id}-${dateKey}-${slot.id}`}
+                                align="center"
+                                sx={{
+                                  p: 0.75, width: 64, maxWidth: 64,
+                                  ...(dateIdx > 0 && slotIdx === 0 ? { borderLeft: '2px solid', borderLeftColor: 'primary.main' } : {})
+                                }}
                               >
-                                <Box
-                                  onClick={() => bloqueo ? handleSelectBloqueo(bloqueo) : handleAvailableSlotClick(room, slot)}
-                                  sx={{
-                                    height: 52,
-                                    width: '100%',
-                                    borderRadius: 2,
-                                    border: '2px solid',
-                                    borderColor: styles.borderColor,
-                                    bgcolor: styles.bgcolor,
-                                    color: styles.color,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: (theme) => theme.transitions.create(['transform', 'border-color']),
-                                    '&:hover': {
-                                      transform: 'scale(1.05)'
-                                    }
-                                  }}
+                                <Tooltip
+                                  arrow
+                                  title={bloqueo ? describeBloqueo(bloqueo) : t('admin.availableSlot')}
                                 >
-                                  {bloqueo ? (
-                                    <Typography variant="caption" fontWeight={600} noWrap>
-                                      {getInitials(bloqueo.cliente?.nombre || bloqueo.producto?.nombre || 'Bloqueado')}
-                                    </Typography>
-                                  ) : null}
-                                </Box>
-                              </Tooltip>
-                            </TableCell>
-                          );
-                        })}
+                                  <Box
+                                    onClick={() => bloqueo ? handleSelectBloqueo(bloqueo) : handleAvailableSlotClick(room, slot)}
+                                    sx={{
+                                      height: 52,
+                                      width: '100%',
+                                      borderRadius: 2,
+                                      border: '2px solid',
+                                      borderColor: styles.borderColor,
+                                      bgcolor: styles.bgcolor,
+                                      color: styles.color,
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      transition: (theme) => theme.transitions.create(['transform', 'border-color']),
+                                      '&:hover': {
+                                        transform: 'scale(1.05)'
+                                      }
+                                    }}
+                                  >
+                                    {bloqueo ? (
+                                      <Typography variant="caption" fontWeight={600} noWrap>
+                                        {getInitials(bloqueo.cliente?.nombre || bloqueo.producto?.nombre || 'Bloqueado')}
+                                      </Typography>
+                                    ) : null}
+                                  </Box>
+                                </Tooltip>
+                              </TableCell>
+                            );
+                          })
+                        ))}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -5604,14 +5897,25 @@ const Booking = ({ mode = 'user', userProfile }) => {
               {t('admin.filters')}
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={2}>
-                    <TextField
+              <Grid item xs={6} sm={3} md={2}>
+                <TextField
                   fullWidth
-                  label={t('admin.bookingsDate')}
-              type="date"
-              value={agendaDate}
-              onChange={handleAgendaDateChange}
-              InputLabelProps={{ shrink: true }}
+                  label={t('admin.dateFrom')}
+                  type="date"
+                  value={agendaDateFrom}
+                  onChange={handleAgendaDateFromChange}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={6} sm={3} md={2}>
+                <TextField
+                  fullWidth
+                  label={t('admin.dateTo')}
+                  type="date"
+                  value={agendaDateTo}
+                  onChange={handleAgendaDateToChange}
+                  InputLabelProps={{ shrink: true }}
                   size="small"
                 />
               </Grid>
@@ -5759,7 +6063,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
         onClose={handleCloseEditDialog}
         onUpdated={handleBloqueoUpdated}
         initialBloqueo={editBloqueo}
-        defaultDate={calendarDate}
+        defaultDate={calendarDateFrom}
       />
 
       <BloqueoDetailsDialog

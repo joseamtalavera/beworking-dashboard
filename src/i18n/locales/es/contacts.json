@@ -17,6 +17,7 @@
     "billingEmail": "Correo de facturación",
     "billingAddress": "Dirección de facturación",
     "postalCode": "Código postal",
+    "billingCity": "Ciudad",
     "county": "Provincia",
     "country": "País",
     "cancel": "Cancelar",
