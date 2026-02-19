@@ -34,6 +34,7 @@ import {
   createStripeInvoice,
 } from '../../../api/stripe.js';
 import { useBookingFlow } from '../BookingFlowContext';
+import { timeStringToMinutes } from '../../../utils/calendarUtils';
 import ReviewSummary, { computePricing } from './ReviewSummary';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
@@ -131,7 +132,12 @@ function AdminPaymentOptions({ onCreated }) {
   // Build the manual invoice payload from booking state + pricing
   const buildInvoicePayload = (invoiceStatus, isFree = false) => {
     const description = `${productName} · ${state.dateFrom} ${state.startTime}-${state.endTime}`;
-    const linePrice = isFree ? 0 : pricing.subtotal;
+    const startMin = timeStringToMinutes(state.startTime);
+    const endMin = timeStringToMinutes(state.endTime);
+    const hours = (startMin != null && endMin != null && endMin > startMin)
+      ? (endMin - startMin) / 60
+      : 1;
+    const hourlyRate = state.producto?.priceFrom || 0;
     const vatPct = isFree ? 0 : Math.round(pricing.vatRate * 100);
     return {
       clientName: contactName,
@@ -143,8 +149,8 @@ function AdminPaymentOptions({ onCreated }) {
       status: invoiceStatus,
       lineItems: [{
         description,
-        quantity: 1,
-        price: linePrice,
+        quantity: isFree ? 1 : hours,
+        price: isFree ? 0 : hourlyRate,
         vatPercent: vatPct,
       }],
       computed: {
