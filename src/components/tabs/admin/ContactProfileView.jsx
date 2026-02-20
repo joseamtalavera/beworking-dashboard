@@ -48,6 +48,7 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
+import { fetchBookingStats } from '../../../api/bookings';
 
 const VIRTUAL_USER_BILLING = {
   address: 'Calle Alejandro Dumas 17 - Oficinas',
@@ -95,6 +96,15 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [draft, setDraft] = useState(() => mapContactToDraft(contact));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  // Booking stats
+  const [bookingStats, setBookingStats] = useState(null);
+  useEffect(() => {
+    if (!contact?.id) return;
+    fetchBookingStats(contact.id)
+      .then(setBookingStats)
+      .catch(() => setBookingStats(null));
+  }, [contact?.id]);
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
@@ -407,12 +417,22 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={EventAvailableRoundedIcon} title={t('profile.bookingsLabel')}>
             <SectionList
-              description={t('profile.upcomingReservations')}
-              items={[
-                { label: t('profile.nextBooking'), value: 'Boardroom · Oct 12, 10:00' },
-                { label: t('profile.pastMonth'), value: '14 reservations' },
-                { label: t('profile.noShows'), value: '1 (30 days)' }
-              ]}
+              description={t('profile.bookingsSummary')}
+              items={(() => {
+                const items = [
+                  { label: t('profile.totalBookingsYTD'), value: bookingStats?.totalBookingsYTD ?? '—' },
+                  { label: t('profile.totalBookingsMonth'), value: bookingStats?.totalBookingsMonth ?? '—' },
+                ];
+                if (bookingStats?.freeBookings === 'unlimited') {
+                  items.push({ label: t('profile.freeBookings'), value: t('profile.unlimited') });
+                } else if (bookingStats?.freeBookingsLimit != null) {
+                  items.push({
+                    label: t('profile.freeBookings'),
+                    value: `${bookingStats.freeBookings ?? 0} (${bookingStats.freeBookingsLeft ?? 0} ${t('profile.left')})`
+                  });
+                }
+                return items;
+              })()}
             />
           </SectionCard>
         </Box>
