@@ -181,7 +181,9 @@
     "cancelSubscription": "Cancelar",
     "startDate": "Fecha de inicio",
     "stripeIdHelper": "Dejar vacío para crear automáticamente en Stripe",
-    "creating": "Creando..."
+    "creating": "Creando...",
+    "vatNumber": "NIF/CIF intracomunitario",
+    "vatNumberHelper": "Si se indica, no se aplicará IVA (inversión del sujeto pasivo)"
   },
   "header": {
     "title": "Contactos",

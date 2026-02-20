@@ -181,7 +181,9 @@
     "cancelSubscription": "Cancel",
     "startDate": "Start date",
     "stripeIdHelper": "Leave empty to auto-create in Stripe",
-    "creating": "Creating..."
+    "creating": "Creating...",
+    "vatNumber": "EU VAT number",
+    "vatNumberHelper": "If provided, no tax will be applied (reverse charge)"
   },
   "header": {
     "title": "Contacts",
