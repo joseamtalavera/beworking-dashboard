@@ -49,7 +49,7 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { fetchBookingStats } from '../../../api/bookings';
-import { fetchSubscriptions, createSubscription, deleteSubscription } from '../../../api/subscriptions';
+import { fetchSubscriptions, createSubscription, updateSubscription } from '../../../api/subscriptions';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import IconButton from '@mui/material/IconButton';
@@ -112,9 +112,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   }, [contact?.id]);
 
   // Subscriptions
+  // Subscriptions
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
-  const [newSub, setNewSub] = useState({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual' });
+  const [newSub, setNewSub] = useState({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0] });
+  const [subSaving, setSubSaving] = useState(false);
 
   const loadSubscriptions = () => {
     if (!contact?.id) return;
@@ -125,29 +127,32 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   useEffect(loadSubscriptions, [contact?.id]);
 
   const handleAddSubscription = async () => {
+    setSubSaving(true);
     try {
       await createSubscription({
         contactId: contact.id,
-        stripeSubscriptionId: newSub.stripeSubscriptionId,
+        stripeSubscriptionId: newSub.stripeSubscriptionId || undefined,
         monthlyAmount: Number(newSub.monthlyAmount),
         cuenta: newSub.cuenta,
         description: newSub.description,
-        startDate: new Date().toISOString().split('T')[0]
+        startDate: newSub.startDate
       });
       setSubDialogOpen(false);
-      setNewSub({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual' });
+      setNewSub({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0] });
       loadSubscriptions();
     } catch (err) {
       console.error('Failed to add subscription', err);
+    } finally {
+      setSubSaving(false);
     }
   };
 
-  const handleDeleteSubscription = async (id) => {
+  const handleCancelSubscription = async (id) => {
     try {
-      await deleteSubscription(id);
+      await updateSubscription(id, { active: false });
       loadSubscriptions();
     } catch (err) {
-      console.error('Failed to deactivate subscription', err);
+      console.error('Failed to cancel subscription', err);
     }
   };
 
@@ -488,21 +493,23 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 {t('profile.subscriptionsDesc')}
               </Typography>
-              {subscriptions.length === 0 ? (
+              {subscriptions.filter(s => s.active).length === 0 ? (
                 <Typography variant="body2" color="text.disabled">{t('profile.noSubscriptions')}</Typography>
               ) : (
                 <Stack spacing={1}>
                   {subscriptions.filter(s => s.active).map((sub) => (
-                    <Paper key={sub.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.description}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/mes · {sub.stripeSubscriptionId?.slice(0, 20)}…
-                        </Typography>
+                    <Paper key={sub.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.description}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t('profile.month')} · {t('profile.since')} {sub.startDate}
+                          </Typography>
+                        </Box>
+                        <Button size="small" color="error" onClick={() => handleCancelSubscription(sub.id)}>
+                          {t('profile.cancelSubscription')}
+                        </Button>
                       </Box>
-                      <IconButton size="small" color="error" onClick={() => handleDeleteSubscription(sub.id)}>
-                        <DeleteOutlineRoundedIcon fontSize="small" />
-                      </IconButton>
                     </Paper>
                   ))}
                 </Stack>
@@ -514,7 +521,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           </SectionCard>
         </Box>
 
-        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
+        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={DescriptionRoundedIcon} title={t('profile.invoices')}>
             <SectionList
               description={t('profile.recentBillingOverview')}
@@ -522,19 +529,6 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 { label: t('profile.outstanding'), value: '$0.00' },
                 { label: t('profile.totalBilledYTD'), value: '$24,890' },
                 { label: t('profile.lastPayment'), value: 'Oct 03 · $500.00 (card)' }
-              ]}
-            />
-          </SectionCard>
-        </Box>
-
-        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <SectionCard icon={CloudDoneRoundedIcon} title={t('profile.storage')}>
-            <SectionList
-              description={t('profile.storageUsageDesc')}
-              items={[
-                { label: t('profile.totalCapacity'), value: '120 GB' },
-                { label: t('profile.used'), value: '58.2 GB' },
-                { label: t('profile.recentUpload'), value: 'Brand assets (2 days ago)' }
               ]}
             />
           </SectionCard>
@@ -982,6 +976,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               value={newSub.stripeSubscriptionId}
               onChange={(e) => setNewSub({ ...newSub, stripeSubscriptionId: e.target.value })}
               placeholder="sub_..."
+              helperText={t('profile.stripeIdHelper')}
               fullWidth
             />
             <TextField
@@ -991,6 +986,15 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               value={newSub.monthlyAmount}
               onChange={(e) => setNewSub({ ...newSub, monthlyAmount: e.target.value })}
               slotProps={{ input: { startAdornment: <InputAdornment position="start">€</InputAdornment> } }}
+              fullWidth
+            />
+            <TextField
+              size="small"
+              label={t('profile.startDate')}
+              type="date"
+              value={newSub.startDate}
+              onChange={(e) => setNewSub({ ...newSub, startDate: e.target.value })}
+              slotProps={{ inputLabel: { shrink: true } }}
               fullWidth
             />
             <TextField
@@ -1018,9 +1022,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           <Button
             variant="contained"
             onClick={handleAddSubscription}
-            disabled={!newSub.stripeSubscriptionId || !newSub.monthlyAmount}
+            disabled={!newSub.monthlyAmount || subSaving}
           >
-            {t('profile.add')}
+            {subSaving ? t('profile.creating') : t('profile.add')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -175,7 +175,13 @@
     "cuenta": "Cuenta",
     "description": "Descripción",
     "cancel": "Cancelar",
-    "add": "Añadir"
+    "add": "Añadir",
+    "month": "mes",
+    "since": "desde",
+    "cancelSubscription": "Cancelar",
+    "startDate": "Fecha de inicio",
+    "stripeIdHelper": "Dejar vacío para crear automáticamente en Stripe",
+    "creating": "Creando..."
   },
   "header": {
     "title": "Contactos",
