@@ -136,6 +136,7 @@
     "pickDateTime": "Pick your date & time",
     "pickDateTimeDesc": "Select a date and click an available slot, or set the time manually.",
     "additionalDetails": "Additional details",
+    "cuenta": "Account",
     "numberOfAttendees": "Number of attendees",
     "notesOptional": "Notes (optional)",
     "notesRequirementsPlaceholder": "Any special requirements or requests...",

@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import InputAdornment from '@mui/material/InputAdornment';
+import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -206,6 +207,39 @@ export default function SelectDetailsStep() {
             />
           </Stack>
 
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <TextField
+              size="small"
+              label={t('steps.numberOfAttendees')}
+              type="number"
+              value={state.attendees || ''}
+              onChange={(e) => setField('attendees', e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} />
+                  </InputAdornment>
+                ),
+                inputProps: { min: 1, max: state.producto?.capacity || 99 }
+              }}
+              fullWidth
+            />
+            <TextField
+              size="small"
+              label={t('steps.price')}
+              type="number"
+              value={state.customPrice !== '' ? state.customPrice : (state.producto?.priceFrom || '')}
+              onChange={(e) => setField('customPrice', e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">€</InputAdornment>
+                ),
+                inputProps: { min: 0, step: 0.01 }
+              }}
+              fullWidth
+            />
+          </Stack>
+
           <Divider />
 
           {availError ? (
@@ -241,24 +275,17 @@ export default function SelectDetailsStep() {
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('steps.additionalDetails')}
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField
-              size="small"
-              label={t('steps.numberOfAttendees')}
-              type="number"
-              value={state.attendees || ''}
-              onChange={(e) => setField('attendees', e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-                inputProps: { min: 1, max: state.producto?.capacity || 99 }
-              }}
-              fullWidth
-            />
-          </Stack>
+          <TextField
+            size="small"
+            label={t('steps.cuenta')}
+            value={state.cuenta || 'PT'}
+            onChange={(e) => setField('cuenta', e.target.value)}
+            select
+            fullWidth
+          >
+            <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
+            <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
+          </TextField>
           <TextField
             size="small"
             label={t('steps.notesOptional')}

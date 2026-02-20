@@ -14,8 +14,10 @@ const initialState = {
   weekdays: [],
   openEnded: false,
   attendees: '',
+  customPrice: '',
   configuracion: '',
   note: '',
+  cuenta: 'PT',
   // Step 1 — contact & billing
   contact: null, // selected contact object (admin) or manual form (user)
   contactInputValue: '',

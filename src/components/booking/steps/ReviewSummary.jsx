@@ -29,7 +29,9 @@ function getVatRate(state) {
 }
 
 function computePricing(state) {
-  const priceFrom = state.producto?.priceFrom;
+  const priceFrom = state.customPrice !== '' && state.customPrice != null
+    ? Number(state.customPrice)
+    : state.producto?.priceFrom;
   if (!priceFrom) return { subtotal: 0, vat: 0, total: 0, label: '', vatRate: 0.21 };
 
   const start = timeStringToMinutes(state.startTime);

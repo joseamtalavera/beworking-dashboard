@@ -137,14 +137,16 @@ function AdminPaymentOptions({ onCreated }) {
     const hours = (startMin != null && endMin != null && endMin > startMin)
       ? (endMin - startMin) / 60
       : 1;
-    const hourlyRate = state.producto?.priceFrom || 0;
+    const hourlyRate = state.customPrice !== '' && state.customPrice != null
+      ? Number(state.customPrice)
+      : (state.producto?.priceFrom || 0);
     const vatPct = isFree ? 0 : Math.round(pricing.vatRate * 100);
     return {
       clientName: contactName,
       clientId: state.contact?.id || null,
       userType: state.contact?.tenantType || null,
       center: state.centro?.name || state.centro?.code || null,
-      cuenta: 'PT',
+      cuenta: state.cuenta || 'PT',
       date: state.dateFrom,
       status: invoiceStatus,
       lineItems: [{
