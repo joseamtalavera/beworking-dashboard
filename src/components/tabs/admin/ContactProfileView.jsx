@@ -49,6 +49,11 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { fetchBookingStats } from '../../../api/bookings';
+import { fetchSubscriptions, createSubscription, deleteSubscription } from '../../../api/subscriptions';
+import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import IconButton from '@mui/material/IconButton';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 const VIRTUAL_USER_BILLING = {
   address: 'Calle Alejandro Dumas 17 - Oficinas',
@@ -105,6 +110,46 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       .then(setBookingStats)
       .catch(() => setBookingStats(null));
   }, [contact?.id]);
+
+  // Subscriptions
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [subDialogOpen, setSubDialogOpen] = useState(false);
+  const [newSub, setNewSub] = useState({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual' });
+
+  const loadSubscriptions = () => {
+    if (!contact?.id) return;
+    fetchSubscriptions({ contactId: contact.id })
+      .then(setSubscriptions)
+      .catch(() => setSubscriptions([]));
+  };
+  useEffect(loadSubscriptions, [contact?.id]);
+
+  const handleAddSubscription = async () => {
+    try {
+      await createSubscription({
+        contactId: contact.id,
+        stripeSubscriptionId: newSub.stripeSubscriptionId,
+        monthlyAmount: Number(newSub.monthlyAmount),
+        cuenta: newSub.cuenta,
+        description: newSub.description,
+        startDate: new Date().toISOString().split('T')[0]
+      });
+      setSubDialogOpen(false);
+      setNewSub({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual' });
+      loadSubscriptions();
+    } catch (err) {
+      console.error('Failed to add subscription', err);
+    }
+  };
+
+  const handleDeleteSubscription = async (id) => {
+    try {
+      await deleteSubscription(id);
+      loadSubscriptions();
+    } catch (err) {
+      console.error('Failed to deactivate subscription', err);
+    }
+  };
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
@@ -434,6 +479,38 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 return items;
               })()}
             />
+          </SectionCard>
+        </Box>
+
+        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
+          <SectionCard icon={AutorenewRoundedIcon} title={t('profile.subscriptions')}>
+            <Box sx={{ px: 2, pb: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {t('profile.subscriptionsDesc')}
+              </Typography>
+              {subscriptions.length === 0 ? (
+                <Typography variant="body2" color="text.disabled">{t('profile.noSubscriptions')}</Typography>
+              ) : (
+                <Stack spacing={1}>
+                  {subscriptions.filter(s => s.active).map((sub) => (
+                    <Paper key={sub.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.description}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/mes · {sub.stripeSubscriptionId?.slice(0, 20)}…
+                        </Typography>
+                      </Box>
+                      <IconButton size="small" color="error" onClick={() => handleDeleteSubscription(sub.id)}>
+                        <DeleteOutlineRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Paper>
+                  ))}
+                </Stack>
+              )}
+              <Button size="small" startIcon={<AddRoundedIcon />} onClick={() => setSubDialogOpen(true)} sx={{ mt: 1 }}>
+                {t('profile.addSubscription')}
+              </Button>
+            </Box>
           </SectionCard>
         </Box>
 
@@ -891,6 +968,59 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             }}
           >
             {t('profile.saveChanges')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={subDialogOpen} onClose={() => setSubDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('profile.addSubscription')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              size="small"
+              label="Stripe Subscription ID"
+              value={newSub.stripeSubscriptionId}
+              onChange={(e) => setNewSub({ ...newSub, stripeSubscriptionId: e.target.value })}
+              placeholder="sub_..."
+              fullWidth
+            />
+            <TextField
+              size="small"
+              label={t('profile.monthlyAmount')}
+              type="number"
+              value={newSub.monthlyAmount}
+              onChange={(e) => setNewSub({ ...newSub, monthlyAmount: e.target.value })}
+              slotProps={{ input: { startAdornment: <InputAdornment position="start">€</InputAdornment> } }}
+              fullWidth
+            />
+            <TextField
+              size="small"
+              label={t('profile.cuenta')}
+              value={newSub.cuenta}
+              onChange={(e) => setNewSub({ ...newSub, cuenta: e.target.value })}
+              select
+              fullWidth
+            >
+              <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
+              <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
+            </TextField>
+            <TextField
+              size="small"
+              label={t('profile.description')}
+              value={newSub.description}
+              onChange={(e) => setNewSub({ ...newSub, description: e.target.value })}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSubDialogOpen(false)}>{t('profile.cancel')}</Button>
+          <Button
+            variant="contained"
+            onClick={handleAddSubscription}
+            disabled={!newSub.stripeSubscriptionId || !newSub.monthlyAmount}
+          >
+            {t('profile.add')}
           </Button>
         </DialogActions>
       </Dialog>

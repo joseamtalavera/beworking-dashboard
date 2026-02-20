@@ -166,7 +166,16 @@
     "undefinedOption": "Undefined",
     "countyState": "County/State",
     "joined": "Joined",
-    "saveError": "Could not save changes."
+    "saveError": "Could not save changes.",
+    "subscriptions": "Subscriptions",
+    "subscriptionsDesc": "Active Stripe subscriptions",
+    "noSubscriptions": "No active subscriptions",
+    "addSubscription": "Add subscription",
+    "monthlyAmount": "Monthly amount",
+    "cuenta": "Account",
+    "description": "Description",
+    "cancel": "Cancel",
+    "add": "Add"
   },
   "header": {
     "title": "Contacts",

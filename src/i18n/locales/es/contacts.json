@@ -166,7 +166,16 @@
     "undefinedOption": "Sin definir",
     "countyState": "Provincia / Comunidad",
     "joined": "Registrado",
-    "saveError": "No se pudieron guardar los cambios."
+    "saveError": "No se pudieron guardar los cambios.",
+    "subscriptions": "Suscripciones",
+    "subscriptionsDesc": "Suscripciones activas de Stripe",
+    "noSubscriptions": "Sin suscripciones activas",
+    "addSubscription": "Añadir suscripción",
+    "monthlyAmount": "Importe mensual",
+    "cuenta": "Cuenta",
+    "description": "Descripción",
+    "cancel": "Cancelar",
+    "add": "Añadir"
   },
   "header": {
     "title": "Contactos",
