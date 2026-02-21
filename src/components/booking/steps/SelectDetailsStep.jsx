@@ -2,15 +2,21 @@ import { useEffect, useMemo, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 
+import EventRepeatRoundedIcon from '@mui/icons-material/EventRepeatRounded';
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 
 import { useTranslation } from 'react-i18next';
@@ -37,10 +43,16 @@ const pillSx = {
   fontSize: '0.95rem',
 };
 
+const WEEKDAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const DAY_JS_MAP = { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 0 };
+
 export default function SelectDetailsStep() {
   const { t } = useTranslation('booking');
   const { state, setField, setFields, nextStep } = useBookingFlow();
   const [validationError, setValidationError] = useState('');
+  const [recurring, setRecurring] = useState(
+    () => state.weekdays?.length > 0 && state.dateFrom !== state.dateTo,
+  );
 
   // Availability calendar state
   const [bloqueos, setBloqueos] = useState([]);
@@ -103,6 +115,19 @@ export default function SelectDetailsStep() {
     setFields({ startTime: slot.id, endTime: nextEnd });
   };
 
+  const bookingCount = useMemo(() => {
+    if (!recurring || !state.dateFrom || !state.dateTo || !state.weekdays?.length) return 0;
+    const selectedDays = new Set(state.weekdays.map((d) => DAY_JS_MAP[d]));
+    let count = 0;
+    const cursor = new Date(state.dateFrom + 'T00:00:00');
+    const end = new Date(state.dateTo + 'T00:00:00');
+    while (cursor <= end) {
+      if (selectedDays.has(cursor.getDay())) count++;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return count;
+  }, [recurring, state.dateFrom, state.dateTo, state.weekdays]);
+
   const handleNext = () => {
     if (!state.dateFrom || !state.dateTo) {
       setValidationError(t('steps.datesRequired'));
@@ -110,6 +135,10 @@ export default function SelectDetailsStep() {
     }
     if (state.dateFrom > state.dateTo) {
       setValidationError(t('steps.startDateBeforeEnd'));
+      return;
+    }
+    if (recurring && (!state.weekdays || state.weekdays.length === 0)) {
+      setValidationError(t('steps.selectAtLeastOneDay'));
       return;
     }
     setValidationError('');
@@ -173,18 +202,116 @@ export default function SelectDetailsStep() {
             </Typography>
           </Stack>
 
-          <TextField
-            size="small"
-            label={t('steps.date')}
-            type="date"
-            value={state.dateFrom || ''}
-            onChange={(e) => {
-              setField('dateFrom', e.target.value);
-              setField('dateTo', e.target.value);
-            }}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
+          {/* Single date (non-recurring) */}
+          {!recurring && (
+            <TextField
+              size="small"
+              label={t('steps.date')}
+              type="date"
+              value={state.dateFrom || ''}
+              onChange={(e) => {
+                setField('dateFrom', e.target.value);
+                setField('dateTo', e.target.value);
+              }}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+          )}
+
+          {/* Recurring toggle */}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={recurring}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setRecurring(on);
+                  if (!on) {
+                    setField('dateTo', state.dateFrom);
+                    setField('weekdays', []);
+                  }
+                }}
+              />
+            }
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <EventRepeatRoundedIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+                <Typography variant="body2" fontWeight={600}>
+                  {t('steps.recurringBooking')}
+                </Typography>
+              </Stack>
+            }
           />
+
+          {/* Recurring: date range + weekday selector */}
+          {recurring && (
+            <>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  size="small"
+                  label={t('steps.dateFrom')}
+                  type="date"
+                  value={state.dateFrom || ''}
+                  onChange={(e) => setField('dateFrom', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+                <TextField
+                  size="small"
+                  label={t('steps.dateTo')}
+                  type="date"
+                  value={state.dateTo || ''}
+                  onChange={(e) => setField('dateTo', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography variant="body2" fontWeight={600}>
+                  {t('steps.selectWeekdays')}
+                </Typography>
+                <ToggleButtonGroup
+                  value={state.weekdays || []}
+                  onChange={(_, newDays) => setField('weekdays', newDays)}
+                  size="small"
+                  multiple
+                  sx={{ flexWrap: 'wrap', gap: 0.5 }}
+                >
+                  {WEEKDAY_KEYS.map((day) => (
+                    <ToggleButton
+                      key={day}
+                      value={day}
+                      sx={{
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: '8px !important',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '&.Mui-selected': {
+                          bgcolor: 'primary.main',
+                          color: 'primary.contrastText',
+                          '&:hover': { bgcolor: 'primary.dark' },
+                        },
+                      }}
+                    >
+                      {t(`steps.weekday_${day}`)}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              </Stack>
+
+              {bookingCount > 0 && (
+                <Chip
+                  icon={<EventRepeatRoundedIcon />}
+                  label={t('steps.bookingsWillBeCreated', { count: bookingCount })}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ alignSelf: 'flex-start' }}
+                />
+              )}
+            </>
+          )}
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
@@ -242,29 +369,34 @@ export default function SelectDetailsStep() {
 
           <Divider />
 
-          {availError ? (
-            <Alert severity="error">{availError}</Alert>
-          ) : null}
+          {/* Availability calendar — only for single-date bookings */}
+          {!recurring && (
+            <>
+              {availError ? (
+                <Alert severity="error">{availError}</Alert>
+              ) : null}
 
-          {availLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={28} />
-            </Box>
-          ) : (
-            <Stack spacing={1.5}>
-              <CalendarLegend />
-              <RoomCalendarGrid
-                room={{
-                  id: state.producto?.id || 'room',
-                  name: state.producto?.name || t('steps.meetingRoom'),
-                  capacity: state.producto?.capacity,
-                }}
-                dateLabel={dateLabel}
-                bloqueos={roomBloqueos}
-                selectedSlotKey={selectedSlotKey}
-                onSelectSlot={handleSlotSelect}
-              />
-            </Stack>
+              {availLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress size={28} />
+                </Box>
+              ) : (
+                <Stack spacing={1.5}>
+                  <CalendarLegend />
+                  <RoomCalendarGrid
+                    room={{
+                      id: state.producto?.id || 'room',
+                      name: state.producto?.name || t('steps.meetingRoom'),
+                      capacity: state.producto?.capacity,
+                    }}
+                    dateLabel={dateLabel}
+                    bloqueos={roomBloqueos}
+                    selectedSlotKey={selectedSlotKey}
+                    onSelectSlot={handleSlotSelect}
+                  />
+                </Stack>
+              )}
+            </>
           )}
         </Stack>
       </Paper>

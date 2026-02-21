@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -7,6 +8,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import EventRepeatRoundedIcon from '@mui/icons-material/EventRepeatRounded';
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 
@@ -48,12 +50,45 @@ function computePricing(state) {
   return { subtotal, vat, total, label: `${hours.toFixed(1)}h`, vatRate };
 }
 
+const DAY_JS_MAP = { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 0 };
+
+function computeBookingCount(state) {
+  if (!state.weekdays?.length || !state.dateFrom || !state.dateTo || state.dateFrom === state.dateTo) return 1;
+  const selectedDays = new Set(state.weekdays.map((d) => DAY_JS_MAP[d]));
+  let count = 0;
+  const cursor = new Date(state.dateFrom + 'T00:00:00');
+  const end = new Date(state.dateTo + 'T00:00:00');
+  while (cursor <= end) {
+    if (selectedDays.has(cursor.getDay())) count++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count || 1;
+}
+
 export default function ReviewSummary({ state }) {
   const { t } = useTranslation('booking');
   const { subtotal, vat, total, label, vatRate } = computePricing(state);
   const heroImage = state.producto?.heroImage || state.producto?.imageUrl || null;
   const roomName = state.producto?.name || '—';
   const centroName = state.centro?.name || state.centro?.code || '—';
+
+  const isRecurring = state.weekdays?.length > 0 && state.dateFrom !== state.dateTo;
+  const bookingCount = useMemo(() => computeBookingCount(state), [state]);
+  const grandTotal = isRecurring ? +(total * bookingCount).toFixed(2) : total;
+
+  const weekdayLabels = useMemo(() => {
+    if (!isRecurring) return '';
+    return (state.weekdays || []).map((d) => t(`days.${d}`)).join(', ');
+  }, [isRecurring, state.weekdays, t]);
+
+  const formatDate = (dateStr) =>
+    dateStr
+      ? new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : '—';
 
   return (
     <Paper
@@ -100,9 +135,9 @@ export default function ReviewSummary({ state }) {
               </Typography>
             </Stack>
           </Box>
-          {total > 0 && (
+          {grandTotal > 0 && (
             <Chip
-              label={`€${total.toFixed(2)}`}
+              label={`€${grandTotal.toFixed(2)}`}
               sx={{
                 bgcolor: 'rgba(255,255,255,0.9)',
                 fontWeight: 700,
@@ -122,16 +157,14 @@ export default function ReviewSummary({ state }) {
       >
         <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
           <CalendarMonthRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {state.dateFrom
-              ? new Date(state.dateFrom + 'T00:00:00').toLocaleDateString(undefined, {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })
-              : '—'}
+          <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'center' }}>
+            {isRecurring
+              ? t('steps.recurringDateRange', { from: formatDate(state.dateFrom), to: formatDate(state.dateTo) })
+              : formatDate(state.dateFrom)}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.date')}</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {isRecurring ? t('admin.dateRange') : t('steps.date')}
+          </Typography>
         </Stack>
         <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
           <AccessTimeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
@@ -142,6 +175,17 @@ export default function ReviewSummary({ state }) {
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.time')}</Typography>
         </Stack>
+        {isRecurring && (
+          <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
+            <EventRepeatRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'center' }}>
+              {weekdayLabels}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {t('steps.recurringCount', { count: bookingCount })}
+            </Typography>
+          </Stack>
+        )}
         {state.attendees && (
           <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
             <PeopleAltRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
@@ -158,6 +202,7 @@ export default function ReviewSummary({ state }) {
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             {t('steps.subtotal')}{label ? ` (${label})` : ''}
+            {isRecurring ? ` · ${t('steps.perBooking')}` : ''}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             €{subtotal.toFixed(2)}
@@ -167,10 +212,25 @@ export default function ReviewSummary({ state }) {
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.vatPercent', { percent: Math.round(vatRate * 100) })}</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>€{vat.toFixed(2)}</Typography>
         </Stack>
+        {isRecurring && (
+          <>
+            <Divider sx={{ my: 0.5 }} />
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                {t('steps.total')} · {t('steps.perBooking')}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                €{total.toFixed(2)}
+              </Typography>
+            </Stack>
+          </>
+        )}
         <Divider sx={{ my: 0.5 }} />
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>{t('steps.total')}</Typography>
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>€{total.toFixed(2)}</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {isRecurring ? t('steps.totalAllBookings', { count: bookingCount }) : t('steps.total')}
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>€{grandTotal.toFixed(2)}</Typography>
         </Stack>
       </Stack>
     </Paper>
