@@ -164,7 +164,8 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
     }
   }, [cuenta, open]);
 
-  // Reset states when dialog opens
+  // Reset states when dialog opens (use open + editMode only — not `initial`,
+  // because initial={} default creates a new object on every render)
   useEffect(() => {
     if (open) {
       if (editMode && initial) {
@@ -192,7 +193,8 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
       }
       setContactOptions([]);
     }
-  }, [open, editMode, initial]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editMode]);
 
   const handleSelectContact = (contact) => {
     const label = contact.name || contact.email || `Contact ${contact.id}`;

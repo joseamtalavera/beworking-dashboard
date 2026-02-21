@@ -2673,6 +2673,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
   const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
+  const [extraLines, setExtraLines] = useState([]);
 
   const buildFormState = (b) => {
     const reservationTypeRaw =
@@ -2712,6 +2713,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       setSelectedCard('');
       setSelectedUninvoicedIds([]);
       setSelectedUninvoicedSubtotal(0);
+      setExtraLines([]);
     }
   }, [bloqueo]);
 
@@ -2803,6 +2805,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       const amountCents = Math.round(tarifaNum * 100);
       const description = `Reserva: ${formState.producto || ''} (${formState.dateFrom})`;
       const hasExtra = selectedUninvoicedIds.length > 0;
+      const validExtras = (extraLines || []).filter((l) => l.description?.trim());
       // Combined amount includes current booking + selected uninvoiced (with 21% VAT on the extra subtotal)
       const combinedAmountCents = hasExtra
         ? Math.round((tarifaNum + selectedUninvoicedSubtotal * 1.21) * 100)
@@ -2823,12 +2826,15 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
         openEnded: formState.openEnded || false
       };
 
+      // Build extra line items for createInvoice
+      const extraLineItems = validExtras.length > 0
+        ? validExtras.map((l) => ({ description: l.description, quantity: l.quantity || 1, price: l.price || 0 }))
+        : undefined;
+
       if (paymentOption === 'free') {
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid', note: 'Reserva gratuita (admin)' });
-        if (hasExtra) {
-          const allIds = [bloqueo.id, ...selectedUninvoicedIds];
-          await createInvoice({ bloqueoIds: allIds, vatPercent: 0 });
-        }
+        const allIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
+        await createInvoice({ bloqueoIds: allIds, vatPercent: 0, extraLineItems });
       } else if (paymentOption === 'charge') {
         if (!selectedCard) {
           setError(t('steps.pleaseSelectCard'));
@@ -2845,10 +2851,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           reference: String(formState.productoId || ''),
         });
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid' });
-        if (hasExtra) {
-          const allIds = [bloqueo.id, ...selectedUninvoicedIds];
-          await createInvoice({ bloqueoIds: allIds, vatPercent: 21 });
-        }
+        const chargeIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
+        await createInvoice({ bloqueoIds: chargeIds, vatPercent: 21, extraLineItems });
       } else if (paymentOption === 'invoice') {
         const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
         await createStripeInvoice({
@@ -2861,10 +2865,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           dueDays: invoiceDueDays,
         });
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
-        if (hasExtra) {
-          const allIds = [bloqueo.id, ...selectedUninvoicedIds];
-          await createInvoice({ bloqueoIds: allIds, vatPercent: 21 });
-        }
+        const invoiceIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
+        await createInvoice({ bloqueoIds: invoiceIds, vatPercent: 21, extraLineItems });
       } else if (paymentOption === 'no_invoice') {
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
       }
@@ -3077,9 +3079,6 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                         <Grid item xs={12} sm={6}>
                           <TextField fullWidth label={t('admin.configuracion')} value={formState.configuracion || ''} onChange={(e) => handleFieldChange('configuracion', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
-                        <Grid item xs={12}>
-                          <TextField fullWidth label={t('admin.notes')} value={formState.nota || ''} onChange={(e) => handleFieldChange('nota', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" multiline minRows={2} maxRows={4} sx={fieldSx} />
-                        </Grid>
                       </Grid>
                     </Box>
                   </Paper>
@@ -3177,6 +3176,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                               <CircularProgress size={24} />
                             </Box>
                           )}
+
+                          <ExtraLineItems lines={extraLines} onChange={setExtraLines} />
 
                           {!cardsLoading && (
                             <RadioGroup value={paymentOption} onChange={(e) => setPaymentOption(e.target.value)}>
