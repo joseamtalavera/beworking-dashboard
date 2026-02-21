@@ -474,7 +474,6 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.invoiceId')}</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>{t('table.client')}</TableCell>
                 {isAdmin && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.userType')}</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold' }}>{t('table.products')}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('table.total')}</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.issued')}</TableCell>
@@ -488,11 +487,6 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                   <TableCell>{inv.clientName || '\u2014'}</TableCell>
                   {isAdmin && <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.tenantType || '\u2014'}</TableCell>}
-                  <TableCell>
-                    <Tooltip title={inv.products || ''} placement="top-start" enterDelay={500}>
-                      <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.products || '\u2014'}</span>
-                    </Tooltip>
-                  </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.8rem' }}>
                       {formatCurrency(inv.total)}
