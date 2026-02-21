@@ -26,7 +26,8 @@ import esBooking from '../../../i18n/locales/es/booking.json';
 import enBooking from '../../../i18n/locales/en/booking.json';
 
 import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation } from '../../../api/bookings.js';
-import { createManualInvoice } from '../../../api/invoices.js';
+import { createInvoice, createManualInvoice } from '../../../api/invoices.js';
+import UninvoicedBookings from '../UninvoicedBookings';
 import {
   createPaymentIntent,
   fetchCustomerPaymentMethods,
@@ -109,6 +110,8 @@ function AdminPaymentOptions({ onCreated }) {
   const [success, setSuccess] = useState(false);
   const [createdResponse, setCreatedResponse] = useState(null);
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
+  const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
+  const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
 
   const contactEmail = state.contact?.email || '';
   const contactName = state.contact?.name || state.contact?.code || '';
@@ -169,10 +172,12 @@ function AdminPaymentOptions({ onCreated }) {
 
     try {
       const bookingPayload = buildBookingPayload(state);
+      const combinedAmountCents = Math.round((pricing.total + selectedUninvoicedSubtotal * (1 + pricing.vatRate)) * 100);
       const amountCents = Math.round(pricing.total * 100);
       const description = `Reserva: ${productName} (${state.dateFrom})`;
       let invoiceStatus;
       let stripeInvoiceId = null;
+      const hasExtra = selectedUninvoicedIds.length > 0;
 
       // ── Step 1: Option-specific actions ──
       if (paymentOption === 'free') {
@@ -185,10 +190,11 @@ function AdminPaymentOptions({ onCreated }) {
           setSubmitting(false);
           return;
         }
+        const chargeAmount = hasExtra ? combinedAmountCents : amountCents;
         const chargeResult = await chargeCustomer({
           customerEmail: contactEmail,
           paymentMethodId: selectedCard,
-          amount: amountCents,
+          amount: chargeAmount,
           currency: 'eur',
           description,
           reference: String(state.producto?.id || ''),
@@ -197,10 +203,11 @@ function AdminPaymentOptions({ onCreated }) {
         bookingPayload.status = 'Paid';
         invoiceStatus = 'Pagado';
       } else if (paymentOption === 'invoice') {
+        const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
         const invoiceResult = await createStripeInvoice({
           customerEmail: contactEmail,
           customerName: contactName,
-          amount: amountCents,
+          amount: invoiceAmount,
           currency: 'eur',
           description,
           reference: String(state.producto?.id || ''),
@@ -221,14 +228,22 @@ function AdminPaymentOptions({ onCreated }) {
 
       // ── Step 3: Create the internal invoice (facturas record) — skip for no_invoice ──
       if (invoiceStatus) {
-        const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
-        if (stripeInvoiceId) {
-          invoicePayload.stripeInvoiceId = stripeInvoiceId;
+        if (hasExtra && bloqueoId) {
+          // Multi-bloqueo invoice: use createInvoice with bloqueoIds
+          const allIds = [bloqueoId, ...selectedUninvoicedIds];
+          const vatPct = paymentOption === 'free' ? 0 : Math.round(pricing.vatRate * 100);
+          await createInvoice({ bloqueoIds: allIds, vatPercent: vatPct });
+        } else {
+          // Single booking: use manual invoice
+          const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
+          if (stripeInvoiceId) {
+            invoicePayload.stripeInvoiceId = stripeInvoiceId;
+          }
+          await createManualInvoice(invoicePayload);
         }
-        await createManualInvoice(invoicePayload);
       }
 
-      // ── Step 5: Send booking confirmation email ──
+      // ── Step 4: Send booking confirmation email ──
       if (bloqueoId) {
         sendBookingConfirmation(bloqueoId).catch((err) =>
           console.warn('Failed to send confirmation email:', err)
@@ -380,6 +395,20 @@ function AdminPaymentOptions({ onCreated }) {
           )}
         </Stack>
       </Paper>
+
+      {/* Uninvoiced bookings for same contact */}
+      {paymentOption && paymentOption !== 'no_invoice' && state.contact?.id && (
+        <UninvoicedBookings
+          contactId={state.contact.id}
+          currentBloqueoId={null}
+          centroId={state.centro?.id}
+          selectedIds={selectedUninvoicedIds}
+          onSelectionChange={(ids, subtotal) => {
+            setSelectedUninvoicedIds(ids);
+            setSelectedUninvoicedSubtotal(subtotal);
+          }}
+        />
+      )}
 
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button onClick={prevStep} disabled={submitting} sx={backButtonSx}>

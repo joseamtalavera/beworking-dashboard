@@ -98,6 +98,7 @@ import {
 } from '../../api/stripe.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
+import UninvoicedBookings from '../booking/UninvoicedBookings';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n.js';
 import esBooking from '../../i18n/locales/es/booking.json';
@@ -2608,6 +2609,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const [cardsLoading, setCardsLoading] = useState(false);
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
+  const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
 
   const buildFormState = (b) => {
     const reservationTypeRaw =
@@ -2645,6 +2648,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       setPaymentOption('');
       setSavedCards([]);
       setSelectedCard('');
+      setSelectedUninvoicedIds([]);
+      setSelectedUninvoicedSubtotal(0);
     }
   }, [bloqueo]);
 
@@ -2735,6 +2740,11 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       const tarifaNum = Number(formState.tarifa) || 0;
       const amountCents = Math.round(tarifaNum * 100);
       const description = `Reserva: ${formState.producto || ''} (${formState.dateFrom})`;
+      const hasExtra = selectedUninvoicedIds.length > 0;
+      // Combined amount includes current booking + selected uninvoiced (with 21% VAT on the extra subtotal)
+      const combinedAmountCents = hasExtra
+        ? Math.round((tarifaNum + selectedUninvoicedSubtotal * 1.21) * 100)
+        : amountCents;
 
       const basePayload = {
         contactId: formState.clienteId,
@@ -2753,32 +2763,46 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
 
       if (paymentOption === 'free') {
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid', note: 'Reserva gratuita (admin)' });
+        if (hasExtra) {
+          const allIds = [bloqueo.id, ...selectedUninvoicedIds];
+          await createInvoice({ bloqueoIds: allIds, vatPercent: 0 });
+        }
       } else if (paymentOption === 'charge') {
         if (!selectedCard) {
           setError(t('steps.pleaseSelectCard'));
           setPaymentSubmitting(false);
           return;
         }
+        const chargeAmount = hasExtra ? combinedAmountCents : amountCents;
         await chargeCustomer({
           customerEmail: contactEmail,
           paymentMethodId: selectedCard,
-          amount: amountCents,
+          amount: chargeAmount,
           currency: 'eur',
           description,
           reference: String(formState.productoId || ''),
         });
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid' });
+        if (hasExtra) {
+          const allIds = [bloqueo.id, ...selectedUninvoicedIds];
+          await createInvoice({ bloqueoIds: allIds, vatPercent: 21 });
+        }
       } else if (paymentOption === 'invoice') {
+        const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
         await createStripeInvoice({
           customerEmail: contactEmail,
           customerName: contactName,
-          amount: amountCents,
+          amount: invoiceAmount,
           currency: 'eur',
           description,
           reference: String(formState.productoId || ''),
           dueDays: invoiceDueDays,
         });
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
+        if (hasExtra) {
+          const allIds = [bloqueo.id, ...selectedUninvoicedIds];
+          await createInvoice({ bloqueoIds: allIds, vatPercent: 21 });
+        }
       } else if (paymentOption === 'no_invoice') {
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
       }
@@ -3165,6 +3189,20 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                       </Box>
                     </Paper>
                   ) : null}
+
+                  {/* Uninvoiced bookings for same contact */}
+                  {isBooked && canInvoice && !isEditMode && paymentOption && paymentOption !== 'no_invoice' && formState.clienteId && (
+                    <UninvoicedBookings
+                      contactId={formState.clienteId}
+                      currentBloqueoId={bloqueo?.id}
+                      centroId={formState.centroId}
+                      selectedIds={selectedUninvoicedIds}
+                      onSelectionChange={(ids, subtotal) => {
+                        setSelectedUninvoicedIds(ids);
+                        setSelectedUninvoicedSubtotal(subtotal);
+                      }}
+                    />
+                  )}
                 </>
               ) : null}
             </Stack>

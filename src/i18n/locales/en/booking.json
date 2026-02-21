@@ -340,7 +340,14 @@
     "scheduleConflict": "Schedule conflict",
     "conflictExplanation": "Room {{room}} already has a booking at the requested time:",
     "selectAlternativeRoom": "Select another available room:",
-    "noAlternativeRooms": "No other rooms available in this center."
+    "noAlternativeRooms": "No other rooms available in this center.",
+    "uninvoicedTitle": "Uninvoiced bookings",
+    "uninvoicedSubtitle": "Select additional bookings to include in the invoice.",
+    "uninvoicedSelectMonth": "Select month",
+    "uninvoicedSelected": "{{count}} booking(s) selected",
+    "uninvoicedTotal": "Selected subtotal",
+    "uninvoicedDiffCenter": "Different center",
+    "uninvoicedHours": "{{hours}}h"
   },
   "form": {
     "yourName": "Your name",

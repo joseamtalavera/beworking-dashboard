@@ -340,7 +340,14 @@
     "scheduleConflict": "Conflicto de horario",
     "conflictExplanation": "La sala {{room}} ya tiene una reserva en el horario solicitado:",
     "selectAlternativeRoom": "Selecciona otra sala disponible:",
-    "noAlternativeRooms": "No hay otras salas disponibles en este centro."
+    "noAlternativeRooms": "No hay otras salas disponibles en este centro.",
+    "uninvoicedTitle": "Reservas sin facturar",
+    "uninvoicedSubtitle": "Selecciona reservas adicionales para incluir en la factura.",
+    "uninvoicedSelectMonth": "Seleccionar mes",
+    "uninvoicedSelected": "{{count}} reserva(s) seleccionada(s)",
+    "uninvoicedTotal": "Subtotal seleccionado",
+    "uninvoicedDiffCenter": "Centro diferente",
+    "uninvoicedHours": "{{hours}}h"
   },
   "form": {
     "yourName": "Tu nombre",

@@ -135,3 +135,6 @@ export const sendBookingConfirmation = (id, options = {}) =>
 
 export const fetchBookingStats = (contactId, options = {}) =>
   apiFetch(`/bookings/stats?contactId=${encodeURIComponent(contactId)}`, options);
+
+export const fetchUninvoicedBloqueos = (contactId, options = {}) =>
+  apiFetch(`/bloqueos/uninvoiced?contactId=${encodeURIComponent(contactId)}`, options);
