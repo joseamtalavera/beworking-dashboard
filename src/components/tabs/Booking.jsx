@@ -858,7 +858,7 @@ const BookingsTable = ({ bookings, onSelect }) => {
   );
 };
 
-const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
+const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, selectedIds, onSelectionChange }) => {
   const theme = useTheme();
   const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
@@ -877,6 +877,22 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
     return clone;
   }, [bloqueos]);
 
+  const allIds = useMemo(() => sortedBloqueos.map((b) => b.id), [sortedBloqueos]);
+  const allSelected = allIds.length > 0 && selectedIds.length === allIds.length;
+  const someSelected = selectedIds.length > 0 && !allSelected;
+
+  const handleToggleAll = useCallback(() => {
+    onSelectionChange(allSelected ? [] : allIds);
+  }, [allSelected, allIds, onSelectionChange]);
+
+  const handleToggle = useCallback((id) => {
+    onSelectionChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((x) => x !== id)
+        : [...selectedIds, id]
+    );
+  }, [selectedIds, onSelectionChange]);
+
   if (sortedBloqueos.length === 0) {
     return (
       <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 6 }}>
@@ -889,13 +905,47 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
 
   return (
     <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+      {/* Bulk actions bar */}
+      {selectedIds.length > 0 && (
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ px: 2, py: 1, bgcolor: 'action.selected' }}>
+          <Typography variant="body2" fontWeight={600}>
+            {t('admin.selectedBookings', { count: selectedIds.length })}
+          </Typography>
+          {onBulkDelete && (
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<DeleteOutlineRoundedIcon />}
+              onClick={() => onBulkDelete(selectedIds)}
+              disabled={Boolean(deletingId)}
+              sx={{
+                bgcolor: 'error.main',
+                '&:hover': { bgcolor: 'error.dark' },
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: 2,
+              }}
+            >
+              {t('admin.deleteSelected')}
+            </Button>
+          )}
+        </Stack>
+      )}
       <TableContainer>
         <Table size="small" sx={{ tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: 'grey.100' }}>
+              <TableCell padding="checkbox" sx={{ width: 48 }}>
+                <Checkbox
+                  size="small"
+                  checked={allSelected}
+                  indeterminate={someSelected}
+                  onChange={handleToggleAll}
+                />
+              </TableCell>
               <TableCell
                 sx={{
-                  minWidth: 260,
+                  minWidth: 220,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -957,20 +1007,30 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, deletingId }) => {
                 );
 
               const isDeleting = deletingId === bloqueo.id;
+              const isChecked = selectedIds.includes(bloqueo.id);
 
               return (
                 <TableRow
                   key={`agenda-${bloqueo.id}`}
                   hover
+                  selected={isChecked}
                   onClick={() => onSelect(bloqueo)}
                   sx={{ cursor: 'pointer' }}
                 >
+              <TableCell padding="checkbox" sx={{ width: 48 }}>
+                <Checkbox
+                  size="small"
+                  checked={isChecked}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => handleToggle(bloqueo.id)}
+                />
+              </TableCell>
               <TableCell
                 sx={{
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: 320
+                  maxWidth: 280
                 }}
               >
                 {bloqueo.cliente?.nombre || '—'}
@@ -5098,6 +5158,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const [filterEmail, setFilterEmail] = useState('');
   const [filterUserType, setFilterUserType] = useState(defaultAgendaUserType);
   const [deletingBloqueoId, setDeletingBloqueoId] = useState(null);
+  const [selectedAgendaIds, setSelectedAgendaIds] = useState([]);
 
   const clearFilters = () => {
     setFilterUser('');
@@ -5110,7 +5171,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const [slotBookingRoom, setSlotBookingRoom] = useState(null);
   const [slotBookingTime, setSlotBookingTime] = useState(null);
   const [editBloqueo, setEditBloqueo] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null });
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null, bulkIds: null });
   const [invoiceDialog, setInvoiceDialog] = useState({ open: false, bloqueo: null });
   const [invoicePreview, setInvoicePreview] = useState({ open: false, invoice: null, pdfUrl: null, loading: false });
   const [invoiceForm, setInvoiceForm] = useState({ description: '', vat: '21', reference: '' });
@@ -5283,15 +5344,47 @@ const Booking = ({ mode = 'user', userProfile }) => {
       if (!isAdmin || !bloqueoId) {
         return;
       }
-      setConfirmDialog({ open: true, bloqueoId });
+      setConfirmDialog({ open: true, bloqueoId, bulkIds: null });
+    },
+    [isAdmin]
+  );
+
+  const handleBulkDelete = useCallback(
+    (ids) => {
+      if (!isAdmin || !ids?.length) return;
+      setConfirmDialog({ open: true, bloqueoId: null, bulkIds: ids });
     },
     [isAdmin]
   );
 
   const handleConfirmDelete = useCallback(async () => {
-    const bloqueoId = confirmDialog.bloqueoId;
+    const { bloqueoId, bulkIds } = confirmDialog;
+
+    // Bulk delete
+    if (bulkIds?.length) {
+      setDeletingBloqueoId('bulk');
+      let failedCount = 0;
+      for (const id of bulkIds) {
+        try {
+          await deleteBloqueo(id);
+          setBloqueos((prev) => (Array.isArray(prev) ? prev.filter((item) => item?.id !== id) : prev));
+        } catch (deleteError) {
+          console.error('Failed to delete bloqueo', id, deleteError);
+          failedCount++;
+        }
+      }
+      if (failedCount > 0) {
+        setError(t('admin.failedToDeleteCount', { count: failedCount }));
+      }
+      setSelectedAgendaIds([]);
+      setDeletingBloqueoId(null);
+      setConfirmDialog({ open: false, bloqueoId: null, bulkIds: null });
+      return;
+    }
+
+    // Single delete
     if (!bloqueoId) {
-      setConfirmDialog({ open: false, bloqueoId: null });
+      setConfirmDialog({ open: false, bloqueoId: null, bulkIds: null });
       return;
     }
     setDeletingBloqueoId(bloqueoId);
@@ -5303,12 +5396,12 @@ const Booking = ({ mode = 'user', userProfile }) => {
       setError(deleteError.message || t('admin.failedToDelete'));
     } finally {
       setDeletingBloqueoId(null);
-      setConfirmDialog({ open: false, bloqueoId: null });
+      setConfirmDialog({ open: false, bloqueoId: null, bulkIds: null });
     }
   }, [confirmDialog, setBloqueos, setError]);
 
   const handleCloseConfirm = useCallback(() => {
-    setConfirmDialog({ open: false, bloqueoId: null });
+    setConfirmDialog({ open: false, bloqueoId: null, bulkIds: null });
   }, []);
 
   // Compute the fetch range from both views' dates.
@@ -5535,6 +5628,11 @@ const Booking = ({ mode = 'user', userProfile }) => {
     }
     return (filteredBloqueos || []).filter((bloqueo) => bloqueoAppliesToDateRange(bloqueo, agendaDateFrom, agendaDateTo));
   }, [filteredBloqueos, agendaDateFrom, agendaDateTo]);
+
+  // Clear selection when the visible list changes
+  useEffect(() => {
+    setSelectedAgendaIds([]);
+  }, [agendaBloqueos]);
 
   const agendaRangeLabel = useMemo(() => {
     if (!agendaDateFrom && !agendaDateTo) {
@@ -6090,7 +6188,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
               bloqueos={agendaBloqueos}
               onSelect={handleSelectBloqueo}
               onDelete={handleDeleteBloqueo}
+              onBulkDelete={handleBulkDelete}
               deletingId={deletingBloqueoId}
+              selectedIds={selectedAgendaIds}
+              onSelectionChange={setSelectedAgendaIds}
             />
           )}
         </Stack>
@@ -6133,10 +6234,16 @@ const Booking = ({ mode = 'user', userProfile }) => {
         onClose={handleCloseConfirm}
         aria-labelledby="delete-bloqueo-title"
       >
-        <DialogTitle id="delete-bloqueo-title">{t('admin.deleteConfirmTitle')}</DialogTitle>
+        <DialogTitle id="delete-bloqueo-title">
+          {confirmDialog.bulkIds
+            ? t('admin.deleteBulkConfirmTitle', { count: confirmDialog.bulkIds.length })
+            : t('admin.deleteConfirmTitle')}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {t('admin.deleteConfirmBody')}
+            {confirmDialog.bulkIds
+              ? t('admin.deleteBulkConfirmBody', { count: confirmDialog.bulkIds.length })
+              : t('admin.deleteConfirmBody')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>

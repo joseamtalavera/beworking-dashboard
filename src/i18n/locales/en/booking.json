@@ -365,7 +365,12 @@
     "uninvoicedSelected": "{{count}} booking(s) selected",
     "uninvoicedTotal": "Selected subtotal",
     "uninvoicedDiffCenter": "Different center",
-    "uninvoicedHours": "{{hours}}h"
+    "uninvoicedHours": "{{hours}}h",
+    "selectedBookings": "{{count}} selected",
+    "deleteSelected": "Delete selected",
+    "deleteBulkConfirmTitle": "Delete {{count}} bookings",
+    "deleteBulkConfirmBody": "This will remove {{count}} bookings from the agenda. This action cannot be undone.",
+    "failedToDeleteCount": "Failed to delete {{count}} booking(s)."
   },
   "form": {
     "yourName": "Your name",

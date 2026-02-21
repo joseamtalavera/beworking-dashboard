@@ -365,7 +365,12 @@
     "uninvoicedSelected": "{{count}} reserva(s) seleccionada(s)",
     "uninvoicedTotal": "Subtotal seleccionado",
     "uninvoicedDiffCenter": "Centro diferente",
-    "uninvoicedHours": "{{hours}}h"
+    "uninvoicedHours": "{{hours}}h",
+    "selectedBookings": "{{count}} seleccionada(s)",
+    "deleteSelected": "Eliminar seleccionadas",
+    "deleteBulkConfirmTitle": "Eliminar {{count}} reservas",
+    "deleteBulkConfirmBody": "Esto eliminará {{count}} reservas de la agenda. Esta acción no se puede deshacer.",
+    "failedToDeleteCount": "No se pudieron eliminar {{count}} reserva(s)."
   },
   "form": {
     "yourName": "Tu nombre",
