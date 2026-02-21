@@ -1,7 +1,5 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
-
-// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -20,15 +18,12 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import PersonIcon from '@mui/icons-material/Person';
@@ -65,12 +60,10 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
   const [note, setNote] = useState(initial.note || '');
   const [contactOptions, setContactOptions] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [userType, setUserType] = useState(initial.userType || '');
   const [center, setCenter] = useState(initial.center || '');
   const [cuenta, setCuenta] = useState(initial.cuenta || '');
   const [cuentaOptions, setCuentaOptions] = useState([]);
-  const searchContainerRef = useRef(null);
 
   const addLine = () => setLines((s) => [...s, { ...DEFAULT_LINE }]);
   const updateLine = (idx, patch) => setLines((s) => s.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
@@ -121,57 +114,22 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
     }
   };
 
+  // Contact search with debounce (simplified pattern from ContactBillingStep)
   useEffect(() => {
-    let active = true;
-    const load = async (searchQuery = '') => {
-      if (!searchQuery.trim()) {
-        setContactOptions([]);
-        setShowDropdown(false);
-        return;
-      }
-      console.log('Searching for contacts with query:', searchQuery);
-      setContactsLoading(true);
-      try {
-        // Backend expects 'search' parameter, not 'q'
-        const res = await fetchBookingContacts({ search: searchQuery });
-        console.log('Search response:', res);
-        if (!active) return;
-        
-        // Backend returns a direct array, not wrapped in content
-        const contacts = res || [];
-        console.log('Contacts array:', contacts);
-        
-        const opts = contacts.map((c) => {
-          console.log('Contact object:', c);
-          // Backend returns: { id, name, email, tenantType, avatar }
-          const label = c.name || c.email || `Contact ${c.id}`;
-          return { 
-            label: label, 
-            value: c.id, 
-            raw: c 
-          };
-        });
-        
-        console.log('Mapped options:', opts);
-        setContactOptions(opts);
-        setShowDropdown(true);
-      } catch (e) {
-        console.error('Search error:', e);
-        setContactOptions([]);
-        setShowDropdown(false);
-      } finally {
-        setContactsLoading(false);
-      }
-    };
-    
-    // Debounce the search
-    const timeoutId = setTimeout(() => {
-      load(clientSearch);
+    if (!clientSearch.trim()) {
+      setContactOptions([]);
+      return;
+    }
+    setContactsLoading(true);
+    const timeout = setTimeout(() => {
+      fetchBookingContacts({ search: clientSearch.trim() })
+        .then((contacts) => setContactOptions(Array.isArray(contacts) ? contacts : []))
+        .catch(() => setContactOptions([]))
+        .finally(() => setContactsLoading(false));
     }, 300);
-    
     return () => {
-      active = false;
-      clearTimeout(timeoutId);
+      clearTimeout(timeout);
+      setContactsLoading(false);
     };
   }, [clientSearch]);
 
@@ -180,45 +138,29 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
     if (open && !invoiceNum && !editMode) {
       fetchNextInvoiceNumber()
         .then(response => {
-          if (response.nextNumber) {
-            setInvoiceNum(response.nextNumber);
-          }
+          if (response.nextNumber) setInvoiceNum(response.nextNumber);
         })
-        .catch(error => {
-          console.error('Failed to fetch next invoice number:', error);
-        });
+        .catch(() => {});
     }
   }, [open, invoiceNum, editMode]);
 
   // Load cuentas when dialog opens
   useEffect(() => {
     if (open && cuentaOptions.length === 0) {
-      const loadCuentas = async () => {
-        try {
-          const cuentas = await fetchCuentas();
-          setCuentaOptions(cuentas || []);
-        } catch (e) {
-          console.error('Failed to load cuentas:', e);
-        }
-      };
-      loadCuentas();
+      fetchCuentas()
+        .then((cuentas) => setCuentaOptions(cuentas || []))
+        .catch(() => {});
     }
   }, [open, cuentaOptions.length]);
 
   // Update invoice number when cuenta changes
   useEffect(() => {
     if (cuenta && open) {
-      const updateInvoiceNumber = async () => {
-        try {
-          const response = await fetchNextInvoiceNumberByCodigo(cuenta);
-          if (response.nextNumber) {
-            setInvoiceNum(response.nextNumber);
-          }
-        } catch (e) {
-          console.error('Failed to fetch next invoice number for cuenta:', e);
-        }
-      };
-      updateInvoiceNumber();
+      fetchNextInvoiceNumberByCodigo(cuenta)
+        .then((response) => {
+          if (response.nextNumber) setInvoiceNum(response.nextNumber);
+        })
+        .catch(() => {});
     }
   }, [cuenta, open]);
 
@@ -249,54 +191,28 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         setCuenta('');
       }
       setContactOptions([]);
-      setShowDropdown(false);
     }
   }, [open, editMode, initial]);
 
-  // Load initial contacts when dialog opens
-  useEffect(() => {
-    if (open && contactOptions.length === 0) {
-      const loadInitialContacts = async () => {
-        try {
-          // Load first 20 contacts without search query
-          const res = await fetchBookingContacts({});
-          const contacts = res || [];
-          const opts = contacts.map((c) => ({
-            label: c.name || c.email || `Contact ${c.id}`,
-            value: c.id,
-            raw: c
-          }));
-          setContactOptions(opts);
-          setShowDropdown(false); // Don't show dropdown initially
-        } catch (e) {
-          console.error('Failed to load initial contacts:', e);
-        }
-      };
-      loadInitialContacts();
-    }
-  }, [open, contactOptions.length]);
+  const handleSelectContact = (contact) => {
+    const label = contact.name || contact.email || `Contact ${contact.id}`;
+    setClient({ label, value: contact.id, raw: contact });
+    setClientSearch(label);
+    if (contact.tenantType) setUserType(contact.tenantType);
+    setContactOptions([]);
+  };
 
-  // Handle click outside to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
-
-    if (showDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showDropdown]);
+  const handleClearContact = () => {
+    setClient(null);
+    setClientSearch('');
+    setContactOptions([]);
+  };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      fullWidth 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
       maxWidth="xl"
       PaperProps={{
         sx: {
@@ -306,9 +222,9 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         }
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <DialogTitle sx={{
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         pb: 2,
         borderBottom: '1px solid',
@@ -326,221 +242,204 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
       <DialogContent sx={{ p: 3 }}>
         <Box>
           {/* Invoice Details Card */}
-          <Paper sx={{ 
-            mb: 3, 
+          <Paper sx={{
+            mb: 3,
             mt: 3,
             borderRadius: 3,
             border: '1px solid',
             borderColor: 'divider',
             p: 3
           }}>
-              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
-                {t('editor.invoiceDetails')}
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Box ref={searchContainerRef} sx={{ position: 'relative' }}>
-                    <TextField
-                      label={t('editor.searchByName')}
-                      size="small"
-                      fullWidth
-                      placeholder={t('editor.searchByName')}
-                      value={clientSearch}
-                      onChange={(e) => {
-                        setClientSearch(e.target.value);
-                        // If user starts typing again, clear the selected client and show dropdown
-                        if (client && e.target.value !== client.label) {
-                          setClient(null);
-                          setShowDropdown(true);
-                        }
-                      }}
-                      InputProps={{ 
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchRoundedIcon sx={{ color: 'text.secondary' }} />
-                          </InputAdornment>
-                        ),
-                        endAdornment: client && (
-                          <InputAdornment position="end">
-                            <Box sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: 1,
-                              color: 'success.main',
-                              fontSize: '0.75rem'
-                            }}>
-                              ✓ {t('editor.selected')}
-                            </Box>
-                          </InputAdornment>
-                        )
-                      }} 
-                    />
-                    {showDropdown && contactOptions.length > 0 && clientSearch.trim() && !client && (() => {
-                      console.log('Rendering dropdown with', contactOptions.length, 'options');
-                      console.log('showDropdown:', showDropdown, 'client:', client, 'clientSearch:', clientSearch);
-                      return (
-                      <Paper sx={{
+            <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+              {t('editor.invoiceDetails')}
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Box sx={{ position: 'relative' }}>
+                  <TextField
+                    label={t('editor.searchByName')}
+                    size="small"
+                    fullWidth
+                    placeholder={t('editor.searchByName')}
+                    value={clientSearch}
+                    onChange={(e) => {
+                      setClientSearch(e.target.value);
+                      if (client) setClient(null);
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchRoundedIcon sx={{ color: 'text.secondary' }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: contactsLoading ? (
+                        <CircularProgress color="inherit" size={18} />
+                      ) : client ? (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={handleClearContact} sx={{ color: 'text.disabled' }}>
+                            <CloseRoundedIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : null
+                    }}
+                  />
+                  {clientSearch.trim() && contactOptions.length > 0 && !client && (
+                    <Paper
+                      elevation={3}
+                      sx={{
                         position: 'absolute',
                         top: '100%',
                         left: 0,
                         right: 0,
                         zIndex: 1000,
-                        mt: 1,
-                        maxHeight: 200,
+                        mt: 0.5,
+                        maxHeight: 240,
                         overflow: 'auto',
                         border: '1px solid',
                         borderColor: 'divider',
                         borderRadius: 2
-                      }}>
-                        {contactOptions.map((option) => (
-                          <Box
-                            key={option.value}
-                            sx={{
-                              p: 2,
-                              cursor: 'pointer',
-                              borderBottom: '1px solid',
-                              borderColor: 'divider',
-                              '&:hover': {
-                                backgroundColor: 'action.hover'
-                              },
-                              '&:last-child': {
-                                borderBottom: 'none'
-                              }
-                            }}
-                            onClick={() => {
-                              console.log('Selected contact:', option);
-                              setClient(option);
-                              setClientSearch(option.label);
-                              // Auto-populate user type from selected client
-                              if (option.raw?.tenantType) {
-                                setUserType(option.raw.tenantType);
-                              }
-                              setContactOptions([]);
-                              setShowDropdown(false);
-                            }}
-                          >
-                            <Typography variant="body2" fontWeight={600}>
-                              {option.label}
+                      }}
+                    >
+                      {contactOptions.map((contact) => (
+                        <Box
+                          key={contact.id}
+                          sx={{
+                            px: 2,
+                            py: 1.5,
+                            cursor: 'pointer',
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            '&:hover': { backgroundColor: 'action.hover' },
+                            '&:last-child': { borderBottom: 'none' }
+                          }}
+                          onClick={() => handleSelectContact(contact)}
+                        >
+                          <Typography variant="body2" fontWeight={600}>
+                            {contact.name || contact.email || `Contact ${contact.id}`}
+                          </Typography>
+                          {contact.email && contact.name && (
+                            <Typography variant="caption" color="text.secondary">
+                              {contact.email}
                             </Typography>
-                          </Box>
-                        ))}
-                      </Paper>
-                      );
-                    })()}
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="user-type-label">{t('editor.userType')}</InputLabel>
-                    <Select
-                      labelId="user-type-label"
-                      value={userType}
-                      onChange={(e) => setUserType(e.target.value)}
-                      label={t('editor.userType')}
-                      displayEmpty
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <PersonIcon sx={{ color: 'text.secondary' }} />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="">
-                        <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectUserType')}</span>
-                      </MenuItem>
-                      <MenuItem value="Distribuidor">Distribuidor</MenuItem>
-                      <MenuItem value="Imported">Imported</MenuItem>
-                      <MenuItem value="Proveedor">Proveedor</MenuItem>
-                      <MenuItem value="Servicios">Servicios</MenuItem>
-                      <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
-                      <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
-                      <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
-                      <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
-                      <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="center-label">{t('editor.center')}</InputLabel>
-                    <Select
-                      labelId="center-label"
-                      value={center}
-                      onChange={(e) => setCenter(e.target.value)}
-                      label={t('editor.center')}
-                      displayEmpty
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <LocationOnIcon sx={{ color: 'text.secondary' }} />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="">
-                        <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectCenter')}</span>
-                      </MenuItem>
-                      <MenuItem value="1">MALAGA DUMAS (MA1)</MenuItem>
-                      <MenuItem value="8">Oficina Virtual (MAOV)</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="cuenta-label">{t('editor.company')}</InputLabel>
-                    <Select
-                      labelId="cuenta-label"
-                      value={cuenta}
-                      onChange={(e) => setCuenta(e.target.value)}
-                      label={t('editor.company')}
-                      displayEmpty
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <BusinessIcon sx={{ color: 'text.secondary' }} />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="">
-                        <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectCompany')}</span>
-                      </MenuItem>
-                      {cuentaOptions.map((cuentaOption) => (
-                        <MenuItem key={cuentaOption.id} value={cuentaOption.codigo}>
-                          {cuentaOption.nombre} ({cuentaOption.codigo})
-                        </MenuItem>
+                          )}
+                        </Box>
                       ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={6} md={2}>
-                  <TextField
-                    label={t('editor.invoiceNumber')}
-                    value={invoiceNum}
-                    onChange={(e) => setInvoiceNum(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={2}>
-                  <TextField
-                    label={t('editor.date')}
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    fullWidth
-                    size="small"
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
+                    </Paper>
+                  )}
+                </Box>
               </Grid>
-            </Paper>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="user-type-label">{t('editor.userType')}</InputLabel>
+                  <Select
+                    labelId="user-type-label"
+                    value={userType}
+                    onChange={(e) => setUserType(e.target.value)}
+                    label={t('editor.userType')}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="">
+                      <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectUserType')}</span>
+                    </MenuItem>
+                    <MenuItem value="Distribuidor">Distribuidor</MenuItem>
+                    <MenuItem value="Imported">Imported</MenuItem>
+                    <MenuItem value="Proveedor">Proveedor</MenuItem>
+                    <MenuItem value="Servicios">Servicios</MenuItem>
+                    <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+                    <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
+                    <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
+                    <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
+                    <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="center-label">{t('editor.center')}</InputLabel>
+                  <Select
+                    labelId="center-label"
+                    value={center}
+                    onChange={(e) => setCenter(e.target.value)}
+                    label={t('editor.center')}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <LocationOnIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="">
+                      <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectCenter')}</span>
+                    </MenuItem>
+                    <MenuItem value="1">MALAGA DUMAS (MA1)</MenuItem>
+                    <MenuItem value="8">Oficina Virtual (MAOV)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="cuenta-label">{t('editor.company')}</InputLabel>
+                  <Select
+                    labelId="cuenta-label"
+                    value={cuenta}
+                    onChange={(e) => setCuenta(e.target.value)}
+                    label={t('editor.company')}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <BusinessIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="">
+                      <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectCompany')}</span>
+                    </MenuItem>
+                    {cuentaOptions.map((cuentaOption) => (
+                      <MenuItem key={cuentaOption.id} value={cuentaOption.codigo}>
+                        {cuentaOption.nombre} ({cuentaOption.codigo})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid size={{ xs: 6, md: 2 }}>
+                <TextField
+                  label={t('editor.invoiceNumber')}
+                  value={invoiceNum}
+                  onChange={(e) => setInvoiceNum(e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+              </Grid>
+              <Grid size={{ xs: 6, md: 2 }}>
+                <TextField
+                  label={t('editor.date')}
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  fullWidth
+                  size="small"
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
 
-            {/* Line Items Card */}
-            <Paper sx={{ 
-              mb: 3, 
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              overflow: 'hidden'
-            }}>
-              <Table size="small">
-                <TableHead>
+          {/* Line Items Card */}
+          <Paper sx={{
+            mb: 3,
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            overflow: 'hidden'
+          }}>
+            <Table size="small">
+              <TableHead>
                 <TableRow
                   sx={{
                     backgroundColor: 'background.default',
@@ -568,203 +467,197 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                     }
                   }}
                 >
-                    <TableCell>{t('editor.description')}</TableCell>
-                    <TableCell align="right">{t('editor.qty')}</TableCell>
-                    <TableCell align="right">{t('editor.price')}</TableCell>
-                    <TableCell align="right">{t('editor.vatPercent')}</TableCell>
-                    <TableCell align="right">{t('editor.lineTotal')}</TableCell>
-                    <TableCell sx={{ width: 60 }} />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {lines.map((l, i) => (
-                    <TableRow key={i} hover>
-                      <TableCell>
-                        <TextField 
-                          value={l.description} 
-                          onChange={(e) => updateLine(i, { description: e.target.value })} 
-                          size="small" 
-                          fullWidth 
-                          placeholder={t('editor.enterDescription')}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <TextField 
-                          value={l.quantity} 
-                          onChange={(e) => updateLine(i, { quantity: Number(e.target.value || 0) })} 
-                          size="small" 
-                          inputProps={{ inputMode: 'numeric' }} 
-                          sx={{ width: 100 }} 
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <TextField 
-                          value={l.price} 
-                          onChange={(e) => updateLine(i, { price: Number(e.target.value || 0) })} 
-                          size="small" 
-                          inputProps={{ inputMode: 'decimal' }} 
-                          sx={{ width: 120 }} 
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <TextField 
-                          select 
-                          value={l.vatPercent} 
-                          onChange={(e) => updateLine(i, { vatPercent: Number(e.target.value) })} 
-                          size="small" 
-                          sx={{ width: 100 }}
-                        >
-                          <MenuItem value={0}>0%</MenuItem>
-                          <MenuItem value={10}>10%</MenuItem>
-                          <MenuItem value={21}>21%</MenuItem>
-                        </TextField>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" fontWeight={600}>
-                          {formatCurrency((Number(l.quantity || 0) * Number(l.price || 0)) * (1 + Number(l.vatPercent || 0) / 100))}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton 
-                          size="small" 
-                          onClick={() => removeLine(i)}
-                        >
-                          <DeleteOutlineRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      <Button 
-                        startIcon={<AddRoundedIcon />} 
-                        onClick={addLine} 
+                  <TableCell>{t('editor.description')}</TableCell>
+                  <TableCell align="right">{t('editor.qty')}</TableCell>
+                  <TableCell align="right">{t('editor.price')}</TableCell>
+                  <TableCell align="right">{t('editor.vatPercent')}</TableCell>
+                  <TableCell align="right">{t('editor.lineTotal')}</TableCell>
+                  <TableCell sx={{ width: 60 }} />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {lines.map((l, i) => (
+                  <TableRow key={i} hover>
+                    <TableCell>
+                      <TextField
+                        value={l.description}
+                        onChange={(e) => updateLine(i, { description: e.target.value })}
                         size="small"
-                        sx={{
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          color: 'secondary.main',
-                          '&:hover': {
-                            backgroundColor: alpha(theme.palette.brand.green, 0.08)
-                          }
-                        }}
+                        fullWidth
+                        placeholder={t('editor.enterDescription')}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <TextField
+                        value={l.quantity}
+                        onChange={(e) => updateLine(i, { quantity: Number(e.target.value || 0) })}
+                        size="small"
+                        inputProps={{ inputMode: 'numeric' }}
+                        sx={{ width: 100 }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <TextField
+                        value={l.price}
+                        onChange={(e) => updateLine(i, { price: Number(e.target.value || 0) })}
+                        size="small"
+                        inputProps={{ inputMode: 'decimal' }}
+                        sx={{ width: 120 }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <TextField
+                        select
+                        value={l.vatPercent}
+                        onChange={(e) => updateLine(i, { vatPercent: Number(e.target.value) })}
+                        size="small"
+                        sx={{ width: 100 }}
                       >
-                        {t('editor.addLine')}
-                      </Button>
+                        <MenuItem value={0}>0%</MenuItem>
+                        <MenuItem value={10}>10%</MenuItem>
+                        <MenuItem value={21}>21%</MenuItem>
+                      </TextField>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight={600}>
+                        {formatCurrency((Number(l.quantity || 0) * Number(l.price || 0)) * (1 + Number(l.vatPercent || 0) / 100))}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton size="small" onClick={() => removeLine(i)}>
+                        <DeleteOutlineRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
-                </TableBody>
-              </Table>
-            </Paper>
-
-            {/* Invoice Summary Card */}
-            <Paper sx={{ 
-              mb: 3, 
-              borderRadius: 3,
-              border: '2px solid',
-              borderColor: 'secondary.main',
-              p: 3,
-              backgroundColor: 'background.default'
-            }}>
-              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
-                {t('editor.invoiceSummary')}
-              </Typography>
-              
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" color="text.secondary">{t('editor.subtotal')}</Typography>
-                  <Typography variant="body2" fontWeight={600} color="text.primary">
-                    {formatCurrency(subtotal)}
-                  </Typography>
-            </Box>
-                
-                {Object.entries(vatTotals).map(([k, v]) => (
-                  <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('editor.vatAmount', { percent: k })}
-                    </Typography>
-                    <Typography variant="body2" fontWeight={600} color="text.primary">
-                      {formatCurrency(v)}
-                    </Typography>
-              </Box>
                 ))}
-                
-                <Divider sx={{ my: 2 }} />
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="h6" fontWeight={600} color="text.primary">{t('editor.total')}</Typography>
-                  <Typography variant="h6" fontWeight={600} color="text.primary">
-                    {formatCurrency(total)}
+                <TableRow>
+                  <TableCell colSpan={7}>
+                    <Button
+                      startIcon={<AddRoundedIcon />}
+                      onClick={addLine}
+                      size="small"
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        color: 'secondary.main',
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.brand.green, 0.08)
+                        }
+                      }}
+                    >
+                      {t('editor.addLine')}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Paper>
+
+          {/* Invoice Summary Card */}
+          <Paper sx={{
+            mb: 3,
+            borderRadius: 3,
+            border: '2px solid',
+            borderColor: 'secondary.main',
+            p: 3,
+            backgroundColor: 'background.default'
+          }}>
+            <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+              {t('editor.invoiceSummary')}
+            </Typography>
+
+            <Box sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="body2" color="text.secondary">{t('editor.subtotal')}</Typography>
+                <Typography variant="body2" fontWeight={600} color="text.primary">
+                  {formatCurrency(subtotal)}
+                </Typography>
+              </Box>
+
+              {Object.entries(vatTotals).map(([k, v]) => (
+                <Box key={k} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('editor.vatAmount', { percent: k })}
+                  </Typography>
+                  <Typography variant="body2" fontWeight={600} color="text.primary">
+                    {formatCurrency(v)}
                   </Typography>
                 </Box>
-              </Box>
-              
-              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  variant="contained"
-                  onClick={() => handleSubmit(editMode ? (initial.status || 'Pendiente') : 'Pendiente')}
-                  sx={{
-                    backgroundColor: 'primary.main',
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: 'primary.dark'
-                    }
-                  }}
-                >
-                  {editMode ? t('editor.saveChanges') : t('editor.approveInvoice')}
-                </Button>
-              </Box>
-            </Paper>
+              ))}
 
-            {/* Notes Card */}
-            <Paper sx={{ 
-              mb: 3, 
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              p: 3
-            }}>
-              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
-                {t('editor.additionalNotes')}
-              </Typography>
-              <TextField
-                label={t('editor.note')}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                  fullWidth
-                multiline
-                rows={3}
-                size="small"
-                placeholder={t('editor.notePlaceholder')}
-              />
-            </Paper>
+              <Divider sx={{ my: 2 }} />
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" fontWeight={600} color="text.primary">{t('editor.total')}</Typography>
+                <Typography variant="h6" fontWeight={600} color="text.primary">
+                  {formatCurrency(total)}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                onClick={() => handleSubmit(editMode ? (initial.status || 'Pendiente') : 'Pendiente')}
+                sx={{
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  borderRadius: 1,
+                  '&:hover': { backgroundColor: 'primary.dark' }
+                }}
+              >
+                {editMode ? t('editor.saveChanges') : t('editor.approveInvoice')}
+              </Button>
+            </Box>
+          </Paper>
+
+          {/* Notes Card */}
+          <Paper sx={{
+            mb: 3,
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+            p: 3
+          }}>
+            <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+              {t('editor.additionalNotes')}
+            </Typography>
+            <TextField
+              label={t('editor.note')}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+              size="small"
+              placeholder={t('editor.notePlaceholder')}
+            />
+          </Paper>
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ 
-        p: 3, 
-        borderTop: '1px solid', 
+      <DialogActions sx={{
+        p: 3,
+        borderTop: '1px solid',
         borderColor: 'divider'
       }}>
-          <Button 
+        <Button
           onClick={onClose}
           variant="outlined"
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              borderColor: 'secondary.main',
-              color: 'secondary.main',
-              '&:hover': {
-                borderColor: theme.palette.brand.greenHover,
-                backgroundColor: alpha(theme.palette.brand.green, 0.08)
-              }
-            }}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderColor: 'secondary.main',
+            color: 'secondary.main',
+            '&:hover': {
+              borderColor: theme.palette.brand.greenHover,
+              backgroundColor: alpha(theme.palette.brand.green, 0.08)
+            }
+          }}
         >
           {t('editor.close')}
-          </Button>
-        </DialogActions>
-
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

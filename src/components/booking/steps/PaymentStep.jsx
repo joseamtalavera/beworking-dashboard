@@ -37,6 +37,7 @@ import {
 import { useBookingFlow } from '../BookingFlowContext';
 import { timeStringToMinutes } from '../../../utils/calendarUtils';
 import ReviewSummary, { computePricing } from './ReviewSummary';
+import ExtraLineItems from '../ExtraLineItems';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('es', 'booking', esBooking);
@@ -112,6 +113,7 @@ function AdminPaymentOptions({ onCreated }) {
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
   const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
   const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
+  const [extraLines, setExtraLines] = useState([]);
 
   const contactEmail = state.contact?.email || '';
   const contactName = state.contact?.name || state.contact?.code || '';
@@ -144,6 +146,23 @@ function AdminPaymentOptions({ onCreated }) {
       ? Number(state.customPrice)
       : (state.producto?.priceFrom || 0);
     const vatPct = isFree ? 0 : Math.round(pricing.vatRate * 100);
+    const bookingLine = {
+      description,
+      quantity: isFree ? 1 : hours,
+      price: isFree ? 0 : hourlyRate,
+      vatPercent: vatPct,
+    };
+    const extraItems = (extraLines || [])
+      .filter((l) => l.description?.trim())
+      .map((l) => ({ description: l.description, quantity: l.quantity || 1, price: l.price || 0, vatPercent: vatPct }));
+
+    const allLines = [bookingLine, ...extraItems];
+    const extrasSubtotal = extraItems.reduce((acc, l) => acc + l.quantity * l.price, 0);
+    const baseSubtotal = isFree ? 0 : pricing.subtotal;
+    const combinedSubtotal = baseSubtotal + extrasSubtotal;
+    const combinedVat = +(combinedSubtotal * (vatPct / 100)).toFixed(2);
+    const combinedTotal = +(combinedSubtotal + combinedVat).toFixed(2);
+
     return {
       clientName: contactName,
       clientId: state.contact?.id || null,
@@ -152,16 +171,11 @@ function AdminPaymentOptions({ onCreated }) {
       cuenta: state.cuenta || 'PT',
       date: state.dateFrom,
       status: invoiceStatus,
-      lineItems: [{
-        description,
-        quantity: isFree ? 1 : hours,
-        price: isFree ? 0 : hourlyRate,
-        vatPercent: vatPct,
-      }],
+      lineItems: allLines,
       computed: {
-        subtotal: isFree ? 0 : pricing.subtotal,
-        totalVat: isFree ? 0 : pricing.vat,
-        total: isFree ? 0 : pricing.total,
+        subtotal: isFree ? 0 : combinedSubtotal,
+        totalVat: isFree ? 0 : combinedVat,
+        total: isFree ? 0 : combinedTotal,
       },
     };
   };
@@ -302,6 +316,9 @@ function AdminPaymentOptions({ onCreated }) {
           )}
         </Paper>
       )}
+
+      {/* Extra line items (water, coffee, day pass, etc.) */}
+      <ExtraLineItems lines={extraLines} onChange={setExtraLines} />
 
       {/* Payment option selection */}
       <Paper

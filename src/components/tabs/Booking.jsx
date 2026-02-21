@@ -91,6 +91,7 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import PhotoLibraryOutlinedIcon from '@mui/icons-material/PhotoLibraryOutlined';
 import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined';
 import { createInvoice, fetchInvoicePdfUrl } from '../../api/invoices.js';
+import ExtraLineItems from '../booking/ExtraLineItems';
 import {
   fetchCustomerPaymentMethods,
   chargeCustomer,
@@ -2614,7 +2615,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
   );
 };
 
-    const InvoiceFormDialog = ({ open, bloqueo, form, onFieldChange, onClose, onSubmit, submitting, error }) => {
+    const InvoiceFormDialog = ({ open, bloqueo, form, onFieldChange, onExtraLinesChange, onClose, onSubmit, submitting, error }) => {
       const { t } = useTranslation('booking');
       const tarifaLabel = bloqueo?.tarifa ? `€${Number(bloqueo.tarifa).toLocaleString()}` : '—';
       return (
@@ -2630,21 +2631,22 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
               <TextField label={t('admin.description')} fullWidth multiline minRows={2} value={form.description} onChange={onFieldChange('description')} />
               <TextField label={t('admin.reference')} fullWidth value={form.reference} onChange={onFieldChange('reference')} />
               <TextField label={`${t('steps.vat')} %`} value={form.vat} onChange={onFieldChange('vat')} sx={{ width: 140 }} />
+              <ExtraLineItems lines={form.extraLines || []} onChange={onExtraLinesChange} />
               <Alert severity="warning">
                 {t('admin.invoiceWarning')}
               </Alert>
               {error ? <Alert severity="error">{error}</Alert> : null}
             </Stack>
-      </DialogContent>
-      <DialogActions>
+          </DialogContent>
+          <DialogActions>
             <Button onClick={onClose}>{t('admin.cancel')}</Button>
             <Button onClick={onSubmit} variant="contained" disabled={submitting}>
               {submitting ? <CircularProgress size={18} /> : t('admin.createInvoice')}
             </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
+          </DialogActions>
+        </Dialog>
+      );
+    };
 
 const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
   const theme = useTheme();
@@ -5174,7 +5176,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const [confirmDialog, setConfirmDialog] = useState({ open: false, bloqueoId: null, bulkIds: null });
   const [invoiceDialog, setInvoiceDialog] = useState({ open: false, bloqueo: null });
   const [invoicePreview, setInvoicePreview] = useState({ open: false, invoice: null, pdfUrl: null, loading: false });
-  const [invoiceForm, setInvoiceForm] = useState({ description: '', vat: '21', reference: '' });
+  const [invoiceForm, setInvoiceForm] = useState({ description: '', vat: '21', reference: '', extraLines: [] });
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(false);
   const [invoiceError, setInvoiceError] = useState('');
 
@@ -5208,7 +5210,8 @@ const Booking = ({ mode = 'user', userProfile }) => {
       setInvoiceForm({
         description: buildInvoiceDescription(bloqueo),
         vat: '21',
-        reference: ''
+        reference: '',
+        extraLines: []
       });
       setInvoiceError('');
     },
@@ -5220,7 +5223,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
       return;
     }
     setInvoiceDialog({ open: false, bloqueo: null });
-    setInvoiceForm({ description: '', vat: '21', reference: '' });
+    setInvoiceForm({ description: '', vat: '21', reference: '', extraLines: [] });
     setInvoiceError('');
   }, [invoiceSubmitting]);
 
@@ -5231,6 +5234,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
     },
     []
   );
+
+  const handleExtraLinesChange = useCallback((newLines) => {
+    setInvoiceForm((prev) => ({ ...prev, extraLines: newLines }));
+  }, []);
   function handleBloqueoUpdated(result) {
     const updated =
       (Array.isArray(result?.bloqueos) && result.bloqueos[0]) ||
@@ -5275,8 +5282,15 @@ const Booking = ({ mode = 'user', userProfile }) => {
       if (invoiceForm.reference && invoiceForm.reference.trim()) {
         payload.reference = invoiceForm.reference.trim();
       }
+      const validExtras = (invoiceForm.extraLines || []).filter((l) => l.description?.trim());
+      if (validExtras.length > 0) {
+        payload.extraLineItems = validExtras.map((l) => ({
+          description: l.description,
+          quantity: l.quantity || 1,
+          price: l.price || 0,
+        }));
+      }
 
-      console.log('Creating invoice payload:', payload);
       const response = await createInvoice(payload);
 
       // Update bloqueo state to reflect invoiced status
@@ -5288,7 +5302,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
       handleBloqueoUpdated(updatedBloqueo);
 
       // Reset invoice form and close dialog
-      setInvoiceForm({ description: '', vat: '21', reference: '' });
+      setInvoiceForm({ description: '', vat: '21', reference: '', extraLines: [] });
       setInvoiceDialog({ open: false, bloqueo: null });
 
       // Open invoice preview dialog and try to fetch PDF url
@@ -6224,6 +6238,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
         bloqueo={invoiceDialog.bloqueo}
         form={invoiceForm}
         onFieldChange={handleInvoiceFieldChange}
+        onExtraLinesChange={handleExtraLinesChange}
         onClose={handleCloseInvoiceDialog}
         onSubmit={handleInvoiceSubmit}
         submitting={invoiceSubmitting}

@@ -220,7 +220,13 @@
     "recurringWeekdays": "Days",
     "recurringCount": "{{count}} bookings",
     "perBooking": "per booking",
-    "totalAllBookings": "Total ({{count}} bookings)"
+    "totalAllBookings": "Total ({{count}} bookings)",
+    "extraServices": "Extra services",
+    "addExtraService": "Add service",
+    "serviceDescription": "Description",
+    "serviceQuantity": "Quantity",
+    "servicePrice": "Price",
+    "extraSubtotal": "Extras subtotal"
   },
   "days": {
     "monday": "Monday",
