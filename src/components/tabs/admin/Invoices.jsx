@@ -30,7 +30,7 @@ import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 
-import { fetchInvoices, fetchInvoice, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoice, updateInvoiceStatus, creditInvoice } from '../../../api/invoices.js';
+import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoiceStatus, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -100,7 +100,6 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   });
   const [queryFilters, setQueryFilters] = useState(filters);
   const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
-  const [editInvoice, setEditInvoice] = useState(null); // { id, ...initial data }
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null });
 
@@ -469,26 +468,26 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       ) : (
         <>
           <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ tableLayout: 'fixed', width: '100%', '& .MuiTableCell-root': { px: 0.75, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }}>
+          <Table size="small" sx={{ width: '100%', '& .MuiTableCell-root': { px: 0.75, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('table.invoiceId')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: isAdmin ? '13%' : '20%' }}>{t('table.client')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', width: '9%' }}>{t('table.userType')}</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold', width: isAdmin ? '20%' : '30%' }}>{t('table.products')}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('table.total')}</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', width: '8%' }}>{t('status')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '9%' }}>{t('table.issued')}</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', width: '5%' }}>{t('table.document')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('table.actions')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.invoiceId')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('table.client')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.userType')}</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('table.products')}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('table.total')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.issued')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.document')}</TableCell>
+                {isAdmin && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.actions')}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedRows.map((inv) => (
           <TableRow key={inv.id} hover>
-                  <TableCell>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                   <TableCell>{inv.clientName || '\u2014'}</TableCell>
-                  {isAdmin && <TableCell>{inv.tenantType || '\u2014'}</TableCell>}
+                  {isAdmin && <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.tenantType || '\u2014'}</TableCell>}
                   <TableCell>
                     <Tooltip title={inv.products || ''} placement="top-start" enterDelay={500}>
                       <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.products || '\u2014'}</span>
@@ -530,7 +529,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       );
                     })()}
                   </TableCell>
-                  <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '\u2014'}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '\u2014'}</TableCell>
                   <TableCell align="center">
                     <Chip
                       label="PDF"
@@ -564,57 +563,8 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                     />
                   </TableCell>
                   {isAdmin && (
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                     <Stack direction="row" spacing={1}>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={async () => {
-                          try {
-                            const detail = await fetchInvoice(inv.id);
-                            const lineItems = (detail.lineItems || []).map((li) => ({
-                              description: li.conceptodesglose || '',
-                              quantity: Number(li.cantidaddesglose || 1),
-                              price: Number(li.precioundesglose || 0),
-                              vatPercent: 21
-                            }));
-                            setEditInvoice({
-                              id: inv.id,
-                              client: inv.clientName ? { label: inv.clientName, value: inv.idCliente } : null,
-                              clientName: inv.clientName || '',
-                              invoiceNum: inv.holdedInvoiceNum || String(inv.idFactura || ''),
-                              date: detail.fechacreacionreal ? String(detail.fechacreacionreal) : (inv.createdAt ? inv.createdAt.slice(0, 10) : ''),
-                              dueDate: detail.fechacobro1 ? String(detail.fechacobro1) : '',
-                              lines: lineItems.length > 0 ? lineItems : [{ description: '', quantity: 1, price: 0, vatPercent: 21 }],
-                              note: detail.notas || '',
-                              userType: inv.tenantType || '',
-                              center: detail.idcentro ? String(detail.idcentro) : '',
-                              cuenta: detail.holdedcuenta || '',
-                              status: inv.estado || 'Pendiente'
-                            });
-                          } catch (e) {
-                            setSnackbar({ open: true, message: e.message || t('invoiceUpdateError'), severity: 'error' });
-                          }
-                        }}
-                        sx={{
-                          minWidth: 60,
-                          height: 28,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          borderColor: 'primary.main',
-                          color: 'primary.main',
-                          '&:hover': {
-                            borderColor: 'primary.dark',
-                            color: 'primary.dark',
-                            backgroundColor: (theme) => `${theme.palette.primary.main}14`,
-                            transform: 'translateY(-1px)',
-                            boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`
-                          },
-                          transition: 'all 0.2s ease-in-out'
-                        }}
-                      >
-                        {t('edit')}
-                      </Button>
                       <Button
                         size="small"
                         variant="outlined"
@@ -730,28 +680,6 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               } finally {
                 setLoading(false);
               }
-          }}
-        />
-      )}
-      {isAdmin && editInvoice && (
-        <InvoiceEditor
-          open={!!editInvoice}
-          onClose={() => setEditInvoice(null)}
-          editMode
-          initial={editInvoice}
-          onUpdate={async (id, payload) => {
-            try {
-              setLoading(true);
-              await updateInvoice(id, payload);
-              setSnackbar({ open: true, message: t('invoiceUpdated'), severity: 'success' });
-              setEditInvoice(null);
-              await refreshList();
-            } catch (e) {
-              setSnackbar({ open: true, message: e.message || t('invoiceUpdateError'), severity: 'error' });
-              throw e;
-            } finally {
-              setLoading(false);
-            }
           }}
         />
       )}

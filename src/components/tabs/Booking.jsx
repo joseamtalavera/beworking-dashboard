@@ -933,7 +933,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
         </Stack>
       )}
       <TableContainer>
-        <Table size="small" sx={{ tableLayout: 'fixed' }}>
+        <Table size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: 'grey.100' }}>
               <TableCell padding="checkbox" sx={{ width: 48 }}>
@@ -957,9 +957,9 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
               </TableCell>
               <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('steps.date')}</TableCell>
               <TableCell align="right" sx={{ width: 140, fontWeight: 'bold' }}>{t('admin.product')}</TableCell>
-              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('admin.start')}</TableCell>
-              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('admin.finish')}</TableCell>
-              <TableCell align="right" sx={{ width: 90, fontWeight: 'bold' }}>{t('admin.people')}</TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('admin.start')}</TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('admin.finish')}</TableCell>
+              <TableCell align="right" sx={{ width: 90, fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('admin.people')}</TableCell>
               <TableCell align="right" sx={{ width: 160, fontWeight: 'bold' }}>{t('admin.paymentStatus')}</TableCell>
               {onDelete ? <TableCell align="right" sx={{ width: 72, fontWeight: 'bold' }}>{t('userView.actions')}</TableCell> : null}
             </TableRow>
@@ -1038,9 +1038,9 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
                   </TableCell>
               <TableCell align="right" sx={{ width: 120 }}>{bookingDate}</TableCell>
               <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
-              <TableCell align="right" sx={{ width: 120 }}>{startHour}</TableCell>
-              <TableCell align="right" sx={{ width: 120 }}>{finishHour}</TableCell>
-              <TableCell align="right" sx={{ width: 90 }}>{attendees ?? '—'}</TableCell>
+              <TableCell align="right" sx={{ width: 120, display: { xs: 'none', md: 'table-cell' } }}>{startHour}</TableCell>
+              <TableCell align="right" sx={{ width: 120, display: { xs: 'none', md: 'table-cell' } }}>{finishHour}</TableCell>
+              <TableCell align="right" sx={{ width: 90, display: { xs: 'none', md: 'table-cell' } }}>{attendees ?? '—'}</TableCell>
               <TableCell align="right" sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 {chipContent}
               </TableCell>
@@ -2674,6 +2674,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
   const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
   const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
   const [extraLines, setExtraLines] = useState([]);
+  const [availableProducts, setAvailableProducts] = useState([]);
 
   const buildFormState = (b) => {
     const reservationTypeRaw =
@@ -2714,6 +2715,17 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
       setSelectedUninvoicedIds([]);
       setSelectedUninvoicedSubtotal(0);
       setExtraLines([]);
+      // Load available products for this center
+      fetchBookingProductos()
+        .then((items) => {
+          const prods = (Array.isArray(items) ? items : []).map((p) => ({
+            id: p.id,
+            name: p.nombre || p.name || '',
+            centerCode: p.centroCodigo || p.centerCode || '',
+          }));
+          setAvailableProducts(prods);
+        })
+        .catch(() => setAvailableProducts([]));
     }
   }, [bloqueo]);
 
@@ -3053,7 +3065,17 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
                           </TextField>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label={t('admin.producto')} value={formState.producto || ''} onChange={(e) => handleFieldChange('producto', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
+                          <TextField fullWidth label={t('admin.producto')} value={formState.productoId || ''} onChange={(e) => {
+                            const prod = availableProducts.find((p) => p.id === Number(e.target.value));
+                            if (prod) {
+                              handleFieldChange('productoId', prod.id);
+                              handleFieldChange('producto', prod.name);
+                            }
+                          }} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
+                            {availableProducts.map((p) => (
+                              <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                            ))}
+                          </TextField>
                         </Grid>
                         <Grid item xs={12} sm={4}>
                           <TextField fullWidth label={t('admin.reservationType')} value={formState.reservationType || 'Por Horas'} onChange={(e) => handleFieldChange('reservationType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
