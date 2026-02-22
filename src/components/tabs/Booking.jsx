@@ -2876,9 +2876,11 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           reference: String(formState.productoId || ''),
           dueDays: invoiceDueDays,
         });
-        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
+        // createInvoice MUST run before updateBloqueo — it checks isInvoiced()
+        // and rejects bloqueos already marked "Invoiced"
         const invoiceIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
         await createInvoice({ bloqueoIds: invoiceIds, vatPercent: 21, extraLineItems });
+        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
       } else if (paymentOption === 'no_invoice') {
         await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
       }
