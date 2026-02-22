@@ -104,6 +104,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
           onOpenSettings={() => setSettingsOpen(true)}
           setActiveTab={setActiveTab}
           onMenuToggle={() => setMobileOpen(true)}
+          isAdmin
         />
         <Box component="main" sx={{ flex: 1, p: { xs: 2, sm: 3, lg: 4 } }}>
           <React.Suspense fallback={<SpiralLoader />}>

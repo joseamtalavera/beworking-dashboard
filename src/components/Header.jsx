@@ -35,7 +35,7 @@ const spinAnimation = `
   }
 `;
 
-const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab, onMenuToggle }) => {
+const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab, onMenuToggle, isAdmin = true }) => {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
   const { mode, toggleColorMode } = useColorMode();
@@ -207,7 +207,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ width: { xs: '100%', md: 'auto' } }}>
-            <Box sx={{ position: 'relative', width: { xs: '100%', sm: 220, md: 280, lg: 320 }, order: { xs: 1, sm: 0 } }}>
+            {isAdmin && <Box sx={{ position: 'relative', width: { xs: '100%', sm: 220, md: 280, lg: 320 }, order: { xs: 1, sm: 0 } }}>
             <TextField
               placeholder={t('header.search')}
               size="small"
@@ -365,10 +365,10 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                   ))}
                 </Box>
               )}
-            </Box>
+            </Box>}
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
-              <Button
+              {isAdmin && <Button
                 variant="outlined"
                 size="small"
                 startIcon={<AddRoundedIcon />}
@@ -433,7 +433,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                     />
                   </MenuItem>
                 ))}
-              </Menu>
+              </Menu>}
               {/* Full button on sm+, icon-only on xs */}
               <Button
                 variant="contained"

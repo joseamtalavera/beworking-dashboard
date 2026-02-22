@@ -254,7 +254,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           {/* Admin-only filters: name, email, user type */}
           {isAdmin && (
             <>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <TextField
                   fullWidth
                   label={t('searchByName')}
@@ -271,7 +271,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <TextField
                   fullWidth
                   label={t('searchByEmail')}
@@ -290,7 +290,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               </Grid>
             </>
           )}
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <TextField
               fullWidth
               label={t('invoiceId')}
@@ -307,7 +307,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={isAdmin ? 1.5 : 3}>
+          <Grid size={{ xs: 12, sm: 6, md: isAdmin ? 1.5 : 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel shrink>{t('status')}</InputLabel>
               <Select
@@ -323,7 +323,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             </FormControl>
           </Grid>
           {isAdmin && (
-            <Grid item xs={12} sm={6} md={1.5}>
+            <Grid size={{ xs: 12, sm: 6, md: 1.5 }}>
               <FormControl fullWidth size="small">
                 <InputLabel shrink>{t('userType')}</InputLabel>
                 <Select
@@ -347,7 +347,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           )}
 
           {/* Shared filters: product, dates */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <TextField
               fullWidth
               label={t('product')}
@@ -364,7 +364,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField
               fullWidth
               label={t('startDate')}
@@ -375,7 +375,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               size="small"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField
               fullWidth
               label={t('endDate')}

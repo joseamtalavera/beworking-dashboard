@@ -74,7 +74,7 @@ export const apiFetch = async (path, options = {}) => {
 
   const response = await fetch(toAbsoluteUrl(path), init);
 
-  if ((response.status === 401 || response.status === 403) && !_retry) {
+  if (response.status === 401 && !_retry) {
     try {
       const refreshResponse = await fetch(toAbsoluteUrl('auth/refresh'), {
         method: 'POST',
