@@ -71,7 +71,7 @@
     },
     "mailbox": {
       "title": "Buzón de Correo",
-      "sender": "Remitente",
+      "document": "Documento",
       "type": "Tipo",
       "received": "Recibido",
       "status": "Estado",

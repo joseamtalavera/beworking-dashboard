@@ -71,7 +71,7 @@
     },
     "mailbox": {
       "title": "Mailbox",
-      "sender": "Sender",
+      "document": "Document",
       "type": "Type",
       "received": "Received",
       "status": "Status",

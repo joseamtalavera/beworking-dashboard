@@ -342,14 +342,14 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
     invoices.forEach(inv => {
       const amount = parseFloat(inv.total || 0);
       const status = (inv.estado || '').toLowerCase();
-      const d = new Date(inv.fechaFactura);
+      const d = new Date(inv.createdAt || inv.fechaFactura);
       const isPaid = status.includes('pag') || status.includes('paid');
       const isOverdue = status.includes('venc') || status.includes('overdue');
       const isPending = status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice');
 
       if (isPending) { pendingCount++; pendingTotal += amount; }
       if (isOverdue) { overdueCount++; overdueTotal += amount; }
-      if (isPaid && d.getFullYear() === curYear) {
+      if (isPaid && !isNaN(d.getTime()) && d.getFullYear() === curYear) {
         spentYTD += amount;
         if (d.getMonth() === curMonth) spentMonth += amount;
       }
@@ -359,7 +359,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
 
   // Recent invoices (last 5, sorted desc)
   const recentInvoices = useMemo(() =>
-    [...invoices].sort((a, b) => new Date(b.fechaFactura) - new Date(a.fechaFactura)).slice(0, 5),
+    [...invoices].sort((a, b) => new Date(b.createdAt || b.fechaFactura) - new Date(a.createdAt || a.fechaFactura)).slice(0, 5),
     [invoices]
   );
 
@@ -501,7 +501,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
               ) : recentInvoices.map(inv => (
                 <TableRow key={inv.id} hover>
                   <TableCell>#{inv.idFactura || inv.id}</TableCell>
-                  <TableCell>{new Date(inv.fechaFactura).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                  <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>€{parseFloat(inv.total || 0).toFixed(2)}</TableCell>
                   <TableCell><Chip label={inv.estado || '-'} size="small" color={statusChipColor(inv.estado)} variant="outlined" /></TableCell>
                 </TableRow>
@@ -526,7 +526,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>{t('user.mailbox.sender')}</TableCell>
+                  <TableCell>{t('user.mailbox.document')}</TableCell>
                   <TableCell>{t('user.mailbox.type')}</TableCell>
                   <TableCell>{t('user.mailbox.received')}</TableCell>
                   <TableCell>{t('user.mailbox.status')}</TableCell>
@@ -535,7 +535,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
               <TableBody>
                 {recentMail.map(doc => (
                   <TableRow key={doc.id} hover>
-                    <TableCell>{doc.sender || doc.title || '-'}</TableCell>
+                    <TableCell>{doc.title || doc.originalFileName || '-'}</TableCell>
                     <TableCell><Chip label={doc.type || 'mail'} size="small" variant="outlined" /></TableCell>
                     <TableCell>{new Date(doc.receivedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</TableCell>
                     <TableCell><Chip label={doc.status || '-'} size="small" color={doc.status === 'picked_up' ? 'success' : doc.status === 'scanned' ? 'warning' : 'default'} variant="outlined" /></TableCell>
