@@ -26,7 +26,8 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
 
 function getVatRate(state) {
   const taxId = (state.contact?.billingTaxId || '').trim().toUpperCase();
-  if (taxId && (taxId.startsWith('ES') || taxId.startsWith('EE'))) return 0;
+  // Intra-EU reverse charge: 0% VAT for EU VAT-registered companies outside Spain
+  if (taxId && /^[A-Z]{2}/.test(taxId) && !taxId.startsWith('ES')) return 0;
   return 0.21;
 }
 
