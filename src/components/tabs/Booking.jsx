@@ -26,6 +26,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import TableSortLabel from '@mui/material/TableSortLabel';
 import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
@@ -863,20 +864,18 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
   const theme = useTheme();
   const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
+  const [sortDirection, setSortDirection] = useState('desc');
   const sortedBloqueos = useMemo(() => {
     const clone = [...bloqueos];
+    const dir = sortDirection === 'asc' ? 1 : -1;
     clone.sort((a, b) => {
-      const timeA = a.fechaIni ? timeStringToMinutes(a.fechaIni.split('T')[1]) : null;
-      const timeB = b.fechaIni ? timeStringToMinutes(b.fechaIni.split('T')[1]) : null;
-      const normalizedA = timeA != null ? timeA : -1;
-      const normalizedB = timeB != null ? timeB : -1;
-      if (normalizedA !== normalizedB) {
-        return normalizedA - normalizedB;
-      }
+      const dateA = a.fechaIni ? new Date(a.fechaIni).getTime() : 0;
+      const dateB = b.fechaIni ? new Date(b.fechaIni).getTime() : 0;
+      if (dateA !== dateB) return (dateA - dateB) * dir;
       return (a.cliente?.nombre || '').localeCompare(b.cliente?.nombre || '');
     });
     return clone;
-  }, [bloqueos]);
+  }, [bloqueos, sortDirection]);
 
   const allIds = useMemo(() => sortedBloqueos.map((b) => b.id), [sortedBloqueos]);
   const allSelected = allIds.length > 0 && selectedIds.length === allIds.length;
@@ -955,7 +954,15 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
               >
                 {t('admin.user')}
               </TableCell>
-              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>{t('steps.date')}</TableCell>
+              <TableCell align="right" sx={{ width: 120, fontWeight: 'bold' }}>
+                <TableSortLabel
+                  active
+                  direction={sortDirection}
+                  onClick={() => setSortDirection((prev) => prev === 'asc' ? 'desc' : 'asc')}
+                >
+                  {t('steps.date')}
+                </TableSortLabel>
+              </TableCell>
               <TableCell align="right" sx={{ width: 140, fontWeight: 'bold' }}>{t('admin.product')}</TableCell>
               <TableCell align="right" sx={{ width: 120, fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('admin.start')}</TableCell>
               <TableCell align="right" sx={{ width: 120, fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('admin.finish')}</TableCell>
@@ -5184,6 +5191,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const [filterProduct, setFilterProduct] = useState('');
   const [filterEmail, setFilterEmail] = useState('');
   const [filterUserType, setFilterUserType] = useState(defaultAgendaUserType);
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
   const [deletingBloqueoId, setDeletingBloqueoId] = useState(null);
   const [selectedAgendaIds, setSelectedAgendaIds] = useState([]);
 
@@ -5193,6 +5201,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
     setFilterProduct('');
     setFilterEmail('');
     setFilterUserType(defaultAgendaUserType);
+    setFilterPaymentStatus('');
   };
   const [bookingFlowActive, setBookingFlowActive] = useState(false);
   const [slotBookingRoom, setSlotBookingRoom] = useState(null);
@@ -5564,13 +5573,18 @@ const Booking = ({ mode = 'user', userProfile }) => {
         }
       }
 
+      if (filterPaymentStatus) {
+        const statusKey = mapStatusKey(bloqueo.estado);
+        if (statusKey !== filterPaymentStatus) return false;
+      }
+
         return true;
       });
     } catch (error) {
       console.error('Error filtering bloqueos:', error);
       return [];
     }
-  }, [bloqueos, filterUser, filterCenter, filterProduct, filterUserType, filterEmail]);
+  }, [bloqueos, filterUser, filterCenter, filterProduct, filterUserType, filterEmail, filterPaymentStatus]);
 
   const totalAllowedBloqueos = useMemo(() => {
     try {
@@ -6186,6 +6200,28 @@ const Booking = ({ mode = 'user', userProfile }) => {
                         {option}
                       </MenuItem>
                     ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel shrink>{t('admin.paymentStatus')}</InputLabel>
+                  <Select
+                    value={filterPaymentStatus}
+                    onChange={(event) => setFilterPaymentStatus(event.target.value)}
+                    label={t('admin.paymentStatus')}
+                    displayEmpty
+                    renderValue={(value) => {
+                      if (!value) return t('admin.allStatuses');
+                      if (value === 'paid') return t('status.paid');
+                      if (value === 'invoiced') return t('status.invoiced');
+                      return t('status.booked');
+                    }}
+                  >
+                    <MenuItem value="">{t('admin.allStatuses')}</MenuItem>
+                    <MenuItem value="paid">{t('status.paid')}</MenuItem>
+                    <MenuItem value="invoiced">{t('status.invoiced')}</MenuItem>
+                    <MenuItem value="created">{t('status.booked')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
