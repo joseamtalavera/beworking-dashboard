@@ -231,6 +231,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
       onSave={handleSave}
       userTypeOptions={[...CANONICAL_USER_TYPES]}
       refreshProfile={refreshProfile}
+      mode="user"
     />
   );
 };

@@ -50,6 +50,9 @@ import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { fetchBookingStats } from '../../../api/bookings';
 import { fetchSubscriptions, createSubscription, updateSubscription } from '../../../api/subscriptions';
+import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import IconButton from '@mui/material/IconButton';
@@ -79,7 +82,46 @@ if (!i18n.hasResourceBundle('es', 'contacts')) {
   i18n.addResourceBundle('en', 'contacts', enContacts);
 }
 
-const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile }) => {
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+
+const SetupForm = ({ onSuccess, onCancel }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    setError(null);
+    const { error: stripeError } = await stripe.confirmSetup({
+      elements,
+      redirect: 'if_required',
+    });
+    if (stripeError) {
+      setError(stripeError.message);
+      setSubmitting(false);
+    } else {
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement />
+      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 3 }}>
+        <Button onClick={onCancel} disabled={submitting}>Cancelar</Button>
+        <Button type="submit" variant="contained" disabled={submitting || !stripe}>
+          {submitting ? <CircularProgress size={20} /> : 'Guardar'}
+        </Button>
+      </Stack>
+    </form>
+  );
+};
+
+const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile, mode = 'admin' }) => {
   const { t, i18n: i18nInstance } = useTranslation('contacts');
   const lang = i18nInstance.language?.startsWith('en') ? 'en' : 'es';
   const theme = useTheme();
@@ -125,6 +167,41 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       .catch(() => setSubscriptions([]));
   };
   useEffect(loadSubscriptions, [contact?.id]);
+
+  // Payment methods (user mode only)
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [pmLoading, setPmLoading] = useState(false);
+  const [pmDialogOpen, setPmDialogOpen] = useState(false);
+  const [setupClientSecret, setSetupClientSecret] = useState(null);
+
+  const loadPaymentMethods = () => {
+    const email = contact?.contact?.email;
+    if (!email || mode !== 'user') return;
+    setPmLoading(true);
+    fetchCustomerPaymentMethods(email)
+      .then(data => setPaymentMethods(data?.paymentMethods || []))
+      .catch(() => setPaymentMethods([]))
+      .finally(() => setPmLoading(false));
+  };
+  useEffect(loadPaymentMethods, [contact?.contact?.email, mode]);
+
+  const handleOpenSetup = async () => {
+    try {
+      const email = contact?.contact?.email;
+      const name = contact?.name;
+      const data = await createSetupIntent({ customerEmail: email, customerName: name });
+      setSetupClientSecret(data.clientSecret);
+      setPmDialogOpen(true);
+    } catch (err) {
+      console.error('Failed to create setup intent:', err);
+    }
+  };
+
+  const handleSetupSuccess = () => {
+    setPmDialogOpen(false);
+    setSetupClientSecret(null);
+    loadPaymentMethods();
+  };
 
   const handleAddSubscription = async () => {
     setSubSaving(true);
@@ -330,14 +407,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
 
   return (
     <Stack spacing={4}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
+      <Stack direction="row" alignItems="center" justifyContent={onBack ? "space-between" : "flex-end"}>
         {onBack && (
           <Button startIcon={<ArrowBackRoundedIcon />} onClick={onBack}>
             {t('profile.backToContacts')}
           </Button>
         )}
-        <Button 
-          variant="outlined" 
+        <Button
+          variant="outlined"
           startIcon={<EditRoundedIcon sx={{ color: 'primary.main' }} />}
           onClick={() => setEditorOpen(true)}
           sx={{
@@ -465,6 +542,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           </SectionCard>
         </Box>
 
+        {mode !== 'user' && (
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={EventAvailableRoundedIcon} title={t('profile.bookingsLabel')}>
             <SectionList
@@ -487,6 +565,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             />
           </SectionCard>
         </Box>
+        )}
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={AutorenewRoundedIcon} title={t('profile.subscriptions')}>
@@ -507,21 +586,26 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t('profile.month')} · {t('profile.since')} {sub.startDate}
                           </Typography>
                         </Box>
+                        {mode !== 'user' && (
                         <Button size="small" color="error" onClick={() => handleCancelSubscription(sub.id)}>
                           {t('profile.cancelSubscription')}
                         </Button>
+                        )}
                       </Box>
                     </Paper>
                   ))}
                 </Stack>
               )}
+              {mode !== 'user' && (
               <Button size="small" startIcon={<AddRoundedIcon />} onClick={() => setSubDialogOpen(true)} sx={{ mt: 1 }}>
                 {t('profile.addSubscription')}
               </Button>
+              )}
             </Box>
           </SectionCard>
         </Box>
 
+        {mode !== 'user' && (
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={DescriptionRoundedIcon} title={t('profile.invoices')}>
             <SectionList
@@ -534,7 +618,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             />
           </SectionCard>
         </Box>
+        )}
 
+        {mode !== 'user' && (
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={ChatBubbleOutlineRoundedIcon} title={t('profile.communications')}>
             <SectionList
@@ -547,6 +633,44 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             />
           </SectionCard>
         </Box>
+        )}
+
+        {/* Payment Method (user mode) */}
+        {mode === 'user' && (
+        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
+          <SectionCard icon={CreditCardRoundedIcon} title={t('profile.paymentMethod')}>
+            <Box sx={{ px: 2, pb: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {t('profile.paymentMethodDesc')}
+              </Typography>
+              {pmLoading ? (
+                <CircularProgress size={20} />
+              ) : paymentMethods.length === 0 ? (
+                <Typography variant="body2" color="text.disabled">{t('profile.noPaymentMethod')}</Typography>
+              ) : (
+                <Stack spacing={1}>
+                  {paymentMethods.map((pm, idx) => (
+                    <Paper key={idx} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <CreditCardRoundedIcon fontSize="small" color="action" />
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {(pm.brand || 'card').toUpperCase()} •••• {pm.last4}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {pm.expMonth}/{pm.expYear}
+                        </Typography>
+                      </Stack>
+                    </Paper>
+                  ))}
+                </Stack>
+              )}
+              <Button size="small" startIcon={<AddRoundedIcon />} onClick={handleOpenSetup} sx={{ mt: 1 }}>
+                {paymentMethods.length > 0 ? t('profile.changePaymentMethod') : t('profile.addPaymentMethod')}
+              </Button>
+            </Box>
+          </SectionCard>
+        </Box>
+        )}
       </Box>
 
 
@@ -727,6 +851,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         size="small"
                         sx={fieldSx}
                         SelectProps={{ displayEmpty: true }}
+                        disabled={mode === 'user'}
                       >
                         <MenuItem value="">
                           <em>{t('profile.undefinedOption')}</em>
@@ -748,6 +873,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         variant="outlined"
                         size="small"
                         sx={fieldSx}
+                        disabled={mode === 'user'}
                       >
                         {STATUS_OPTIONS.map((option) => (
                           <MenuItem key={option.value} value={option.value}>
@@ -1038,6 +1164,18 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Payment Method Setup Dialog */}
+      {setupClientSecret && (
+        <Dialog open={pmDialogOpen} onClose={() => { setPmDialogOpen(false); setSetupClientSecret(null); }} maxWidth="sm" fullWidth>
+          <DialogTitle>{t('profile.setupPaymentMethod')}</DialogTitle>
+          <DialogContent>
+            <Elements stripe={stripePromise} options={{ clientSecret: setupClientSecret, appearance: { theme: 'stripe' } }}>
+              <SetupForm onSuccess={handleSetupSuccess} onCancel={() => { setPmDialogOpen(false); setSetupClientSecret(null); }} />
+            </Elements>
+          </DialogContent>
+        </Dialog>
+      )}
     </Stack>
   );
 };

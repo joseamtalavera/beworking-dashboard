@@ -504,14 +504,14 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
               <Avatar
                 src={userProfile?.avatar || userProfile?.photo}
                 alt={userProfile?.name || userProfile?.email || 'User'}
-                onClick={onOpenSettings}
+                onClick={isAdmin ? onOpenSettings : undefined}
                 sx={{
                   width: { xs: 36, sm: 44 },
                   height: { xs: 36, sm: 44 },
                   border: '3px solid',
                   borderColor: (theme) => alpha(theme.palette.warning.light, 0.6),
                   bgcolor: accentColor,
-                  cursor: 'pointer',
+                  cursor: isAdmin ? 'pointer' : 'default',
                   flexShrink: 0
                 }}
               >

@@ -183,7 +183,13 @@
     "stripeIdHelper": "Leave empty to auto-create in Stripe",
     "creating": "Creating...",
     "vatNumber": "EU VAT number",
-    "vatNumberHelper": "If provided, no tax will be applied (reverse charge)"
+    "vatNumberHelper": "If provided, no tax will be applied (reverse charge)",
+    "paymentMethod": "Payment Method",
+    "paymentMethodDesc": "Saved cards on Stripe",
+    "noPaymentMethod": "No payment method",
+    "addPaymentMethod": "Add payment method",
+    "changePaymentMethod": "Change",
+    "setupPaymentMethod": "Set up payment method"
   },
   "header": {
     "title": "Contacts",

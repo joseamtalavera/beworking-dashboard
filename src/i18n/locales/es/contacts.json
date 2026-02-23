@@ -183,7 +183,13 @@
     "stripeIdHelper": "Dejar vacío para crear automáticamente en Stripe",
     "creating": "Creando...",
     "vatNumber": "NIF/CIF intracomunitario",
-    "vatNumberHelper": "Si se indica, no se aplicará IVA (inversión del sujeto pasivo)"
+    "vatNumberHelper": "Si se indica, no se aplicará IVA (inversión del sujeto pasivo)",
+    "paymentMethod": "Método de Pago",
+    "paymentMethodDesc": "Tarjetas guardadas en Stripe",
+    "noPaymentMethod": "Sin método de pago",
+    "addPaymentMethod": "Añadir método de pago",
+    "changePaymentMethod": "Cambiar",
+    "setupPaymentMethod": "Configurar método de pago"
   },
   "header": {
     "title": "Contactos",

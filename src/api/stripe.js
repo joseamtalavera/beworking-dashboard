@@ -43,6 +43,12 @@ export const chargeCustomer = ({ customerEmail, paymentMethodId, amount, currenc
     },
   });
 
+export const createSetupIntent = ({ customerEmail, customerName }) =>
+  stripeRequest('/api/setup-intents', {
+    method: 'POST',
+    body: { customer_email: customerEmail, customer_name: customerName },
+  });
+
 export const createStripeInvoice = ({ customerEmail, customerName, amount, currency, description, reference, dueDays }) =>
   stripeRequest('/api/invoices', {
     method: 'POST',
