@@ -451,9 +451,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       >
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center" justifyContent="space-between">
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
-            <Avatar 
-              src={contact?.avatar || contact?.photo} 
-              alt={contact?.name || 'Contact'} 
+            <Avatar
+              src={contact?.avatar || contact?.photo || undefined}
+              alt={contact?.name || 'Contact'}
               sx={{
                 width: 90,
                 height: 90,
@@ -491,6 +491,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           gridTemplateColumns: { xs: '1fr', lg: 'repeat(12, minmax(0, 1fr))' }
         }}
       >
+        {mode !== 'user' && (
         <Box sx={{ gridColumn: '1 / -1' }}>
           <InfoCard title={t('profile.highlights')}>
             <Box
@@ -510,6 +511,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             </Box>
           </InfoCard>
         </Box>
+        )}
 
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <InfoCard title={t('profile.basicData')} icon={PersonOutlineRoundedIcon}>
@@ -568,7 +570,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         </Box>
         )}
 
-        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
+        <Box sx={{ gridColumn: { xs: '1 / -1', lg: mode === 'user' ? '1 / 7' : '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={AutorenewRoundedIcon} title={t('profile.subscriptions')}>
             <Box sx={{ px: 2, pb: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -638,7 +640,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
 
         {/* Payment Method (user mode) */}
         {mode === 'user' && (
-        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1 / 7' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
+        <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
           <SectionCard icon={CreditCardRoundedIcon} title={t('profile.paymentMethod')}>
             <Box sx={{ px: 2, pb: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>

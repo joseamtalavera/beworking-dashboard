@@ -502,7 +502,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                 {i18n.language === 'es' ? 'EN' : 'ES'}
               </Button>
               <Avatar
-                src={userProfile?.avatar || userProfile?.photo}
+                src={userProfile?.avatar || userProfile?.photo || undefined}
                 alt={userProfile?.name || userProfile?.email || 'User'}
                 onClick={isAdmin ? onOpenSettings : undefined}
                 sx={{

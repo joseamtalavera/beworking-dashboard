@@ -23,42 +23,49 @@ const normalizeContact = (entry = {}) => {
   const contact = entry.contact ?? {};
   const billing = entry.billing ?? {};
 
-  const representativeName = [entry.representative_first_name, entry.representative_last_name]
-    .filter(Boolean)
-    .join(' ');
+  // Backend returns camelCase (emailPrimary, billingName, etc.)
+  // Also support snake_case for compatibility with nested/merged objects
+  const representativeName = [
+    entry.representative_first_name || entry.representativeFirstName,
+    entry.representative_last_name || entry.representativeLastName
+  ].filter(Boolean).join(' ');
+
   const fallbackContactName = contact.name
-    ?? entry.primary_contact
+    ?? entry.primary_contact ?? entry.contactName
     ?? (representativeName || null);
   const fallbackContactEmail = contact.email
-    ?? entry.email_primary
-    ?? entry.representative_email
+    ?? entry.email_primary ?? entry.emailPrimary
+    ?? entry.representative_email ?? entry.representativeEmail
     ?? null;
 
   const fallbackBilling = {
-    company: billing.company ?? entry.billing_name ?? entry.name ?? null,
-    email: billing.email ?? entry.billing_email ?? entry.email_primary ?? null,
-    address: billing.address ?? entry.billing_address ?? null,
-    postal_code: billing.postal_code ?? entry.billing_postal_code ?? null,
-    county: billing.county ?? entry.billing_province ?? null,
-    country: billing.country ?? entry.billing_country ?? null,
-    tax_id: billing.tax_id ?? entry.billing_tax_id ?? null,
+    company: billing.company ?? entry.billing_name ?? entry.billingName ?? entry.name ?? null,
+    email: billing.email ?? entry.billing_email ?? entry.billingEmail ?? entry.email_primary ?? entry.emailPrimary ?? null,
+    address: billing.address ?? entry.billing_address ?? entry.billingAddress ?? null,
+    postal_code: billing.postal_code ?? entry.billing_postal_code ?? entry.billingPostalCode ?? null,
+    city: billing.city ?? entry.billing_city ?? entry.billingCity ?? null,
+    county: billing.county ?? entry.billing_province ?? entry.billingProvince ?? null,
+    country: billing.country ?? entry.billing_country ?? entry.billingCountry ?? null,
+    tax_id: billing.tax_id ?? entry.billing_tax_id ?? entry.billingTaxId ?? null,
   };
 
-  const rawUserType = entry.user_type ?? '—';
+  const rawUserType = entry.user_type ?? entry.tenantType ?? '—';
   const normalizedUserType = rawUserType === '—' ? rawUserType : normalizeUserTypeLabel(rawUserType);
+
+  const centerId = entry.center ?? entry.centerId ?? entry.center_id ?? null;
 
   return {
     ...entry,
     id: entry.id != null ? String(entry.id) : null,
-    name: entry.name ?? entry.billing_name ?? '—',
+    name: entry.name ?? entry.billing_name ?? entry.billingName ?? '—',
     plan: entry.plan ?? 'Custom',
-    center: entry.center != null ? String(entry.center) : null,
+    center: centerId != null ? String(centerId) : null,
     user_type: normalizedUserType,
     status: entry.status ?? 'Unknown',
     lastActive: entry.lastActive ?? '—',
     channel: entry.channel ?? '—',
-    created_at: entry.created_at ?? null,
-    phone_primary: entry.phone_primary ?? null,
+    created_at: entry.created_at ?? entry.createdAt ?? null,
+    phone_primary: entry.phone_primary ?? entry.phonePrimary ?? null,
     avatar: entry.avatar ?? null,
     contact: {
       name: fallbackContactName ?? '—',
@@ -163,6 +170,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
       billingEmail: normalizeString(updatedProfile.billing?.email) ?? null,
       billingAddress: normalizeString(updatedProfile.billing?.address) ?? null,
       billingPostalCode: normalizeString(updatedProfile.billing?.postal_code) ?? null,
+      billingCity: normalizeString(updatedProfile.billing?.city) ?? null,
       billingCounty: normalizeString(updatedProfile.billing?.county) ?? null,
       billingCountry: normalizeString(updatedProfile.billing?.country) ?? null,
       billingTaxId: normalizeString(updatedProfile.billing?.tax_id) ?? null,
@@ -194,6 +202,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
         email: payload.billingEmail ?? updatedProfile.billing?.email ?? null,
         address: payload.billingAddress ?? updatedProfile.billing?.address ?? null,
         postal_code: payload.billingPostalCode ?? updatedProfile.billing?.postal_code ?? null,
+        city: payload.billingCity ?? updatedProfile.billing?.city ?? null,
         county: payload.billingCounty ?? updatedProfile.billing?.county ?? null,
         country: payload.billingCountry ?? updatedProfile.billing?.country ?? null,
         tax_id: payload.billingTaxId ?? updatedProfile.billing?.tax_id ?? null,
