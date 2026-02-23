@@ -253,7 +253,7 @@ function AdminPaymentOptions({ onCreated }) {
           const allIds = [bloqueoId, ...selectedUninvoicedIds];
           const vatPct = paymentOption === 'free' ? 0 : Math.round(pricing.vatRate * 100);
           const invoiceReq = { bloqueoIds: allIds, vatPercent: vatPct };
-          if (stripeInvoiceId) invoiceReq.reference = stripeInvoiceId;
+          if (stripeInvoiceId) invoiceReq.stripeInvoiceId = stripeInvoiceId;
           await createInvoice(invoiceReq);
         } else {
           // Single booking: use manual invoice
