@@ -75,7 +75,11 @@ function buildBookingPayload(state) {
   const showWeekdays = normalizedType === 'por horas' || normalizedType === 'diaria';
   const orderedWeekdays = WEEKDAY_ORDER.filter((d) => state.weekdays.includes(d));
   const attendees = state.attendees === '' ? null : Number(state.attendees);
-  const tarifa = state.tarifa === '' ? null : Number(state.tarifa);
+  const tarifa = state.tarifa !== '' && state.tarifa != null
+    ? Number(state.tarifa)
+    : (state.customPrice !== '' && state.customPrice != null
+      ? Number(state.customPrice)
+      : (state.producto?.priceFrom || null));
 
   return {
     contactId,
