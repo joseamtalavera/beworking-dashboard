@@ -236,6 +236,12 @@ function AdminPaymentOptions({ onCreated }) {
         invoiceStatus = null;
       }
 
+      // When grouping with uninvoiced bookings, create as 'Booked' first —
+      // createInvoice will set the bloqueo status to 'Invoiced' itself.
+      if (hasExtra && invoiceStatus) {
+        bookingPayload.status = 'Booked';
+      }
+
       // ── Step 2: Create the booking ──
       const bookingResponse = await createReserva(bookingPayload);
       const bloqueoId = bookingResponse.bloqueos?.[0]?.id;
@@ -246,7 +252,9 @@ function AdminPaymentOptions({ onCreated }) {
           // Multi-bloqueo invoice: use createInvoice with bloqueoIds
           const allIds = [bloqueoId, ...selectedUninvoicedIds];
           const vatPct = paymentOption === 'free' ? 0 : Math.round(pricing.vatRate * 100);
-          await createInvoice({ bloqueoIds: allIds, vatPercent: vatPct });
+          const invoiceReq = { bloqueoIds: allIds, vatPercent: vatPct };
+          if (stripeInvoiceId) invoiceReq.reference = stripeInvoiceId;
+          await createInvoice(invoiceReq);
         } else {
           // Single booking: use manual invoice
           const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
