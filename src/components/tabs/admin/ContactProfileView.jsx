@@ -40,6 +40,7 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
 import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
@@ -176,7 +177,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
 
   const loadPaymentMethods = () => {
     const email = contact?.contact?.email;
-    if (!email || mode !== 'user') return;
+    if (!email || email === '—' || !email.includes('@') || mode !== 'user') return;
     setPmLoading(true);
     fetchCustomerPaymentMethods(email)
       .then(data => setPaymentMethods(data?.paymentMethods || []))
