@@ -368,7 +368,8 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
             </Box>}
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
-              {isAdmin && <Button
+              {isAdmin && <>
+              <Button
                 variant="outlined"
                 size="small"
                 startIcon={<AddRoundedIcon />}
@@ -433,7 +434,8 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                     />
                   </MenuItem>
                 ))}
-              </Menu>}
+              </Menu>
+              </>}
               {/* Full button on sm+, icon-only on xs */}
               <Button
                 variant="contained"
