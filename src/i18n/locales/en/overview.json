@@ -28,5 +28,55 @@
     "title": "Workspace Occupancy",
     "noData": "No occupancy data available",
     "bookedOf": "{{booked}}h booked of {{total}}h"
+  },
+  "user": {
+    "stats": {
+      "upcomingBookings": "Upcoming Bookings",
+      "next30days": "next 30 days",
+      "bookingsThisMonth": "Bookings This Month",
+      "thisMonth": "this month",
+      "freeBookingsLeft": "Free Bookings",
+      "remaining": "remaining of {{limit}}",
+      "bookingsYTD": "Bookings YTD",
+      "yearToDate": "year to date",
+      "pendingMail": "Pending Mail",
+      "documentsWaiting": "documents to review"
+    },
+    "financial": {
+      "pendingInvoices": "Pending Invoices",
+      "pendingCount": "{{count}} invoices",
+      "spentThisMonth": "Spent (Month)",
+      "spentYTD": "Spent (YTD)",
+      "overdue": "Overdue",
+      "overdueCount": "{{count}} invoices"
+    },
+    "upcomingBookings": {
+      "title": "Upcoming Bookings",
+      "date": "Date",
+      "time": "Time",
+      "room": "Room",
+      "center": "Center",
+      "status": "Status",
+      "viewAll": "View all",
+      "noBookings": "No upcoming bookings"
+    },
+    "recentInvoices": {
+      "title": "Recent Invoices",
+      "number": "Invoice #",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "viewAll": "View all",
+      "noInvoices": "No recent invoices"
+    },
+    "mailbox": {
+      "title": "Mailbox",
+      "sender": "Sender",
+      "type": "Type",
+      "received": "Received",
+      "status": "Status",
+      "viewAll": "View mailbox",
+      "noDocuments": "No recent documents"
+    }
   }
 }

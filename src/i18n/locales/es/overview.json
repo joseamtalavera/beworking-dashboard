@@ -28,5 +28,55 @@
     "title": "Ocupación del Espacio",
     "noData": "No hay datos de ocupación disponibles",
     "bookedOf": "{{booked}}h reservadas de {{total}}h"
+  },
+  "user": {
+    "stats": {
+      "upcomingBookings": "Próximas Reservas",
+      "next30days": "próximos 30 días",
+      "bookingsThisMonth": "Reservas del Mes",
+      "thisMonth": "este mes",
+      "freeBookingsLeft": "Reservas Gratis",
+      "remaining": "restantes de {{limit}}",
+      "bookingsYTD": "Reservas del Año",
+      "yearToDate": "en lo que va del año",
+      "pendingMail": "Correo Pendiente",
+      "documentsWaiting": "documentos por revisar"
+    },
+    "financial": {
+      "pendingInvoices": "Facturas Pendientes",
+      "pendingCount": "{{count}} facturas",
+      "spentThisMonth": "Gastado (Mes)",
+      "spentYTD": "Gastado (Año)",
+      "overdue": "Vencido",
+      "overdueCount": "{{count}} facturas"
+    },
+    "upcomingBookings": {
+      "title": "Próximas Reservas",
+      "date": "Fecha",
+      "time": "Hora",
+      "room": "Sala",
+      "center": "Centro",
+      "status": "Estado",
+      "viewAll": "Ver todas",
+      "noBookings": "No tienes reservas próximas"
+    },
+    "recentInvoices": {
+      "title": "Facturas Recientes",
+      "number": "Nº Factura",
+      "date": "Fecha",
+      "amount": "Importe",
+      "status": "Estado",
+      "viewAll": "Ver todas",
+      "noInvoices": "No hay facturas recientes"
+    },
+    "mailbox": {
+      "title": "Buzón de Correo",
+      "sender": "Remitente",
+      "type": "Tipo",
+      "received": "Recibido",
+      "status": "Estado",
+      "viewAll": "Ver buzón",
+      "noDocuments": "No hay documentos recientes"
+    }
   }
 }

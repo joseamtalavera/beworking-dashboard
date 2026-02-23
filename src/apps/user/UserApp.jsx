@@ -70,7 +70,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
     }
     const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
     if (activeTab === 'Overview') {
-      return <Component userType="user" />;
+      return <Component userType="user" userProfile={userProfile} setActiveTab={handleTabChange} />;
     }
     if (activeTab === 'Contacts') {
       return <Component key={contactsKey} refreshProfile={refreshProfile} userProfile={userProfile} />;
@@ -79,7 +79,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
       return <Component userType="user" userProfile={userProfile} />;
     }
     return <Component />;
-  }, [activeTab, contactsKey]);
+  }, [activeTab, contactsKey, userProfile]);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default }}>

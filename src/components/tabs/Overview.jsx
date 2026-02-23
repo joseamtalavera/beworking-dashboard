@@ -4,10 +4,17 @@ import i18n from '../../i18n/i18n.js';
 import esOverview from '../../i18n/locales/es/overview.json';
 import enOverview from '../../i18n/locales/en/overview.json';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import LinearProgress from '@mui/material/LinearProgress';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import FormControl from '@mui/material/FormControl';
@@ -19,7 +26,8 @@ import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
 import { useEffect, useState, useMemo } from 'react';
 import { fetchInvoices } from '../../api/invoices.js';
-import { fetchBloqueos, fetchBookingProductos } from '../../api/bookings.js';
+import { fetchBloqueos, fetchBookingProductos, fetchBookingStats } from '../../api/bookings.js';
+import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
@@ -231,7 +239,321 @@ const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
   );
 };
 
-const Overview = ({ userType = 'admin' }) => {
+/* ═══════════════════════════════════════════
+   Status chip helper for user tables
+   ═══════════════════════════════════════════ */
+const statusChipColor = (estado) => {
+  const s = (estado || '').toLowerCase();
+  if (s.includes('pag') || s.includes('paid')) return 'success';
+  if (s.includes('venc') || s.includes('overdue')) return 'error';
+  if (s.includes('pend') || s.includes('invoice') || s.includes('fact')) return 'warning';
+  return 'default';
+};
+
+/* ═══════════════════════════════════════════
+   USER OVERVIEW
+   ═══════════════════════════════════════════ */
+const UserOverview = ({ userProfile, setActiveTab }) => {
+  const theme = useTheme();
+  const { t } = useTranslation('overview');
+
+  const [bookings, setBookings] = useState([]);
+  const [bookingStats, setBookingStats] = useState(null);
+  const [invoices, setInvoices] = useState([]);
+  const [mailDocuments, setMailDocuments] = useState([]);
+  const [tenantType, setTenantType] = useState('');
+  const [loading, setLoading] = useState({ bookings: true, stats: true, invoices: true, mail: true });
+
+  useEffect(() => {
+    if (!userProfile?.email) return;
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const futureStr = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate()).toISOString().split('T')[0];
+
+    // 1. Fetch upcoming bookings
+    fetchBloqueos({ from: todayStr, to: futureStr })
+      .then(data => {
+        const list = Array.isArray(data) ? data : [];
+        list.sort((a, b) => new Date(a.fechaIni) - new Date(b.fechaIni));
+        setBookings(list);
+      })
+      .catch(err => console.error('Error fetching bookings:', err))
+      .finally(() => setLoading(prev => ({ ...prev, bookings: false })));
+
+    // 2. Fetch booking stats
+    if (userProfile.tenantId) {
+      fetchBookingStats(userProfile.tenantId)
+        .then(data => setBookingStats(data))
+        .catch(err => console.error('Error fetching booking stats:', err))
+        .finally(() => setLoading(prev => ({ ...prev, stats: false })));
+
+      // Fetch contact profile to get tenantType
+      apiFetch(`/contact-profiles/${userProfile.tenantId}`)
+        .then(data => setTenantType((data?.tenantType || '').toLowerCase()))
+        .catch(() => {});
+    } else {
+      setLoading(prev => ({ ...prev, stats: false }));
+    }
+
+    // 3. Fetch invoices filtered by user email
+    fetchInvoices({ page: 0, size: 10000, email: userProfile.email })
+      .then(response => { if (response?.content) setInvoices(response.content); })
+      .catch(err => console.error('Error fetching invoices:', err))
+      .finally(() => setLoading(prev => ({ ...prev, invoices: false })));
+
+    // 4. Fetch mailbox documents
+    listMailboxDocuments({ contactEmail: userProfile.email })
+      .then(data => {
+        let list;
+        if (Array.isArray(data)) list = data;
+        else if (Array.isArray(data?.items)) list = data.items;
+        else if (Array.isArray(data?.content)) list = data.content;
+        else list = [];
+        setMailDocuments(list);
+      })
+      .catch(() => setMailDocuments([]))
+      .finally(() => setLoading(prev => ({ ...prev, mail: false })));
+  }, [userProfile?.email, userProfile?.tenantId]);
+
+  const isVirtualUser = tenantType.includes('virtual');
+
+  const upcomingCount = useMemo(() => {
+    const now = new Date();
+    const in30 = new Date(now);
+    in30.setDate(in30.getDate() + 30);
+    return bookings.filter(b => {
+      const d = new Date(b.fechaIni);
+      return d >= now && d <= in30;
+    }).length;
+  }, [bookings]);
+
+  const pendingMailCount = useMemo(() =>
+    mailDocuments.filter(d => d.status === 'scanned' || d.status === 'notified').length,
+    [mailDocuments]
+  );
+
+  const invoiceMetrics = useMemo(() => {
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+    let pendingCount = 0, pendingTotal = 0, spentMonth = 0, spentYTD = 0, overdueCount = 0, overdueTotal = 0;
+
+    invoices.forEach(inv => {
+      const amount = parseFloat(inv.total || 0);
+      const status = (inv.estado || '').toLowerCase();
+      const d = new Date(inv.fechaFactura);
+      const isPaid = status.includes('pag') || status.includes('paid');
+      const isOverdue = status.includes('venc') || status.includes('overdue');
+      const isPending = status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice');
+
+      if (isPending) { pendingCount++; pendingTotal += amount; }
+      if (isOverdue) { overdueCount++; overdueTotal += amount; }
+      if (isPaid && d.getFullYear() === curYear) {
+        spentYTD += amount;
+        if (d.getMonth() === curMonth) spentMonth += amount;
+      }
+    });
+    return { pendingCount, pendingTotal, spentMonth, spentYTD, overdueCount, overdueTotal };
+  }, [invoices]);
+
+  // Recent invoices (last 5, sorted desc)
+  const recentInvoices = useMemo(() =>
+    [...invoices].sort((a, b) => new Date(b.fechaFactura) - new Date(a.fechaFactura)).slice(0, 5),
+    [invoices]
+  );
+
+  // Recent mail (last 5, sorted desc)
+  const recentMail = useMemo(() =>
+    [...mailDocuments].sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt)).slice(0, 5),
+    [mailDocuments]
+  );
+
+  const locale = i18n.language === 'es' ? 'es-ES' : 'en-US';
+
+  return (
+    <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
+      {/* Row 1: Quick Stats */}
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+        <StatCard label={t('user.stats.upcomingBookings')} value={upcomingCount} sublabel={t('user.stats.next30days')} loading={loading.bookings} theme={theme} />
+        <StatCard label={t('user.stats.bookingsThisMonth')} value={bookingStats?.totalBookingsMonth ?? 0} sublabel={t('user.stats.thisMonth')} loading={loading.stats} theme={theme} />
+        {isVirtualUser ? (
+          <StatCard label={t('user.stats.freeBookingsLeft')} value={bookingStats?.freeBookingsLeft ?? 0} sublabel={t('user.stats.remaining', { limit: bookingStats?.freeBookingsLimit ?? 5 })} loading={loading.stats} theme={theme} />
+        ) : (
+          <StatCard label={t('user.stats.bookingsYTD')} value={bookingStats?.totalBookingsYTD ?? 0} sublabel={t('user.stats.yearToDate')} loading={loading.stats} theme={theme} />
+        )}
+        <StatCard label={t('user.stats.pendingMail')} value={pendingMailCount} sublabel={t('user.stats.documentsWaiting')} loading={loading.mail} theme={theme} />
+      </Box>
+
+      {/* Row 2: Financial Summary */}
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' } }}>
+        <MetricCard
+          label={t('user.financial.pendingInvoices')}
+          value={invoiceMetrics.pendingTotal}
+          change={invoiceMetrics.pendingCount > 0 ? t('user.financial.pendingCount', { count: invoiceMetrics.pendingCount }) : null}
+          trend="flat"
+          color={dataColors.pending}
+          loading={loading.invoices}
+          theme={theme}
+        />
+        <MetricCard
+          label={t('user.financial.spentThisMonth')}
+          value={invoiceMetrics.spentMonth}
+          change={null}
+          trend="flat"
+          color={dataColors.income}
+          loading={loading.invoices}
+          theme={theme}
+        />
+        <MetricCard
+          label={t('user.financial.spentYTD')}
+          value={invoiceMetrics.spentYTD}
+          change={null}
+          trend="flat"
+          color={dataColors.income}
+          loading={loading.invoices}
+          theme={theme}
+        />
+        <MetricCard
+          label={t('user.financial.overdue')}
+          value={invoiceMetrics.overdueTotal}
+          change={invoiceMetrics.overdueCount > 0 ? t('user.financial.overdueCount', { count: invoiceMetrics.overdueCount }) : null}
+          trend={invoiceMetrics.overdueCount > 0 ? 'up' : 'flat'}
+          color={dataColors.overdue}
+          loading={loading.invoices}
+          theme={theme}
+        />
+      </Box>
+
+      {/* Row 3: Upcoming Bookings */}
+      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('user.upcomingBookings.title')}</Typography>
+          {setActiveTab && (
+            <Button size="small" onClick={() => setActiveTab('Booking')} sx={{ textTransform: 'none', fontWeight: 600 }}>
+              {t('user.upcomingBookings.viewAll')} →
+            </Button>
+          )}
+        </Stack>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('user.upcomingBookings.date')}</TableCell>
+                <TableCell>{t('user.upcomingBookings.time')}</TableCell>
+                <TableCell>{t('user.upcomingBookings.room')}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('user.upcomingBookings.center')}</TableCell>
+                <TableCell>{t('user.upcomingBookings.status')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading.bookings ? (
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}><CircularProgress size={24} /></TableCell></TableRow>
+              ) : bookings.slice(0, 5).length === 0 ? (
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                  <Typography variant="body2" color="text.secondary">{t('user.upcomingBookings.noBookings')}</Typography>
+                </TableCell></TableRow>
+              ) : bookings.slice(0, 5).map(b => {
+                const start = new Date(b.fechaIni);
+                const end = new Date(b.fechaFin);
+                return (
+                  <TableRow key={b.id} hover>
+                    <TableCell>{start.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</TableCell>
+                    <TableCell>{start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })} - {end.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                    <TableCell>{b.producto?.nombre || '-'}</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{b.centro?.nombre || '-'}</TableCell>
+                    <TableCell><Chip label={b.estado || '-'} size="small" color={statusChipColor(b.estado)} variant="outlined" /></TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      {/* Row 4: Recent Invoices */}
+      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('user.recentInvoices.title')}</Typography>
+          {setActiveTab && (
+            <Button size="small" onClick={() => setActiveTab('Invoices')} sx={{ textTransform: 'none', fontWeight: 600 }}>
+              {t('user.recentInvoices.viewAll')} →
+            </Button>
+          )}
+        </Stack>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('user.recentInvoices.number')}</TableCell>
+                <TableCell>{t('user.recentInvoices.date')}</TableCell>
+                <TableCell align="right">{t('user.recentInvoices.amount')}</TableCell>
+                <TableCell>{t('user.recentInvoices.status')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading.invoices ? (
+                <TableRow><TableCell colSpan={4} align="center" sx={{ py: 3 }}><CircularProgress size={24} /></TableCell></TableRow>
+              ) : recentInvoices.length === 0 ? (
+                <TableRow><TableCell colSpan={4} align="center" sx={{ py: 3 }}>
+                  <Typography variant="body2" color="text.secondary">{t('user.recentInvoices.noInvoices')}</Typography>
+                </TableCell></TableRow>
+              ) : recentInvoices.map(inv => (
+                <TableRow key={inv.id} hover>
+                  <TableCell>#{inv.idFactura || inv.id}</TableCell>
+                  <TableCell>{new Date(inv.fechaFactura).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>€{parseFloat(inv.total || 0).toFixed(2)}</TableCell>
+                  <TableCell><Chip label={inv.estado || '-'} size="small" color={statusChipColor(inv.estado)} variant="outlined" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      {/* Row 5: Mailbox Preview (conditional) */}
+      {recentMail.length > 0 && (
+        <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('user.mailbox.title')}</Typography>
+            {setActiveTab && (
+              <Button size="small" onClick={() => setActiveTab('Business Address')} sx={{ textTransform: 'none', fontWeight: 600 }}>
+                {t('user.mailbox.viewAll')} →
+              </Button>
+            )}
+          </Stack>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('user.mailbox.sender')}</TableCell>
+                  <TableCell>{t('user.mailbox.type')}</TableCell>
+                  <TableCell>{t('user.mailbox.received')}</TableCell>
+                  <TableCell>{t('user.mailbox.status')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {recentMail.map(doc => (
+                  <TableRow key={doc.id} hover>
+                    <TableCell>{doc.sender || doc.title || '-'}</TableCell>
+                    <TableCell><Chip label={doc.type || 'mail'} size="small" variant="outlined" /></TableCell>
+                    <TableCell>{new Date(doc.receivedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</TableCell>
+                    <TableCell><Chip label={doc.status || '-'} size="small" color={doc.status === 'picked_up' ? 'success' : doc.status === 'scanned' ? 'warning' : 'default'} variant="outlined" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      )}
+    </Stack>
+  );
+};
+
+/* ═══════════════════════════════════════════
+   ADMIN OVERVIEW (existing, unchanged)
+   ═══════════════════════════════════════════ */
+const AdminOverview = () => {
   const theme = useTheme();
   const { t } = useTranslation('overview');
   const [invoices, setInvoices] = useState([]);
@@ -594,43 +916,51 @@ const Overview = ({ userType = 'admin' }) => {
       </Paper>
 
       {/* Workspace Occupancy */}
-      {userType === 'admin' && (
-        <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {t('occupancy.title')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {new Date().toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { month: 'long', year: 'numeric' })}
-            </Typography>
-          </Stack>
+      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            {t('occupancy.title')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {new Date().toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { month: 'long', year: 'numeric' })}
+          </Typography>
+        </Stack>
 
-          {occupancyLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : occupancyData.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-              {t('occupancy.noData')}
-            </Typography>
-          ) : (
-            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
-              {occupancyData.map((item) => (
-                <OccupancyBar
-                  key={item.name}
-                  name={item.name}
-                  occupancy={item.occupancy}
-                  bookedHours={item.bookedHours}
-                  totalHours={item.totalHours}
-                  theme={theme}
-                />
-              ))}
-            </Box>
-          )}
-        </Paper>
-      )}
+        {occupancyLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : occupancyData.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+            {t('occupancy.noData')}
+          </Typography>
+        ) : (
+          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+            {occupancyData.map((item) => (
+              <OccupancyBar
+                key={item.name}
+                name={item.name}
+                occupancy={item.occupancy}
+                bookedHours={item.bookedHours}
+                totalHours={item.totalHours}
+                theme={theme}
+              />
+            ))}
+          </Box>
+        )}
+      </Paper>
     </Stack>
   );
+};
+
+/* ═══════════════════════════════════════════
+   OVERVIEW ROUTER
+   ═══════════════════════════════════════════ */
+const Overview = ({ userType = 'admin', userProfile, setActiveTab }) => {
+  if (userType === 'user') {
+    return <UserOverview userProfile={userProfile} setActiveTab={setActiveTab} />;
+  }
+  return <AdminOverview />;
 };
 
 export default Overview;
