@@ -176,6 +176,13 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     }
   };
 
+  // Auto-validate VAT when editor opens (so indicator shows immediately)
+  useEffect(() => {
+    if (editorOpen && draft?.billing?.tax_id) {
+      validateVat(draft.billing.tax_id);
+    }
+  }, [editorOpen]);
+
   // Booking stats
   const [bookingStats, setBookingStats] = useState(null);
   useEffect(() => {
@@ -189,7 +196,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // Subscriptions
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
-  const [newSub, setNewSub] = useState({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], vatNumber: '' });
+  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], vatNumber: '' });
   const [subSaving, setSubSaving] = useState(false);
 
   const loadSubscriptions = () => {
@@ -240,7 +247,8 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     try {
       await createSubscription({
         contactId: contact.id,
-        stripeSubscriptionId: newSub.stripeSubscriptionId || undefined,
+        billingMethod: newSub.billingMethod,
+        stripeSubscriptionId: newSub.billingMethod === 'stripe' ? (newSub.stripeSubscriptionId || undefined) : undefined,
         monthlyAmount: Number(newSub.monthlyAmount),
         cuenta: newSub.cuenta,
         description: newSub.description,
@@ -248,7 +256,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         vatNumber: newSub.vatNumber || undefined
       });
       setSubDialogOpen(false);
-      setNewSub({ stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], vatNumber: '' });
+      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], vatNumber: '' });
       loadSubscriptions();
     } catch (err) {
       console.error('Failed to add subscription', err);
@@ -617,9 +625,19 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                     <Paper key={sub.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.description}</Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{sub.description}</Typography>
+                            <Chip
+                              label={sub.billingMethod === 'bank_transfer' ? t('profile.bankTransfer') : 'Stripe'}
+                              size="small"
+                              color={sub.billingMethod === 'bank_transfer' ? 'success' : 'primary'}
+                              variant="outlined"
+                              sx={{ height: 20, fontSize: '0.7rem' }}
+                            />
+                          </Box>
                           <Typography variant="caption" color="text.secondary">
                             {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t('profile.month')} · {t('profile.since')} {sub.startDate}
+                            {sub.billingMethod === 'bank_transfer' && sub.lastInvoicedMonth && ` · ${t('profile.lastInvoiced')}: ${sub.lastInvoicedMonth}`}
                           </Typography>
                         </Box>
                         {mode !== 'user' && (
@@ -1146,6 +1164,18 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               size="small"
+              label={t('profile.billingMethod')}
+              value={newSub.billingMethod}
+              onChange={(e) => setNewSub({ ...newSub, billingMethod: e.target.value })}
+              select
+              fullWidth
+            >
+              <MenuItem value="stripe">Stripe</MenuItem>
+              <MenuItem value="bank_transfer">{t('profile.bankTransfer')}</MenuItem>
+            </TextField>
+            {newSub.billingMethod === 'stripe' && (
+            <TextField
+              size="small"
               label="Stripe Subscription ID"
               value={newSub.stripeSubscriptionId}
               onChange={(e) => setNewSub({ ...newSub, stripeSubscriptionId: e.target.value })}
@@ -1153,6 +1183,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               helperText={t('profile.stripeIdHelper')}
               fullWidth
             />
+            )}
             <TextField
               size="small"
               label={t('profile.monthlyAmount')}
