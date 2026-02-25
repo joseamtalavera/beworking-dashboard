@@ -94,7 +94,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
     idFactura: '',
     status: '',
     tenantType: '',
-    product: '',
+    cuenta: '',
     startDate: '',
     endDate: ''
   });
@@ -346,23 +346,20 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             </Grid>
           )}
 
-          {/* Shared filters: product, dates */}
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <TextField
-              fullWidth
-              label={t('product')}
-              value={filters.product}
-              onChange={handleFilterChange('product')}
-              placeholder={t('searchByProduct')}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CategoryOutlinedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
+          {/* Shared filters: account, dates */}
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>{t('account')}</InputLabel>
+              <Select
+                value={filters.cuenta}
+                onChange={handleFilterChange('cuenta')}
+                label={t('account')}
+              >
+                <MenuItem value="">{t('all')}</MenuItem>
+                <MenuItem value="PT">Beworking</MenuItem>
+                <MenuItem value="GT">Globaltechno</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField

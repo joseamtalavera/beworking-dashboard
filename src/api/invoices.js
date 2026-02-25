@@ -1,7 +1,7 @@
 import { apiFetch, resolveApiUrl } from './client.js';
 
 export const fetchInvoices = (
-  { page = 0, size = 25, name, email, idFactura, status, tenantType, product, startDate, endDate, from, to } = {},
+  { page = 0, size = 25, name, email, idFactura, status, tenantType, product, cuenta, startDate, endDate, from, to } = {},
   options = {}
 ) => {
   const params = new URLSearchParams();
@@ -13,6 +13,7 @@ export const fetchInvoices = (
   if (status) params.set('status', status);
   if (tenantType) params.set('tenantType', tenantType);
   if (product) params.set('product', product);
+  if (cuenta) params.set('cuenta', cuenta);
   if (startDate) params.set('startDate', startDate);
   if (endDate) params.set('endDate', endDate);
   if (from) params.set('from', from);
