@@ -196,7 +196,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // Subscriptions
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
-  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], vatNumber: '' });
+  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0] });
   const [subSaving, setSubSaving] = useState(false);
 
   const loadSubscriptions = () => {
@@ -252,11 +252,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         monthlyAmount: Number(newSub.monthlyAmount),
         cuenta: newSub.cuenta,
         description: newSub.description,
-        startDate: newSub.startDate,
-        vatNumber: newSub.vatNumber || undefined
+        startDate: newSub.startDate
       });
       setSubDialogOpen(false);
-      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], vatNumber: '' });
+      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0] });
       loadSubscriptions();
     } catch (err) {
       console.error('Failed to add subscription', err);
@@ -1218,15 +1217,6 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               label={t('profile.description')}
               value={newSub.description}
               onChange={(e) => setNewSub({ ...newSub, description: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              size="small"
-              label={t('profile.vatNumber')}
-              value={newSub.vatNumber}
-              onChange={(e) => setNewSub({ ...newSub, vatNumber: e.target.value })}
-              placeholder="ES12345678A"
-              helperText={t('profile.vatNumberHelper')}
               fullWidth
             />
           </Stack>
