@@ -657,7 +657,16 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 const created = payload?.lineItems?.length
                   ? await createManualInvoice(payload)
                   : await createInvoice(payload);
-                setSnackbar({ open: true, message: t('invoiceCreated'), severity: 'success' });
+                // Show specific feedback based on Stripe result
+                if (created.stripeError) {
+                  setSnackbar({ open: true, message: t('stripeError'), severity: 'warning' });
+                } else if (created.paymentMethod === 'card_charged') {
+                  setSnackbar({ open: true, message: t('stripeChargeSuccess'), severity: 'success' });
+                } else if (created.paymentMethod === 'stripe_invoice') {
+                  setSnackbar({ open: true, message: t('stripeInvoiceSent'), severity: 'info' });
+                } else {
+                  setSnackbar({ open: true, message: t('invoiceCreated'), severity: 'success' });
+                }
                 setNewInvoiceOpen(false);
                 await refreshList();
                 try {

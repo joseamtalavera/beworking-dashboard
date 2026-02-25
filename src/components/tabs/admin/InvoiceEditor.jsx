@@ -29,11 +29,13 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import EmailIcon from '@mui/icons-material/Email';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import { fetchBookingContacts } from '../../../api/bookings.js';
-import { fetchNextInvoiceNumber } from '../../../api/invoices.js';
+import { fetchNextInvoiceNumber, fetchPaymentInfo } from '../../../api/invoices.js';
 import { fetchCuentas, fetchNextInvoiceNumberByCodigo } from '../../../api/cuentas.js';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
@@ -69,6 +71,8 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
   const [center, setCenter] = useState(initial.center || '');
   const [cuenta, setCuenta] = useState(initial.cuenta || '');
   const [cuentaOptions, setCuentaOptions] = useState([]);
+  const [paymentInfo, setPaymentInfo] = useState(null);
+  const [paymentInfoLoading, setPaymentInfoLoading] = useState(false);
 
   const addLine = () => setLines((s) => [...s, { ...DEFAULT_LINE }]);
   const updateLine = (idx, patch) => setLines((s) => s.map((r, i) => {
@@ -176,6 +180,20 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         .catch(() => {});
     }
   }, [cuenta, open]);
+
+  // Fetch payment info when client and cuenta are set
+  useEffect(() => {
+    const contactId = client?.value || client?.id;
+    if (!contactId || !cuenta) {
+      setPaymentInfo(null);
+      return;
+    }
+    setPaymentInfoLoading(true);
+    fetchPaymentInfo(contactId, cuenta)
+      .then((info) => setPaymentInfo(info))
+      .catch(() => setPaymentInfo(null))
+      .finally(() => setPaymentInfoLoading(false));
+  }, [client?.value, client?.id, cuenta]);
 
   // Reset states when dialog opens (use open + editMode only — not `initial`,
   // because initial={} default creates a new object on every render)
@@ -622,6 +640,49 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                 </Typography>
               </Box>
             </Box>
+
+            {/* Payment method indicator */}
+            {!editMode && client?.value && cuenta && (
+              <Box sx={{
+                mt: 2,
+                mb: 1,
+                p: 2,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: paymentInfoLoading ? 'divider'
+                  : paymentInfo?.hasPaymentMethod ? 'success.main'
+                  : 'warning.main',
+                backgroundColor: paymentInfoLoading ? 'transparent'
+                  : paymentInfo?.hasPaymentMethod ? alpha(theme.palette.success.main, 0.06)
+                  : alpha(theme.palette.warning.main, 0.06),
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+              }}>
+                {paymentInfoLoading ? (
+                  <>
+                    <CircularProgress size={18} />
+                    <Typography variant="body2" color="text.secondary">
+                      {t('editor.checkingPaymentMethod')}
+                    </Typography>
+                  </>
+                ) : paymentInfo?.hasPaymentMethod ? (
+                  <>
+                    <CreditCardIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                    <Typography variant="body2" fontWeight={600} color="success.dark">
+                      {paymentInfo.paymentMethods?.[0]?.brand?.toUpperCase()} ****{paymentInfo.paymentMethods?.[0]?.last4} — {t('editor.willChargeCard')}
+                    </Typography>
+                  </>
+                ) : paymentInfo ? (
+                  <>
+                    <EmailIcon sx={{ color: 'warning.main', fontSize: 20 }} />
+                    <Typography variant="body2" fontWeight={600} color="warning.dark">
+                      {t('editor.noCardOnFile')} — {t('editor.willSendStripeInvoice')}
+                    </Typography>
+                  </>
+                ) : null}
+              </Box>
+            )}
 
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
               <Button

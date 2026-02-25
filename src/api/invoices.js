@@ -78,6 +78,13 @@ export const sendInvoiceEmail = (id, options = {}) =>
     ...options
   });
 
+export const fetchPaymentInfo = (contactId, cuenta, options = {}) => {
+  const params = new URLSearchParams();
+  params.set('contactId', String(contactId));
+  if (cuenta) params.set('cuenta', cuenta);
+  return apiFetch(`/invoices/payment-info?${params.toString()}`, options);
+};
+
 export const fetchTotalRevenue = (
   { name, email, idFactura, status, tenantType, product, startDate, endDate, from, to } = {},
   options = {}

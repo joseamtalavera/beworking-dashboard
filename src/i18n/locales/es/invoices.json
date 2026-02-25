@@ -78,9 +78,16 @@
     "close": "Cerrar",
     "editTitle": "Editar factura",
     "editSubtitle": "Modifica los detalles de la factura",
-    "saveChanges": "GUARDAR CAMBIOS"
+    "saveChanges": "GUARDAR CAMBIOS",
+    "checkingPaymentMethod": "Verificando método de pago...",
+    "willChargeCard": "Se cobrará automáticamente",
+    "noCardOnFile": "Sin tarjeta guardada",
+    "willSendStripeInvoice": "Se enviará factura por email"
   },
   "edit": "Editar",
   "invoiceUpdated": "Factura actualizada",
-  "invoiceUpdateError": "Error al actualizar la factura"
+  "invoiceUpdateError": "Error al actualizar la factura",
+  "stripeChargeSuccess": "Factura cobrada exitosamente",
+  "stripeInvoiceSent": "Factura enviada por email",
+  "stripeError": "Error Stripe. Factura creada como Pendiente."
 }

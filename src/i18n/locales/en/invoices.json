@@ -78,9 +78,16 @@
     "close": "Close",
     "editTitle": "Edit Invoice",
     "editSubtitle": "Modify the invoice details",
-    "saveChanges": "SAVE CHANGES"
+    "saveChanges": "SAVE CHANGES",
+    "checkingPaymentMethod": "Checking payment method...",
+    "willChargeCard": "Will be charged automatically",
+    "noCardOnFile": "No card on file",
+    "willSendStripeInvoice": "Stripe invoice will be sent by email"
   },
   "edit": "Edit",
   "invoiceUpdated": "Invoice updated",
-  "invoiceUpdateError": "Failed to update invoice"
+  "invoiceUpdateError": "Failed to update invoice",
+  "stripeChargeSuccess": "Invoice charged successfully",
+  "stripeInvoiceSent": "Invoice sent by email",
+  "stripeError": "Stripe error. Invoice created as Pending."
 }
