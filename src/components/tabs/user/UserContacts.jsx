@@ -47,6 +47,7 @@ const normalizeContact = (entry = {}) => {
     county: billing.county ?? entry.billing_province ?? entry.billingProvince ?? null,
     country: billing.country ?? entry.billing_country ?? entry.billingCountry ?? null,
     tax_id: billing.tax_id ?? entry.billing_tax_id ?? entry.billingTaxId ?? null,
+    vat_valid: billing.vat_valid ?? entry.vat_valid ?? entry.vatValid ?? null,
   };
 
   const rawUserType = entry.user_type ?? entry.tenantType ?? '—';

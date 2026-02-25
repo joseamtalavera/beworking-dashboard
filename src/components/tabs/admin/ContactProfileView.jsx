@@ -58,6 +58,10 @@ import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import IconButton from '@mui/material/IconButton';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
+import Tooltip from '@mui/material/Tooltip';
+import { apiFetch } from '../../../api/client';
 
 const VIRTUAL_USER_BILLING = {
   address: 'Calle Alejandro Dumas 17 - Oficinas',
@@ -144,6 +148,33 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [draft, setDraft] = useState(() => mapContactToDraft(contact));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  // VAT validation
+  const [vatStatus, setVatStatus] = useState('idle'); // idle | loading | valid | invalid | error
+  const [vatTooltip, setVatTooltip] = useState('');
+  const EU_VAT_RE = /^[A-Z]{2}\s*[A-Z0-9]+$/i;
+
+  const validateVat = async (taxId) => {
+    if (!taxId || !EU_VAT_RE.test(taxId.trim())) {
+      setVatStatus('idle');
+      setVatTooltip('');
+      return;
+    }
+    setVatStatus('loading');
+    try {
+      const result = await apiFetch(`/contact-profiles/vat/validate?vatNumber=${encodeURIComponent(taxId.trim())}`);
+      if (result.valid) {
+        setVatStatus('valid');
+        setVatTooltip(result.name && result.name !== '---' ? result.name : 'Valid EU VAT number');
+      } else {
+        setVatStatus('invalid');
+        setVatTooltip(result.error || 'Invalid VAT number');
+      }
+    } catch {
+      setVatStatus('error');
+      setVatTooltip('Could not verify VAT number');
+    }
+  };
 
   // Booking stats
   const [bookingStats, setBookingStats] = useState(null);
@@ -539,7 +570,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 { label: t('profile.billingCounty'), value: contact.billing?.county || '—' },
                 { label: t('profile.billingCity'), value: contact.billing?.city || '—' },
                 { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
-                { label: t('profile.billingTaxId'), value: contact.billing?.tax_id || '—' }
+                { label: t('profile.billingTaxId'), value: contact.billing?.tax_id
+                  ? <>{contact.billing.tax_id} {contact.billing.vat_valid === true && <CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} />}{contact.billing.vat_valid === false && <ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} />}</>
+                  : '—' }
               ]}
             />
           </SectionCard>
@@ -1030,12 +1063,23 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       <TextField
                         label={t('profile.billingTaxId')}
                         value={draft?.billing?.tax_id || ''}
-                        onChange={handleBillingChange('tax_id')}
+                        onChange={(e) => { handleBillingChange('tax_id')(e); setVatStatus('idle'); }}
+                        onBlur={() => validateVat(draft?.billing?.tax_id)}
                         fullWidth
                         variant="outlined"
                         size="small"
                         sx={fieldSx}
-                        InputProps={{ startAdornment: <InputAdornment position="start"><BadgeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
+                        InputProps={{
+                          startAdornment: <InputAdornment position="start"><BadgeRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment>,
+                          endAdornment: vatStatus !== 'idle' && (
+                            <InputAdornment position="end">
+                              {vatStatus === 'loading' && <CircularProgress size={18} />}
+                              {vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 20 }} /></Tooltip>}
+                              {vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 20 }} /></Tooltip>}
+                              {vatStatus === 'error' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'warning.main', fontSize: 20 }} /></Tooltip>}
+                            </InputAdornment>
+                          )
+                        }}
                       />
                     </Grid>
                   </Grid>
