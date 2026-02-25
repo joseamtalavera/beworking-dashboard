@@ -46,7 +46,12 @@ if (!i18n.hasResourceBundle('es', 'invoices')) {
   i18n.addResourceBundle('en', 'invoices', enInvoices);
 }
 
-const DEFAULT_LINE = { description: '', quantity: 1, price: 0, vatPercent: 21 };
+const parseDecimal = (val) => {
+  if (val === '' || val == null) return 0;
+  return parseFloat(String(val).replace(',', '.')) || 0;
+};
+
+const DEFAULT_LINE = { description: '', quantity: 1, price: '', vatPercent: 21, totalInput: '' };
 
 const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMode = false }) => {
   const theme = useTheme();
@@ -66,15 +71,23 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
   const [cuentaOptions, setCuentaOptions] = useState([]);
 
   const addLine = () => setLines((s) => [...s, { ...DEFAULT_LINE }]);
-  const updateLine = (idx, patch) => setLines((s) => s.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  const updateLine = (idx, patch) => setLines((s) => s.map((r, i) => {
+    if (i !== idx) return r;
+    const updated = { ...r, ...patch };
+    // Clear totalInput when price/qty/vat changes directly (not from total back-calc)
+    if (!('totalInput' in patch) && ('price' in patch || 'quantity' in patch || 'vatPercent' in patch)) {
+      updated.totalInput = '';
+    }
+    return updated;
+  }));
   const removeLine = (idx) => setLines((s) => s.filter((_, i) => i !== idx));
 
-  const subtotal = useMemo(() => lines.reduce((acc, l) => acc + (Number(l.quantity || 0) * Number(l.price || 0)), 0), [lines]);
+  const subtotal = useMemo(() => lines.reduce((acc, l) => acc + (Number(l.quantity || 0) * parseDecimal(l.price)), 0), [lines]);
   const vatTotals = useMemo(() => {
     const map = {};
     for (const l of lines) {
       const vat = Number(l.vatPercent || 0);
-      const base = Number(l.quantity || 0) * Number(l.price || 0);
+      const base = Number(l.quantity || 0) * parseDecimal(l.price);
       map[vat] = (map[vat] || 0) + base * (vat / 100);
     }
     return map;
@@ -97,7 +110,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
       lineItems: lines.map((l) => ({
         description: l.description || 'Item',
         quantity: Number(l.quantity || 0),
-        price: Number(l.price || 0),
+        price: parseDecimal(l.price),
         vatPercent: Number(l.vatPercent || 0)
       })),
       computed: { subtotal, totalVat, total }
@@ -174,7 +187,9 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         setInvoiceNum(initial.invoiceNum || '');
         setDate(initial.date || new Date().toISOString().slice(0, 10));
         setDueDate(initial.dueDate || '');
-        setLines(initial.lines && initial.lines.length > 0 ? initial.lines : [{ ...DEFAULT_LINE }]);
+        setLines(initial.lines && initial.lines.length > 0
+          ? initial.lines.map(l => ({ ...l, price: String(l.price ?? ''), totalInput: '' }))
+          : [{ ...DEFAULT_LINE }]);
         setNote(initial.note || '');
         setUserType(initial.userType || '');
         setCenter(initial.center || '');
@@ -501,7 +516,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                     <TableCell align="right">
                       <TextField
                         value={l.price}
-                        onChange={(e) => updateLine(i, { price: Number(e.target.value || 0) })}
+                        onChange={(e) => updateLine(i, { price: e.target.value })}
                         size="small"
                         inputProps={{ inputMode: 'decimal' }}
                         sx={{ width: 120 }}
@@ -521,9 +536,20 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                       </TextField>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="body2" fontWeight={600}>
-                        {formatCurrency((Number(l.quantity || 0) * Number(l.price || 0)) * (1 + Number(l.vatPercent || 0) / 100))}
-                      </Typography>
+                      <TextField
+                        value={l.totalInput || (parseDecimal(l.price) ? (parseDecimal(l.price) * Number(l.quantity || 0) * (1 + Number(l.vatPercent || 0) / 100)).toFixed(2) : '')}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const totalVal = parseDecimal(raw);
+                          const qty = Number(l.quantity || 0) || 1;
+                          const vatMult = 1 + Number(l.vatPercent || 0) / 100;
+                          const newPrice = (totalVal / vatMult / qty).toFixed(2);
+                          updateLine(i, { totalInput: raw, price: newPrice });
+                        }}
+                        size="small"
+                        inputProps={{ inputMode: 'decimal' }}
+                        sx={{ width: 120 }}
+                      />
                     </TableCell>
                     <TableCell align="center">
                       <IconButton size="small" onClick={() => removeLine(i)}>
