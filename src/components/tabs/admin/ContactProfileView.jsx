@@ -176,7 +176,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     }
   };
 
-  // Auto-validate VAT when editor opens (so indicator shows immediately)
+  // Auto-validate VAT on load (read-only view) and when editor opens
+  useEffect(() => {
+    const taxId = contact?.billing?.tax_id;
+    if (taxId && EU_VAT_RE.test(taxId.trim())) {
+      validateVat(taxId);
+    }
+  }, [contact?.billing?.tax_id]);
+
   useEffect(() => {
     if (editorOpen && draft?.billing?.tax_id) {
       validateVat(draft.billing.tax_id);
@@ -578,7 +585,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 { label: t('profile.billingCity'), value: contact.billing?.city || '—' },
                 { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
                 { label: t('profile.billingTaxId'), value: contact.billing?.tax_id
-                  ? <>{contact.billing.tax_id} {contact.billing.vat_valid === true && <CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} />}{contact.billing.vat_valid === false && <ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} />}</>
+                  ? <>{contact.billing.tax_id} {vatStatus === 'loading' && <CircularProgress size={14} sx={{ ml: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}</>
                   : '—' }
               ]}
             />
