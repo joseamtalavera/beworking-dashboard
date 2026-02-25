@@ -585,7 +585,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 { label: t('profile.billingCity'), value: contact.billing?.city || '—' },
                 { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
                 { label: t('profile.billingTaxId'), value: contact.billing?.tax_id
-                  ? <>{contact.billing.tax_id} {vatStatus === 'loading' && <CircularProgress size={14} sx={{ ml: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, ml: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}</>
+                  ? <>{vatStatus === 'loading' && <CircularProgress size={14} sx={{ mr: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{contact.billing.tax_id}</>
                   : '—' }
               ]}
             />
