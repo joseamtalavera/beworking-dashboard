@@ -3,9 +3,17 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
 import { fetchSubscriptions } from '../api/subscriptions.js';
+import { fetchCustomerPaymentMethods, createSetupIntent } from '../api/stripe.js';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
@@ -14,12 +22,14 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
-import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n/i18n.js';
 import esSettings from '../i18n/locales/es/settings.json';
@@ -29,6 +39,46 @@ if (!i18n.hasResourceBundle('es', 'settings')) {
   i18n.addResourceBundle('es', 'settings', esSettings);
   i18n.addResourceBundle('en', 'settings', enSettings);
 }
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+
+const SetupForm = ({ onSuccess, onCancel }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const { t } = useTranslation('settings');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    setError(null);
+    const { error: stripeError } = await stripe.confirmSetup({
+      elements,
+      redirect: 'if_required',
+    });
+    if (stripeError) {
+      setError(stripeError.message);
+      setSubmitting(false);
+    } else {
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement />
+      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 3 }}>
+        <Button onClick={onCancel} disabled={submitting}>{t('actions.cancel')}</Button>
+        <Button type="submit" variant="contained" disabled={submitting || !stripe}>
+          {submitting ? <CircularProgress size={20} /> : t('actions.save')}
+        </Button>
+      </Stack>
+    </form>
+  );
+};
 
 const InfoRow = ({ label, value }) => (
   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
@@ -62,6 +112,41 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const [contactProfile, setContactProfile] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
 
+  // Billing edit state
+  const [isEditingBilling, setIsEditingBilling] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingForm, setBillingForm] = useState({
+    company: '', email: '', address: '', country: '', province: '', city: '', postalCode: '', taxId: ''
+  });
+
+  // Payment methods state
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [pmLoading, setPmLoading] = useState(false);
+  const [pmDialogOpen, setPmDialogOpen] = useState(false);
+  const [setupClientSecret, setSetupClientSecret] = useState(null);
+
+  const getBillingValues = (cp) => ({
+    company: cp?.billingName || cp?.billing_name || '',
+    email: cp?.billingEmail || cp?.email_secondary || cp?.emailSecondary || '',
+    address: cp?.billingAddress || cp?.billing_address || '',
+    country: cp?.billingCountry || cp?.billing_country || '',
+    province: cp?.billingProvince || cp?.billing_province || cp?.billingCounty || cp?.billing_county || '',
+    city: cp?.billingCity || cp?.billing_city || '',
+    postalCode: cp?.billingPostalCode || cp?.billing_postal_code || '',
+    taxId: cp?.billingTaxId || cp?.billing_tax_id || '',
+  });
+
+  // Load payment methods
+  const loadPaymentMethods = () => {
+    const email = user?.email;
+    if (!email || !email.includes('@')) return;
+    setPmLoading(true);
+    fetchCustomerPaymentMethods(email)
+      .then(data => setPaymentMethods(data?.paymentMethods || []))
+      .catch(() => setPaymentMethods([]))
+      .finally(() => setPmLoading(false));
+  };
+
   // Fetch contact profile and subscriptions
   useEffect(() => {
     if (!open || !user) return;
@@ -92,6 +177,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
         }
         if (!cancelled && data) {
           setContactProfile(data);
+          setBillingForm(getBillingValues(data));
           // Fetch subscriptions for this contact
           try {
             const subs = await fetchSubscriptions({ contactId: data.id });
@@ -109,6 +195,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     };
 
     loadContactProfile();
+    loadPaymentMethods();
     return () => { cancelled = true; };
   }, [open, user?.tenantId, user?.email]);
 
@@ -129,6 +216,13 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     }
   }, [user]);
 
+  // Sync billing form when contactProfile changes
+  useEffect(() => {
+    if (contactProfile) {
+      setBillingForm(getBillingValues(contactProfile));
+    }
+  }, [contactProfile]);
+
   const handleFormChange = (field, value) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
@@ -139,6 +233,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
+  };
+
+  const handleBillingFormChange = (field, value) => {
+    setBillingForm(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveProfile = async () => {
@@ -169,6 +267,58 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     setIsEditing(false);
   };
 
+  const handleSaveBilling = async () => {
+    if (!contactProfile?.id) return;
+    setBillingLoading(true);
+    try {
+      const payload = {
+        billingName: billingForm.company || null,
+        billingEmail: billingForm.email || null,
+        billingAddress: billingForm.address || null,
+        billingCountry: billingForm.country || null,
+        billingProvince: billingForm.province || null,
+        billingCity: billingForm.city || null,
+        billingPostalCode: billingForm.postalCode || null,
+        billingTaxId: billingForm.taxId || null,
+      };
+      await apiFetch(`/contact-profiles/${contactProfile.id}`, {
+        method: 'PUT',
+        body: payload,
+      });
+      // Refresh contact profile
+      const updated = await apiFetch(`/contact-profiles/${contactProfile.id}`);
+      setContactProfile(updated);
+      setIsEditingBilling(false);
+    } catch (error) {
+      console.error('Failed to update billing details:', error);
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
+  const handleCancelBillingEdit = () => {
+    setBillingForm(getBillingValues(contactProfile));
+    setIsEditingBilling(false);
+  };
+
+  const handleOpenSetup = async () => {
+    try {
+      const email = user?.email;
+      const name = contactProfile?.name || user?.name;
+      const data = await createSetupIntent({ customerEmail: email, customerName: name });
+      setSetupClientSecret(data.clientSecret);
+      setPmDialogOpen(true);
+    } catch (err) {
+      console.error('Failed to create setup intent:', err);
+    }
+  };
+
+  const handleSetupSuccess = () => {
+    setPmDialogOpen(false);
+    setSetupClientSecret(null);
+    loadPaymentMethods();
+  };
+
   const handlePhotoUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -189,14 +339,6 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   if (!user) return null;
 
   const cp = contactProfile;
-  const billingCompany = cp?.billingName || cp?.billing_name || '';
-  const billingEmail = cp?.billingEmail || cp?.email_secondary || cp?.emailSecondary || '';
-  const billingAddress = cp?.billingAddress || cp?.billing_address || '';
-  const billingCountry = cp?.billingCountry || cp?.billing_country || '';
-  const billingProvince = cp?.billingProvince || cp?.billing_province || '';
-  const billingCity = cp?.billingCity || cp?.billing_city || '';
-  const billingPostal = cp?.billingPostalCode || cp?.billing_postal_code || '';
-  const billingTaxId = cp?.billingTaxId || cp?.billing_tax_id || '';
   const contactStatus = cp?.status || 'Active';
   const userType = cp?.tenantType || cp?.user_type || '';
 
@@ -207,6 +349,23 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     },
     '& .MuiInputLabel-root.Mui-focused': { color: accentColor },
   };
+
+  const editBtnSx = {
+    minWidth: 100, height: 32, textTransform: 'none', fontWeight: 600,
+    borderColor: accentColor, color: accentColor,
+    '&:hover': {
+      borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover,
+      backgroundColor: alpha(theme.palette.brand.green, 0.08),
+    },
+  };
+
+  const saveBtnSx = {
+    minWidth: 80, height: 32, textTransform: 'none', fontWeight: 600,
+    backgroundColor: accentColor, color: 'common.white',
+    '&:hover': { backgroundColor: theme.palette.brand.greenHover },
+  };
+
+  const cancelBtnSx = { minWidth: 80, height: 32, textTransform: 'none', fontWeight: 600 };
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', md: 420 } } }}>
@@ -241,30 +400,15 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               {t('contact.title')}
             </Typography>
             {!isEditing ? (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => setIsEditing(true)}
-                sx={{
-                  minWidth: 100, height: 32, textTransform: 'none', fontWeight: 600,
-                  borderColor: accentColor, color: accentColor,
-                  '&:hover': {
-                    borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover,
-                    backgroundColor: alpha(theme.palette.brand.green, 0.08),
-                  },
-                }}
-              >
+              <Button variant="outlined" size="small" onClick={() => setIsEditing(true)} sx={editBtnSx}>
                 {t('actions.edit')}
               </Button>
             ) : (
               <Stack direction="row" spacing={1}>
-                <Button variant="outlined" size="small" onClick={handleCancelEdit} disabled={loading} sx={{ minWidth: 80, height: 32, textTransform: 'none', fontWeight: 600 }}>
+                <Button variant="outlined" size="small" onClick={handleCancelEdit} disabled={loading} sx={cancelBtnSx}>
                   {t('actions.cancel')}
                 </Button>
-                <Button
-                  variant="contained" size="small" onClick={handleSaveProfile} disabled={loading}
-                  sx={{ minWidth: 80, height: 32, textTransform: 'none', fontWeight: 600, backgroundColor: accentColor, color: 'common.white', '&:hover': { backgroundColor: theme.palette.brand.greenHover } }}
-                >
+                <Button variant="contained" size="small" onClick={handleSaveProfile} disabled={loading} sx={saveBtnSx}>
                   {loading ? t('actions.saving') : t('actions.save')}
                 </Button>
               </Stack>
@@ -286,26 +430,109 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Billing Details (from contact profile) */}
+        {/* Billing Details (editable) */}
+        <Stack spacing={2}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <BusinessRoundedIcon fontSize="small" sx={{ color: accentColor }} />
+              <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('billingDetails.title')}
+              </Typography>
+            </Stack>
+            {!isEditingBilling ? (
+              <Button variant="outlined" size="small" onClick={() => setIsEditingBilling(true)} sx={editBtnSx}>
+                {t('actions.edit')}
+              </Button>
+            ) : (
+              <Stack direction="row" spacing={1}>
+                <Button variant="outlined" size="small" onClick={handleCancelBillingEdit} disabled={billingLoading} sx={cancelBtnSx}>
+                  {t('actions.cancel')}
+                </Button>
+                <Button variant="contained" size="small" onClick={handleSaveBilling} disabled={billingLoading} sx={saveBtnSx}>
+                  {billingLoading ? t('actions.saving') : t('actions.save')}
+                </Button>
+              </Stack>
+            )}
+          </Stack>
+
+          {isEditingBilling ? (
+            <Stack spacing={2}>
+              <TextField label={t('billingDetails.company')} value={billingForm.company} onChange={(e) => handleBillingFormChange('company', e.target.value)} fullWidth size="small" sx={fieldSx} />
+              <TextField label={t('billingDetails.billingEmail')} value={billingForm.email} onChange={(e) => handleBillingFormChange('email', e.target.value)} fullWidth size="small" type="email" sx={fieldSx} />
+              <TextField label={t('billingDetails.address')} value={billingForm.address} onChange={(e) => handleBillingFormChange('address', e.target.value)} fullWidth size="small" sx={fieldSx} />
+              <Stack direction="row" spacing={2}>
+                <TextField label={t('billingDetails.country')} value={billingForm.country} onChange={(e) => handleBillingFormChange('country', e.target.value)} fullWidth size="small" sx={fieldSx} />
+                <TextField label={t('billingDetails.province')} value={billingForm.province} onChange={(e) => handleBillingFormChange('province', e.target.value)} fullWidth size="small" sx={fieldSx} />
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <TextField label={t('billingDetails.city')} value={billingForm.city} onChange={(e) => handleBillingFormChange('city', e.target.value)} fullWidth size="small" sx={fieldSx} />
+                <TextField label={t('billingDetails.postalCode')} value={billingForm.postalCode} onChange={(e) => handleBillingFormChange('postalCode', e.target.value)} fullWidth size="small" sx={fieldSx} />
+              </Stack>
+              <TextField label={t('billingDetails.taxId')} value={billingForm.taxId} onChange={(e) => handleBillingFormChange('taxId', e.target.value)} fullWidth size="small" sx={fieldSx} />
+            </Stack>
+          ) : (
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+              <Stack spacing={1.5}>
+                <InfoRow label={t('billingDetails.company')} value={billingForm.company} />
+                <InfoRow label={t('billingDetails.billingEmail')} value={billingForm.email} />
+                <InfoRow label={t('billingDetails.address')} value={billingForm.address} />
+                <InfoRow label={t('billingDetails.country')} value={billingForm.country} />
+                <InfoRow label={t('billingDetails.province')} value={billingForm.province} />
+                <InfoRow label={t('billingDetails.city')} value={billingForm.city} />
+                <InfoRow label={t('billingDetails.postalCode')} value={billingForm.postalCode} />
+                <InfoRow label={t('billingDetails.taxId')} value={billingForm.taxId} />
+              </Stack>
+            </Paper>
+          )}
+        </Stack>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Payment Method */}
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} alignItems="center">
-            <BusinessRoundedIcon fontSize="small" sx={{ color: accentColor }} />
+            <CreditCardRoundedIcon fontSize="small" sx={{ color: accentColor }} />
             <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {t('billingDetails.title')}
+              {t('paymentMethod.title')}
             </Typography>
           </Stack>
-          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-            <Stack spacing={1.5}>
-              <InfoRow label={t('billingDetails.company')} value={billingCompany} />
-              <InfoRow label={t('billingDetails.billingEmail')} value={billingEmail} />
-              <InfoRow label={t('billingDetails.address')} value={billingAddress} />
-              <InfoRow label={t('billingDetails.country')} value={billingCountry} />
-              <InfoRow label={t('billingDetails.province')} value={billingProvince} />
-              <InfoRow label={t('billingDetails.city')} value={billingCity} />
-              <InfoRow label={t('billingDetails.postalCode')} value={billingPostal} />
-              <InfoRow label={t('billingDetails.taxId')} value={billingTaxId} />
+          <Typography variant="body2" color="text.secondary">
+            {t('paymentMethod.description')}
+          </Typography>
+          {pmLoading ? (
+            <CircularProgress size={20} />
+          ) : paymentMethods.length === 0 ? (
+            <Typography variant="body2" color="text.disabled">{t('paymentMethod.noMethod')}</Typography>
+          ) : (
+            <Stack spacing={1}>
+              {paymentMethods.map((pm, idx) => (
+                <Paper key={idx} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <CreditCardRoundedIcon fontSize="small" color="action" />
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {(pm.brand || 'card').toUpperCase()} •••• {pm.last4}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {pm.expMonth}/{pm.expYear}
+                    </Typography>
+                  </Stack>
+                </Paper>
+              ))}
             </Stack>
-          </Paper>
+          )}
+          <Button
+            size="small"
+            startIcon={<AddRoundedIcon />}
+            onClick={handleOpenSetup}
+            sx={{
+              alignSelf: 'flex-start',
+              textTransform: 'none', fontWeight: 600,
+              color: accentColor,
+              '&:hover': { color: theme.palette.brand.greenHover, backgroundColor: alpha(theme.palette.brand.green, 0.08) },
+            }}
+          >
+            {paymentMethods.length > 0 ? t('paymentMethod.change') : t('paymentMethod.add')}
+          </Button>
         </Stack>
 
         <Divider sx={{ my: 3 }} />
@@ -432,6 +659,18 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
           </Button>
         </Stack>
       </Box>
+
+      {/* Stripe Payment Method Setup Dialog */}
+      {setupClientSecret && (
+        <Dialog open={pmDialogOpen} onClose={() => { setPmDialogOpen(false); setSetupClientSecret(null); }} maxWidth="sm" fullWidth>
+          <DialogTitle>{t('paymentMethod.setup')}</DialogTitle>
+          <DialogContent>
+            <Elements stripe={stripePromise} options={{ clientSecret: setupClientSecret, appearance: { theme: 'stripe' } }}>
+              <SetupForm onSuccess={handleSetupSuccess} onCancel={() => { setPmDialogOpen(false); setSetupClientSecret(null); }} />
+            </Elements>
+          </DialogContent>
+        </Dialog>
+      )}
     </Drawer>
   );
 };

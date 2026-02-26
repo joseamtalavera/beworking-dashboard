@@ -112,6 +112,14 @@
       "desc": "9 min video · building flows and syncing executions"
     }
   },
+  "paymentMethod": {
+    "title": "Payment Method",
+    "description": "Saved cards on Stripe",
+    "noMethod": "No payment method",
+    "add": "Add payment method",
+    "change": "Change payment method",
+    "setup": "Set up payment method"
+  },
   "plans": {
     "virtualOffice": {
       "name": "Virtual Office",

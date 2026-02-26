@@ -112,6 +112,14 @@
       "desc": "Vídeo de 9 min · crear flujos y sincronizar ejecuciones"
     }
   },
+  "paymentMethod": {
+    "title": "Método de Pago",
+    "description": "Tarjetas guardadas en Stripe",
+    "noMethod": "Sin método de pago",
+    "add": "Añadir método de pago",
+    "change": "Cambiar método de pago",
+    "setup": "Configurar método de pago"
+  },
   "plans": {
     "virtualOffice": {
       "name": "Oficina Virtual",
