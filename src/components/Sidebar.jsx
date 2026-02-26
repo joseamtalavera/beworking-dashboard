@@ -155,12 +155,12 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                 borderRadius: 2,
                 justifyContent: collapsed ? 'center' : 'initial',
                 px: collapsed ? 1.5 : 2,
-                color: 'secondary.main',
-                '& .MuiListItemIcon-root': { color: 'secondary.main' },
+                color: 'primary.main',
+                '& .MuiListItemIcon-root': { color: 'primary.main' },
                 '&:hover': {
                   backgroundColor: (theme) => theme.palette.brand.greenSoft,
-                  color: 'secondary.dark',
-                  '& .MuiListItemIcon-root': { color: 'secondary.dark' }
+                  color: 'primary.dark',
+                  '& .MuiListItemIcon-root': { color: 'primary.dark' }
                 }
               }}
               onClick={onLogout}
