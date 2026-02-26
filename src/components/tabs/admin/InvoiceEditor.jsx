@@ -73,6 +73,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
   const [cuentaOptions, setCuentaOptions] = useState([]);
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [paymentInfoLoading, setPaymentInfoLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const addLine = () => setLines((s) => [...s, { ...DEFAULT_LINE }]);
   const updateLine = (idx, patch) => setLines((s) => s.map((r, i) => {
@@ -100,6 +101,9 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
   const total = useMemo(() => subtotal + totalVat, [subtotal, totalVat]);
 
   const handleSubmit = async (status = 'Pendiente') => {
+    if (submitting) return;
+    setSubmitting(true);
+
     const payload = {
       clientName: client?.label || client || '',
       clientId: client?.value || client?.id || undefined,
@@ -128,6 +132,8 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
       }
     } catch (error) {
       console.error('Failed to save invoice:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -687,6 +693,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
+                disabled={submitting}
                 onClick={() => handleSubmit(editMode ? (initial.status || 'Pendiente') : 'Pendiente')}
                 sx={{
                   backgroundColor: 'primary.main',
