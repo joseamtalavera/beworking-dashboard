@@ -25,7 +25,7 @@ const BASE_TABS = [
   { id: 'Overview', label: 'Overview', icon: OverviewIcon },
   { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
   { id: 'Business Address', label: 'Business Address', icon: MailboxIcon },
-  { id: 'Booking', label: 'Meeting Rooms', icon: BookingIcon },
+  { id: 'Booking', label: 'Spaces', icon: BookingIcon },
   { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
   { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
   { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },

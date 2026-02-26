@@ -78,6 +78,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         tabs={USER_TABS}
+        onOpenSettings={() => setSettingsOpen(true)}
         onOpenAgent={() => setAgentOpen(true)}
         onLogout={logout}
         mobileOpen={mobileOpen}
