@@ -35,6 +35,17 @@
     "processing": "Procesando...",
     "subscribePrice": "Suscribirse - €{{price}} + IVA"
   },
+  "billingDetails": {
+    "title": "Datos de Facturación",
+    "company": "Empresa",
+    "billingEmail": "Correo de facturación",
+    "address": "Dirección",
+    "country": "País",
+    "province": "Provincia",
+    "city": "Ciudad",
+    "postalCode": "Código Postal",
+    "taxId": "NIF/CIF"
+  },
   "billing": {
     "title": "Facturación y Stripe",
     "editPayment": "EDITAR MÉTODO DE PAGO",

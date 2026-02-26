@@ -19,7 +19,6 @@ const Integrations = React.lazy(() => import('../../components/tabs/Integrations
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));
 const Community = React.lazy(() => import('../../components/tabs/Community.jsx'));
 const Events = React.lazy(() => import('../../components/tabs/Events.jsx'));
-const Contacts = React.lazy(() => import('../../components/tabs/user/UserContacts.jsx'));
 const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.jsx'));
 const Expenses = React.lazy(() => import('../../components/tabs/Expenses.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
@@ -28,7 +27,6 @@ import Marketplace from '../../components/tabs/Marketplace.jsx';
 
 const TAB_COMPONENTS = {
   Overview,
-  Contacts,
   'Business Address': VirtualOffice,
   Booking,
   Invoices,
@@ -49,16 +47,11 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
-  const [contactsKey, setContactsKey] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    // Force remount of Contacts component when Contacts tab is clicked
-    if (tabId === 'Contacts') {
-      setContactsKey(prev => prev + 1);
-    }
   };
 
   const TabContent = useMemo(() => {
@@ -68,18 +61,16 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'Invoices') {
       return <Invoices mode="user" userProfile={userProfile} />;
     }
-    const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
+    const Component = TAB_COMPONENTS[activeTab];
+    if (!Component) return null;
     if (activeTab === 'Overview') {
       return <Component userType="user" userProfile={userProfile} setActiveTab={handleTabChange} />;
-    }
-    if (activeTab === 'Contacts') {
-      return <Component key={contactsKey} refreshProfile={refreshProfile} userProfile={userProfile} />;
     }
     if (activeTab === 'Business Address') {
       return <Component userType="user" userProfile={userProfile} />;
     }
     return <Component />;
-  }, [activeTab, contactsKey, userProfile]);
+  }, [activeTab, userProfile]);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
@@ -106,7 +97,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
         />
         <Box component="main" sx={{ flex: 1, p: { xs: 2, sm: 3, lg: 4 } }}>
           <React.Suspense fallback={<SpiralLoader />}>
-            <Box key={`${activeTab}-${contactsKey}`}>
+            <Box key={activeTab}>
               {TabContent}
             </Box>
           </React.Suspense>

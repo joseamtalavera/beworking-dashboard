@@ -47,4 +47,4 @@ export const DEFAULT_TABS = BASE_TABS;
 
 export const ADMIN_TABS = BASE_TABS.filter(tab => !tab.soon);
 
-export const USER_TABS = BASE_TABS.filter(tab => !tab.soon && tab.id !== 'SpaceCatalog');
+export const USER_TABS = BASE_TABS.filter(tab => !tab.soon && tab.id !== 'SpaceCatalog' && tab.id !== 'Contacts');

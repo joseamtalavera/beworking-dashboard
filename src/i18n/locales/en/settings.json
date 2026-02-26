@@ -35,6 +35,17 @@
     "processing": "Processing...",
     "subscribePrice": "Subscribe - €{{price}} + VAT"
   },
+  "billingDetails": {
+    "title": "Billing Details",
+    "company": "Company",
+    "billingEmail": "Billing Email",
+    "address": "Address",
+    "country": "Country",
+    "province": "Province",
+    "city": "City",
+    "postalCode": "Postal Code",
+    "taxId": "Tax ID"
+  },
   "billing": {
     "title": "Billing & Stripe",
     "editPayment": "EDIT PAYMENT METHOD",
