@@ -2822,13 +2822,22 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
     try {
       const contactName = bloqueo.cliente?.nombre || '';
       const tarifaNum = Number(formState.tarifa) || 0;
-      const amountCents = Math.round(tarifaNum * 100);
+      // Compute hours from start/end time
+      let bookingHours = 1;
+      if (formState.horaIni && formState.horaFin) {
+        const [h1, m1] = formState.horaIni.split(':').map(Number);
+        const [h2, m2] = formState.horaFin.split(':').map(Number);
+        const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (mins > 0) bookingHours = mins / 60;
+      }
+      const bookingSubtotal = tarifaNum * bookingHours;
+      const amountCents = Math.round(bookingSubtotal * 1.21 * 100);
       const description = `Reserva: ${formState.producto || ''} (${formState.dateFrom})`;
       const hasExtra = selectedUninvoicedIds.length > 0;
       const validExtras = (extraLines || []).filter((l) => l.description?.trim());
-      // Combined amount includes current booking + selected uninvoiced (with 21% VAT on the extra subtotal)
+      // Combined amount includes current booking + selected uninvoiced, all with 21% VAT
       const combinedAmountCents = hasExtra
-        ? Math.round((tarifaNum + selectedUninvoicedSubtotal * 1.21) * 100)
+        ? Math.round((bookingSubtotal + selectedUninvoicedSubtotal) * 1.21 * 100)
         : amountCents;
 
       const basePayload = {
@@ -2875,20 +2884,20 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
         const chargeIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
         await createInvoice({ bloqueoIds: chargeIds, vatPercent: 21, extraLineItems });
       } else if (paymentOption === 'invoice') {
-        const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
+        // Create local invoice FIRST — backend computes correct total
+        const invoiceIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
+        const invoiceResponse = await createInvoice({ bloqueoIds: invoiceIds, vatPercent: 21, extraLineItems });
+        // Use backend-computed total and description for Stripe invoice
+        const stripeAmountCents = Math.round((invoiceResponse.total || 0) * 100);
         await createStripeInvoice({
           customerEmail: contactEmail,
           customerName: contactName,
-          amount: invoiceAmount,
+          amount: stripeAmountCents,
           currency: 'eur',
-          description,
-          reference: String(formState.productoId || ''),
+          description: invoiceResponse.description || description,
+          reference: String(invoiceResponse.legacyNumber || formState.productoId || ''),
           dueDays: invoiceDueDays,
         });
-        // createInvoice MUST run before updateBloqueo — it checks isInvoiced()
-        // and rejects bloqueos already marked "Invoiced"
-        const invoiceIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
-        await createInvoice({ bloqueoIds: invoiceIds, vatPercent: 21, extraLineItems });
         updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
       } else if (paymentOption === 'no_invoice') {
         updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
