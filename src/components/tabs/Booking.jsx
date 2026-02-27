@@ -2655,7 +2655,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
       );
     };
 
-const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoading = false }) => {
+const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, invoiceLoading = false }) => {
   const theme = useTheme();
   const { t } = useTranslation('booking');
   const open = Boolean(bloqueo);
@@ -2767,7 +2767,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
     setError('');
     setConflictData(null);
     try {
-      await updateBloqueo(bloqueo.id, {
+      const response = await updateBloqueo(bloqueo.id, {
         contactId: formState.clienteId,
         centroId: formState.centroId,
         productoId: formState.productoId,
@@ -2783,6 +2783,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
         openEnded: formState.openEnded || false
       });
       setIsEditMode(false);
+      onUpdated?.(response);
       onClose?.();
     } catch (saveError) {
       const msg = saveError.message || '';
@@ -2850,8 +2851,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
         ? validExtras.map((l) => ({ description: l.description, quantity: l.quantity || 1, price: l.price || 0 }))
         : undefined;
 
+      let updatedResponse;
       if (paymentOption === 'free') {
-        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid', note: 'Reserva gratuita (admin)' });
+        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid', note: 'Reserva gratuita (admin)' });
         const allIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
         await createInvoice({ bloqueoIds: allIds, vatPercent: 0, extraLineItems });
       } else if (paymentOption === 'charge') {
@@ -2869,7 +2871,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
           description,
           reference: String(formState.productoId || ''),
         });
-        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid' });
+        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid' });
         const chargeIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
         await createInvoice({ bloqueoIds: chargeIds, vatPercent: 21, extraLineItems });
       } else if (paymentOption === 'invoice') {
@@ -2887,10 +2889,11 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, invoiceLoad
         // and rejects bloqueos already marked "Invoiced"
         const invoiceIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
         await createInvoice({ bloqueoIds: invoiceIds, vatPercent: 21, extraLineItems });
-        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
+        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
       } else if (paymentOption === 'no_invoice') {
-        await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
+        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
       }
+      onUpdated?.(updatedResponse);
       onClose?.();
     } catch (payError) {
       setError(payError.message || 'Payment failed.');
@@ -6285,6 +6288,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
         onClose={() => setSelectedBloqueo(null)}
         onEdit={handleStartEditBloqueo}
         onInvoice={handleStartInvoice}
+        onUpdated={handleBloqueoUpdated}
         invoiceLoading={invoiceSubmitting}
       />
       <InvoicePreviewDialog
