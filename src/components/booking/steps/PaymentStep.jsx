@@ -16,7 +16,9 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 
@@ -112,6 +114,7 @@ function AdminPaymentOptions({ onCreated }) {
   const [cardsLoading, setCardsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [paymentErrorOpen, setPaymentErrorOpen] = useState(false);
   const [success, setSuccess] = useState(false);
   const [createdResponse, setCreatedResponse] = useState(null);
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
@@ -280,6 +283,7 @@ function AdminPaymentOptions({ onCreated }) {
       setSuccess(true);
     } catch (err) {
       setError(err.message || t('steps.somethingWentWrong'));
+      setPaymentErrorOpen(true);
     } finally {
       setSubmitting(false);
     }
@@ -308,6 +312,16 @@ function AdminPaymentOptions({ onCreated }) {
             </Button>
           </Stack>
         </DialogContent>
+      </Dialog>
+
+      <Dialog open={paymentErrorOpen} onClose={() => setPaymentErrorOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: 'error.main', fontWeight: 700 }}>{t('steps.paymentFailed', 'Error de pago')}</DialogTitle>
+        <DialogContent>
+          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPaymentErrorOpen(false)} variant="contained">{t('steps.close', 'Cerrar')}</Button>
+        </DialogActions>
       </Dialog>
 
       {error && <Alert severity="error">{error}</Alert>}

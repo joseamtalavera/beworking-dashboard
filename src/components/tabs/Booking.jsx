@@ -2682,6 +2682,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
   const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
   const [extraLines, setExtraLines] = useState([]);
   const [availableProducts, setAvailableProducts] = useState([]);
+  const [paymentErrorOpen, setPaymentErrorOpen] = useState(false);
 
   const buildFormState = (b) => {
     const reservationTypeRaw =
@@ -2906,6 +2907,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
       onClose?.();
     } catch (payError) {
       setError(payError.message || 'Payment failed.');
+      setPaymentErrorOpen(true);
     } finally {
       setPaymentSubmitting(false);
     }
@@ -2936,7 +2938,16 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
     ? t('admin.editReservation')
     : t('admin.viewReservation');
 
-  return (
+  return (<>
+    <Dialog open={paymentErrorOpen} onClose={() => setPaymentErrorOpen(false)} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ color: 'error.main', fontWeight: 700 }}>{t('steps.paymentFailed', 'Error de pago')}</DialogTitle>
+      <DialogContent>
+        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setPaymentErrorOpen(false)} variant="contained">{t('steps.close', 'Cerrar')}</Button>
+      </DialogActions>
+    </Dialog>
     <Dialog
       open={open}
       onClose={onClose}
@@ -3463,7 +3474,7 @@ const InvoicePreviewDialog = ({ open, invoice, pdfUrl, loading, onClose }) => {
         <Button onClick={onClose}>{t('admin.close')}</Button>
       </DialogActions>
     </Dialog>
-  );
+  </>);
 };
 
 const initialDateISO = () => {
