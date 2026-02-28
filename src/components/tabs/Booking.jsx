@@ -3434,7 +3434,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
         </DialogActions>
       </Box>
     </Dialog>
-  );
+  </>);
 };
 
 const InvoicePreviewDialog = ({ open, invoice, pdfUrl, loading, onClose }) => {
@@ -3474,7 +3474,7 @@ const InvoicePreviewDialog = ({ open, invoice, pdfUrl, loading, onClose }) => {
         <Button onClick={onClose}>{t('admin.close')}</Button>
       </DialogActions>
     </Dialog>
-  </>);
+  );
 };
 
 const initialDateISO = () => {
