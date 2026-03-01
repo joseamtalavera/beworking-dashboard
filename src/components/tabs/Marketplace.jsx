@@ -64,7 +64,7 @@ const Marketplace = () => {
       price: '$1,800/month',
       location: 'Chicago, IL',
       services: ['Bookkeeping', 'Tax Preparation', 'Financial Consulting', 'Payroll Management'],
-      featured: true
+      featured: false
     },
     {
       id: 4,
@@ -118,7 +118,7 @@ const Marketplace = () => {
 
       <Grid container spacing={3}>
         {filteredServices.map((svc) => (
-          <Grid item xs={12} sm={6} lg={4} key={svc.id}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={svc.id}>
             <Card
               sx={{
                 height: '100%',

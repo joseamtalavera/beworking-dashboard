@@ -39,7 +39,7 @@ const BASE_TABS = [
   { id: 'Storage', label: 'Storage', icon: StorageIcon, soon: true },
   { id: 'Tickets', label: 'Tickets', icon: TicketsIcon, soon: true },
   { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
-  { id: 'Marketplace', label: 'Marketplace', icon: MarketplaceIcon, soon: true },
+  { id: 'Marketplace', label: 'Marketplace', icon: MarketplaceIcon },
   { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon },
 ];
 
@@ -47,4 +47,4 @@ export const DEFAULT_TABS = BASE_TABS;
 
 export const ADMIN_TABS = BASE_TABS.filter(tab => !tab.soon);
 
-export const USER_TABS = BASE_TABS.filter(tab => !tab.soon && tab.id !== 'SpaceCatalog' && tab.id !== 'Contacts');
+export const USER_TABS = BASE_TABS.filter(tab => !tab.soon && tab.id !== 'SpaceCatalog' && tab.id !== 'Contacts' && tab.id !== 'Marketplace');
