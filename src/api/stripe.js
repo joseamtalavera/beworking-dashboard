@@ -60,6 +60,6 @@ export const createStripeInvoice = ({ customerEmail, customerName, amount, curre
       description,
       reference,
       due_days: dueDays,
-      idempotency_key: idempotencyKey || reference || undefined,
+      idempotency_key: idempotencyKey || (reference ? `${reference}-${Date.now()}` : undefined),
     },
   });
