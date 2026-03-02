@@ -257,7 +257,8 @@
     "paid": "Paid",
     "invoiced": "Invoiced",
     "booked": "Booked",
-    "pending": "Pending"
+    "pending": "Pending",
+    "free": "Free"
   },
   "admin": {
     "title": "Workspace Bookings",

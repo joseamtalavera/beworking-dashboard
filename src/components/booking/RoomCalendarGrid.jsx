@@ -59,6 +59,7 @@ export const CalendarLegend = ({ styles: stylesProp }) => {
       <CalendarLegendItem label={t('status.paid')} color={styles.paid} />
       <CalendarLegendItem label={t('status.invoiced')} color={styles.invoiced} />
       <CalendarLegendItem label={t('status.booked')} color={styles.created} />
+      <CalendarLegendItem label={t('status.free')} color={styles.free} />
     </Stack>
   );
 };

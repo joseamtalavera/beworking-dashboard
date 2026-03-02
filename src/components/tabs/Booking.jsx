@@ -104,7 +104,7 @@ const DEFAULT_END_HOUR = 24;
 // Colors are now defined in theme.js - use theme.palette.brand.green/greenHover and theme.palette.brand.green/orangeHover
 const DEFAULT_RESERVATION_TYPE = 'Por Horas';
 const RESERVATION_TYPE_OPTIONS = ['Por Horas', 'Diaria', 'Mensual'];
-const STATUS_FORM_OPTIONS = ['Booked', 'Invoiced', 'Paid'];
+const STATUS_FORM_OPTIONS = ['Booked', 'Invoiced', 'Paid', 'Free'];
 const WEEKDAY_OPTIONS = [
   { value: 'monday', label: 'Monday', shortLabel: 'Mon' },
   { value: 'tuesday', label: 'Tuesday', shortLabel: 'Tue' },
@@ -125,7 +125,8 @@ const CALENDAR_COLORS = {
   available: { bg: '#a1a1aa', border: '#a1a1aa', text: '#52525b' },
   paid:      { bg: '#009624', border: '#009624', text: '#007a1d' },
   invoiced:  { bg: '#ef4444', border: '#dc2626', text: '#b91c1c' },
-  created:   { bg: '#f59e0b', border: '#f59e0b', text: '#d97706' }
+  created:   { bg: '#f59e0b', border: '#f59e0b', text: '#d97706' },
+  free:      { bg: '#1a1a1a', border: '#1a1a1a', text: '#1a1a1a' }
 };
 
 const userCalendarStatusStyles = () => ({
@@ -148,6 +149,11 @@ const userCalendarStatusStyles = () => ({
     bgcolor: alpha(CALENDAR_COLORS.created.bg, 0.15),
     borderColor: CALENDAR_COLORS.created.border,
     color: CALENDAR_COLORS.created.text
+  },
+  free: {
+    bgcolor: alpha(CALENDAR_COLORS.free.bg, 0.12),
+    borderColor: CALENDAR_COLORS.free.border,
+    color: CALENDAR_COLORS.free.text
   }
 });
 
@@ -231,6 +237,11 @@ const getStatusStyles = () => ({
     bgcolor: alpha(CALENDAR_COLORS.created.bg, 0.15),
     borderColor: CALENDAR_COLORS.created.border,
     color: CALENDAR_COLORS.created.text
+  },
+  free: {
+    bgcolor: alpha(CALENDAR_COLORS.free.bg, 0.12),
+    borderColor: CALENDAR_COLORS.free.border,
+    color: CALENDAR_COLORS.free.text
   }
 });
 
@@ -238,16 +249,17 @@ const statusLabels = {
   available: 'Available',
   paid: 'Paid',
   invoiced: 'Invoiced',
-  created: 'Booked'
+  created: 'Booked',
+  free: 'Free'
 };
 
-const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created'];
+const LEGEND_STATUSES = ['available', 'paid', 'invoiced', 'created', 'free'];
 
 const Legend = () => {
   const theme = useTheme();
   const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
-  const statusToTranslationKey = { available: 'available', paid: 'paid', invoiced: 'invoiced', created: 'booked' };
+  const statusToTranslationKey = { available: 'available', paid: 'paid', invoiced: 'invoiced', created: 'booked', free: 'free' };
 
   return (
     <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -616,6 +628,9 @@ const mapStatusKey = (status) => {
   // recognize both legacy spanish 'fact' and english 'invoice' / 'invoiced'
   if (normalized.includes('fact') || normalized.includes('invoice') || normalized.includes('invoiced')) {
     return 'invoiced';
+  }
+  if (normalized.includes('grat') || normalized.includes('free')) {
+    return 'free';
   }
   return 'created';
 };
@@ -1984,6 +1999,7 @@ const ReservaDialog = ({
                       <MenuItem value="Booked">{t('status.booked')}</MenuItem>
                       <MenuItem value="Pendiente">{t('status.pending')}</MenuItem>
                       <MenuItem value="Paid">{t('status.paid')}</MenuItem>
+                      <MenuItem value="Free">{t('status.free')}</MenuItem>
                     </TextField>
                   </Grid>
 
@@ -3108,6 +3124,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                             <MenuItem value="Pendiente">{t('status.pending')}</MenuItem>
                             <MenuItem value="Paid">{t('status.paid')}</MenuItem>
                             <MenuItem value="Invoiced">{t('status.invoiced')}</MenuItem>
+                            <MenuItem value="Free">{t('status.free')}</MenuItem>
                           </TextField>
                         </Grid>
                         <Grid item xs={12} sm={4}>
@@ -3487,6 +3504,7 @@ const UserCalendarLegend = ({ styles }) => {
       <UserCalendarLegendItem label={t('status.paid')} color={styles.paid} />
       <UserCalendarLegendItem label={t('status.invoiced')} color={styles.invoiced} />
       <UserCalendarLegendItem label={t('status.booked')} color={styles.created} />
+      <UserCalendarLegendItem label={t('status.free')} color={styles.free} />
     </Stack>
   );
 };
@@ -3654,6 +3672,15 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
           label={t('status.invoiced')}
           size="small"
           sx={{ bgcolor: alpha(theme.palette.warning.main, 0.2), color: theme.palette.warning.dark, fontWeight: 600 }}
+        />
+      );
+    }
+    if (statusLower.includes('grat') || statusLower.includes('free')) {
+      return (
+        <Chip
+          label={t('status.free')}
+          size="small"
+          sx={{ bgcolor: alpha('#1a1a1a', 0.12), color: '#1a1a1a', fontWeight: 600 }}
         />
       );
     }
@@ -4950,6 +4977,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                       if (!value) return t('admin.allStatuses');
                       if (value === 'paid') return t('status.paid');
                       if (value === 'invoiced') return t('status.invoiced');
+                      if (value === 'free') return t('status.free');
                       return t('status.booked');
                     }}
                   >
@@ -4957,6 +4985,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                     <MenuItem value="paid">{t('status.paid')}</MenuItem>
                     <MenuItem value="invoiced">{t('status.invoiced')}</MenuItem>
                     <MenuItem value="created">{t('status.booked')}</MenuItem>
+                    <MenuItem value="free">{t('status.free')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

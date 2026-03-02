@@ -23,6 +23,11 @@ export const statusStyles = () => ({
     bgcolor: alpha('#f59e0b', 0.15),
     borderColor: '#f59e0b',
     color: '#d97706'
+  },
+  free: {
+    bgcolor: alpha('#1a1a1a', 0.12),
+    borderColor: '#1a1a1a',
+    color: '#1a1a1a'
   }
 });
 
@@ -92,6 +97,9 @@ export const mapStatusKey = (status) => {
   }
   if (normalized.includes('fact') || normalized.includes('invoice')) {
     return 'invoiced';
+  }
+  if (normalized.includes('grat') || normalized.includes('free')) {
+    return 'free';
   }
   return 'created';
 };
