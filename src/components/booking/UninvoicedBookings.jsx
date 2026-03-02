@@ -90,7 +90,7 @@ export default function UninvoicedBookings({
       if (!groups[key]) groups[key] = [];
       groups[key].push(b);
     }
-    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   }, [bloqueos]);
 
   const selectedSubtotal = useMemo(() => {
