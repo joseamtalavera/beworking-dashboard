@@ -5064,10 +5064,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
             onClick={handleConfirmDelete}
             variant="contained"
             disabled={Boolean(deletingBloqueoId)}
-            sx={{
-              backgroundColor: 'secondary.main',
-              '&:hover': { backgroundColor: 'secondary.dark' }
-            }}
+            color="error"
           >
             {t('admin.delete')}
           </Button>

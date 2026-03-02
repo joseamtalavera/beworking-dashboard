@@ -24,7 +24,7 @@ import i18n from '../../../i18n/i18n.js';
 import esBooking from '../../../i18n/locales/es/booking.json';
 import enBooking from '../../../i18n/locales/en/booking.json';
 
-import { fetchBookingContacts } from '../../../api/bookings.js';
+import { fetchBookingContacts, fetchBookingUsage } from '../../../api/bookings.js';
 import { useBookingFlow } from '../BookingFlowContext';
 import ReviewSummary from './ReviewSummary';
 
@@ -84,6 +84,14 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
     };
     setField('contact', contact);
   }, [mode, userProfile, setField]);
+
+  // User mode: check free booking eligibility
+  useEffect(() => {
+    if (mode !== 'user' || !userProfile?.email || !state.producto?.name) return;
+    fetchBookingUsage(userProfile.email, state.producto.name)
+      .then((res) => setField('freeEligible', res?.isFree === true))
+      .catch(() => setField('freeEligible', false));
+  }, [mode, userProfile?.email, state.producto?.name, setField]);
 
   // Admin contact search with debounce
   useEffect(() => {

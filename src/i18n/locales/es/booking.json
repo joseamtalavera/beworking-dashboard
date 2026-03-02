@@ -122,6 +122,7 @@
     "room": "Sala",
     "total": "Total",
     "subtotal": "Subtotal",
+    "free": "Gratis",
     "vat": "IVA",
     "vatPercent": "IVA ({{percent}}%)",
     "confirmBooking": "Confirmar Reserva",

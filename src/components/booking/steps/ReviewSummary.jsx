@@ -72,10 +72,11 @@ export default function ReviewSummary({ state }) {
   const heroImage = state.producto?.heroImage || state.producto?.imageUrl || null;
   const roomName = state.producto?.name || '—';
   const centroName = state.centro?.name || state.centro?.code || '—';
+  const isFree = state.freeEligible === true;
 
   const isRecurring = state.weekdays?.length > 0 && state.dateFrom !== state.dateTo;
   const bookingCount = useMemo(() => computeBookingCount(state), [state]);
-  const grandTotal = isRecurring ? +(total * bookingCount).toFixed(2) : total;
+  const grandTotal = isFree ? 0 : isRecurring ? +(total * bookingCount).toFixed(2) : total;
 
   const weekdayLabels = useMemo(() => {
     if (!isRecurring) return '';
@@ -136,11 +137,12 @@ export default function ReviewSummary({ state }) {
               </Typography>
             </Stack>
           </Box>
-          {grandTotal > 0 && (
+          {(grandTotal > 0 || isFree) && (
             <Chip
-              label={`€${grandTotal.toFixed(2)}`}
+              label={isFree ? t('steps.free') : `€${grandTotal.toFixed(2)}`}
+              color={isFree ? 'success' : 'default'}
               sx={{
-                bgcolor: 'rgba(255,255,255,0.9)',
+                bgcolor: isFree ? undefined : 'rgba(255,255,255,0.9)',
                 fontWeight: 700,
                 fontSize: '0.95rem',
                 height: 32,
@@ -200,39 +202,52 @@ export default function ReviewSummary({ state }) {
 
       {/* Pricing breakdown */}
       <Stack sx={{ px: 2.5, py: 1.5, borderTop: '1px solid', borderColor: 'divider' }} spacing={0.5}>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('steps.subtotal')}{label ? ` (${label})` : ''}
-            {isRecurring ? ` · ${t('steps.perBooking')}` : ''}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            €{subtotal.toFixed(2)}
-          </Typography>
-        </Stack>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.vatPercent', { percent: Math.round(vatRate * 100) })}</Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>€{vat.toFixed(2)}</Typography>
-        </Stack>
-        {isRecurring && (
+        {isFree ? (
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {t('steps.total')}
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.main' }}>
+              {t('steps.free')}
+            </Typography>
+          </Stack>
+        ) : (
           <>
-            <Divider sx={{ my: 0.5 }} />
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {t('steps.total')} · {t('steps.perBooking')}
+                {t('steps.subtotal')}{label ? ` (${label})` : ''}
+                {isRecurring ? ` · ${t('steps.perBooking')}` : ''}
               </Typography>
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                €{total.toFixed(2)}
+                €{subtotal.toFixed(2)}
               </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('steps.vatPercent', { percent: Math.round(vatRate * 100) })}</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>€{vat.toFixed(2)}</Typography>
+            </Stack>
+            {isRecurring && (
+              <>
+                <Divider sx={{ my: 0.5 }} />
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {t('steps.total')} · {t('steps.perBooking')}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    €{total.toFixed(2)}
+                  </Typography>
+                </Stack>
+              </>
+            )}
+            <Divider sx={{ my: 0.5 }} />
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {isRecurring ? t('steps.totalAllBookings', { count: bookingCount }) : t('steps.total')}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>€{grandTotal.toFixed(2)}</Typography>
             </Stack>
           </>
         )}
-        <Divider sx={{ my: 0.5 }} />
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {isRecurring ? t('steps.totalAllBookings', { count: bookingCount }) : t('steps.total')}
-          </Typography>
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>€{grandTotal.toFixed(2)}</Typography>
-        </Stack>
       </Stack>
     </Paper>
   );
