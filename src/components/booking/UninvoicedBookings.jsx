@@ -275,8 +275,15 @@ export default function UninvoicedBookings({
                         <Typography variant="body2" color="text.secondary" sx={{ minWidth: 40, textAlign: 'right' }}>
                           {hours > 0 ? t('admin.uninvoicedHours', { hours: hours.toFixed(1).replace('.0', '') }) : ''}
                         </Typography>
+                        {isFreeStatus(b.estado) && (
+                          <Chip
+                            label={t('status.free')}
+                            size="small"
+                            sx={{ ml: 1, height: 20, fontSize: 11, fontWeight: 600, bgcolor: 'rgba(26,26,26,0.12)', color: '#1a1a1a' }}
+                          />
+                        )}
                         <Typography variant="body2" fontWeight={600} sx={{ minWidth: 70, textAlign: 'right' }}>
-                          {lineTotal > 0 ? `€${lineTotal.toFixed(2)}` : isFreeStatus(b.estado) ? '€0.00' : '—'}
+                          {isFreeStatus(b.estado) ? '€0.00' : lineTotal > 0 ? `€${lineTotal.toFixed(2)}` : '—'}
                         </Typography>
                         {isDiffCenter && (
                           <Chip
