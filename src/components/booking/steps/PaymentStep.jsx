@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -121,6 +121,7 @@ function AdminPaymentOptions({ onCreated }) {
   const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
   const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
   const [extraLines, setExtraLines] = useState([]);
+  const submittingRef = useRef(false);
 
   const contactEmail = state.contact?.email || '';
   const contactName = state.contact?.name || state.contact?.code || '';
@@ -188,6 +189,8 @@ function AdminPaymentOptions({ onCreated }) {
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError('');
     setSubmitting(true);
 
@@ -225,6 +228,7 @@ function AdminPaymentOptions({ onCreated }) {
         invoiceStatus = 'Pagado';
       } else if (paymentOption === 'invoice') {
         const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
+        const idempotencyKey = `new-${state.producto?.id}-${state.contact?.id}-${state.dateFrom}-${Date.now()}`;
         const invoiceResult = await createStripeInvoice({
           customerEmail: contactEmail,
           customerName: contactName,
@@ -233,6 +237,7 @@ function AdminPaymentOptions({ onCreated }) {
           description,
           reference: String(state.producto?.id || ''),
           dueDays: invoiceDueDays,
+          idempotencyKey,
         });
         stripeInvoiceId = invoiceResult.invoiceId;
         bookingPayload.stripeInvoiceId = stripeInvoiceId;
@@ -286,6 +291,7 @@ function AdminPaymentOptions({ onCreated }) {
       setPaymentErrorOpen(true);
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
     }
   };
 

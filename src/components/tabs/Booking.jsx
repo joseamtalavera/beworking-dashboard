@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, parseISO } from 'date-fns';
@@ -2680,6 +2680,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
   const [cardsLoading, setCardsLoading] = useState(false);
   const [invoiceDueDays, setInvoiceDueDays] = useState(30);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const paymentSubmittingRef = useRef(false);
   const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
   const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
   const [extraLines, setExtraLines] = useState([]);
@@ -2820,6 +2821,8 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
 
   const handlePayment = async () => {
     if (!bloqueo) return;
+    if (paymentSubmittingRef.current) return;
+    paymentSubmittingRef.current = true;
     setPaymentSubmitting(true);
     setError('');
     try {
@@ -2900,6 +2903,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
           description: invoiceResponse.description || description,
           reference: String(invoiceResponse.legacyNumber || formState.productoId || ''),
           dueDays: invoiceDueDays,
+          idempotencyKey: `inv-${invoiceResponse.legacyNumber}`,
         });
         updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
       } else if (paymentOption === 'no_invoice') {
@@ -2912,6 +2916,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
       setPaymentErrorOpen(true);
     } finally {
       setPaymentSubmitting(false);
+      paymentSubmittingRef.current = false;
     }
   };
 
