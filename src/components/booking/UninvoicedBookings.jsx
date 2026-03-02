@@ -24,7 +24,13 @@ function computeHours(fechaIni, fechaFin) {
   return differenceInMinutes(end, start) / 60;
 }
 
+function isFreeStatus(estado) {
+  const s = (estado || '').toLowerCase();
+  return s.includes('grat') || s.includes('free');
+}
+
 function computeLineTotal(bloqueo) {
+  if (isFreeStatus(bloqueo.estado)) return 0;
   const hours = computeHours(bloqueo.fechaIni, bloqueo.fechaFin);
   return (bloqueo.tarifa || 0) * hours;
 }
@@ -270,7 +276,7 @@ export default function UninvoicedBookings({
                           {hours > 0 ? t('admin.uninvoicedHours', { hours: hours.toFixed(1).replace('.0', '') }) : ''}
                         </Typography>
                         <Typography variant="body2" fontWeight={600} sx={{ minWidth: 70, textAlign: 'right' }}>
-                          {lineTotal > 0 ? `€${lineTotal.toFixed(2)}` : '—'}
+                          {lineTotal > 0 ? `€${lineTotal.toFixed(2)}` : isFreeStatus(b.estado) ? '€0.00' : '—'}
                         </Typography>
                         {isDiffCenter && (
                           <Chip
