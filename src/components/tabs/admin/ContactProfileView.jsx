@@ -181,6 +181,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     const taxId = contact?.billing?.tax_id;
     if (taxId && EU_VAT_RE.test(taxId.trim())) {
       validateVat(taxId);
+    } else {
+      setVatStatus('idle');
+      setVatTooltip('');
     }
   }, [contact?.billing?.tax_id]);
 
