@@ -26,3 +26,10 @@ export const deleteSubscription = (id, options = {}) =>
     method: 'DELETE',
     ...options
   });
+
+export const linkStripeSubscription = (id, stripeSubscriptionId, options = {}) =>
+  apiFetch(`/subscriptions/${id}/link-stripe`, {
+    method: 'POST',
+    body: { stripeSubscriptionId },
+    ...options
+  });

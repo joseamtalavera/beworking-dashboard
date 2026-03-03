@@ -50,12 +50,13 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { fetchBookingStats } from '../../../api/bookings';
-import { fetchSubscriptions, createSubscription, updateSubscription } from '../../../api/subscriptions';
+import { fetchSubscriptions, createSubscription, updateSubscription, linkStripeSubscription } from '../../../api/subscriptions';
 import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
 import IconButton from '@mui/material/IconButton';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -208,6 +209,29 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [subDialogOpen, setSubDialogOpen] = useState(false);
   const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0] });
   const [subSaving, setSubSaving] = useState(false);
+  const [editSubDialog, setEditSubDialog] = useState({ open: false, sub: null, stripeSubscriptionId: '' });
+  const [editSubSaving, setEditSubSaving] = useState(false);
+  const [editSubResult, setEditSubResult] = useState(null);
+
+  const handleEditSubOpen = (sub) => {
+    setEditSubDialog({ open: true, sub, stripeSubscriptionId: sub.stripeSubscriptionId || '' });
+    setEditSubResult(null);
+  };
+
+  const handleEditSubSave = async () => {
+    setEditSubSaving(true);
+    setEditSubResult(null);
+    try {
+      const result = await linkStripeSubscription(editSubDialog.sub.id, editSubDialog.stripeSubscriptionId);
+      setEditSubResult(result);
+      loadSubscriptions();
+    } catch (err) {
+      console.error('Failed to link subscription', err);
+      setEditSubResult({ error: err.message || 'Failed to link' });
+    } finally {
+      setEditSubSaving(false);
+    }
+  };
 
   const loadSubscriptions = () => {
     if (!contact?.id) return;
@@ -648,11 +672,23 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t('profile.month')} · {t('profile.since')} {sub.startDate}
                             {sub.billingMethod === 'bank_transfer' && sub.lastInvoicedMonth && ` · ${t('profile.lastInvoiced')}: ${sub.lastInvoicedMonth}`}
                           </Typography>
+                          {sub.stripeSubscriptionId && (
+                            <Typography variant="caption" color="text.disabled" sx={{ fontFamily: 'monospace', fontSize: '0.65rem' }}>
+                              {sub.stripeSubscriptionId}
+                            </Typography>
+                          )}
                         </Box>
                         {mode !== 'user' && (
-                        <Button size="small" color="error" onClick={() => handleCancelSubscription(sub.id)}>
-                          {t('profile.cancelSubscription')}
-                        </Button>
+                        <Stack direction="row" spacing={0.5}>
+                          <Tooltip title={sub.stripeSubscriptionId ? t('profile.editStripeLink') : t('profile.linkStripe')}>
+                            <IconButton size="small" onClick={() => handleEditSubOpen(sub)}>
+                              <LinkRoundedIcon fontSize="small" color={sub.stripeSubscriptionId ? 'primary' : 'warning'} />
+                            </IconButton>
+                          </Tooltip>
+                          <Button size="small" color="error" onClick={() => handleCancelSubscription(sub.id)}>
+                            {t('profile.cancelSubscription')}
+                          </Button>
+                        </Stack>
                         )}
                       </Box>
                     </Paper>
@@ -1239,6 +1275,44 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             disabled={!newSub.monthlyAmount || subSaving}
           >
             {subSaving ? t('profile.creating') : t('profile.add')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Stripe Link Dialog */}
+      <Dialog open={editSubDialog.open} onClose={() => setEditSubDialog({ open: false, sub: null, stripeSubscriptionId: '' })} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('profile.linkStripe')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('profile.linkStripeDesc')}
+            </Typography>
+            <TextField
+              size="small"
+              label="Stripe Subscription ID"
+              value={editSubDialog.stripeSubscriptionId}
+              onChange={(e) => setEditSubDialog({ ...editSubDialog, stripeSubscriptionId: e.target.value })}
+              placeholder="sub_..."
+              fullWidth
+            />
+            {editSubResult && !editSubResult.error && (
+              <Alert severity="success">
+                {t('profile.linkSuccess', { invoices: editSubResult.invoicesCreated, total: editSubResult.invoicesTotal })}
+              </Alert>
+            )}
+            {editSubResult?.error && (
+              <Alert severity="error">{editSubResult.error}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditSubDialog({ open: false, sub: null, stripeSubscriptionId: '' })}>{t('profile.cancel')}</Button>
+          <Button
+            variant="contained"
+            onClick={handleEditSubSave}
+            disabled={editSubSaving || !editSubDialog.stripeSubscriptionId}
+          >
+            {editSubSaving ? t('profile.saving') : t('profile.linkAndSync')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -192,7 +192,14 @@
     "noPaymentMethod": "No payment method",
     "addPaymentMethod": "Add payment method",
     "changePaymentMethod": "Change",
-    "setupPaymentMethod": "Set up payment method"
+    "setupPaymentMethod": "Set up payment method",
+    "linkStripe": "Link Stripe",
+    "editStripeLink": "Edit Stripe link",
+    "linkStripeDesc": "Enter the Stripe subscription ID (sub_...). It will automatically link the data and create any missing invoices.",
+    "linkAndSync": "Link & Sync",
+    "linkSuccess": "Linked. {{invoices}} of {{total}} invoices created.",
+    "saving": "Saving...",
+    "save": "Save"
   },
   "header": {
     "title": "Contacts",

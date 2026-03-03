@@ -192,7 +192,14 @@
     "noPaymentMethod": "Sin método de pago",
     "addPaymentMethod": "Añadir método de pago",
     "changePaymentMethod": "Cambiar",
-    "setupPaymentMethod": "Configurar método de pago"
+    "setupPaymentMethod": "Configurar método de pago",
+    "linkStripe": "Vincular Stripe",
+    "editStripeLink": "Editar vínculo Stripe",
+    "linkStripeDesc": "Introduce el ID de suscripción de Stripe (sub_...). Se vincularán automáticamente los datos y se crearán las facturas pendientes.",
+    "linkAndSync": "Vincular y sincronizar",
+    "linkSuccess": "Vinculado. {{invoices}} de {{total}} facturas creadas.",
+    "saving": "Guardando...",
+    "save": "Guardar"
   },
   "header": {
     "title": "Contactos",
