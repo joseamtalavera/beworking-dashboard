@@ -225,6 +225,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       const result = await linkStripeSubscription(editSubDialog.sub.id, editSubDialog.stripeSubscriptionId);
       setEditSubResult(result);
       loadSubscriptions();
+      setTimeout(() => setEditSubDialog({ open: false, sub: null, stripeSubscriptionId: '' }), 2000);
     } catch (err) {
       console.error('Failed to link subscription', err);
       setEditSubResult({ error: err.message || 'Failed to link' });
