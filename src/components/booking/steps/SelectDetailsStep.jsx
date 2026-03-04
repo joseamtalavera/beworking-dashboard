@@ -7,7 +7,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import InputAdornment from '@mui/material/InputAdornment';
-import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
@@ -407,17 +406,6 @@ export default function SelectDetailsStep() {
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('steps.additionalDetails')}
           </Typography>
-          <TextField
-            size="small"
-            label={t('steps.cuenta')}
-            value={state.cuenta || 'PT'}
-            onChange={(e) => setField('cuenta', e.target.value)}
-            select
-            fullWidth
-          >
-            <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
-            <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
-          </TextField>
           <TextField
             size="small"
             label={t('steps.notesOptional')}
