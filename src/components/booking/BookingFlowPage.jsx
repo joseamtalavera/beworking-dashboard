@@ -40,7 +40,7 @@ function StepperContent({ onClose, onCreated, mode, userProfile }) {
 
   switch (activeStep) {
     case 0:
-      return <SelectDetailsStep />;
+      return <SelectDetailsStep mode={mode} />;
     case 1:
       return <ContactBillingStep mode={mode} userProfile={userProfile} />;
     case 2:

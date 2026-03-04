@@ -7,6 +7,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import InputAdornment from '@mui/material/InputAdornment';
+import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
@@ -45,7 +46,7 @@ const pillSx = {
 const WEEKDAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const DAY_JS_MAP = { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 0 };
 
-export default function SelectDetailsStep() {
+export default function SelectDetailsStep({ mode = 'admin' }) {
   const { t } = useTranslation('booking');
   const { state, setField, setFields, nextStep } = useBookingFlow();
   const [validationError, setValidationError] = useState('');
@@ -406,6 +407,19 @@ export default function SelectDetailsStep() {
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('steps.additionalDetails')}
           </Typography>
+          {mode === 'admin' && (
+            <TextField
+              size="small"
+              label={t('steps.cuenta')}
+              value={state.cuenta || 'PT'}
+              onChange={(e) => setField('cuenta', e.target.value)}
+              select
+              fullWidth
+            >
+              <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
+              <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
+            </TextField>
+          )}
           <TextField
             size="small"
             label={t('steps.notesOptional')}
