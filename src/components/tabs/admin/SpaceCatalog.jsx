@@ -104,7 +104,7 @@ const MOCK_ROWS = [
     heroImage: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800',
     instantBooking: true,
     tags: ['Screen', 'Whiteboard'],
-    amenities: ['Acceso 24h', 'Internet 600Mb', 'Pizarra y papelógrafo'],
+    amenities: ['Acceso 24h', 'Internet 600Mb', 'Pizarra'],
     subtitle: 'Calle Alejandro Dumas 17, 29004',
     description:
       'Nuestra Aula/Sala 1 de Alejandro Dumas es perfecta para reuniones o formaciones. Conexión de 600Mb simétricos, pizarra, proyector y mobiliario.',
@@ -138,7 +138,7 @@ const MOCK_ROWS = [
     amenities: [
       'Acceso 24h',
       'Internet 600Mb',
-      'Pizarra y papelógrafo',
+      'Pizarra',
       'Proyector',
       'Aire acondicionado',
       'Llave digital',
@@ -178,7 +178,7 @@ const MOCK_ROWS = [
     amenities: [
       'Acceso 24h',
       'Internet 600Mb',
-      'Pizarra y papelógrafo',
+      'Pizarra',
       'Proyector',
       'Aire acondicionado',
       'Llave digital',
@@ -261,7 +261,7 @@ const MOCK_ROWS = [
       'Llave digital',
       'Mesa Coworking',
       'Oficina virtual',
-      'Pizarra y papelógrafo',
+      'Pizarra',
       'Proyector',
       'Sin permanencia',
       'Soporte 24h',
@@ -301,7 +301,7 @@ const AMENITY_OPTIONS = [
   'Agua gratis',
   'Escaner e impresora',
   'Marketing',
-  'Pizarra y papelógrafo',
+  'Pizarra',
   'Soporte 24h',
   'Zona de descanso',
   'Aire acondicionado',
@@ -400,14 +400,14 @@ const SpaceCatalog = () => {
       type: row.type ?? '',
       status: row.status ?? '',
       creationDate: row.creationDate ?? '',
-      size: row.size ?? '',
-      order: row.order ?? '',
-      wifi: row.wifi ?? '',
+      size: row.sizeSqm ?? row.size ?? '',
+      order: row.sortOrder ?? row.order ?? '',
+      wifi: row.wifiCredentials ?? row.wifi ?? '',
       capacity: row.capacity ?? '',
       priceFrom: row.priceFrom ?? '',
       priceUnit: row.priceUnit ?? '/h',
-      rating: row.rating ?? '',
-      reviewCount: row.reviewCount ?? '',
+      rating: row.ratingAverage ?? row.rating ?? '',
+      reviewCount: row.ratingCount ?? row.reviewCount ?? '',
       heroImage: row.heroImage ?? '',
       instantBooking: Boolean(row.instantBooking),
       tags: toTagString(row.tags),
@@ -548,8 +548,23 @@ const SpaceCatalog = () => {
       ...formValues,
       code: formValues.code || formValues.productCode || formValues.displayName,
       tags: normaliseTags(formValues.tags),
-      images: normaliseImages(formValues.images)
+      images: normaliseImages(formValues.images),
+      // Map form field names to backend DTO field names
+      sizeSqm: formValues.size ? Number(formValues.size) || null : null,
+      sortOrder: formValues.order ? Number(formValues.order) || null : null,
+      wifiCredentials: formValues.wifi || null,
+      ratingAverage: formValues.rating ? Number(formValues.rating) || null : null,
+      ratingCount: formValues.reviewCount ? Number(formValues.reviewCount) || null : null,
+      capacity: formValues.capacity ? Number(formValues.capacity) || null : null,
+      priceFrom: formValues.priceFrom ? Number(String(formValues.priceFrom).replace(/[^0-9.]/g, '')) || null : null,
     };
+    // Remove frontend-only field names
+    delete payload.size;
+    delete payload.order;
+    delete payload.wifi;
+    delete payload.rating;
+    delete payload.reviewCount;
+    delete payload.productCode;
 
     if (payload.images.length > 0) {
       payload.heroImage = payload.images[0].url;
@@ -768,7 +783,7 @@ const SpaceCatalog = () => {
                   {t('dialog.generalData')}
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.centro')}
                       name="centroCode"
@@ -785,7 +800,7 @@ const SpaceCatalog = () => {
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.name')}
                       name="displayName"
@@ -795,7 +810,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.code')}
                       name="code"
@@ -806,7 +821,7 @@ const SpaceCatalog = () => {
                       helperText={t('dialog.codeHelper')}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.type')}
                       name="type"
@@ -823,7 +838,7 @@ const SpaceCatalog = () => {
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.status')}
                       name="status"
@@ -840,19 +855,19 @@ const SpaceCatalog = () => {
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.creationDate')}
                       name="creationDate"
                       value={formValues.creationDate}
                       onChange={handleChange}
                       type="date"
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={{ inputLabel: { shrink: true } }}
                       fullWidth
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.productCode')}
                       name="productCode"
@@ -862,7 +877,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.capacity')}
                       name="capacity"
@@ -872,7 +887,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.size')}
                       name="size"
@@ -882,7 +897,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.priceFrom')}
                       name="priceFrom"
@@ -892,7 +907,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.priceUnit')}
                       name="priceUnit"
@@ -909,7 +924,7 @@ const SpaceCatalog = () => {
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.rating')}
                       name="rating"
@@ -919,7 +934,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.reviewCount')}
                       name="reviewCount"
@@ -929,7 +944,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.order')}
                       name="order"
@@ -939,7 +954,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('dialog.wifi')}
                       name="wifi"
@@ -949,7 +964,7 @@ const SpaceCatalog = () => {
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <TextField
                       label={t('dialog.heroImage')}
                       name="heroImage"
@@ -995,7 +1010,7 @@ const SpaceCatalog = () => {
                 <FormGroup>
                   <Grid container spacing={1}>
                     {AMENITY_OPTIONS.map((amenity) => (
-                      <Grid item xs={12} sm={6} md={4} key={amenity}>
+                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={amenity}>
                         <FormControlLabel
                           control={
                             <Checkbox
@@ -1086,10 +1101,7 @@ const SpaceCatalog = () => {
               <Grid container spacing={2}>
                 {formValues.images.map((image, index) => (
                   <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={4}
+                    size={{ xs: 12, sm: 6, md: 4 }}
                     key={`${image.url}-${index}`}
                     onDragOver={handleImageDragOver(index)}
                   >
