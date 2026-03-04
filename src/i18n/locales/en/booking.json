@@ -33,6 +33,8 @@
     "checkIn": "Check in",
     "where": "Where",
     "when": "When",
+    "time": "Time",
+    "timePlaceholder": "Add time",
     "who": "Who",
     "searchSpaces": "Search spaces",
     "showingCount": "Showing {{count}} space",

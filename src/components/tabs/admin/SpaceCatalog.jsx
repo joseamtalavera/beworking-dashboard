@@ -622,7 +622,8 @@ const SpaceCatalog = () => {
           sx={{
             backgroundColor: 'primary.main',
             '&:hover': { backgroundColor: 'primary.dark' },
-            fontWeight: 600
+            fontWeight: 600,
+            whiteSpace: 'nowrap'
           }}
         >
           {t('addSpace')}

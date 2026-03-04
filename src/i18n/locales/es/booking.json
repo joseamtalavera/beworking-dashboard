@@ -33,6 +33,8 @@
     "checkIn": "Entrada",
     "where": "Dónde",
     "when": "Cuándo",
+    "time": "Hora",
+    "timePlaceholder": "Añadir hora",
     "who": "Quién",
     "searchSpaces": "Buscar espacios",
     "showingCount": "Mostrando {{count}} espacio",
