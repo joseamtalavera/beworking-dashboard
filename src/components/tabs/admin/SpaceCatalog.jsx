@@ -293,22 +293,24 @@ const PRICE_UNIT_OPTIONS = ['/h', '/day', '/month'];
 
 const AMENITY_OPTIONS = [
   'Acceso 24h',
-  'Alarma',
-  'Llave digital',
-  'Oficina virtual',
-  'Sin permanencia',
-  'Visa coworking',
   'Agua gratis',
-  'Escaner e impresora',
-  'Marketing',
-  'Pizarra',
-  'Soporte 24h',
-  'Zona de descanso',
   'Aire acondicionado',
+  'Alarma',
+  'Cocina compartida',
+  'Escaner e impresora',
   'Internet 600Mb',
+  'Llave digital',
+  'Marketing',
   'Mesa Coworking',
+  'Oficina virtual',
+  'Pizarra',
   'Proyector',
-  'Taquilla'
+  'Sin permanencia',
+  'Soporte 24h',
+  'Taquilla personal',
+  'Terraza',
+  'Visa coworking',
+  'Zona de descanso'
 ];
 
 const normaliseTags = (value) =>
