@@ -6,7 +6,9 @@
     "activeUsers": "Usuarios Activos",
     "today": "hoy",
     "active": "activos",
-    "withBookings": "con reservas"
+    "withBookings": "con reservas",
+    "mtdAvg": "MTD avg",
+    "ytdAvg": "YTD avg"
   },
   "metrics": {
     "incomeYTD": "Ingresos del año",

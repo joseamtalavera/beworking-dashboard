@@ -29,6 +29,7 @@ import { fetchInvoices } from '../../api/invoices.js';
 import { fetchBloqueos, fetchBookingProductos, fetchBookingStats } from '../../api/bookings.js';
 import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
+import { fetchSubscriptions } from '../../api/subscriptions.js';
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
   i18n.addResourceBundle('es', 'overview', esOverview);
@@ -56,8 +57,8 @@ const calcChange = (current, previous) => {
   return ((current - previous) / previous) * 100;
 };
 
-// Clean Stat Card - minimal design
-const StatCard = ({ label, value, sublabel, loading, theme }) => (
+// Clean Stat Card - minimal design with optional MTD/YTD
+const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, loading, theme }) => (
   <Paper
     elevation={0}
     sx={{
@@ -83,6 +84,20 @@ const StatCard = ({ label, value, sublabel, loading, theme }) => (
           <Typography variant="caption" color="text.disabled">
             {sublabel}
           </Typography>
+        )}
+        {(mtd !== undefined || ytd !== undefined) && (
+          <Stack direction="row" spacing={1.5} sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+            {mtd !== undefined && (
+              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                {mtdLabel || 'MTD'} {mtd}
+              </Typography>
+            )}
+            {ytd !== undefined && (
+              <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600 }}>
+                {ytdLabel || 'YTD'} {ytd}
+              </Typography>
+            )}
+          </Stack>
         )}
       </>
     )}
@@ -560,11 +575,9 @@ const AdminOverview = () => {
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Quick stats
-  const [todayBookings, setTodayBookings] = useState(0);
-  const [todayDeskBookings, setTodayDeskBookings] = useState(0);
-  const [activeBusinessAddresses, setActiveBusinessAddresses] = useState(0);
-  const [activeUsers, setActiveUsers] = useState(0);
+  // Quick stats raw data
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [todayBloqueos, setTodayBloqueos] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Occupancy
@@ -587,9 +600,10 @@ const AdminOverview = () => {
     let overdueTotal = 0, overdueCount = 0;
 
     invoices.forEach(invoice => {
-      if (!invoice.fechaFactura) return;
+      const rawDate = invoice.createdAt || invoice.fechaFactura;
+      if (!rawDate) return;
 
-      const invoiceDate = new Date(invoice.fechaFactura);
+      const invoiceDate = new Date(rawDate);
       const invoiceYear = invoiceDate.getFullYear();
       const invoiceMonth = invoiceDate.getMonth();
       const amount = parseFloat(invoice.total || invoice.importe || 0);
@@ -641,8 +655,9 @@ const AdminOverview = () => {
     }));
 
     invoices.forEach(invoice => {
-      if (!invoice.fechaFactura) return;
-      const invoiceDate = new Date(invoice.fechaFactura);
+      const rawDate = invoice.createdAt || invoice.fechaFactura;
+      if (!rawDate) return;
+      const invoiceDate = new Date(rawDate);
       if (invoiceDate.getFullYear() !== selectedYear) return;
 
       const month = invoiceDate.getMonth();
@@ -668,49 +683,113 @@ const AdminOverview = () => {
     };
   }, [invoices, selectedYear]);
 
-  // Fetch quick stats
+  // Fetch quick stats (raw data for stat card computation)
   const fetchQuickStats = async () => {
     setStatsLoading(true);
     try {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
 
-      const [todayBookingsData, futureBookings, contactsResponse] = await Promise.all([
+      const [todayBookingsData, subsData] = await Promise.all([
         fetchBloqueos({ from: todayStr, to: todayStr }),
-        fetchBloqueos({ from: todayStr, to: '2030-12-31' }),
-        apiFetch('/contact-profiles?page=0&size=10000')
+        fetchSubscriptions()
       ]);
 
-      const meetingRooms = Array.isArray(todayBookingsData)
-        ? todayBookingsData.filter(b => (b.producto?.nombre || '').includes('MA1A')).length : 0;
-
-      const desks = Array.isArray(todayBookingsData)
-        ? todayBookingsData.filter(b => {
-            const name = b.producto?.nombre || '';
-            return name.includes('MA1O') || name.toLowerCase().includes('desk');
-          }).length : 0;
-
-      const businessAddrs = Array.isArray(contactsResponse?.items)
-        ? contactsResponse.items.filter(c => {
-            const status = (c.status || c.estado || '').toLowerCase();
-            return (status === 'activo' || status === 'active') && (c.virtualOffice || c.businessAddress);
-          }).length : 0;
-
-      const userIds = new Set();
-      (Array.isArray(futureBookings) ? futureBookings : []).forEach(b => {
-        if (b.cliente?.id) userIds.add(b.cliente.id);
-      });
-
-      setTodayBookings(meetingRooms);
-      setTodayDeskBookings(desks);
-      setActiveBusinessAddresses(businessAddrs);
-      setActiveUsers(userIds.size);
+      setTodayBloqueos(Array.isArray(todayBookingsData) ? todayBookingsData : []);
+      setSubscriptions(Array.isArray(subsData) ? subsData : []);
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
       setStatsLoading(false);
     }
   };
+
+  // Stat cards computed from invoices + subscriptions + today's bookings
+  const statCards = useMemo(() => {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+
+    const parseDate = (raw) => {
+      if (!raw) return null;
+      const d = new Date(raw);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const isMeetingRoom = (inv) => {
+      const p = (inv.products || inv.descripcion || '').toLowerCase();
+      return p.includes('ma1a') || p.includes('aula') || p.includes('sala');
+    };
+
+    const isDesk = (inv) => {
+      const p = (inv.products || inv.descripcion || '').toLowerCase();
+      return p.includes('ma1o') || p.includes('mesa') || p.includes('desk') || p.includes('escritorio');
+    };
+
+    let meetingToday = 0, meetingMTD = 0, meetingYTD = 0;
+    let deskToday = 0, deskMTD = 0, deskYTD = 0;
+
+    invoices.forEach(inv => {
+      const d = parseDate(inv.createdAt || inv.fechaFactura);
+      if (!d) return;
+      const y = d.getFullYear();
+      const m = d.getMonth();
+      const ds = d.toISOString().split('T')[0];
+
+      if (isMeetingRoom(inv)) {
+        if (y === curYear) { meetingYTD++; if (m === curMonth) { meetingMTD++; if (ds === todayStr) meetingToday++; } }
+      }
+      if (isDesk(inv)) {
+        if (y === curYear) { deskYTD++; if (m === curMonth) { deskMTD++; if (ds === todayStr) deskToday++; } }
+      }
+    });
+
+    // Subscriptions created
+    let subToday = 0, subMTD = 0, subYTD = 0;
+    subscriptions.forEach(s => {
+      const d = parseDate(s.createdAt || s.startDate);
+      if (!d) return;
+      const y = d.getFullYear();
+      const m = d.getMonth();
+      const ds = d.toISOString().split('T')[0];
+      if (y === curYear) { subYTD++; if (m === curMonth) { subMTD++; if (ds === todayStr) subToday++; } }
+    });
+
+    // Active users: unique clients with booking or active subscription today
+    const activeToday = new Set();
+    todayBloqueos.forEach(b => { if (b.cliente?.id) activeToday.add(String(b.cliente.id)); });
+    subscriptions.filter(s => s.active).forEach(s => { if (s.contactId) activeToday.add(String(s.contactId)); });
+
+    // MTD: unique clients from invoices this month + active subscriptions
+    const activeMTD = new Set();
+    invoices.forEach(inv => {
+      const d = parseDate(inv.createdAt || inv.fechaFactura);
+      if (d && d.getFullYear() === curYear && d.getMonth() === curMonth && inv.idCliente) {
+        activeMTD.add(String(inv.idCliente));
+      }
+    });
+    subscriptions.filter(s => s.active).forEach(s => { if (s.contactId) activeMTD.add(String(s.contactId)); });
+
+    // YTD: unique clients from invoices this year + all subscriptions
+    const activeYTD = new Set();
+    invoices.forEach(inv => {
+      const d = parseDate(inv.createdAt || inv.fechaFactura);
+      if (d && d.getFullYear() === curYear && inv.idCliente) {
+        activeYTD.add(String(inv.idCliente));
+      }
+    });
+    subscriptions.forEach(s => { if (s.contactId) activeYTD.add(String(s.contactId)); });
+
+    return {
+      meetingToday, meetingMTD, meetingYTD,
+      deskToday, deskMTD, deskYTD,
+      subToday, subMTD, subYTD,
+      activeToday: activeToday.size,
+      activeMTD: activeMTD.size,
+      activeYTD: activeYTD.size
+    };
+  }, [invoices, subscriptions, todayBloqueos]);
 
   // Fetch occupancy
   const fetchOccupancy = async () => {
@@ -810,10 +889,10 @@ const AdminOverview = () => {
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Quick Stats Row */}
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
-        <StatCard label={t('stats.meetingRooms')} value={todayBookings} sublabel={t('stats.today')} loading={statsLoading} theme={theme} />
-        <StatCard label={t('stats.deskBookings')} value={todayDeskBookings} sublabel={t('stats.today')} loading={statsLoading} theme={theme} />
-        <StatCard label={t('stats.businessAddresses')} value={activeBusinessAddresses} sublabel={t('stats.active')} loading={statsLoading} theme={theme} />
-        <StatCard label={t('stats.activeUsers')} value={activeUsers} sublabel={t('stats.withBookings')} loading={statsLoading} theme={theme} />
+        <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
+        <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
+        <StatCard label={t('stats.businessAddresses')} value={statCards.subToday} sublabel={t('stats.today')} mtd={statCards.subMTD} ytd={statCards.subYTD} loading={statsLoading || loading} theme={theme} />
+        <StatCard label={t('stats.activeUsers')} value={statCards.activeToday} sublabel={t('stats.withBookings')} mtd={statCards.activeMTD} ytd={statCards.activeYTD} mtdLabel={t('stats.mtdAvg')} ytdLabel={t('stats.ytdAvg')} loading={statsLoading || loading} theme={theme} />
       </Box>
 
       {/* Financial Metrics */}

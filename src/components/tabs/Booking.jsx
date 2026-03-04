@@ -3905,10 +3905,32 @@ const UserBookingWrapper = ({ userProfile }) => {
               {mainView === 'spaces' ? t('steps.spacesSubtitle') : t('steps.bookingsSubtitle')}
             </Typography>
           </Stack>
-          <Tabs value={mainView} onChange={handleMainViewChange} sx={getViewToggleTabsStyle(theme)}>
-            <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.spacesTab')} />
-            <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.bookingsTab')} />
-          </Tabs>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Tabs value={mainView} onChange={handleMainViewChange} sx={getViewToggleTabsStyle(theme)}>
+              <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.spacesTab')} />
+              <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.bookingsTab')} />
+            </Tabs>
+            <Button
+              variant="contained"
+              startIcon={<AddRoundedIcon />}
+              onClick={() => setMainView('spaces')}
+              disableElevation
+              sx={{
+                minWidth: 120,
+                height: 40,
+                borderRadius: 999,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                px: 2.5,
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': { backgroundColor: 'primary.dark' }
+              }}
+            >
+              {t('admin.reserva')}
+            </Button>
+          </Stack>
         </Stack>
 
         {mainView === 'bookings' && (

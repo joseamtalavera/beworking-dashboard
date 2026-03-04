@@ -3,8 +3,6 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
-import Grid from '@mui/material/Grid';
-import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
@@ -12,13 +10,12 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
-import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
-import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import DeskRoundedIcon from '@mui/icons-material/DeskRounded';
-import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
-import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n.js';
@@ -37,25 +34,6 @@ const SPACE_TYPES = [
   { value: 'meeting_room', labelKey: 'catalog.meetingRooms', icon: <MeetingRoomRoundedIcon /> },
   { value: 'desk', labelKey: 'catalog.desks', icon: <DeskRoundedIcon /> },
 ];
-
-const standardFieldStyles = {
-  width: '100%',
-  '& .MuiOutlinedInput-root': {
-    borderRadius: 1,
-    backgroundColor: 'background.default',
-    height: '40px',
-    '& fieldset': { borderColor: 'divider' },
-    '& input': {
-      fontSize: '0.9375rem !important',
-      fontWeight: 500,
-      color: 'text.primary',
-      padding: '8.5px 14px !important',
-      height: '100%',
-    },
-  },
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', color: 'text.disabled' },
-  '& .MuiAutocomplete-input': { padding: '8.5px 14px !important' },
-};
 
 // Helpers ported from beworking-booking store
 const isCanonicalDeskProducto = (p) => {
@@ -341,158 +319,143 @@ export default function RoomCatalog({ onClose, onBookNow }) {
         ))}
       </Tabs>
 
-      {/* Filter bar */}
+      {/* Airbnb-style pill search bar */}
       <Paper
         elevation={0}
         sx={{
-          p: 3,
-          mb: 4,
-          borderRadius: 3,
+          mb: 3,
+          borderRadius: { xs: 3, sm: 999 },
           border: '1px solid',
           borderColor: 'divider',
           backgroundColor: 'background.paper',
-          width: '100%',
-          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          overflow: 'hidden',
+          boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+          flexDirection: { xs: 'column', sm: 'row' },
         }}
       >
-        <Grid container spacing={1.5} sx={{ mb: 2, display: 'flex' }}>
-          <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
-            <Autocomplete
-              size="small"
-              options={cityOptions}
-              getOptionLabel={(o) => o?.label ?? ''}
-              value={
-                cityFilter === ''
-                  ? cityOptions.find((o) => o.id === 'all') || null
-                  : cityOptions.find((o) => o.label?.toLowerCase() === cityFilter.toLowerCase()) || null
-              }
-              onChange={(_, v) => setCityFilter(v && v.id !== 'all' ? v.label : '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  label={t('catalog.location')}
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <BusinessRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={standardFieldStyles}
-                />
-              )}
-              renderOption={(props, option) => (
-                <Box component="li" {...props} sx={{ fontSize: '0.9375rem', fontWeight: 500 }}>
-                  {option.label}
-                </Box>
-              )}
-            />
-          </Grid>
+        {/* Where */}
+        <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <Autocomplete
+            size="small"
+            freeSolo
+            options={cityOptions.filter((o) => !o.isAllOption)}
+            getOptionLabel={(o) => (typeof o === 'string' ? o : o?.label ?? '')}
+            value={cityFilter || null}
+            onChange={(_, v) => setCityFilter(typeof v === 'string' ? v : v && v.id !== 'all' ? v.label : '')}
+            onInputChange={(_, v, reason) => { if (reason === 'input') setCityFilter(v); }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="standard"
+                placeholder={t('catalog.location')}
+                label={t('catalog.where')}
+                slotProps={{ input: { ...params.InputProps, disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+                }}
+              />
+            )}
+          />
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
-          <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
-            <Autocomplete
-              size="small"
-              options={centros}
-              loading={centrosLoading}
-              getOptionLabel={(o) => o?.label ?? ''}
-              value={
-                location === ''
-                  ? centros.find((c) => c.id === 'all') || null
-                  : centros.find((c) => c.id !== 'all' && c.label?.toLowerCase() === (location || '').toLowerCase()) || null
-              }
-              onChange={(_, v) => setLocation(v && v.id !== 'all' ? v.label : '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  label={t('catalog.centro')}
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationOnRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={standardFieldStyles}
-                />
-              )}
-              renderOption={(props, option) => (
-                <Box component="li" {...props} sx={{ fontSize: '0.9375rem', fontWeight: 500 }}>
-                  {option.label}
-                </Box>
-              )}
-            />
-          </Grid>
+        {/* Centro */}
+        <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <Autocomplete
+            size="small"
+            options={centros.filter((c) => !c.isAllOption)}
+            loading={centrosLoading}
+            getOptionLabel={(o) => o?.label ?? ''}
+            value={
+              location === ''
+                ? null
+                : centros.find((c) => c.id !== 'all' && c.label?.toLowerCase() === (location || '').toLowerCase()) || null
+            }
+            onChange={(_, v) => setLocation(v && v.id !== 'all' ? v.label : '')}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="standard"
+                placeholder={t('catalog.allCentros')}
+                label={t('catalog.centro')}
+                slotProps={{ input: { ...params.InputProps, disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+                }}
+              />
+            )}
+          />
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
-          <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
-            <TextField
-              fullWidth
-              label={t('catalog.numberOfUsers')}
-              type="number"
-              value={people}
-              onChange={(e) => setPeople(e.target.value)}
-              placeholder={t('catalog.numberOfUsers')}
-              size="small"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <PeopleAltRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={standardFieldStyles}
-            />
-          </Grid>
+        {/* When */}
+        <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <TextField
+            variant="standard"
+            type="date"
+            value={checkIn}
+            onChange={(e) => setCheckIn(e.target.value)}
+            label={t('catalog.when')}
+            fullWidth
+            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+            sx={{
+              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+              '& .MuiInput-input': { fontSize: '0.875rem', color: checkIn ? 'text.primary' : 'text.secondary', py: 0.25 },
+            }}
+          />
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
-          <Grid item xs={12} sm={6} md sx={{ flex: '1 1 0%', minWidth: 0 }}>
-            <TextField
-              fullWidth
-              label={t('catalog.checkIn')}
-              type="date"
-              value={checkIn}
-              onChange={(e) => setCheckIn(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              size="small"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <CalendarTodayRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={standardFieldStyles}
-            />
-          </Grid>
+        {/* Who */}
+        <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <TextField
+            variant="standard"
+            type="number"
+            value={people}
+            onChange={(e) => setPeople(e.target.value)}
+            label={t('catalog.who')}
+            placeholder={t('catalog.numberOfUsers')}
+            fullWidth
+            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+            sx={{
+              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+              '& .MuiInput-input': { fontSize: '0.875rem', color: people ? 'text.primary' : 'text.secondary', py: 0.25 },
+              '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
+              '& input[type=number]': { MozAppearance: 'textfield' },
+            }}
+          />
+        </Box>
 
-          <Grid item xs={12} sm={6} md={2}>
-            <Button
-              fullWidth
-              variant="contained"
-              size="small"
-              sx={{
-                height: 40,
-                borderRadius: 1,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                backgroundColor: 'primary.main',
-                '&:hover': { backgroundColor: 'primary.dark' },
-              }}
-            >
-              {t('catalog.searchSpaces')}
-            </Button>
-          </Grid>
-        </Grid>
-
-        <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-            {t('catalog.showingCount', { count: filteredSpaces.length })}
-          </Typography>
-        </Stack>
+        {/* Search button */}
+        <Box sx={{ px: { xs: 2, sm: 1.5 }, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: 'center' }}>
+          <IconButton
+            aria-label={t('catalog.searchSpaces')}
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'common.white',
+              width: 44,
+              height: 44,
+              '&:hover': { bgcolor: 'primary.dark' },
+            }}
+          >
+            <SearchRoundedIcon />
+          </IconButton>
+        </Box>
       </Paper>
+
+      {/* Results Count */}
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+          {t('catalog.showingCount', { count: filteredSpaces.length })}
+        </Typography>
+      </Stack>
 
       {/* Loading state */}
       {productosLoading && (
