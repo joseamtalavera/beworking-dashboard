@@ -919,11 +919,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       <TextField
                         label={t('profile.email')}
                         value={draft?.contact?.email || ''}
-                        onChange={handleContactChange('email')}
                         fullWidth
                         variant="outlined"
                         size="small"
                         sx={fieldSx}
+                        disabled
                         InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlineRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
