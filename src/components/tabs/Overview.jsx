@@ -584,6 +584,10 @@ const AdminOverview = () => {
   const [occupancyData, setOccupancyData] = useState([]);
   const [occupancyLoading, setOccupancyLoading] = useState(true);
 
+  // Reconciliation
+  const [reconciliationData, setReconciliationData] = useState([]);
+  const [reconciliationLoading, setReconciliationLoading] = useState(true);
+
   // Calculate metrics from invoice data
   const metrics = useMemo(() => {
     const now = new Date();
@@ -874,10 +878,24 @@ const AdminOverview = () => {
     }
   };
 
+  const fetchReconciliation = async () => {
+    setReconciliationLoading(true);
+    try {
+      const data = await apiFetch('/api/admin/reconciliation/latest');
+      setReconciliationData(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching reconciliation:', error);
+      setReconciliationData([]);
+    } finally {
+      setReconciliationLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAllInvoices();
     fetchQuickStats();
     fetchOccupancy();
+    fetchReconciliation();
   }, []);
 
   const getChange = (current, previous) => {
@@ -1028,7 +1046,94 @@ const AdminOverview = () => {
           </Box>
         )}
       </Paper>
+
+      {/* Subscription Reconciliation */}
+      <ReconciliationCard data={reconciliationData} loading={reconciliationLoading} t={t} />
     </Stack>
+  );
+};
+
+/* ═══════════════════════════════════════════
+   RECONCILIATION CARD
+   ═══════════════════════════════════════════ */
+const ReconciliationCard = ({ data, loading, t }) => {
+  const getStatus = (row) => {
+    if (row.missing_invoice_count > 0) return 'error';
+    if (row.stripe_past_due > 0) return 'warning';
+    return 'success';
+  };
+
+  const statusColor = (status) =>
+    status === 'error' ? '#dc2626' : status === 'warning' ? '#f59e0b' : '#009624';
+
+  const runDate = data.length > 0 ? data[0].run_date : null;
+
+  return (
+    <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('reconciliation.title')}</Typography>
+        {runDate && (
+          <Typography variant="caption" color="text.secondary">
+            {t('reconciliation.lastRun')}: {new Date(runDate).toLocaleDateString()}
+          </Typography>
+        )}
+      </Stack>
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+          <CircularProgress size={24} />
+        </Box>
+      ) : data.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+          {t('reconciliation.noData')}
+        </Typography>
+      ) : (
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+          {data.map((row) => {
+            const status = getStatus(row);
+            const color = statusColor(status);
+            return (
+              <Box key={row.account} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', position: 'relative', overflow: 'hidden' }}>
+                <Box sx={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, bgcolor: color }} />
+                <Stack spacing={1.5} sx={{ pl: 1 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{row.account}</Typography>
+                    <Chip
+                      label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)}
+                      size="small"
+                      sx={{ fontWeight: 600, bgcolor: alpha(color, 0.1), color }}
+                    />
+                  </Stack>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">{t('reconciliation.dbActive')}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{row.db_active}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">{t('reconciliation.stripeActive')}</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{row.stripe_active}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: row.stripe_past_due > 0 ? '#f59e0b' : 'text.secondary' }}>
+                        {t('reconciliation.pastDue')}
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: row.stripe_past_due > 0 ? '#f59e0b' : 'inherit' }}>
+                        {row.stripe_past_due}{row.past_due_amount > 0 ? ` (€${row.past_due_amount})` : ''}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {row.missing_invoice_count > 0 && (
+                    <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 600 }}>
+                      ⚠ {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
+                    </Typography>
+                  )}
+                </Stack>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
+    </Paper>
   );
 };
 

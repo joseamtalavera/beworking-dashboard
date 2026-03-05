@@ -31,6 +31,18 @@
     "noData": "No hay datos de ocupación disponibles",
     "bookedOf": "{{booked}}h reservadas de {{total}}h"
   },
+  "reconciliation": {
+    "title": "Reconciliación de Suscripciones",
+    "lastRun": "Última ejecución",
+    "noData": "Sin datos de reconciliación — la ejecución se realizará a las 08:00",
+    "dbActive": "Activos en BD",
+    "stripeActive": "Activos en Stripe",
+    "pastDue": "Vencidos",
+    "missingInvoices": "{{count}} factura(s) pendiente(s)",
+    "ok": "OK",
+    "warning": "Aviso",
+    "alert": "Alerta"
+  },
   "user": {
     "stats": {
       "upcomingBookings": "Próximas Reservas",

@@ -31,6 +31,18 @@
     "noData": "No occupancy data available",
     "bookedOf": "{{booked}}h booked of {{total}}h"
   },
+  "reconciliation": {
+    "title": "Subscription Reconciliation",
+    "lastRun": "Last run",
+    "noData": "No reconciliation data yet — run will execute at 08:00",
+    "dbActive": "DB Active",
+    "stripeActive": "Stripe Active",
+    "pastDue": "Past Due",
+    "missingInvoices": "{{count}} missing invoice(s)",
+    "ok": "OK",
+    "warning": "Warning",
+    "alert": "Alert"
+  },
   "user": {
     "stats": {
       "upcomingBookings": "Upcoming Bookings",
