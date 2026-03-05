@@ -606,7 +606,6 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               description={t('profile.primaryBillingProfile')}
               items={[
                 { label: t('profile.billingCompany'), value: contact.billing?.company || contact.name },
-                { label: t('profile.billingEmail'), value: contact.billing?.email || contact.contact?.email },
                 { label: t('profile.billingAddress'), value: contact.billing?.address || '—' },
                 { label: t('profile.billingCountry'), value: contact.billing?.country || '—' },
                 { label: t('profile.billingCounty'), value: contact.billing?.county || '—' },
@@ -1047,18 +1046,6 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         size="small"
                         sx={fieldSx}
                         InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
-                        label={t('profile.billingEmail')}
-                        value={draft?.billing?.email || ''}
-                        onChange={handleBillingChange('email')}
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        sx={fieldSx}
-                        InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlineRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
