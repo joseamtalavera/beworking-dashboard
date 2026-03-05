@@ -882,7 +882,7 @@ const AdminOverview = () => {
   const fetchReconciliation = async () => {
     setReconciliationLoading(true);
     try {
-      const data = await apiFetch('/api/admin/reconciliation/latest');
+      const data = await apiFetch('/admin/reconciliation/latest');
       setReconciliationData(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching reconciliation:', error);
@@ -895,7 +895,7 @@ const AdminOverview = () => {
   const handleRunReconciliation = async () => {
     setReconciliationRunning(true);
     try {
-      await apiFetch('/api/admin/reconciliation/run', { method: 'POST' });
+      await apiFetch('/admin/reconciliation/run', { method: 'POST' });
       await fetchReconciliation();
     } catch (error) {
       console.error('Error triggering reconciliation:', error);
