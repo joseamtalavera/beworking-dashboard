@@ -587,6 +587,7 @@ const AdminOverview = () => {
   // Reconciliation
   const [reconciliationData, setReconciliationData] = useState([]);
   const [reconciliationLoading, setReconciliationLoading] = useState(true);
+  const [reconciliationRunning, setReconciliationRunning] = useState(false);
 
   // Calculate metrics from invoice data
   const metrics = useMemo(() => {
@@ -891,6 +892,18 @@ const AdminOverview = () => {
     }
   };
 
+  const handleRunReconciliation = async () => {
+    setReconciliationRunning(true);
+    try {
+      await apiFetch('/api/admin/reconciliation/run', { method: 'POST' });
+      await fetchReconciliation();
+    } catch (error) {
+      console.error('Error triggering reconciliation:', error);
+    } finally {
+      setReconciliationRunning(false);
+    }
+  };
+
   useEffect(() => {
     fetchAllInvoices();
     fetchQuickStats();
@@ -1048,7 +1061,7 @@ const AdminOverview = () => {
       </Paper>
 
       {/* Subscription Reconciliation */}
-      <ReconciliationCard data={reconciliationData} loading={reconciliationLoading} t={t} />
+      <ReconciliationCard data={reconciliationData} loading={reconciliationLoading} t={t} onRun={handleRunReconciliation} running={reconciliationRunning} />
     </Stack>
   );
 };
@@ -1056,7 +1069,7 @@ const AdminOverview = () => {
 /* ═══════════════════════════════════════════
    RECONCILIATION CARD
    ═══════════════════════════════════════════ */
-const ReconciliationCard = ({ data, loading, t }) => {
+const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const getStatus = (row) => {
     if (row.missing_invoice_count > 0) return 'error';
     if (row.stripe_past_due > 0) return 'warning';
@@ -1072,11 +1085,17 @@ const ReconciliationCard = ({ data, loading, t }) => {
     <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('reconciliation.title')}</Typography>
-        {runDate && (
-          <Typography variant="caption" color="text.secondary">
-            {t('reconciliation.lastRun')}: {new Date(runDate).toLocaleDateString()}
-          </Typography>
-        )}
+        <Stack direction="row" spacing={2} alignItems="center">
+          {runDate && (
+            <Typography variant="caption" color="text.secondary">
+              {t('reconciliation.lastRun')}: {new Date(runDate).toLocaleDateString()}
+            </Typography>
+          )}
+          <Button size="small" variant="outlined" onClick={onRun} disabled={running} sx={{ textTransform: 'none', fontWeight: 600, minWidth: 90 }}>
+            {running ? <CircularProgress size={14} sx={{ mr: 1 }} /> : null}
+            {running ? 'Running…' : 'Run now'}
+          </Button>
+        </Stack>
       </Stack>
 
       {loading ? (

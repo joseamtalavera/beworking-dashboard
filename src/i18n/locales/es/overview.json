@@ -34,7 +34,7 @@
   "reconciliation": {
     "title": "Reconciliación de Suscripciones",
     "lastRun": "Última ejecución",
-    "noData": "Sin datos de reconciliación — la ejecución se realizará a las 08:00",
+    "noData": "Sin datos de reconciliación — se ejecuta diariamente a las 05:00",
     "dbActive": "Activos en BD",
     "stripeActive": "Activos en Stripe",
     "pastDue": "Vencidos",

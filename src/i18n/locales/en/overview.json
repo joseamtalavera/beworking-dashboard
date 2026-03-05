@@ -34,7 +34,7 @@
   "reconciliation": {
     "title": "Subscription Reconciliation",
     "lastRun": "Last run",
-    "noData": "No reconciliation data yet — run will execute at 08:00",
+    "noData": "No reconciliation data yet — runs daily at 05:00",
     "dbActive": "DB Active",
     "stripeActive": "Stripe Active",
     "pastDue": "Past Due",
