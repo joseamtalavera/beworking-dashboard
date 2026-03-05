@@ -118,7 +118,9 @@
     "noMethod": "No payment method",
     "add": "Add payment method",
     "change": "Change payment method",
-    "setup": "Set up payment method"
+    "setup": "Set up payment method",
+    "default": "Default",
+    "setDefault": "Set as default"
   },
   "plans": {
     "virtualOffice": {

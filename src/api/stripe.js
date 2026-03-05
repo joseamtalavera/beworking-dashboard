@@ -49,6 +49,12 @@ export const createSetupIntent = ({ customerEmail, customerName }) =>
     body: { customer_email: customerEmail, customer_name: customerName },
   });
 
+export const setDefaultPaymentMethod = ({ customerEmail, paymentMethodId }) =>
+  stripeRequest('/api/customers/default-payment-method', {
+    method: 'POST',
+    body: { email: customerEmail, payment_method_id: paymentMethodId },
+  });
+
 export const createStripeInvoice = ({ customerEmail, customerName, amount, currency, description, reference, dueDays, idempotencyKey }) =>
   stripeRequest('/api/invoices', {
     method: 'POST',

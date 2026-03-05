@@ -118,7 +118,9 @@
     "noMethod": "Sin método de pago",
     "add": "Añadir método de pago",
     "change": "Cambiar método de pago",
-    "setup": "Configurar método de pago"
+    "setup": "Configurar método de pago",
+    "default": "Predeterminada",
+    "setDefault": "Establecer como predeterminada"
   },
   "plans": {
     "virtualOffice": {

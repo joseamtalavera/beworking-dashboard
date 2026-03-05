@@ -3,7 +3,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
 import { fetchSubscriptions } from '../api/subscriptions.js';
-import { fetchCustomerPaymentMethods, createSetupIntent } from '../api/stripe.js';
+import { fetchCustomerPaymentMethods, createSetupIntent, setDefaultPaymentMethod } from '../api/stripe.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import Alert from '@mui/material/Alert';
@@ -319,6 +319,17 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     loadPaymentMethods();
   };
 
+  const handleSetDefault = async (paymentMethodId) => {
+    const email = user?.email;
+    if (!email) return;
+    try {
+      await setDefaultPaymentMethod({ customerEmail: email, paymentMethodId });
+      loadPaymentMethods();
+    } catch (e) {
+      console.error('Failed to set default payment method', e);
+    }
+  };
+
   const handlePhotoUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -507,14 +518,24 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             <Stack spacing={1}>
               {paymentMethods.map((pm, idx) => (
                 <Paper key={idx} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <CreditCardRoundedIcon fontSize="small" color="action" />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {(pm.brand || 'card').toUpperCase()} •••• {pm.last4}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {pm.expMonth}/{pm.expYear}
-                    </Typography>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <CreditCardRoundedIcon fontSize="small" color="action" />
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {(pm.brand || 'card').toUpperCase()} •••• {pm.last4}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {pm.expMonth}/{pm.expYear}
+                      </Typography>
+                      {pm.isDefault && (
+                        <Chip label={t('paymentMethod.default')} size="small" color="success" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
+                      )}
+                    </Stack>
+                    {!pm.isDefault && (
+                      <Button size="small" sx={{ textTransform: 'none', fontSize: '0.75rem', py: 0 }} onClick={() => handleSetDefault(pm.id)}>
+                        {t('paymentMethod.setDefault')}
+                      </Button>
+                    )}
                   </Stack>
                 </Paper>
               ))}
