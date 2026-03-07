@@ -10,7 +10,7 @@
     "CryptWallet": "Crypto Wallet",
     "PasswordManagement": "Contraseñas",
     "DigitalSignature": "Firma",
-    "Integrations": "Integraciones",
+    "Integrations": "Conectores",
     "Automation": "Automatización",
     "Community": "Comunidad",
     "Events": "Eventos",
@@ -94,6 +94,20 @@
     "viewReport": "Ver informe",
     "refresh": "Actualización"
   },
+  "connectors": {
+    "categories": {
+      "all": "Todas las categorías",
+      "productivity": "Productividad",
+      "communication": "Comunicación",
+      "calendar": "Calendario",
+      "storage": "Almacenamiento",
+      "finance": "Finanzas",
+      "crm": "CRM",
+      "developer": "Desarrollo",
+      "identity": "Identidad",
+      "automation": "Automatización"
+    }
+  },
   "stubs": {
     "community": {
       "title": "Centro de Comunidad",
@@ -146,31 +160,38 @@
       "noServices": "No se encontraron servicios en esta categoría",
       "noServicesHint": "Prueba seleccionando una categoría diferente o vuelve más tarde para nuevos servicios."
     },
-    "integrations": {
-      "title": "Hub de integraciones",
-      "subtitle": "Conecta las herramientas SaaS en las que confían tus equipos y envía sus datos a un único dashboard de BeWorking.",
-      "connectedApps": "Apps conectadas",
-      "liveDataSources": "Fuentes de datos en vivo",
-      "dataChannels": "Canales de datos",
-      "feedsSyncing": "Feeds sincronizados en dashboards",
-      "pendingRequests": "Solicitudes pendientes",
-      "availableToConnect": "Disponibles para conectar",
-      "activeConnections": "Conexiones activas",
-      "activeConnectionsHint": "Los envíos de datos ocurren automáticamente según el intervalo de sincronización configurado para cada integración.",
-      "availableIntegrations": "Integraciones disponibles",
-      "requestAccess": "Solicitar acceso",
-      "roadmap": "Hoja de ruta",
-      "roadmapHint": "Estas integraciones ya están en desarrollo. Vota por prioridad o regístrate para acceso anticipado.",
-      "notifyMe": "Notificarme",
-      "lastSync": "Última sincronización",
-      "dataStreams": "Flujos de datos",
-      "syncHealth": "Salud de sincronización",
-      "syncNow": "Sincronizar ahora",
-      "connected": "Conectado",
-      "actionRequired": "Acción requerida",
-      "disconnected": "Desconectado",
-      "autoSyncEnabled": "Sincronización automática habilitada",
-      "autoSyncDisabled": "Sincronización automática deshabilitada"
+    "connectors": {
+      "title": "Conectores",
+      "subtitle": "Conecta las herramientas de tu equipo y envía sus datos a BeWorking.",
+      "totalConnectors": "Total conectores",
+      "connected": "Conectados",
+      "available": "Disponibles",
+      "connectedBadge": "Conectado",
+      "soonBadge": "Pronto",
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "connecting": "Conectando…",
+      "comingSoon": "Próximamente",
+      "searchPlaceholder": "Buscar conectores…",
+      "noResults": "Ningún conector coincide con tu búsqueda.",
+      "filter": {
+        "popular": "Populares",
+        "all": "Todos",
+        "connected": "Conectados",
+        "available": "Disponibles"
+      },
+      "categories": {
+        "all": "Todas las categorías",
+        "productivity": "Productividad",
+        "communication": "Comunicación",
+        "calendar": "Calendario",
+        "storage": "Almacenamiento",
+        "finance": "Finanzas",
+        "crm": "CRM",
+        "developer": "Desarrollo",
+        "identity": "Identidad",
+        "automation": "Automatización"
+      }
     },
     "automation": {
       "title": "Lienzo de automatización",

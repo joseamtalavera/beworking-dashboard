@@ -10,7 +10,7 @@
     "CryptWallet": "Crypto Wallet",
     "PasswordManagement": "Passwords",
     "DigitalSignature": "Signature",
-    "Integrations": "Integrations",
+    "Integrations": "Connectors",
     "Automation": "Automation",
     "Community": "Community",
     "Events": "Events",
@@ -94,6 +94,20 @@
     "viewReport": "View report",
     "refresh": "Refresh"
   },
+  "connectors": {
+    "categories": {
+      "all": "All categories",
+      "productivity": "Productivity",
+      "communication": "Communication",
+      "calendar": "Calendar",
+      "storage": "Storage",
+      "finance": "Finance",
+      "crm": "CRM",
+      "developer": "Developer",
+      "identity": "Identity",
+      "automation": "Automation"
+    }
+  },
   "stubs": {
     "community": {
       "title": "Community Hub",
@@ -146,31 +160,38 @@
       "noServices": "No services found in this category",
       "noServicesHint": "Try selecting a different category or check back later for new services."
     },
-    "integrations": {
-      "title": "Integrations hub",
-      "subtitle": "Connect the SaaS tools your teams rely on and stream their data into a single BeWorking dashboard.",
-      "connectedApps": "Connected apps",
-      "liveDataSources": "Live data sources",
-      "dataChannels": "Data channels",
-      "feedsSyncing": "Feeds syncing into dashboards",
-      "pendingRequests": "Pending requests",
-      "availableToConnect": "Available to connect",
-      "activeConnections": "Active connections",
-      "activeConnectionsHint": "Data pushes occur automatically based on the sync interval configured for each integration.",
-      "availableIntegrations": "Available integrations",
-      "requestAccess": "Request access",
-      "roadmap": "Roadmap",
-      "roadmapHint": "These integrations are already in development. Vote for priority or register early access.",
-      "notifyMe": "Notify me",
-      "lastSync": "Last sync",
-      "dataStreams": "Data streams",
-      "syncHealth": "Sync health",
-      "syncNow": "Sync now",
+    "connectors": {
+      "title": "Connectors",
+      "subtitle": "Connect the tools your team relies on and stream their data into BeWorking.",
+      "totalConnectors": "Total connectors",
       "connected": "Connected",
-      "actionRequired": "Action required",
-      "disconnected": "Disconnected",
-      "autoSyncEnabled": "Auto-sync enabled",
-      "autoSyncDisabled": "Auto-sync disabled"
+      "available": "Available",
+      "connectedBadge": "Connected",
+      "soonBadge": "Soon",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "connecting": "Connecting…",
+      "comingSoon": "Coming soon",
+      "searchPlaceholder": "Search connectors…",
+      "noResults": "No connectors match your search.",
+      "filter": {
+        "popular": "Popular",
+        "all": "All",
+        "connected": "Connected",
+        "available": "Available"
+      },
+      "categories": {
+        "all": "All categories",
+        "productivity": "Productivity",
+        "communication": "Communication",
+        "calendar": "Calendar",
+        "storage": "Storage",
+        "finance": "Finance",
+        "crm": "CRM",
+        "developer": "Developer",
+        "identity": "Identity",
+        "automation": "Automation"
+      }
     },
     "automation": {
       "title": "Automation canvas",
