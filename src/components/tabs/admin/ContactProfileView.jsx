@@ -74,7 +74,7 @@ const VIRTUAL_USER_BILLING = {
 
 const STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
-  { value: 'Convertido', label: 'Convertido' },
+  { value: 'Lista de Espera', label: 'Lista de Espera' },
   { value: 'Potencial', label: 'Potencial' },
   { value: 'Trial', label: 'Trial' },
   { value: 'Suspended', label: 'Suspendido' },

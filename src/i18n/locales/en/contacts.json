@@ -59,7 +59,7 @@
   },
   "status": {
     "Activo": "Active",
-    "Convertido": "Converted",
+    "Lista de Espera": "Waiting List",
     "Inactivo": "Inactive",
     "Potencial": "Potential",
     "Trial": "Trial",

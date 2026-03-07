@@ -74,7 +74,7 @@ if (!i18n.hasResourceBundle('es', 'contacts')) {
 
 const STATUS_COLOR = {
   Activo: { color: 'success', label: 'Activo' },
-  Convertido: { color: 'success', label: 'Convertido' },
+  'Lista de Espera': { color: 'warning', label: 'Lista de Espera' },
   Inactivo: { color: 'default', label: 'Inactivo' },
   Potencial: { color: 'primary', label: 'Potencial' },
   Trial: { color: 'primary', label: 'Trial' },
@@ -90,10 +90,10 @@ const ACTIVITY_STATUS = {
 };
 
 const PAGE_SIZE = 10; // Client-side pagination like MailboxAdmin
-const DEFAULT_STATUSES = ['Activo', 'Convertido', 'Potencial', 'Trial', 'Suspended', 'Inactive'];
+const DEFAULT_STATUSES = ['Activo', 'Lista de Espera', 'Potencial', 'Trial', 'Suspended', 'Inactive'];
 const ADD_USER_STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
-  { value: 'Convertido', label: 'Convertido' },
+  { value: 'Lista de Espera', label: 'Lista de Espera' },
   { value: 'Potencial', label: 'Potencial' },
   { value: 'Inactive', label: 'Inactivo' }
 ];
