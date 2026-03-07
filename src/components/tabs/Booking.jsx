@@ -2909,6 +2909,12 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
       } else if (paymentOption === 'no_invoice') {
         updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
       }
+      // Pass along updated IDs + new status so the parent can refresh them in the list
+      const newStatus = paymentOption === 'free' ? 'Paid' : paymentOption === 'charge' ? 'Paid' : paymentOption === 'invoice' ? 'Invoiced' : 'Booked';
+      if (updatedResponse) {
+        updatedResponse._extraUpdatedIds = selectedUninvoicedIds;
+        updatedResponse._extraNewStatus = newStatus;
+      }
       onUpdated?.(updatedResponse);
       onClose?.();
     } catch (payError) {
@@ -4067,16 +4073,24 @@ const Booking = ({ mode = 'user', userProfile }) => {
       result?.bloqueo ||
       result;
 
+    // Extra bloqueo IDs updated via bulk invoice/payment
+    const extraIds = updated?._extraUpdatedIds || [];
+    const extraStatus = updated?._extraNewStatus;
+
     if (updated?.id) {
       setBloqueos((prev) => {
         if (!Array.isArray(prev)) {
           return prev;
         }
+        const extraIdSet = new Set(extraIds.map(Number));
         let matched = false;
         const next = prev.map((entry) => {
           if (entry?.id === updated.id) {
             matched = true;
             return { ...entry, ...updated };
+          }
+          if (extraStatus && extraIdSet.has(entry?.id)) {
+            return { ...entry, estado: extraStatus };
           }
           return entry;
         });
