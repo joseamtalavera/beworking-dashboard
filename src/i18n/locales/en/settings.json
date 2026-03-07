@@ -17,6 +17,16 @@
   "account": {
     "title": "Account"
   },
+  "password": {
+    "title": "Change Password",
+    "current": "Current Password",
+    "new": "New Password",
+    "confirm": "Confirm New Password",
+    "mismatch": "Passwords do not match",
+    "requirements": "At least 8 characters, including uppercase, lowercase, number, and special character",
+    "success": "Password changed successfully",
+    "changing": "CHANGING..."
+  },
   "subscription": {
     "title": "Subscription",
     "noActive": "No active subscription",

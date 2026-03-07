@@ -9,9 +9,16 @@ export const updateUserAvatar = (avatarUrl, options = {}) =>
     ...options
   });
 
-export const updateUserProfile = (profileData, options = {}) => 
+export const updateUserProfile = (profileData, options = {}) =>
   apiFetch('/auth/me', {
     method: 'PUT',
     body: profileData,
+    ...options
+  });
+
+export const changePassword = (currentPassword, newPassword, options = {}) =>
+  apiFetch('/auth/me/password', {
+    method: 'PUT',
+    body: { currentPassword, newPassword },
     ...options
   });

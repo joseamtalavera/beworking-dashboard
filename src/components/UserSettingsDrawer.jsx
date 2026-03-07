@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
-import { updateUserAvatar, updateUserProfile } from '../api/auth.js';
+import { updateUserAvatar, updateUserProfile, changePassword } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
 import { fetchSubscriptions } from '../api/subscriptions.js';
 import { fetchCustomerPaymentMethods, createSetupIntent, setDefaultPaymentMethod } from '../api/stripe.js';
@@ -27,6 +27,7 @@ import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
+import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
@@ -124,6 +125,13 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const [pmLoading, setPmLoading] = useState(false);
   const [pmDialogOpen, setPmDialogOpen] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState(null);
+
+  // Password change state
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
+  const [passwordError, setPasswordError] = useState(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const getBillingValues = (cp) => ({
     company: cp?.billingName || cp?.billing_name || '',
@@ -345,6 +353,34 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleSavePassword = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    if (passwordForm.new !== passwordForm.confirm) {
+      setPasswordError(t('password.mismatch'));
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await changePassword(passwordForm.current, passwordForm.new);
+      setPasswordSuccess(true);
+      setPasswordForm({ current: '', new: '', confirm: '' });
+      setIsEditingPassword(false);
+    } catch (err) {
+      const msg = err?.message || err?.body?.message || 'Failed to change password';
+      setPasswordError(msg);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleCancelPasswordEdit = () => {
+    setPasswordForm({ current: '', new: '', confirm: '' });
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    setIsEditingPassword(false);
   };
 
   if (!user) return null;
@@ -630,6 +666,58 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             <Typography variant="body2" color="text.secondary">
               {t('subscription.noActive')}
             </Typography>
+          )}
+        </Stack>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Change Password */}
+        <Stack spacing={2}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <LockRoundedIcon fontSize="small" sx={{ color: accentColor }} />
+              <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('password.title')}
+              </Typography>
+            </Stack>
+            {!isEditingPassword ? (
+              <Button variant="outlined" size="small" onClick={() => { setIsEditingPassword(true); setPasswordSuccess(false); }} sx={editBtnSx}>
+                {t('actions.edit')}
+              </Button>
+            ) : (
+              <Stack direction="row" spacing={1}>
+                <Button variant="outlined" size="small" onClick={handleCancelPasswordEdit} disabled={passwordLoading} sx={cancelBtnSx}>
+                  {t('actions.cancel')}
+                </Button>
+                <Button variant="contained" size="small" onClick={handleSavePassword} disabled={passwordLoading} sx={saveBtnSx}>
+                  {passwordLoading ? t('password.changing') : t('actions.save')}
+                </Button>
+              </Stack>
+            )}
+          </Stack>
+
+          {isEditingPassword ? (
+            <Stack spacing={2}>
+              <TextField
+                label={t('password.current')} type="password" value={passwordForm.current}
+                onChange={(e) => setPasswordForm(prev => ({ ...prev, current: e.target.value }))}
+                fullWidth size="small" sx={fieldSx}
+              />
+              <TextField
+                label={t('password.new')} type="password" value={passwordForm.new}
+                onChange={(e) => setPasswordForm(prev => ({ ...prev, new: e.target.value }))}
+                fullWidth size="small" sx={fieldSx}
+                helperText={t('password.requirements')}
+              />
+              <TextField
+                label={t('password.confirm')} type="password" value={passwordForm.confirm}
+                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm: e.target.value }))}
+                fullWidth size="small" sx={fieldSx}
+              />
+              {passwordError && <Alert severity="error">{passwordError}</Alert>}
+            </Stack>
+          ) : (
+            passwordSuccess && <Alert severity="success">{t('password.success')}</Alert>
           )}
         </Stack>
 

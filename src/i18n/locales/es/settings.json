@@ -17,6 +17,16 @@
   "account": {
     "title": "Cuenta"
   },
+  "password": {
+    "title": "Cambiar Contraseña",
+    "current": "Contraseña Actual",
+    "new": "Nueva Contraseña",
+    "confirm": "Confirmar Nueva Contraseña",
+    "mismatch": "Las contraseñas no coinciden",
+    "requirements": "Mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y carácter especial",
+    "success": "Contraseña cambiada correctamente",
+    "changing": "CAMBIANDO..."
+  },
   "subscription": {
     "title": "Suscripción",
     "noActive": "Sin suscripción activa",
