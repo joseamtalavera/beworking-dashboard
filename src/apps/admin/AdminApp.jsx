@@ -6,6 +6,7 @@ import Sidebar from '../../components/Sidebar.jsx';
 import Header from '../../components/Header.jsx';
 import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
+import ChatSupportDrawer from '../../components/ChatSupportDrawer.jsx';
 import { ADMIN_TABS } from '../../constants.js';
 import SpiralLoader from '../../components/SpiralLoader.jsx';
 
@@ -49,6 +50,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
   const [activeTab, setActiveTab] = useState('Overview');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
   const [contactsKey, setContactsKey] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -101,6 +103,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
           activeTab={activeTab}
           userProfile={userProfile}
           onOpenHelp={() => setHelpOpen(true)}
+          onOpenChat={() => setChatOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
           setActiveTab={setActiveTab}
           onMenuToggle={() => setMobileOpen(true)}
@@ -116,6 +119,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
       </Box>
       <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} onLogout={logout} />
       <HelpSupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <ChatSupportDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
       {agentOpen && (
         <Box
           sx={{

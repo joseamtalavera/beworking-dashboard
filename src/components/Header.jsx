@@ -20,6 +20,7 @@ import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
@@ -35,7 +36,7 @@ const spinAnimation = `
   }
 `;
 
-const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveTab, onMenuToggle, isAdmin = true }) => {
+const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings, setActiveTab, onMenuToggle, isAdmin = true }) => {
   const theme = useTheme();
   const { t, i18n } = useTranslation();
   const { mode, toggleColorMode } = useColorMode();
@@ -436,6 +437,32 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenSettings, setActiveT
                 ))}
               </Menu>
               </>}
+              {/* AI Chat button */}
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<SmartToyOutlinedIcon />}
+                onClick={onOpenChat}
+                sx={{
+                  height: 36,
+                  display: { xs: 'none', sm: 'inline-flex' },
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: 'rgba(0,150,36,0.06)', borderColor: 'primary.main' },
+                }}
+              >
+                AI
+              </Button>
+              <IconButton
+                onClick={onOpenChat}
+                sx={{
+                  display: { xs: 'inline-flex', sm: 'none' },
+                  color: 'primary.main',
+                }}
+                aria-label="AI Chat"
+              >
+                <SmartToyOutlinedIcon />
+              </IconButton>
               {/* Full button on sm+, icon-only on xs */}
               <Button
                 variant="contained"
