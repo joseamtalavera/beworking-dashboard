@@ -463,32 +463,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
               >
                 <SmartToyOutlinedIcon />
               </IconButton>
-              {/* Full button on sm+, icon-only on xs */}
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<HelpOutlineIcon />}
-                onClick={onOpenHelp}
-                sx={{
-                  bgcolor: 'primary.main',
-                  color: 'common.white',
-                  height: 36,
-                  display: { xs: 'none', sm: 'inline-flex' },
-                  '&:hover': { bgcolor: theme.palette.brand.green }
-                }}
-              >
-                {t('header.help')}
-              </Button>
-              <IconButton
-                onClick={onOpenHelp}
-                sx={{
-                  display: { xs: 'inline-flex', sm: 'none' },
-                  color: 'primary.main'
-                }}
-                aria-label={t('header.helpSupport')}
-              >
-                <HelpOutlineIcon />
-              </IconButton>
+              {/* Help button — hidden for now */}
               <IconButton
                 onClick={toggleColorMode}
                 size="small"
