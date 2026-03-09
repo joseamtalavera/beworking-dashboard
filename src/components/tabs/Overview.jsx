@@ -773,9 +773,9 @@ const AdminOverview = () => {
       const [todayBookingsData, subsData, regToday, regMTD, regYTD] = await Promise.all([
         fetchBloqueos({ from: todayStr, to: todayStr }),
         fetchSubscriptions(),
-        apiFetch(`/contact-profiles?size=1&tenantType=Oficina+Virtual&startDate=${todayStr}&endDate=${todayStr}`),
-        apiFetch(`/contact-profiles?size=1&tenantType=Oficina+Virtual&startDate=${firstOfMonth}&endDate=${todayStr}`),
-        apiFetch(`/contact-profiles?size=1&tenantType=Oficina+Virtual&startDate=${firstOfYear}&endDate=${todayStr}`)
+        apiFetch(`/contact-profiles?size=1&tenantType=Usuario+Virtual&startDate=${todayStr}&endDate=${todayStr}`),
+        apiFetch(`/contact-profiles?size=1&tenantType=Usuario+Virtual&startDate=${firstOfMonth}&endDate=${todayStr}`),
+        apiFetch(`/contact-profiles?size=1&tenantType=Usuario+Virtual&startDate=${firstOfYear}&endDate=${todayStr}`)
       ]);
 
       setTodayBloqueos(Array.isArray(todayBookingsData) ? todayBookingsData : []);
