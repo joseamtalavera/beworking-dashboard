@@ -1278,6 +1278,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   <MenuItem value="Activo">{t('status.Activo')}</MenuItem>
                   <MenuItem value="Inactivo">{t('status.Inactivo')}</MenuItem>
                   <MenuItem value="Potencial">{t('status.Potencial')}</MenuItem>
+                  <MenuItem value="Trial">Trial</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
