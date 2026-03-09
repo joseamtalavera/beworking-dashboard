@@ -16,17 +16,24 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
 import { useEffect, useState, useMemo } from 'react';
 import { fetchInvoices } from '../../api/invoices.js';
-import { fetchBloqueos, fetchBookingProductos, fetchBookingStats } from '../../api/bookings.js';
+import { fetchBloqueos, fetchBookingProductos, fetchBookingStats, deleteBloqueo } from '../../api/bookings.js';
 import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
 import { fetchSubscriptions } from '../../api/subscriptions.js';
@@ -318,6 +325,12 @@ const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
 /* ═══════════════════════════════════════════
    Status chip helper for user tables
    ═══════════════════════════════════════════ */
+const isFreeBooking = (b) => {
+  const tarifa = b.tarifa;
+  const nota = (b.nota || '').toLowerCase();
+  return (tarifa == null || tarifa === 0) && !nota.includes('stripe');
+};
+
 const statusChipColor = (estado) => {
   const s = (estado || '').toLowerCase();
   if (s.includes('pag') || s.includes('paid')) return 'success';
@@ -339,6 +352,9 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
   const [mailDocuments, setMailDocuments] = useState([]);
   const [tenantType, setTenantType] = useState('');
   const [loading, setLoading] = useState({ bookings: true, stats: true, invoices: true, mail: true });
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState('');
 
   useEffect(() => {
     if (!userProfile?.email) return;
@@ -391,6 +407,35 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
       .catch(() => setMailDocuments([]))
       .finally(() => setLoading(prev => ({ ...prev, mail: false })));
   }, [userProfile?.email, userProfile?.tenantId]);
+
+  const reloadBookings = () => {
+    if (!userProfile?.email) return;
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const futureStr = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate()).toISOString().split('T')[0];
+    fetchBloqueos({ from: todayStr, to: futureStr })
+      .then(data => {
+        const list = Array.isArray(data) ? data : [];
+        list.sort((a, b) => new Date(a.fechaIni) - new Date(b.fechaIni));
+        setBookings(list);
+      })
+      .catch(() => {});
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    setCancelError('');
+    try {
+      await deleteBloqueo(cancelTarget.id);
+      setCancelTarget(null);
+      reloadBookings();
+    } catch {
+      setCancelError(t('user.upcomingBookings.cancelError'));
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const isVirtualUser = tenantType.includes('virtual');
 
@@ -520,13 +565,14 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
                 <TableCell>{t('user.upcomingBookings.room')}</TableCell>
                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('user.upcomingBookings.center')}</TableCell>
                 <TableCell>{t('user.upcomingBookings.status')}</TableCell>
+                <TableCell />
               </TableRow>
             </TableHead>
             <TableBody>
               {loading.bookings ? (
-                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}><CircularProgress size={24} /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}><CircularProgress size={24} /></TableCell></TableRow>
               ) : bookings.slice(0, 5).length === 0 ? (
-                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}>
                   <Typography variant="body2" color="text.secondary">{t('user.upcomingBookings.noBookings')}</Typography>
                 </TableCell></TableRow>
               ) : bookings.slice(0, 5).map(b => {
@@ -539,6 +585,19 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
                     <TableCell>{b.producto?.nombre || '-'}</TableCell>
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{b.centro?.nombre || '-'}</TableCell>
                     <TableCell><Chip label={b.estado || '-'} size="small" color={statusChipColor(b.estado)} variant="outlined" /></TableCell>
+                    <TableCell align="right">
+                      {isFreeBooking(b) && (
+                        <Button
+                          size="small"
+                          color="error"
+                          startIcon={<CancelOutlinedIcon />}
+                          onClick={() => setCancelTarget(b)}
+                          sx={{ textTransform: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
+                        >
+                          {t('user.upcomingBookings.cancel')}
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -546,6 +605,28 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
           </Table>
         </TableContainer>
       </Paper>
+
+      {/* Cancel booking confirm dialog */}
+      <Dialog open={Boolean(cancelTarget)} onClose={() => !cancelling && setCancelTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>{t('user.upcomingBookings.confirmTitle')}</DialogTitle>
+        <DialogContent>
+          {cancelError && <Alert severity="error" sx={{ mb: 2 }}>{cancelError}</Alert>}
+          <DialogContentText>
+            {t('user.upcomingBookings.confirmBody', {
+              space: cancelTarget?.producto?.nombre || '',
+              date: cancelTarget ? new Date(cancelTarget.fechaIni).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }) : ''
+            })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setCancelTarget(null)} disabled={cancelling}>
+            {t('user.upcomingBookings.back')}
+          </Button>
+          <Button variant="contained" color="error" onClick={handleConfirmCancel} disabled={cancelling}>
+            {cancelling ? <CircularProgress size={16} color="inherit" /> : t('user.upcomingBookings.confirmCancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Row 4: Recent Invoices */}
       <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>

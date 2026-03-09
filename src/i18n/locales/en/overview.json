@@ -72,7 +72,13 @@
       "center": "Center",
       "status": "Status",
       "viewAll": "View all",
-      "noBookings": "No upcoming bookings"
+      "noBookings": "No upcoming bookings",
+      "cancel": "Cancel",
+      "confirmTitle": "Cancel booking",
+      "confirmBody": "Are you sure you want to cancel the booking for {{space}} on {{date}}?",
+      "confirmCancel": "Yes, cancel",
+      "cancelError": "Could not cancel the booking. Please try again.",
+      "back": "Back"
     },
     "recentInvoices": {
       "title": "Recent Invoices",

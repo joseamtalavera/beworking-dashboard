@@ -72,7 +72,13 @@
       "center": "Centro",
       "status": "Estado",
       "viewAll": "Ver todas",
-      "noBookings": "No tienes reservas próximas"
+      "noBookings": "No tienes reservas próximas",
+      "cancel": "Cancelar",
+      "confirmTitle": "Cancelar reserva",
+      "confirmBody": "¿Seguro que quieres cancelar la reserva de {{space}} el {{date}}?",
+      "confirmCancel": "Sí, cancelar",
+      "cancelError": "No se pudo cancelar la reserva. Inténtalo de nuevo.",
+      "back": "Volver"
     },
     "recentInvoices": {
       "title": "Facturas Recientes",
