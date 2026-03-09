@@ -150,7 +150,9 @@ const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
 };
 
 // Clean Area Chart
-const AreaChart = ({ data, loading, title, total, color, theme, gradientId }) => {
+const AreaChart = ({ data, loading, title, total, color, theme, gradientId, selectedYear }) => {
+  const [tooltip, setTooltip] = React.useState(null); // { x, y, value, month, monthlyValue }
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
@@ -167,15 +169,22 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId }) =>
     );
   }
 
+  // Truncate future months when viewing current year
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-based
+  const currentYear = now.getFullYear();
+  const visibleData = selectedYear === currentYear ? data.slice(0, currentMonth + 1) : data;
+
   const chartHeight = 140;
   const chartWidth = 400;
   const padding = { top: 10, right: 10, bottom: 30, left: 10 };
-  const maxValue = Math.max(...data.map(d => d.value || 0), 100);
+  const maxValue = Math.max(...visibleData.map(d => d.value || 0), 100);
 
-  const points = data.map((item, index) => {
+  const points = visibleData.map((item, index) => {
     const x = padding.left + (index * (chartWidth - padding.left - padding.right) / (data.length - 1));
     const y = padding.top + chartHeight - ((item.value / maxValue) * chartHeight);
-    return { x, y, value: item.value, month: item.month };
+    const monthlyValue = index === 0 ? item.value : item.value - visibleData[index - 1].value;
+    return { x, y, value: item.value, monthlyValue, month: item.month };
   });
 
   const linePath = points.map((point, index) =>
@@ -185,7 +194,7 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId }) =>
   const areaPath = `${linePath} L ${points[points.length - 1].x} ${padding.top + chartHeight} L ${points[0].x} ${padding.top + chartHeight} Z`;
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
           {title}
@@ -195,8 +204,9 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId }) =>
         </Typography>
       </Stack>
 
-      <Box sx={{ width: '100%', height: chartHeight + padding.top + padding.bottom }}>
-        <svg width="100%" height={chartHeight + padding.top + padding.bottom} viewBox={`0 0 ${chartWidth} ${chartHeight + padding.top + padding.bottom}`} preserveAspectRatio="xMidYMid meet">
+      <Box sx={{ width: '100%', height: chartHeight + padding.top + padding.bottom, position: 'relative' }}>
+        <svg width="100%" height={chartHeight + padding.top + padding.bottom} viewBox={`0 0 ${chartWidth} ${chartHeight + padding.top + padding.bottom}`} preserveAspectRatio="xMidYMid meet"
+          onClick={() => setTooltip(null)}>
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor={color} stopOpacity="0.2" />
@@ -208,14 +218,40 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId }) =>
           <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
 
           {points.map((point, index) => (
-            <g key={index}>
-              <circle cx={point.x} cy={point.y} r={3} fill={color} />
+            <g key={index} style={{ cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setTooltip(tooltip?.index === index ? null : { ...point, index }); }}>
+              <circle cx={point.x} cy={point.y} r={tooltip?.index === index ? 5 : 3} fill={color} stroke={tooltip?.index === index ? theme.palette.background.paper : 'none'} strokeWidth={1.5} />
               <text x={point.x} y={chartHeight + padding.top + 20} fontSize="9" fill={theme.palette.text.disabled} textAnchor="middle">
                 {point.month}
               </text>
+              {/* invisible hit area */}
+              <circle cx={point.x} cy={point.y} r={12} fill="transparent" />
             </g>
           ))}
         </svg>
+
+        {tooltip && (
+          <Box sx={{
+            position: 'absolute',
+            top: `${(tooltip.y / (chartHeight + padding.top + padding.bottom)) * 100}%`,
+            left: `${(tooltip.x / chartWidth) * 100}%`,
+            transform: 'translate(-50%, -130%)',
+            bgcolor: 'background.paper',
+            border: `1px solid ${color}`,
+            borderRadius: 1,
+            px: 1.2, py: 0.6,
+            boxShadow: 2,
+            pointerEvents: 'none',
+            zIndex: 10,
+            whiteSpace: 'nowrap'
+          }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, color, display: 'block' }}>
+              {tooltip.month}: {formatCurrency(tooltip.monthlyValue)}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+              Acumulado: {formatCurrency(tooltip.value)}
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   );
@@ -1013,6 +1049,7 @@ const AdminOverview = () => {
             color={dataColors.income}
             theme={theme}
             gradientId="revenueGrad"
+            selectedYear={selectedYear}
           />
           <AreaChart
             data={chartData.pending}
@@ -1022,6 +1059,7 @@ const AdminOverview = () => {
             color={dataColors.pending}
             theme={theme}
             gradientId="pendingGrad"
+            selectedYear={selectedYear}
           />
         </Box>
       </Paper>
