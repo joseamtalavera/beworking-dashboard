@@ -193,8 +193,9 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
     `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
   ).join(' ');
 
+  const baselineY = padding.top + chartHeight;
   const areaPath = activePoints.length > 1
-    ? `${linePath} L ${activePoints[activePoints.length - 1].x} ${padding.top + chartHeight} L ${activePoints[0].x} ${padding.top + chartHeight} Z`
+    ? `${linePath} L ${activePoints[activePoints.length - 1].x} ${baselineY} L ${activePoints[0].x} ${baselineY} Z`
     : '';
 
   return (
@@ -756,9 +757,9 @@ const AdminOverview = () => {
       const [todayBookingsData, subsData, regToday, regMTD, regYTD] = await Promise.all([
         fetchBloqueos({ from: todayStr, to: todayStr }),
         fetchSubscriptions(),
-        apiFetch(`/contact-profiles?size=1&startDate=${todayStr}&endDate=${todayStr}`),
-        apiFetch(`/contact-profiles?size=1&startDate=${firstOfMonth}&endDate=${todayStr}`),
-        apiFetch(`/contact-profiles?size=1&startDate=${firstOfYear}&endDate=${todayStr}`)
+        apiFetch(`/contact-profiles?size=1&tenantType=Oficina+Virtual&startDate=${todayStr}&endDate=${todayStr}`),
+        apiFetch(`/contact-profiles?size=1&tenantType=Oficina+Virtual&startDate=${firstOfMonth}&endDate=${todayStr}`),
+        apiFetch(`/contact-profiles?size=1&tenantType=Oficina+Virtual&startDate=${firstOfYear}&endDate=${todayStr}`)
       ]);
 
       setTodayBloqueos(Array.isArray(todayBookingsData) ? todayBookingsData : []);
@@ -990,7 +991,7 @@ const AdminOverview = () => {
       </Box>
 
       {/* Financial Metrics */}
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' } }}>
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
         <MetricCard
           label={t('metrics.incomeYTD')}
           value={metrics.incomeYTD}
@@ -1044,7 +1045,7 @@ const AdminOverview = () => {
                 ))}
               </Select>
             </FormControl>
-            <Chip label={t('charts.invoicesCount', { count: invoices.length })} size="small" sx={{ fontWeight: 600 }} />
+            <Chip label={t('charts.invoicesCount', { count: invoices.filter(inv => new Date(inv.createdAt || inv.fechaFactura).getFullYear() === selectedYear).length })} size="small" sx={{ fontWeight: 600 }} />
           </Stack>
         </Stack>
 
