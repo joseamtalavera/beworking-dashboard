@@ -920,9 +920,9 @@ const AdminOverview = () => {
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Quick Stats Row */}
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+        <StatCard label={t('stats.businessAddresses')} value={statCards.subToday} sublabel={t('stats.today')} mtd={statCards.subMTD} ytd={statCards.subYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
-        <StatCard label={t('stats.businessAddresses')} value={statCards.subToday} sublabel={t('stats.today')} mtd={statCards.subMTD} ytd={statCards.subYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.activeUsers')} value={statCards.activeToday} sublabel={t('stats.withBookings')} mtd={statCards.activeMTD} ytd={statCards.activeYTD} mtdLabel={t('stats.mtdAvg')} ytdLabel={t('stats.ytdAvg')} loading={statsLoading || loading} theme={theme} />
       </Box>
 
