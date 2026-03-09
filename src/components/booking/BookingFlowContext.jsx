@@ -1,5 +1,7 @@
 import { createContext, useContext, useReducer, useCallback } from 'react';
 
+const todayISO = () => new Date().toISOString().split('T')[0];
+
 const initialState = {
   activeStep: 0,
   // Step 0 — details
@@ -39,8 +41,10 @@ function reducer(state, action) {
       return { ...state, activeStep: Math.max(state.activeStep - 1, 0) };
     case 'GO_TO_STEP':
       return { ...state, activeStep: action.step };
-    case 'RESET':
-      return { ...initialState, dateFrom: action.defaultDate || '', dateTo: action.defaultDate || '' };
+    case 'RESET': {
+      const d = action.defaultDate || todayISO();
+      return { ...initialState, dateFrom: d, dateTo: d };
+    }
     default:
       return state;
   }
@@ -51,8 +55,8 @@ const BookingFlowContext = createContext(null);
 export function BookingFlowProvider({ children, defaultDate }) {
   const [state, dispatch] = useReducer(reducer, {
     ...initialState,
-    dateFrom: defaultDate || '',
-    dateTo: defaultDate || '',
+    dateFrom: defaultDate || todayISO(),
+    dateTo: defaultDate || todayISO(),
   });
 
   const setField = useCallback((field, value) => {
