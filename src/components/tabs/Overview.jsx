@@ -617,27 +617,29 @@ const AdminOverview = () => {
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const status = (invoice.estado || '').toLowerCase();
 
-      const isPaid = status.includes('pag') || status.includes('paid') || status.includes('approved');
+      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
       const isOverdue = status.includes('venc') || status.includes('overdue');
       const isPending = status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice') || status.includes('created');
+      // Billed revenue = all non-cancelled invoices
+      const isBilled = !isCancelled;
 
       if (invoiceYear === currentYear) {
-        if (isPaid) incomeYTD += amount;
+        if (isBilled) incomeYTD += amount;
         if (isPending) pendingYTD += amount;
         if (invoiceMonth === currentMonth) {
-          if (isPaid) incomeMonth += amount;
+          if (isBilled) incomeMonth += amount;
           if (isPending) pendingMonth += amount;
         }
       }
 
       // Compare same period last year (Jan 1 → same day last year), not full last year
       if (invoiceYear === lastYear && invoiceDate <= samePointLastYear) {
-        if (isPaid) incomeLastYTD += amount;
+        if (isBilled) incomeLastYTD += amount;
         if (isPending) pendingLastYTD += amount;
       }
 
       if (invoiceYear === lastMonthYear && invoiceMonth === lastMonth) {
-        if (isPaid) incomeLastMonth += amount;
+        if (isBilled) incomeLastMonth += amount;
         if (isPending) pendingLastMonth += amount;
       }
 
