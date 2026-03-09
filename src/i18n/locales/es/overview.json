@@ -1,8 +1,8 @@
 {
   "stats": {
-    "meetingRooms": "Salas de Reunión",
-    "deskBookings": "Reservas de Escritorio",
-    "businessAddresses": "Domicilios Fiscales",
+    "meetingRooms": "Reservas Salas de Reunión",
+    "deskBookings": "Reservas Coworking",
+    "businessAddresses": "Registros",
     "activeUsers": "Usuarios Activos",
     "today": "hoy",
     "active": "activos",

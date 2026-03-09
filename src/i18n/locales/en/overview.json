@@ -1,8 +1,8 @@
 {
   "stats": {
-    "meetingRooms": "Meeting Rooms",
-    "deskBookings": "Desk Bookings",
-    "businessAddresses": "Business Addresses",
+    "meetingRooms": "Meeting Room Bookings",
+    "deskBookings": "Coworking Bookings",
+    "businessAddresses": "Registrations",
     "activeUsers": "Active Users",
     "today": "today",
     "active": "active",
