@@ -533,12 +533,27 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                         try {
                           const blob = await fetchInvoicePdfBlob(inv.id);
                           const objectUrl = URL.createObjectURL(blob);
-                          window.open(objectUrl, '_blank', 'noopener');
+                          const a = document.createElement('a');
+                          a.href = objectUrl;
+                          a.target = '_blank';
+                          a.rel = 'noopener';
+                          a.download = `invoice-${inv.id}.pdf`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
                           setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
                         } catch {
                           try {
                             const url = inv.holdedinvoicepdf || (await fetchInvoicePdfUrl(inv.id));
-                            if (url) window.open(url, '_blank', 'noopener');
+                            if (url) {
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.target = '_blank';
+                              a.rel = 'noopener';
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            }
                           } catch {}
                         }
                       }}
