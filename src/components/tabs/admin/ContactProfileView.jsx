@@ -590,7 +590,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           <InfoCard title={t('profile.basicData')} icon={PersonOutlineRoundedIcon}>
             <Stack spacing={2} sx={{ width: '100%' }}>
               <InfoRow label={t('profile.tenantId')} value={contact.id} pill />
-              <InfoRow label={t('profile.primaryContact')} value={contact.contact?.name} />
+              <InfoRow label={t('profile.name')} value={contact.name} />
               <InfoRow label={t('profile.email')} value={contact.contact?.email} />
               <InfoRow label={t('profile.phone')} value={contact.phone_primary} />
               <InfoRow label={t('profile.userType')} value={contact.user_type} />
