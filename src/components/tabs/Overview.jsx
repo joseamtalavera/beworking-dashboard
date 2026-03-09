@@ -151,7 +151,7 @@ const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
 
 // Clean Area Chart
 const AreaChart = ({ data, loading, title, total, color, theme, gradientId, selectedYear }) => {
-  const [tooltip, setTooltip] = React.useState(null); // { x, y, value, month, monthlyValue }
+  const [tooltip, setTooltip] = useState(null); // { x, y, value, month, monthlyValue }
 
   if (loading) {
     return (
