@@ -194,8 +194,22 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
   ).join(' ');
 
   const baselineY = padding.top + chartHeight;
+  const lastActive = activePoints[activePoints.length - 1];
+  const lastPoint = allPoints[allPoints.length - 1];
+
+  // Area fills from first to last active point
   const areaPath = activePoints.length > 1
-    ? `${linePath} L ${activePoints[activePoints.length - 1].x} ${baselineY} L ${activePoints[0].x} ${baselineY} Z`
+    ? `${linePath} L ${lastActive.x} ${baselineY} L ${activePoints[0].x} ${baselineY} Z`
+    : '';
+
+  // Dashed flat line from last active point to end of chart (future months)
+  const futurePath = lastActive && lastActive.x < lastPoint.x
+    ? `M ${lastActive.x} ${lastActive.y} L ${lastPoint.x} ${lastActive.y}`
+    : '';
+
+  // Filled area under the dashed future extension (very faint)
+  const futureAreaPath = futurePath
+    ? `M ${lastActive.x} ${lastActive.y} L ${lastPoint.x} ${lastActive.y} L ${lastPoint.x} ${baselineY} L ${lastActive.x} ${baselineY} Z`
     : '';
 
   return (
@@ -219,7 +233,9 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
             </linearGradient>
           </defs>
 
+          {futureAreaPath && <path d={futureAreaPath} fill={color} fillOpacity="0.04" />}
           {areaPath && <path d={areaPath} fill={`url(#${gradientId})`} />}
+          {futurePath && <path d={futurePath} fill="none" stroke={color} strokeWidth={1.5} strokeDasharray="4 4" strokeOpacity="0.35" />}
           {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
 
           {/* All 12 month labels */}
