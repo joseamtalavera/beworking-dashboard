@@ -169,29 +169,33 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
     );
   }
 
-  // Truncate future months when viewing current year
+  // Only draw line/dots for past and current months
   const now = new Date();
   const currentMonth = now.getMonth(); // 0-based
   const currentYear = now.getFullYear();
-  const visibleData = selectedYear === currentYear ? data.slice(0, currentMonth + 1) : data;
+  const activeCount = selectedYear === currentYear ? currentMonth + 1 : data.length;
 
   const chartHeight = 140;
-  const chartWidth = 400;
+  const chartWidth = 800;
   const padding = { top: 10, right: 10, bottom: 30, left: 10 };
-  const maxValue = Math.max(...visibleData.map(d => d.value || 0), 100);
+  const maxValue = Math.max(...data.slice(0, activeCount).map(d => d.value || 0), 100);
 
-  const points = visibleData.map((item, index) => {
+  // All 12 months get an x position; only activeCount months get a dot
+  const allPoints = data.map((item, index) => {
     const x = padding.left + (index * (chartWidth - padding.left - padding.right) / (data.length - 1));
     const y = padding.top + chartHeight - ((item.value / maxValue) * chartHeight);
-    const monthlyValue = index === 0 ? item.value : item.value - visibleData[index - 1].value;
-    return { x, y, value: item.value, monthlyValue, month: item.month };
+    const monthlyValue = index === 0 ? item.value : item.value - (data[index - 1]?.value || 0);
+    return { x, y, value: item.value, monthlyValue, month: item.month, active: index < activeCount };
   });
 
-  const linePath = points.map((point, index) =>
+  const activePoints = allPoints.filter(p => p.active);
+  const linePath = activePoints.map((point, index) =>
     `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
   ).join(' ');
 
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${padding.top + chartHeight} L ${points[0].x} ${padding.top + chartHeight} Z`;
+  const areaPath = activePoints.length > 1
+    ? `${linePath} L ${activePoints[activePoints.length - 1].x} ${padding.top + chartHeight} L ${activePoints[0].x} ${padding.top + chartHeight} Z`
+    : '';
 
   return (
     <Box sx={{ position: 'relative' }}>
@@ -205,7 +209,7 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
       </Stack>
 
       <Box sx={{ width: '100%', height: chartHeight + padding.top + padding.bottom, position: 'relative' }}>
-        <svg width="100%" height={chartHeight + padding.top + padding.bottom} viewBox={`0 0 ${chartWidth} ${chartHeight + padding.top + padding.bottom}`} preserveAspectRatio="xMidYMid meet"
+        <svg width="100%" height={chartHeight + padding.top + padding.bottom} viewBox={`0 0 ${chartWidth} ${chartHeight + padding.top + padding.bottom}`} preserveAspectRatio="none"
           onClick={() => setTooltip(null)}>
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -214,16 +218,20 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
             </linearGradient>
           </defs>
 
-          <path d={areaPath} fill={`url(#${gradientId})`} />
-          <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          {areaPath && <path d={areaPath} fill={`url(#${gradientId})`} />}
+          {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
 
-          {points.map((point, index) => (
+          {/* All 12 month labels */}
+          {allPoints.map((point, index) => (
+            <text key={`lbl-${index}`} x={point.x} y={chartHeight + padding.top + 20} fontSize="11" fill={theme.palette.text.disabled} textAnchor="middle">
+              {point.month}
+            </text>
+          ))}
+
+          {/* Dots only for active months */}
+          {activePoints.map((point, index) => (
             <g key={index} style={{ cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setTooltip(tooltip?.index === index ? null : { ...point, index }); }}>
               <circle cx={point.x} cy={point.y} r={tooltip?.index === index ? 5 : 3} fill={color} stroke={tooltip?.index === index ? theme.palette.background.paper : 'none'} strokeWidth={1.5} />
-              <text x={point.x} y={chartHeight + padding.top + 20} fontSize="9" fill={theme.palette.text.disabled} textAnchor="middle">
-                {point.month}
-              </text>
-              {/* invisible hit area */}
               <circle cx={point.x} cy={point.y} r={12} fill="transparent" />
             </g>
           ))}
@@ -1040,7 +1048,7 @@ const AdminOverview = () => {
           </Stack>
         </Stack>
 
-        <Box sx={{ display: 'grid', gap: 4, gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' } }}>
+        <Box sx={{ display: 'grid', gap: 4, gridTemplateColumns: '1fr' }}>
           <AreaChart
             data={chartData.revenue}
             loading={loading}
