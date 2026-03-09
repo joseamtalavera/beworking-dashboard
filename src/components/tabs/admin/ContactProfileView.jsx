@@ -154,16 +154,61 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [vatStatus, setVatStatus] = useState('idle'); // idle | loading | valid | invalid | error
   const [vatTooltip, setVatTooltip] = useState('');
   const EU_VAT_RE = /^[A-Z]{2}\s*[A-Z0-9]+$/i;
+  const EU_COUNTRY_CODES = {
+    'España': 'ES', 'Spain': 'ES',
+    'Alemania': 'DE', 'Germany': 'DE',
+    'Francia': 'FR', 'France': 'FR',
+    'Italia': 'IT', 'Italy': 'IT',
+    'Portugal': 'PT', 'Portugal': 'PT',
+    'Países Bajos': 'NL', 'Netherlands': 'NL',
+    'Bélgica': 'BE', 'Belgium': 'BE',
+    'Austria': 'AT',
+    'Bulgaria': 'BG',
+    'Chipre': 'CY', 'Cyprus': 'CY',
+    'República Checa': 'CZ', 'Czech Republic': 'CZ',
+    'Dinamarca': 'DK', 'Denmark': 'DK',
+    'Estonia': 'EE',
+    'Finlandia': 'FI', 'Finland': 'FI',
+    'Grecia': 'EL', 'Greece': 'EL',
+    'Croacia': 'HR', 'Croatia': 'HR',
+    'Hungría': 'HU', 'Hungary': 'HU',
+    'Irlanda': 'IE', 'Ireland': 'IE',
+    'Lituania': 'LT', 'Lithuania': 'LT',
+    'Luxemburgo': 'LU', 'Luxembourg': 'LU',
+    'Letonia': 'LV', 'Latvia': 'LV',
+    'Malta': 'MT',
+    'Polonia': 'PL', 'Poland': 'PL',
+    'Rumanía': 'RO', 'Romania': 'RO',
+    'Suecia': 'SE', 'Sweden': 'SE',
+    'Eslovenia': 'SI', 'Slovenia': 'SI',
+    'Eslovaquia': 'SK', 'Slovakia': 'SK',
+    'Reino Unido': 'XI', 'United Kingdom': 'XI',
+  };
 
-  const validateVat = async (taxId) => {
-    if (!taxId || !EU_VAT_RE.test(taxId.trim())) {
+  const getCountryHint = (billingData) => {
+    const country = billingData?.country;
+    if (!country) return null;
+    return EU_COUNTRY_CODES[country] ?? null;
+  };
+
+  const validateVat = async (taxId, billingData) => {
+    if (!taxId || taxId.trim().length < 3) {
+      setVatStatus('idle');
+      setVatTooltip('');
+      return;
+    }
+    const hasPrefix = EU_VAT_RE.test(taxId.trim());
+    const countryHint = getCountryHint(billingData);
+    if (!hasPrefix && !countryHint) {
       setVatStatus('idle');
       setVatTooltip('');
       return;
     }
     setVatStatus('loading');
     try {
-      const result = await apiFetch(`/contact-profiles/vat/validate?vatNumber=${encodeURIComponent(taxId.trim())}`);
+      const params = new URLSearchParams({ vatNumber: taxId.trim() });
+      if (countryHint) params.set('countryHint', countryHint);
+      const result = await apiFetch(`/contact-profiles/vat/validate?${params}`);
       if (result.valid) {
         setVatStatus('valid');
         setVatTooltip(result.name && result.name !== '---' ? result.name : 'Valid EU VAT number');
@@ -180,8 +225,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // Auto-validate VAT on load (read-only view) and when editor opens
   useEffect(() => {
     const taxId = contact?.billing?.tax_id;
-    if (taxId && EU_VAT_RE.test(taxId.trim())) {
-      validateVat(taxId);
+    const hasPrefix = taxId && EU_VAT_RE.test(taxId.trim());
+    const countryHint = getCountryHint(contact?.billing);
+    if (taxId && (hasPrefix || countryHint)) {
+      validateVat(taxId, contact?.billing);
     } else {
       setVatStatus('idle');
       setVatTooltip('');
@@ -190,7 +237,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
 
   useEffect(() => {
     if (editorOpen && draft?.billing?.tax_id) {
-      validateVat(draft.billing.tax_id);
+      validateVat(draft.billing.tax_id, draft?.billing);
     }
   }, [editorOpen]);
 
