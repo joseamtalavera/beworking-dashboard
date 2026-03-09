@@ -84,9 +84,13 @@ const STATUS_COLOR = {
 
 // Activity status based on bookings and invoices
 const ACTIVITY_STATUS = {
-  Activo: { color: 'success', label: 'Active', variant: 'outlined' },
-  Inactivo: { color: 'default', label: 'Inactive', variant: 'outlined' },
-  Potencial: { color: 'primary', label: 'Potencial', variant: 'outlined' }
+  Activo: { color: 'success', label: 'Activo', variant: 'outlined' },
+  Inactivo: { color: 'default', label: 'Inactivo', variant: 'outlined' },
+  Potencial: { color: 'primary', label: 'Potencial', variant: 'outlined' },
+  Trial: { color: 'info', label: 'Trial', variant: 'outlined' },
+  'Lista de Espera': { color: 'warning', label: 'Lista de Espera', variant: 'outlined' },
+  Suspended: { color: 'error', label: 'Suspended', variant: 'outlined' },
+  Inactive: { color: 'default', label: 'Inactive', variant: 'outlined' }
 };
 
 const PAGE_SIZE = 10; // Client-side pagination like MailboxAdmin
