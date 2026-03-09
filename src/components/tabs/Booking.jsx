@@ -3916,26 +3916,6 @@ const UserBookingWrapper = ({ userProfile }) => {
               <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.spacesTab')} />
               <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.bookingsTab')} />
             </Tabs>
-            <Button
-              variant="contained"
-              startIcon={<AddRoundedIcon />}
-              onClick={() => setMainView('spaces')}
-              disableElevation
-              sx={{
-                minWidth: 120,
-                height: 40,
-                borderRadius: 999,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                px: 2.5,
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-                '&:hover': { backgroundColor: 'primary.dark' }
-              }}
-            >
-              {t('admin.reserva')}
-            </Button>
           </Stack>
         </Stack>
 
