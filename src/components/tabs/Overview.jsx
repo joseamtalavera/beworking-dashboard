@@ -578,6 +578,7 @@ const AdminOverview = () => {
   // Quick stats raw data
   const [subscriptions, setSubscriptions] = useState([]);
   const [todayBloqueos, setTodayBloqueos] = useState([]);
+  const [registrationStats, setRegistrationStats] = useState({ today: 0, mtd: 0, ytd: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
 
   // Occupancy
@@ -700,14 +701,24 @@ const AdminOverview = () => {
     try {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
+      const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+      const firstOfYear = `${today.getFullYear()}-01-01`;
 
-      const [todayBookingsData, subsData] = await Promise.all([
+      const [todayBookingsData, subsData, regToday, regMTD, regYTD] = await Promise.all([
         fetchBloqueos({ from: todayStr, to: todayStr }),
-        fetchSubscriptions()
+        fetchSubscriptions(),
+        apiFetch(`/contact-profiles?size=1&startDate=${todayStr}&endDate=${todayStr}`),
+        apiFetch(`/contact-profiles?size=1&startDate=${firstOfMonth}&endDate=${todayStr}`),
+        apiFetch(`/contact-profiles?size=1&startDate=${firstOfYear}&endDate=${todayStr}`)
       ]);
 
       setTodayBloqueos(Array.isArray(todayBookingsData) ? todayBookingsData : []);
       setSubscriptions(Array.isArray(subsData) ? subsData : []);
+      setRegistrationStats({
+        today: regToday?.totalElements ?? 0,
+        mtd: regMTD?.totalElements ?? 0,
+        ytd: regYTD?.totalElements ?? 0
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -818,23 +829,22 @@ const AdminOverview = () => {
       const productList = Array.isArray(products) ? products : [];
       const bookingList = Array.isArray(bookings) ? bookings : [];
 
-      // Calculate working days
-      let workingDays = 0;
-      for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-        if (d.getDay() !== 0 && d.getDay() !== 6) workingDays++;
-      }
-      const hoursPerDay = 10;
-      const totalHours = workingDays * hoursPerDay;
+      // Fixed: 30 days × 8h = 240h per month per space
+      const totalHours = 30 * 8;
+
+      const getKey = (name) => {
+        if (!name) return null;
+        if (name.includes('MA1A')) return name.match(/MA1A\d+/)?.[0] || name;
+        if (name.toUpperCase().includes('MA1O') || name.toUpperCase().includes('DESK') || name.toLowerCase().includes('mesa')) return 'MA1-DESKS';
+        return null;
+      };
 
       // Group by space
       const groups = {};
       productList.forEach(p => {
         const name = p.nombre || p.name || '';
-        if (!name) return;
-
-        let key = name;
-        if (name.includes('MA1A')) key = name.match(/MA1A\d+/)?.[0] || name;
-        else if (name.includes('MA1O')) key = 'Coworking';
+        const key = getKey(name);
+        if (!key) return;
 
         if (!groups[key]) groups[key] = { ids: [], booked: 0 };
         groups[key].ids.push(p.id);
@@ -842,9 +852,7 @@ const AdminOverview = () => {
 
       bookingList.forEach(b => {
         const name = b.producto?.nombre || '';
-        let key = null;
-        if (name.includes('MA1A')) key = name.match(/MA1A\d+/)?.[0] || name;
-        else if (name.includes('MA1O')) key = 'Coworking';
+        const key = getKey(name);
 
         if (key && groups[key] && b.fechaIni && b.fechaFin) {
           const hours = (new Date(b.fechaFin) - new Date(b.fechaIni)) / 3600000;
@@ -926,7 +934,7 @@ const AdminOverview = () => {
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Quick Stats Row */}
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
-        <StatCard label={t('stats.businessAddresses')} value={statCards.subToday} sublabel={t('stats.today')} mtd={statCards.subMTD} ytd={statCards.subYTD} loading={statsLoading || loading} theme={theme} />
+        <StatCard label={t('stats.businessAddresses')} value={registrationStats.today} sublabel={t('stats.today')} mtd={registrationStats.mtd} ytd={registrationStats.ytd} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.activeUsers')} value={statCards.activeToday} sublabel={t('stats.withBookings')} mtd={statCards.activeMTD} ytd={statCards.activeYTD} mtdLabel={t('stats.mtdAvg')} ytdLabel={t('stats.ytdAvg')} loading={statsLoading || loading} theme={theme} />
@@ -991,7 +999,7 @@ const AdminOverview = () => {
           </Stack>
         </Stack>
 
-        <Box sx={{ display: 'grid', gap: 4, gridTemplateColumns: { xs: '1fr', lg: 'repeat(3, 1fr)' } }}>
+        <Box sx={{ display: 'grid', gap: 4, gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' } }}>
           <AreaChart
             data={chartData.revenue}
             loading={loading}
@@ -1009,15 +1017,6 @@ const AdminOverview = () => {
             color={dataColors.pending}
             theme={theme}
             gradientId="pendingGrad"
-          />
-          <AreaChart
-            data={chartData.overdue}
-            loading={loading}
-            title={t('charts.overdue')}
-            total={chartData.overdueTotal}
-            color={dataColors.overdue}
-            theme={theme}
-            gradientId="overdueGrad"
           />
         </Box>
       </Paper>
