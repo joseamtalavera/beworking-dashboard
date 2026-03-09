@@ -938,20 +938,20 @@ const AdminOverview = () => {
           theme={theme}
         />
         <MetricCard
-          label={t('metrics.pendingYTD')}
-          value={metrics.pendingYTD}
-          change={getChange(metrics.pendingYTD, metrics.pendingLastYTD)}
-          trend={metrics.pendingYTD >= metrics.pendingLastYTD ? 'up' : 'down'}
-          color={dataColors.pending}
-          loading={loading}
-          theme={theme}
-        />
-        <MetricCard
           label={t('metrics.incomeMonth')}
           value={metrics.incomeMonth}
           change={getChange(metrics.incomeMonth, metrics.incomeLastMonth)}
           trend={metrics.incomeMonth >= metrics.incomeLastMonth ? 'up' : 'down'}
           color={dataColors.income}
+          loading={loading}
+          theme={theme}
+        />
+        <MetricCard
+          label={t('metrics.pendingYTD')}
+          value={metrics.pendingYTD}
+          change={getChange(metrics.pendingYTD, metrics.pendingLastYTD)}
+          trend={metrics.pendingYTD >= metrics.pendingLastYTD ? 'up' : 'down'}
+          color={dataColors.pending}
           loading={loading}
           theme={theme}
         />
