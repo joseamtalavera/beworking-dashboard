@@ -39,7 +39,7 @@ if (!i18n.hasResourceBundle('es', 'overview')) {
 // Color palette for data visualization
 const dataColors = {
   income: '#009624',      // Brand green - money coming in
-  pending: '#64748b',     // Slate gray - awaiting action
+  pending: '#dc2626',     // Red - pending payment
   overdue: '#dc2626',     // Red - attention needed
   neutral: '#6b7280',     // Gray - neutral info
 };
@@ -967,15 +967,6 @@ const AdminOverview = () => {
           change={getChange(metrics.pendingMonth, metrics.pendingLastMonth)}
           trend={metrics.pendingMonth >= metrics.pendingLastMonth ? 'up' : 'down'}
           color={dataColors.pending}
-          loading={loading}
-          theme={theme}
-        />
-        <MetricCard
-          label={t('metrics.overdue', { count: metrics.overdueCount })}
-          value={metrics.overdueTotal}
-          change={null}
-          trend="flat"
-          color={dataColors.overdue}
           loading={loading}
           theme={theme}
         />
