@@ -597,6 +597,9 @@ const AdminOverview = () => {
     const lastYear = currentYear - 1;
     const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
     const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    // Same point in last year — for apples-to-apples YTD comparison
+    const samePointLastYear = new Date(now);
+    samePointLastYear.setFullYear(lastYear);
 
     let incomeYTD = 0, incomeLastYTD = 0;
     let pendingYTD = 0, pendingLastYTD = 0;
@@ -627,7 +630,8 @@ const AdminOverview = () => {
         }
       }
 
-      if (invoiceYear === lastYear) {
+      // Compare same period last year (Jan 1 → same day last year), not full last year
+      if (invoiceYear === lastYear && invoiceDate <= samePointLastYear) {
         if (isPaid) incomeLastYTD += amount;
         if (isPending) pendingLastYTD += amount;
       }
