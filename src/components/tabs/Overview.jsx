@@ -676,21 +676,26 @@ const AdminOverview = () => {
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const status = (invoice.estado || '').toLowerCase();
 
-      if (status.includes('pag') || status.includes('paid') || status.includes('approved')) {
+      const isCancelled = status.includes('cancel');
+      if (!isCancelled) {
         months[month].revenue += amount;
-      } else if (status.includes('venc') || status.includes('overdue')) {
-        months[month].overdue += amount;
-      } else if (status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice')) {
+      }
+      if (status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice')) {
         months[month].pending += amount;
       }
     });
 
+    // Build cumulative (ascending) series
+    let cumRevenue = 0, cumPending = 0;
+    const revenueCumulative = months.map(m => { cumRevenue += m.revenue; return { month: m.month, value: cumRevenue }; });
+    const pendingCumulative = months.map(m => { cumPending += m.pending; return { month: m.month, value: cumPending }; });
+
     return {
-      revenue: months.map(m => ({ month: m.month, value: m.revenue })),
-      pending: months.map(m => ({ month: m.month, value: m.pending })),
+      revenue: revenueCumulative,
+      pending: pendingCumulative,
       overdue: months.map(m => ({ month: m.month, value: m.overdue })),
-      revenueTotal: months.reduce((s, m) => s + m.revenue, 0),
-      pendingTotal: months.reduce((s, m) => s + m.pending, 0),
+      revenueTotal: cumRevenue,
+      pendingTotal: cumPending,
       overdueTotal: months.reduce((s, m) => s + m.overdue, 0)
     };
   }, [invoices, selectedYear]);
