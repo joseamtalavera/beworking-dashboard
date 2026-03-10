@@ -66,6 +66,9 @@
       "cameraError": "Unable to access camera. Please enter the code manually."
     },
     "deleteConfirm": "Are you sure you want to delete this document? This action cannot be undone.",
+    "deleteDialogTitle": "Delete document",
+    "cancel": "Cancel",
+    "delete": "Delete",
     "unknownContact": "Unknown contact"
   },
   "uploadDialog": {

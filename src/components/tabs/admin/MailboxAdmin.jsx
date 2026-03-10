@@ -165,6 +165,10 @@ const MailboxAdmin = () => {
     emailSearch: ''
   });
 
+  // Delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDocId, setDeleteDocId] = useState(null);
+
   // Pickup verification dialog state
   const [pickupDialogOpen, setPickupDialogOpen] = useState(false);
   const [pickupCode, setPickupCode] = useState('');
@@ -411,10 +415,15 @@ const MailboxAdmin = () => {
     }
   };
 
-  const handleDeleteDocument = async (docId) => {
-    if (!window.confirm(t('admin.deleteConfirm'))) {
-      return;
-    }
+  const handleDeleteDocument = (docId) => {
+    setDeleteDocId(docId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    const docId = deleteDocId;
+    setDeleteDialogOpen(false);
+    setDeleteDocId(null);
 
     try {
       setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
@@ -1498,6 +1507,29 @@ const MailboxAdmin = () => {
               ? t('uploadDialog.uploading')
               : t('uploadDialog.uploadCount', { count: uploadForm.documents.length || '', type: uploadForm.documentType === 'package' ? t('uploadDialog.typePackagePhoto') : t('uploadDialog.typeDocument') })
             }
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => { setDeleteDialogOpen(false); setDeleteDocId(null); }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>{t('admin.deleteDialogTitle')}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            {t('admin.deleteConfirm')}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => { setDeleteDialogOpen(false); setDeleteDocId(null); }}>
+            {t('admin.cancel')}
+          </Button>
+          <Button variant="contained" color="error" onClick={handleConfirmDelete}>
+            {t('admin.delete')}
           </Button>
         </DialogActions>
       </Dialog>

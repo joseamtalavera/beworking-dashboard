@@ -66,6 +66,9 @@
       "cameraError": "No se pudo acceder a la cámara. Introduce el código manualmente."
     },
     "deleteConfirm": "¿Seguro que quieres eliminar este documento? Esta acción no se puede deshacer.",
+    "deleteDialogTitle": "Eliminar documento",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
     "unknownContact": "Contacto desconocido"
   },
   "uploadDialog": {
