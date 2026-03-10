@@ -36,12 +36,13 @@ if (!i18n.hasResourceBundle('es', 'mailbox')) {
 }
 
 const initialOfficeData = {
-  name: 'BeWorking Coworking Málaga',
+  name: 'BeWorking Málaga',
   address: {
     street: 'Calle Alejandro Dumas 17 - Oficinas',
     city: 'Málaga',
     postalCode: '29004',
-    country: 'Spain'
+    country: 'Spain',
+    referenciaCatastral: '9820501UF6692S0304RT'
   },
   coordinates: {
     lat: 36.7213,
@@ -297,6 +298,11 @@ const VirtualOfficeAddress = () => {
             <Typography variant="body1" color="text.secondary">
               {officeData.address.country}
             </Typography>
+            {officeData.address.referenciaCatastral && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Ref. Catastral: {officeData.address.referenciaCatastral}
+              </Typography>
+            )}
           </Box>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pl: 6 }}>
