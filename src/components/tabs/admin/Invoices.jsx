@@ -15,20 +15,18 @@ import TableRow from '@mui/material/TableRow';
 import Pagination from '@mui/material/Pagination';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
-import Tooltip from '@mui/material/Tooltip';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
-import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
-import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import Collapse from '@mui/material/Collapse';
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded';
 
 import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoiceStatus, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
@@ -102,6 +100,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null });
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   // Build the effective filters: for user mode, always filter by user email
   const effectiveFilters = useMemo(() => {
@@ -247,212 +246,292 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
         </Typography>
       </Stack>
 
-      {/* Filters Section */}
-      <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
-        <Typography variant="h6" gutterBottom>
-          {t('filters')}
-        </Typography>
-        <Grid container spacing={3}>
-          {/* Admin-only filters: name, email, user type */}
-          {isAdmin && (
-            <>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <TextField
-                  fullWidth
-                  label={t('searchByName')}
-                  value={filters.name}
-                  onChange={handleFilterChange('name')}
-                  placeholder={t('searchByName')}
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchOutlinedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <TextField
-                  fullWidth
-                  label={t('searchByEmail')}
-                  value={filters.email}
-                  onChange={handleFilterChange('email')}
-                  placeholder={t('searchByEmail')}
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-            </>
-          )}
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <TextField
-              fullWidth
-              label={t('invoiceId')}
-              value={filters.idFactura}
-              onChange={handleFilterChange('idFactura')}
-              placeholder={t('searchById')}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <ReceiptOutlinedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: isAdmin ? 1.5 : 3 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel shrink>{t('status')}</InputLabel>
-              <Select
-                value={filters.status}
-                onChange={handleFilterChange('status')}
-                label={t('status')}
-                displayEmpty
-              >
-                <MenuItem value="">{t('all')}</MenuItem>
-                <MenuItem value="pagado">{t('paid')}</MenuItem>
-                <MenuItem value="pendiente">{t('unpaid')}</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          {isAdmin && (
-            <Grid size={{ xs: 12, sm: 6, md: 1.5 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel shrink>{t('userType')}</InputLabel>
-                <Select
-                  value={filters.tenantType}
-                  onChange={handleFilterChange('tenantType')}
-                  label={t('userType')}
-                  displayEmpty
-                >
-                  <MenuItem value="">{t('allUserTypes')}</MenuItem>
-                  <MenuItem value="Distribuidor">Distribuidor</MenuItem>
-                  <MenuItem value="Proveedor">Proveedor</MenuItem>
-                  <MenuItem value="Servicios">Servicios</MenuItem>
-                  <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
-                  <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
-                  <MenuItem value="Usuario N\u00f3mada">Usuario N\u00f3mada</MenuItem>
-                  <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
-                  <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          )}
+      {/* Primary Search Bar */}
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          backgroundColor: 'background.paper',
+          display: 'flex',
+          alignItems: 'center',
+          overflow: 'hidden',
+          boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+          flexDirection: { xs: 'column', sm: 'row' },
+          borderRadius: { xs: 3, sm: 999 },
+        }}
+      >
+        {/* Name */}
+        {isAdmin && (
+          <>
+            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <TextField
+                variant="standard"
+                value={filters.name}
+                onChange={handleFilterChange('name')}
+                label={t('searchByName')}
+                placeholder={t('searchByName')}
+                fullWidth
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+                }}
+              />
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+          </>
+        )}
 
-          {/* Shared filters: account, dates */}
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>{t('account')}</InputLabel>
+        {/* Invoice ID */}
+        <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <TextField
+            variant="standard"
+            value={filters.idFactura}
+            onChange={handleFilterChange('idFactura')}
+            label={t('invoiceId')}
+            placeholder={t('searchById')}
+            fullWidth
+            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+            sx={{
+              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+              '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+            }}
+          />
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+        {/* Status */}
+        <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+            {t('status')}
+          </Typography>
+          <Select
+            variant="standard"
+            value={filters.status}
+            onChange={handleFilterChange('status')}
+            displayEmpty
+            fullWidth
+            disableUnderline
+            sx={{ fontSize: '0.875rem', color: filters.status ? 'text.primary' : 'text.secondary' }}
+          >
+            <MenuItem value="">{t('all')}</MenuItem>
+            <MenuItem value="pagado">{t('paid')}</MenuItem>
+            <MenuItem value="pendiente">{t('unpaid')}</MenuItem>
+          </Select>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+        {/* Date From */}
+        <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <TextField
+            variant="standard"
+            type="date"
+            value={filters.startDate}
+            onChange={handleFilterChange('startDate')}
+            label={t('startDate')}
+            fullWidth
+            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+            sx={{
+              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+              '& .MuiInput-input': { fontSize: '0.875rem', color: filters.startDate ? 'text.primary' : 'text.secondary', py: 0.25 },
+            }}
+          />
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+        {/* Date To */}
+        <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <TextField
+            variant="standard"
+            type="date"
+            value={filters.endDate}
+            onChange={handleFilterChange('endDate')}
+            label={t('endDate')}
+            fullWidth
+            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+            sx={{
+              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+              '& .MuiInput-input': { fontSize: '0.875rem', color: filters.endDate ? 'text.primary' : 'text.secondary', py: 0.25 },
+            }}
+          />
+        </Box>
+
+        {/* Search Button */}
+        <Box sx={{ px: { xs: 2, sm: 1.5 }, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: 'center' }}>
+          <IconButton
+            aria-label="search"
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'common.white',
+              width: 44,
+              height: 44,
+              '&:hover': { bgcolor: 'primary.dark' },
+            }}
+          >
+            <SearchRoundedIcon />
+          </IconButton>
+        </Box>
+      </Paper>
+
+      {/* Secondary Filters Row */}
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
+        {isAdmin && (
+          <Button
+            size="small"
+            startIcon={showMoreFilters ? <KeyboardArrowUpRoundedIcon /> : <KeyboardArrowDownRoundedIcon />}
+            onClick={() => setShowMoreFilters((v) => !v)}
+            sx={{ textTransform: 'none', fontWeight: 600, color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
+          >
+            {t('filters')}
+          </Button>
+        )}
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => setFilters({
+            name: '',
+            email: '',
+            idFactura: '',
+            status: '',
+            tenantType: '',
+            cuenta: '',
+            startDate: '',
+            endDate: ''
+          })}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderColor: 'divider',
+            color: 'text.secondary',
+            borderRadius: 999,
+            px: 2,
+            '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+          }}
+        >
+          {t('reset')}
+        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => setNewInvoiceOpen(true)}
+            variant="contained"
+            size="small"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: 999,
+              px: 2,
+              backgroundColor: 'primary.main',
+              color: 'white',
+              '&:hover': { backgroundColor: 'primary.dark' },
+            }}
+          >
+            {t('newInvoice')}
+          </Button>
+        )}
+        <Box sx={{ flex: 1 }} />
+        <Typography variant="body2" color="text.secondary">
+          {t('showingInvoices', { count: rows.length })}
+        </Typography>
+        {isAdmin && totalRevenue > 0 && (
+          <Typography variant="body2" color="text.primary" sx={{ fontWeight: 'bold' }}>
+            {t('totalRevenue', { amount: formatCurrency(totalRevenue) })}
+          </Typography>
+        )}
+      </Stack>
+
+      {/* Collapsible Extra Filters */}
+      {isAdmin && (
+        <Collapse in={showMoreFilters}>
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: 'background.paper',
+              display: 'flex',
+              alignItems: 'center',
+              overflow: 'hidden',
+              boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+              flexDirection: { xs: 'column', sm: 'row' },
+              borderRadius: { xs: 3, sm: 999 },
+            }}
+          >
+            {/* Email */}
+            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <TextField
+                variant="standard"
+                value={filters.email}
+                onChange={handleFilterChange('email')}
+                label={t('searchByEmail')}
+                placeholder={t('searchByEmail')}
+                fullWidth
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+                }}
+              />
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+            {/* User Type */}
+            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                {t('userType')}
+              </Typography>
               <Select
+                variant="standard"
+                value={filters.tenantType}
+                onChange={handleFilterChange('tenantType')}
+                displayEmpty
+                fullWidth
+                disableUnderline
+                sx={{ fontSize: '0.875rem', color: filters.tenantType ? 'text.primary' : 'text.secondary' }}
+              >
+                <MenuItem value="">{t('allUserTypes')}</MenuItem>
+                <MenuItem value="Distribuidor">Distribuidor</MenuItem>
+                <MenuItem value="Proveedor">Proveedor</MenuItem>
+                <MenuItem value="Servicios">Servicios</MenuItem>
+                <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
+                <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
+                <MenuItem value="Usuario N&#xf3;mada">Usuario N&#xf3;mada</MenuItem>
+                <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
+                <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+              </Select>
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+            {/* Account */}
+            <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                {t('account')}
+              </Typography>
+              <Select
+                variant="standard"
                 value={filters.cuenta}
                 onChange={handleFilterChange('cuenta')}
-                label={t('account')}
+                displayEmpty
+                fullWidth
+                disableUnderline
+                sx={{ fontSize: '0.875rem', color: filters.cuenta ? 'text.primary' : 'text.secondary' }}
               >
                 <MenuItem value="">{t('all')}</MenuItem>
                 <MenuItem value="PT">Beworking</MenuItem>
                 <MenuItem value="GT">Globaltechno</MenuItem>
               </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              fullWidth
-              label={t('startDate')}
-              type="date"
-              value={filters.startDate}
-              onChange={handleFilterChange('startDate')}
-              InputLabelProps={{ shrink: true }}
-              size="small"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              fullWidth
-              label={t('endDate')}
-              type="date"
-              value={filters.endDate}
-              onChange={handleFilterChange('endDate')}
-              InputLabelProps={{ shrink: true }}
-              size="small"
-            />
-          </Grid>
-        </Grid>
-        <Stack spacing={2} sx={{ mt: 2 }}>
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setFilters({
-                name: '',
-                email: '',
-                idFactura: '',
-                status: '',
-                tenantType: '',
-                product: '',
-                startDate: '',
-                endDate: ''
-              })}
-              sx={{
-                minWidth: 100,
-                height: 36,
-                textTransform: 'none',
-                fontWeight: 600,
-                borderColor: 'primary.main',
-                color: 'primary.main',
-                '&:hover': {
-                  borderColor: 'primary.dark',
-                  color: 'primary.dark',
-                  backgroundColor: (theme) => `${theme.palette.primary.main}14`,
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`
-                },
-                transition: 'all 0.2s ease-in-out'
-              }}
-            >
-              {t('reset')}
-            </Button>
-            {isAdmin && (
-              <Button
-                onClick={() => setNewInvoiceOpen(true)}
-                variant="contained"
-                size="small"
-                sx={{
-                  minWidth: 100,
-                  height: 36,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'primary.dark'
-                  }
-                }}
-              >
-                {t('newInvoice')}
-              </Button>
-            )}
-          </Stack>
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">
-              {t('showingInvoices', { count: rows.length })}
-            </Typography>
-            {isAdmin && totalRevenue > 0 && (
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 'bold' }}>
-                {t('totalRevenue', { amount: formatCurrency(totalRevenue) })}
-              </Typography>
-            )}
-          </Stack>
-        </Stack>
-      </Paper>
+            </Box>
+          </Paper>
+        </Collapse>
+      )}
 
       {error && (
         <Box sx={{ mb: 2 }}>
