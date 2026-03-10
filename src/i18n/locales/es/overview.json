@@ -73,6 +73,7 @@
       "status": "Estado",
       "viewAll": "Ver todas",
       "noBookings": "No tienes reservas próximas",
+      "free": "Gratuita",
       "cancel": "Cancelar",
       "confirmTitle": "Cancelar reserva",
       "confirmBody": "¿Seguro que quieres cancelar la reserva de {{space}} el {{date}}?",

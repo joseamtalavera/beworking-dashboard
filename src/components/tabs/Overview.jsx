@@ -328,8 +328,6 @@ const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
 const isFreeBooking = (b) => {
   const tarifa = b.tarifa;
   const nota = (b.nota || '').toLowerCase();
-  const estado = (b.estado || '').toLowerCase();
-  if (estado.includes('pag') || estado.includes('paid')) return false;
   return (tarifa == null || tarifa === 0) && !nota.includes('stripe');
 };
 
@@ -586,7 +584,12 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
                     <TableCell>{start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })} - {end.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</TableCell>
                     <TableCell>{b.producto?.nombre || '-'}</TableCell>
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{b.centro?.nombre || '-'}</TableCell>
-                    <TableCell><Chip label={b.estado || '-'} size="small" color={statusChipColor(b.estado)} variant="outlined" /></TableCell>
+                    <TableCell>
+                      {isFreeBooking(b)
+                        ? <Chip label={t('user.upcomingBookings.free')} size="small" sx={{ color: 'text.primary', borderColor: 'divider' }} variant="outlined" />
+                        : <Chip label={b.estado || '-'} size="small" color={statusChipColor(b.estado)} variant="outlined" />
+                      }
+                    </TableCell>
                     <TableCell align="right">
                       {isFreeBooking(b) && (
                         <Button

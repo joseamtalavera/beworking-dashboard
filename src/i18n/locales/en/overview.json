@@ -73,6 +73,7 @@
       "status": "Status",
       "viewAll": "View all",
       "noBookings": "No upcoming bookings",
+      "free": "Free",
       "cancel": "Cancel",
       "confirmTitle": "Cancel booking",
       "confirmBody": "Are you sure you want to cancel the booking for {{space}} on {{date}}?",
