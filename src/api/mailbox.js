@@ -44,3 +44,6 @@ export const verifyPickupByCode = (code) => {
 
 export const markPackagePickedUp = (documentId) =>
   apiFetch(documentPath(documentId, '/pickup'), { method: 'POST' });
+
+export const deleteMailboxDocument = (documentId) =>
+  apiFetch(documentPath(documentId), { method: 'DELETE' });

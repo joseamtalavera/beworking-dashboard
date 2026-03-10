@@ -69,6 +69,7 @@ if (!i18n.hasResourceBundle('es', 'mailbox')) {
 
 import {
   getMailboxDocumentDownloadUrl,
+  deleteMailboxDocument,
   listMailboxDocuments,
   markMailboxDocumentViewed,
   markPackagePickedUp,
@@ -426,6 +427,8 @@ const MailboxAdmin = () => {
     setDeleteDocId(null);
 
     try {
+      await deleteMailboxDocument(docId);
+
       setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
 
       setActionStates(prev => {
@@ -1052,7 +1055,10 @@ const MailboxAdmin = () => {
                                   onClick={() => doc.id && handleNotifyUser(doc.id)}
                                   disabled={!doc.id || doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up'}
                                   sx={{
-                                    color: 'secondary.main'
+                                    color: (doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up')
+                                      ? 'primary.main' : 'secondary.main',
+                                    '&.Mui-disabled': (doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up')
+                                      ? { color: 'primary.main' } : {}
                                   }}
                                 >
                                   <MailOutlineIcon fontSize="small" />
@@ -1067,7 +1073,8 @@ const MailboxAdmin = () => {
                                     onClick={() => doc.id && handleMarkPickedUp(doc.id)}
                                     disabled={!doc.id || doc.status === 'picked_up'}
                                     sx={{
-                                      color: '#f97316'
+                                      color: doc.status === 'picked_up' ? 'primary.main' : '#f97316',
+                                      '&.Mui-disabled': doc.status === 'picked_up' ? { color: 'primary.main' } : {}
                                     }}
                                   >
                                     <InventoryOutlinedIcon fontSize="small" />
@@ -1082,7 +1089,8 @@ const MailboxAdmin = () => {
                                     onClick={() => doc.id && handleMarkViewed(doc.id)}
                                     disabled={!doc.id || doc.status === 'viewed'}
                                     sx={{
-                                      color: 'secondary.main'
+                                      color: doc.status === 'viewed' ? 'primary.main' : 'secondary.main',
+                                      '&.Mui-disabled': doc.status === 'viewed' ? { color: 'primary.main' } : {}
                                     }}
                                   >
                                     <CheckCircleOutlineOutlinedIcon fontSize="small" />
