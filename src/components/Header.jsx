@@ -451,7 +451,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                   '&:hover': { bgcolor: 'rgba(0,150,36,0.06)', borderColor: 'primary.main' },
                 }}
               >
-                AI
+                MariaAI
               </Button>
               <IconButton
                 onClick={onOpenChat}
@@ -459,7 +459,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                   display: { xs: 'inline-flex', sm: 'none' },
                   color: 'primary.main',
                 }}
-                aria-label="AI Chat"
+                aria-label="MariaAI"
               >
                 <SmartToyOutlinedIcon />
               </IconButton>

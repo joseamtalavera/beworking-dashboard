@@ -113,7 +113,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <SmartToyOutlinedIcon sx={{ color: 'primary.main', fontSize: 24 }} />
           <Box>
-            <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem' }}>BeWorking AI</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem' }}>MariaAI</Typography>
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Asistente de soporte</Typography>
           </Box>
         </Box>
