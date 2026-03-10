@@ -1,7 +1,7 @@
 {
   "stats": {
-    "meetingRooms": "Meeting Room Bookings",
-    "deskBookings": "Coworking Bookings",
+    "meetingRooms": "Meeting Room Invoices",
+    "deskBookings": "Coworking Invoices",
     "businessAddresses": "Virtual Offices",
     "activeUsers": "Active Users",
     "today": "today",

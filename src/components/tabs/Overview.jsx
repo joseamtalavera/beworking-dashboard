@@ -904,7 +904,17 @@ const AdminOverview = () => {
     let meetingToday = 0, meetingMTD = 0, meetingYTD = 0;
     let deskToday = 0, deskMTD = 0, deskYTD = 0;
 
+    const isRelevantInvoice = (inv) => {
+      const amount = parseFloat(inv.total || inv.importe || 0);
+      if (amount <= 0) return false;
+      const status = (inv.estado || '').toLowerCase();
+      if (status.includes('rect') || status.includes('cancel') || status.includes('anula')) return false;
+      if (!status.includes('pag') && !status.includes('pend')) return false;
+      return true;
+    };
+
     invoices.forEach(inv => {
+      if (!isRelevantInvoice(inv)) return;
       const d = parseDate(inv.createdAt || inv.fechaFactura);
       if (!d) return;
       const y = d.getFullYear();

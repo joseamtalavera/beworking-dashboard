@@ -207,7 +207,7 @@ function AdminPaymentOptions({ onCreated }) {
       if (paymentOption === 'free') {
         bookingPayload.status = 'Free';
         bookingPayload.note = 'Reserva gratuita (admin)';
-        invoiceStatus = 'Pagado';
+        invoiceStatus = null;
       } else if (paymentOption === 'charge') {
         if (!selectedCard) {
           setError(t('steps.pleaseSelectCard'));
