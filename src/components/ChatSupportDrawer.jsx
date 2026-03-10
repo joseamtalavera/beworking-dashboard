@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
-import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { sendChatMessage, getChatHistory, createSupportTicket } from '../api/chat.js';
 
@@ -111,7 +111,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <SmartToyOutlinedIcon sx={{ color: 'primary.main', fontSize: 24 }} />
+          <AutoAwesomeOutlinedIcon sx={{ color: 'primary.main', fontSize: 24 }} />
           <Box>
             <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem' }}>MariaAI</Typography>
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Asistente de soporte</Typography>
@@ -136,7 +136,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
       >
         {messages.length === 0 && !loading && (
           <Box sx={{ textAlign: 'center', mt: 8 }}>
-            <SmartToyOutlinedIcon sx={{ fontSize: 48, color: 'rgba(0,0,0,0.12)', mb: 2 }} />
+            <AutoAwesomeOutlinedIcon sx={{ fontSize: 48, color: 'rgba(0,0,0,0.12)', mb: 2 }} />
             <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
               ¿En qué puedo ayudarte?
             </Typography>

@@ -20,7 +20,7 @@ import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
@@ -460,7 +460,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 }}
                 aria-label="MariaAI"
               >
-                <SmartToyOutlinedIcon />
+                <AutoAwesomeOutlinedIcon />
               </IconButton>
               {/* Help button — hidden for now */}
               <IconButton
