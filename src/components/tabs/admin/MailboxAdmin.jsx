@@ -853,80 +853,138 @@ const MailboxAdmin = () => {
           </Stack>
         </Stack>
 
-        {/* Filters - Always visible like Contacts */}
-        <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
-          <Typography variant="h6" gutterBottom>
-            {t('admin.filters')}
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label={t('admin.startDate')}
-                type="date"
-                value={dateFilters.startDate}
-                onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label={t('admin.endDate')}
-                type="date"
-                value={dateFilters.endDate}
-                onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label={t('admin.searchByName')}
-                value={mainSearchForm.nameSearch}
-                onChange={(e) => handleMainSearchChange('nameSearch', e.target.value)}
-                size="small"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label={t('admin.searchByEmail')}
-                value={mainSearchForm.emailSearch}
-                onChange={(e) => handleMainSearchChange('emailSearch', e.target.value)}
-                size="small"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-          </Grid>
-          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={clearFilters}
+        <Box sx={{ mb: 3 }} />
+
+        {/* Search Bar */}
+        <Paper
+          elevation={0}
+          sx={{
+            mb: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            display: 'flex',
+            alignItems: 'center',
+            overflow: 'hidden',
+            boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+            flexDirection: { xs: 'column', sm: 'row' },
+            borderRadius: { xs: 3, sm: 999 },
+          }}
+        >
+          {/* Date From */}
+          <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <TextField
+              variant="standard"
+              type="date"
+              value={dateFilters.startDate}
+              onChange={(e) => handleDateFilterChange('startDate', e.target.value)}
+              label={t('admin.startDate')}
+              fullWidth
+              slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+              sx={{
+                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                '& .MuiInput-input': { fontSize: '0.875rem', color: dateFilters.startDate ? 'text.primary' : 'text.secondary', py: 0.25 },
+              }}
+            />
+          </Box>
+          <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+          <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+          {/* Date To */}
+          <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <TextField
+              variant="standard"
+              type="date"
+              value={dateFilters.endDate}
+              onChange={(e) => handleDateFilterChange('endDate', e.target.value)}
+              label={t('admin.endDate')}
+              fullWidth
+              slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+              sx={{
+                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                '& .MuiInput-input': { fontSize: '0.875rem', color: dateFilters.endDate ? 'text.primary' : 'text.secondary', py: 0.25 },
+              }}
+            />
+          </Box>
+          <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+          <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+          {/* Name */}
+          <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <TextField
+              variant="standard"
+              value={mainSearchForm.nameSearch}
+              onChange={(e) => handleMainSearchChange('nameSearch', e.target.value)}
+              label={t('admin.searchByName')}
+              placeholder={t('admin.searchByName')}
+              fullWidth
+              slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+              sx={{
+                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+              }}
+            />
+          </Box>
+          <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+          <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+          {/* Email */}
+          <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <TextField
+              variant="standard"
+              value={mainSearchForm.emailSearch}
+              onChange={(e) => handleMainSearchChange('emailSearch', e.target.value)}
+              label={t('admin.searchByEmail')}
+              placeholder={t('admin.searchByEmail')}
+              fullWidth
+              slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+              sx={{
+                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+              }}
+            />
+          </Box>
+
+          {/* Search Button */}
+          <Box sx={{ px: { xs: 2, sm: 1.5 }, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: 'center' }}>
+            <IconButton
+              aria-label="search"
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'common.white',
+                width: 44,
+                height: 44,
+                '&:hover': { bgcolor: 'primary.dark' },
+              }}
             >
-              {t('admin.clearFilters')}
-            </Button>
-            <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
-              {t('admin.showingOf', { shown: filteredDocuments.length, total: documents.length })}
-            </Typography>
-          </Stack>
+              <SearchRoundedIcon />
+            </IconButton>
+          </Box>
         </Paper>
+
+        {/* Filter actions row */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={clearFilters}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              borderRadius: 999,
+              px: 2,
+              '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+            }}
+          >
+            {t('admin.clearFilters')}
+          </Button>
+          <Box sx={{ flex: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            {t('admin.showingOf', { shown: filteredDocuments.length, total: documents.length })}
+          </Typography>
+        </Stack>
 
         <Divider sx={{ my: 3 }} />
 

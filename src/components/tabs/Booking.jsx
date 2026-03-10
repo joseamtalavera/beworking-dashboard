@@ -61,6 +61,9 @@ import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import MailOutlinedIcon from '@mui/icons-material/MailOutlined';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded';
+import Collapse from '@mui/material/Collapse';
 import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
@@ -262,7 +265,7 @@ const Legend = () => {
   const statusToTranslationKey = { available: 'available', paid: 'paid', invoiced: 'invoiced', created: 'booked', free: 'free' };
 
   return (
-    <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
+    <Stack direction="row" spacing={2} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap>
       {LEGEND_STATUSES.map((status) => (
         <Stack key={status} direction="row" spacing={1} alignItems="center">
           <Box
@@ -3965,6 +3968,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const [filterEmail, setFilterEmail] = useState('');
   const [filterUserType, setFilterUserType] = useState(defaultAgendaUserType);
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
+  const [showMoreBookingFilters, setShowMoreBookingFilters] = useState(false);
   const [deletingBloqueoId, setDeletingBloqueoId] = useState(null);
   const [selectedAgendaIds, setSelectedAgendaIds] = useState([]);
 
@@ -4656,33 +4660,60 @@ const Booking = ({ mode = 'user', userProfile }) => {
 
       {view === 'calendar' ? (
         <Stack spacing={3}>
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={6} sm={3} md={2}>
+          <Paper
+            elevation={0}
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: 'background.paper',
+              display: 'flex',
+              alignItems: 'center',
+              overflow: 'hidden',
+              boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+              flexDirection: { xs: 'column', sm: 'row' },
+              borderRadius: { xs: 3, sm: 999 },
+            }}
+          >
+            <Box sx={{ flex: 0.5, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
               <TextField
+                variant="standard"
                 type="date"
-                label={t('admin.dateFrom')}
                 value={calendarDateFrom}
                 onChange={handleCalendarDateFromChange}
-                InputLabelProps={{ shrink: true }}
+                label={t('admin.dateFrom')}
                 fullWidth
-                size="small"
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: calendarDateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
+                }}
               />
-            </Grid>
-            <Grid item xs={6} sm={3} md={2}>
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+            <Box sx={{ flex: 0.5, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
               <TextField
+                variant="standard"
                 type="date"
-                label={t('admin.dateTo')}
                 value={calendarDateTo}
                 onChange={handleCalendarDateToChange}
-                InputLabelProps={{ shrink: true }}
+                label={t('admin.dateTo')}
                 fullWidth
-                size="small"
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: calendarDateTo ? 'text.primary' : 'text.secondary', py: 0.25 },
+                }}
               />
-            </Grid>
-            <Grid item xs={12} sm={6} md={8}>
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
               <Legend />
-            </Grid>
-          </Grid>
+            </Box>
+          </Paper>
 
           {loading ? (
             <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
@@ -4861,175 +4892,243 @@ const Booking = ({ mode = 'user', userProfile }) => {
         </Stack>
       ) : (
         <Stack spacing={3}>
-          {/* Filters - Always visible like Contacts/MailboxAdmin */}
-          <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
-            <Typography variant="h6" gutterBottom>
-              {t('admin.filters')}
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={6} sm={3} md={2}>
-                <TextField
-                  fullWidth
-                  label={t('admin.dateFrom')}
-                  type="date"
-                  value={agendaDateFrom}
-                  onChange={handleAgendaDateFromChange}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={6} sm={3} md={2}>
-                <TextField
-                  fullWidth
-                  label={t('admin.dateTo')}
-                  type="date"
-                  value={agendaDateTo}
-                  onChange={handleAgendaDateToChange}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  fullWidth
-                  label={t('admin.searchByName')}
-                  value={filterUser}
-                  onChange={(event) => setFilterUser(event.target.value)}
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  fullWidth
-                  label={t('admin.searchByEmail')}
-                  value={filterEmail}
-                  onChange={(event) => setFilterEmail(event.target.value)}
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel shrink>{t('admin.filterCentro')}</InputLabel>
-                  <Select
-                    value={filterCenter}
-                    onChange={(event) => setFilterCenter(event.target.value)}
-                    label={t('admin.filterCentro')}
-                    displayEmpty
-                    renderValue={(value) => (value ? value : t('admin.allCentros'))}
-                  >
-                    <MenuItem value="">
-                      {t('admin.allCentros')}
-                    </MenuItem>
-                    {(filterOptions.centers || []).map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel shrink>{t('admin.filterUserType')}</InputLabel>
-                  <Select
-                    value={filterUserType}
-                    onChange={(event) => setFilterUserType(event.target.value)}
-                    label={t('admin.filterUserType')}
-                    displayEmpty
-                    renderValue={(value) => (value ? value : t('admin.allUserTypes'))}
-                  >
-                    <MenuItem value="">
-                      {t('admin.allUserTypes')}
-                    </MenuItem>
-                    {(filterOptions.userTypes || []).map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel shrink>{t('admin.filterProducto')}</InputLabel>
-                  <Select
-                      value={filterProduct}
-                      onChange={(event) => setFilterProduct(event.target.value)}
-                    label={t('admin.filterProducto')}
-                    displayEmpty
-                    renderValue={(value) => (value ? value : t('admin.allProducts'))}
-                  >
-                    <MenuItem value="">
-                      {t('admin.allProducts')}
-                    </MenuItem>
-                    {(filterOptions.products || []).map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel shrink>{t('admin.paymentStatus')}</InputLabel>
-                  <Select
-                    value={filterPaymentStatus}
-                    onChange={(event) => setFilterPaymentStatus(event.target.value)}
-                    label={t('admin.paymentStatus')}
-                    displayEmpty
-                    renderValue={(value) => {
-                      if (!value) return t('admin.allStatuses');
-                      if (value === 'paid') return t('status.paid');
-                      if (value === 'invoiced') return t('status.invoiced');
-                      if (value === 'free') return t('status.free');
-                      return t('status.booked');
-                    }}
-                  >
-                    <MenuItem value="">{t('admin.allStatuses')}</MenuItem>
-                    <MenuItem value="paid">{t('status.paid')}</MenuItem>
-                    <MenuItem value="invoiced">{t('status.invoiced')}</MenuItem>
-                    <MenuItem value="created">{t('status.booked')}</MenuItem>
-                    <MenuItem value="free">{t('status.free')}</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                    <Button
-                variant="outlined"
-                size="small"
-                onClick={clearFilters}
+          {/* Primary Search Bar */}
+          <Paper
+            elevation={0}
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: 'background.paper',
+              display: 'flex',
+              alignItems: 'center',
+              overflow: 'hidden',
+              boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+              flexDirection: { xs: 'column', sm: 'row' },
+              borderRadius: { xs: 3, sm: 999 },
+            }}
+          >
+            <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <TextField
+                variant="standard"
+                type="date"
+                value={agendaDateFrom}
+                onChange={handleAgendaDateFromChange}
+                label={t('admin.dateFrom')}
+                fullWidth
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
                 sx={{
-                  borderColor: 'primary.main',
-                  color: 'primary.main',
-                  '&:hover': {
-                    borderColor: 'primary.dark',
-                    backgroundColor: (theme) => `${theme.palette.primary.main}14`
-                  }
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: agendaDateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
+                }}
+              />
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+            <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <TextField
+                variant="standard"
+                type="date"
+                value={agendaDateTo}
+                onChange={handleAgendaDateToChange}
+                label={t('admin.dateTo')}
+                fullWidth
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: agendaDateTo ? 'text.primary' : 'text.secondary', py: 0.25 },
+                }}
+              />
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <TextField
+                variant="standard"
+                value={filterUser}
+                onChange={(event) => setFilterUser(event.target.value)}
+                label={t('admin.searchByName')}
+                placeholder={t('admin.searchByName')}
+                fullWidth
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+                }}
+              />
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+            <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                {t('admin.paymentStatus')}
+              </Typography>
+              <Select
+                variant="standard"
+                value={filterPaymentStatus}
+                onChange={(event) => setFilterPaymentStatus(event.target.value)}
+                displayEmpty
+                fullWidth
+                disableUnderline
+                sx={{ fontSize: '0.875rem', color: filterPaymentStatus ? 'text.primary' : 'text.secondary' }}
+              >
+                <MenuItem value="">{t('admin.allStatuses')}</MenuItem>
+                <MenuItem value="paid">{t('status.paid')}</MenuItem>
+                <MenuItem value="invoiced">{t('status.invoiced')}</MenuItem>
+                <MenuItem value="created">{t('status.booked')}</MenuItem>
+                <MenuItem value="free">{t('status.free')}</MenuItem>
+              </Select>
+            </Box>
+
+            <Box sx={{ px: { xs: 2, sm: 1.5 }, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: 'center' }}>
+              <IconButton
+                aria-label="search"
+                sx={{
+                  bgcolor: 'primary.main',
+                  color: 'common.white',
+                  width: 44,
+                  height: 44,
+                  '&:hover': { bgcolor: 'primary.dark' },
                 }}
               >
-                {t('admin.reset').toUpperCase()}
-                    </Button>
-              <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                <SearchRoundedIcon />
+              </IconButton>
+            </Box>
+          </Paper>
+
+          {/* Filter actions row */}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: -1 }} flexWrap="wrap" useFlexGap>
+            <Button
+              size="small"
+              startIcon={showMoreBookingFilters ? <KeyboardArrowUpRoundedIcon /> : <KeyboardArrowDownRoundedIcon />}
+              onClick={() => setShowMoreBookingFilters((v) => !v)}
+              sx={{ textTransform: 'none', fontWeight: 600, color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
+            >
+              {t('admin.filters')}
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={clearFilters}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: 'divider',
+                color: 'text.secondary',
+                borderRadius: 999,
+                px: 2,
+                '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+              }}
+            >
+              {t('admin.reset')}
+            </Button>
+            <Box sx={{ flex: 1 }} />
+            <Typography variant="body2" color="text.secondary">
               {t('admin.showingBookings', { shown: agendaBloqueos.length, total: agendaTotalLabel })}
             </Typography>
-            </Stack>
-          </Paper>
+          </Stack>
+
+          {/* Collapsible Extra Filters */}
+          <Collapse in={showMoreBookingFilters} sx={{ mt: -1 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                backgroundColor: 'background.paper',
+                display: 'flex',
+                alignItems: 'center',
+                overflow: 'hidden',
+                boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+                flexDirection: { xs: 'column', sm: 'row' },
+                borderRadius: { xs: 3, sm: 999 },
+              }}
+            >
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  value={filterEmail}
+                  onChange={(event) => setFilterEmail(event.target.value)}
+                  label={t('admin.searchByEmail')}
+                  placeholder={t('admin.searchByEmail')}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                  {t('admin.filterCentro')}
+                </Typography>
+                <Select
+                  variant="standard"
+                  value={filterCenter}
+                  onChange={(event) => setFilterCenter(event.target.value)}
+                  displayEmpty
+                  fullWidth
+                  disableUnderline
+                  sx={{ fontSize: '0.875rem', color: filterCenter ? 'text.primary' : 'text.secondary' }}
+                >
+                  <MenuItem value="">{t('admin.allCentros')}</MenuItem>
+                  {(filterOptions.centers || []).map((option) => (
+                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                  ))}
+                </Select>
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                  {t('admin.filterUserType')}
+                </Typography>
+                <Select
+                  variant="standard"
+                  value={filterUserType}
+                  onChange={(event) => setFilterUserType(event.target.value)}
+                  displayEmpty
+                  fullWidth
+                  disableUnderline
+                  sx={{ fontSize: '0.875rem', color: filterUserType ? 'text.primary' : 'text.secondary' }}
+                >
+                  <MenuItem value="">{t('admin.allUserTypes')}</MenuItem>
+                  {(filterOptions.userTypes || []).map((option) => (
+                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                  ))}
+                </Select>
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                  {t('admin.filterProducto')}
+                </Typography>
+                <Select
+                  variant="standard"
+                  value={filterProduct}
+                  onChange={(event) => setFilterProduct(event.target.value)}
+                  displayEmpty
+                  fullWidth
+                  disableUnderline
+                  sx={{ fontSize: '0.875rem', color: filterProduct ? 'text.primary' : 'text.secondary' }}
+                >
+                  <MenuItem value="">{t('admin.allProducts')}</MenuItem>
+                  {(filterOptions.products || []).map((option) => (
+                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                  ))}
+                </Select>
+              </Box>
+            </Paper>
+          </Collapse>
                 <Typography variant="body2" color="text.secondary">
             {agendaRangeLabel}
                 </Typography>

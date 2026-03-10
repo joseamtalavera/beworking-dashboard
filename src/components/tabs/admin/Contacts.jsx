@@ -1176,6 +1176,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 height: 36,
                 textTransform: 'none',
                 fontWeight: 600,
+                whiteSpace: 'nowrap',
                 borderColor: 'success.main',
                 color: 'success.main',
                 '&:hover': {
@@ -1195,6 +1196,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   height: 36,
                   textTransform: 'none',
                   fontWeight: 600,
+                  whiteSpace: 'nowrap',
                   backgroundColor: 'success.main',
                   color: 'common.white',
                   '&:hover': {
@@ -1209,94 +1211,149 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           </Stack>
         </Stack>
 
-        {/* Filters - Always visible like MailboxAdmin */}
-        <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
-          <Typography variant="h6" gutterBottom>
-            Filters
-          </Typography>
-          <Grid container spacing={3} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                fullWidth
-                label={t('filters.searchByName')}
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                size="small"
-                sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                fullWidth
-                label={t('filters.searchByEmail')}
-                value={emailFilter === 'all' ? '' : emailFilter}
-                onChange={(event) => setEmailFilter(event.target.value || 'all')}
-                size="small"
-                sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <MailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}>
-                <InputLabel>{t('filters.userType')}</InputLabel>
-                <Select
-                  value={userTypeFilter}
-                  onChange={(event) => setUserTypeFilter(event.target.value)}
-                  label={t('filters.userType')}
-                >
-                  <MenuItem value="all">{t('filters.allUserTypes')}</MenuItem>
-                  {userTypeOptions.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { height: 36 } }}>
-                <InputLabel>{t('filters.status')}</InputLabel>
-                <Select
-                  value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value)}
-                  label={t('filters.status')}
-                >
-                  <MenuItem value="all">{t('filters.allStatuses')}</MenuItem>
-                  <MenuItem value="Activo">{t('status.Activo')}</MenuItem>
-                  <MenuItem value="Inactivo">{t('status.Inactivo')}</MenuItem>
-                  <MenuItem value="Potencial">{t('status.Potencial')}</MenuItem>
-                  <MenuItem value="Trial">Trial</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              sx={{ height: 36 }}
-              onClick={handleResetFilters}
-            >
-              Clear Filters
-            </Button>
-            <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
-              Showing {contacts.length} of {total} contacts
+        <Box sx={{ mb: 3 }} />
+
+        {/* Search Bar */}
+        <Paper
+          elevation={0}
+          sx={{
+            mb: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            display: 'flex',
+            alignItems: 'center',
+            overflow: 'hidden',
+            boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+            flexDirection: { xs: 'column', sm: 'row' },
+            borderRadius: { xs: 3, sm: 999 },
+          }}
+        >
+          {/* Name */}
+          <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <TextField
+              variant="standard"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              label={t('filters.searchByName')}
+              placeholder={t('filters.searchByName')}
+              fullWidth
+              slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+              sx={{
+                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+              }}
+            />
+          </Box>
+          <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+          <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+          {/* Email */}
+          <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <TextField
+              variant="standard"
+              value={emailFilter === 'all' ? '' : emailFilter}
+              onChange={(event) => setEmailFilter(event.target.value || 'all')}
+              label={t('filters.searchByEmail')}
+              placeholder={t('filters.searchByEmail')}
+              fullWidth
+              slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+              sx={{
+                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
+              }}
+            />
+          </Box>
+          <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+          <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+          {/* User Type */}
+          <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+              {t('filters.userType')}
             </Typography>
-          </Stack>
+            <Select
+              variant="standard"
+              value={userTypeFilter}
+              onChange={(event) => setUserTypeFilter(event.target.value)}
+              displayEmpty
+              fullWidth
+              disableUnderline
+              sx={{ fontSize: '0.875rem', color: userTypeFilter !== 'all' ? 'text.primary' : 'text.secondary' }}
+            >
+              <MenuItem value="all">{t('filters.allUserTypes')}</MenuItem>
+              {userTypeOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+          <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+          {/* Status */}
+          <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+              {t('filters.status')}
+            </Typography>
+            <Select
+              variant="standard"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              displayEmpty
+              fullWidth
+              disableUnderline
+              sx={{ fontSize: '0.875rem', color: statusFilter !== 'all' ? 'text.primary' : 'text.secondary' }}
+            >
+              <MenuItem value="all">{t('filters.allStatuses')}</MenuItem>
+              <MenuItem value="Activo">{t('status.Activo')}</MenuItem>
+              <MenuItem value="Inactivo">{t('status.Inactivo')}</MenuItem>
+              <MenuItem value="Potencial">{t('status.Potencial')}</MenuItem>
+              <MenuItem value="Trial">Trial</MenuItem>
+            </Select>
+          </Box>
+
+          {/* Search Button */}
+          <Box sx={{ px: { xs: 2, sm: 1.5 }, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: 'center' }}>
+            <IconButton
+              aria-label="search"
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'common.white',
+                width: 44,
+                height: 44,
+                '&:hover': { bgcolor: 'primary.dark' },
+              }}
+            >
+              <SearchRoundedIcon />
+            </IconButton>
+          </Box>
         </Paper>
+
+        {/* Filter actions row */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleResetFilters}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              borderRadius: 999,
+              px: 2,
+              '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+            }}
+          >
+            {t('filters.reset')}
+          </Button>
+          <Box sx={{ flex: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            Showing {contacts.length} of {total} contacts
+          </Typography>
+        </Stack>
       </Box>
 
       <Divider />

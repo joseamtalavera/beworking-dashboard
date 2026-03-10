@@ -47,7 +47,8 @@
     "status": "Estado",
     "allStatuses": "Todos los estados",
     "refresh": "Actualizar",
-    "addUser": "Añadir Usuario"
+    "addUser": "Añadir Usuario",
+    "reset": "Restablecer"
   },
   "list": {
     "contacts": "contactos",

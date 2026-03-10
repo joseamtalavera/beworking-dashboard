@@ -47,7 +47,8 @@
     "status": "Status",
     "allStatuses": "All statuses",
     "refresh": "Refresh",
-    "addUser": "Add User"
+    "addUser": "Add User",
+    "reset": "Reset"
   },
   "list": {
     "contacts": "contacts",
