@@ -2868,7 +2868,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
 
       let updatedResponse;
       if (paymentOption === 'free') {
-        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid', note: 'Reserva gratuita (admin)' });
+        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Free', note: 'Reserva gratuita (admin)' });
         const allIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
         await createInvoice({ bloqueoIds: allIds, vatPercent: 0, extraLineItems });
       } else if (paymentOption === 'charge') {

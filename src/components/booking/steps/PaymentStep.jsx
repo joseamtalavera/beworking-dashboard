@@ -205,7 +205,7 @@ function AdminPaymentOptions({ onCreated }) {
 
       // ── Step 1: Option-specific actions ──
       if (paymentOption === 'free') {
-        bookingPayload.status = 'Paid';
+        bookingPayload.status = 'Free';
         bookingPayload.note = 'Reserva gratuita (admin)';
         invoiceStatus = 'Pagado';
       } else if (paymentOption === 'charge') {
