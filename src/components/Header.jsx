@@ -441,7 +441,6 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
               <Button
                 variant="outlined"
                 size="small"
-                startIcon={<SmartToyOutlinedIcon />}
                 onClick={onOpenChat}
                 sx={{
                   height: 36,
