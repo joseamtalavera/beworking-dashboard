@@ -16,7 +16,7 @@ import {
 import {
   SupportAgentOutlined,
   ChatBubbleOutline,
-  SmartToyOutlined,
+  AutoAwesomeOutlined,
   CloseRounded,
   SendRounded
 } from '@mui/icons-material';
@@ -81,7 +81,7 @@ const Agent = ({ onClose }) => {
       >
         <Stack direction="row" alignItems="center" spacing={2}>
           <Avatar sx={{ bgcolor: accentColor, width: 40, height: 40 }}>
-            <SmartToyOutlined />
+            <AutoAwesomeOutlined />
           </Avatar>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -119,7 +119,7 @@ const Agent = ({ onClose }) => {
             }}>
               {msg.sender === 'agent' && (
                 <Avatar sx={{ bgcolor: accentColor, width: 32, height: 32, mt: 0.5 }}>
-                  <SmartToyOutlined sx={{ fontSize: 16 }} />
+                  <AutoAwesomeOutlined sx={{ fontSize: 16 }} />
                 </Avatar>
               )}
               <Box sx={{

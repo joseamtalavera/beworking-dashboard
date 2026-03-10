@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { sendChatMessage, getChatHistory, createSupportTicket } from '../api/chat.js';
 
