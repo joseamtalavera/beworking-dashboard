@@ -449,6 +449,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                   color: 'primary.main',
                   '&:hover': { bgcolor: 'rgba(0,150,36,0.06)', borderColor: 'primary.main' },
                 }}
+                startIcon={<AutoAwesomeOutlinedIcon sx={{ fontSize: 16 }} />}
               >
                 MariaAI
               </Button>
