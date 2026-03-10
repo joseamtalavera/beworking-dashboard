@@ -33,7 +33,7 @@ import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
 import { useEffect, useState, useMemo } from 'react';
 import { fetchInvoices } from '../../api/invoices.js';
-import { fetchBloqueos, fetchBookingProductos, fetchBookingStats, deleteBloqueo } from '../../api/bookings.js';
+import { fetchBloqueos, fetchBookingProductos, fetchBookingStats, cancelBloqueo } from '../../api/bookings.js';
 import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
 import { fetchSubscriptions } from '../../api/subscriptions.js';
@@ -328,6 +328,8 @@ const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
 const isFreeBooking = (b) => {
   const tarifa = b.tarifa;
   const nota = (b.nota || '').toLowerCase();
+  const estado = (b.estado || '').toLowerCase();
+  if (estado.includes('pag') || estado.includes('paid')) return false;
   return (tarifa == null || tarifa === 0) && !nota.includes('stripe');
 };
 
@@ -427,7 +429,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
     setCancelling(true);
     setCancelError('');
     try {
-      await deleteBloqueo(cancelTarget.id);
+      await cancelBloqueo(cancelTarget.id);
       setCancelTarget(null);
       reloadBookings();
     } catch {

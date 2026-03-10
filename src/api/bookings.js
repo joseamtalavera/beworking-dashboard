@@ -87,6 +87,12 @@ export const deleteBloqueo = (bloqueoId, options = {}) =>
     ...options
   });
 
+export const cancelBloqueo = (bloqueoId, options = {}) =>
+  apiFetch(`/bloqueos/${bloqueoId}/cancel`, {
+    method: 'DELETE',
+    ...options
+  });
+
 export const fetchPublicAvailability = (params = {}, options = {}) => {
   const search = new URLSearchParams();
   if (params.date) {
