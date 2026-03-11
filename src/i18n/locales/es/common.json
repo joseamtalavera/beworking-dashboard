@@ -38,6 +38,10 @@
     "help": "Ayuda",
     "helpSupport": "Ayuda y Soporte"
   },
+  "accountSwitcher": {
+    "title": "Cambiar cuenta",
+    "account": "Cuenta"
+  },
   "search": {
     "tenant": "contacto",
     "room": "sala",

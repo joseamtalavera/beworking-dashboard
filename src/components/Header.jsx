@@ -3,6 +3,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../api/client.js';
 import { useColorMode } from '../main.jsx';
+import AccountSwitcher from './AccountSwitcher.jsx';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -503,6 +504,9 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
               >
                 {i18n.language === 'es' ? 'EN' : 'ES'}
               </Button>
+              {userProfile?.hasMultipleAccounts && (
+                <AccountSwitcher currentTenantId={userProfile?.tenantId} />
+              )}
               <Avatar
                 src={userProfile?.avatar || userProfile?.photo || undefined}
                 alt={userProfile?.name || userProfile?.email || 'User'}

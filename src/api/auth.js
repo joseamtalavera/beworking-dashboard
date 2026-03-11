@@ -22,3 +22,12 @@ export const changePassword = (currentPassword, newPassword, options = {}) =>
     body: { currentPassword, newPassword },
     ...options
   });
+
+export const fetchMyAccounts = (options = {}) => apiFetch('/auth/my-accounts', options);
+
+export const switchAccount = (contactProfileId, options = {}) =>
+  apiFetch('/auth/switch-account', {
+    method: 'POST',
+    body: { contactProfileId },
+    ...options
+  });

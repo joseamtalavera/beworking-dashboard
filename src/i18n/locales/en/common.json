@@ -38,6 +38,10 @@
     "help": "Help",
     "helpSupport": "Help & Support"
   },
+  "accountSwitcher": {
+    "title": "Switch account",
+    "account": "Account"
+  },
   "search": {
     "tenant": "tenant",
     "room": "room",
