@@ -244,8 +244,8 @@ function AdminPaymentOptions({ onCreated }) {
         bookingPayload.status = 'Invoiced';
         invoiceStatus = 'Pendiente';
       } else if (paymentOption === 'no_invoice') {
-        bookingPayload.status = 'Booked';
-        invoiceStatus = null;
+        bookingPayload.status = 'Facturado';
+        invoiceStatus = 'Facturado';
       }
 
       // When grouping with uninvoiced bookings, create as 'Booked' first —
@@ -258,7 +258,7 @@ function AdminPaymentOptions({ onCreated }) {
       const bookingResponse = await createReserva(bookingPayload);
       const bloqueoId = bookingResponse.bloqueos?.[0]?.id;
 
-      // ── Step 3: Create the internal invoice (facturas record) — skip for no_invoice ──
+      // ── Step 3: Create the internal invoice (facturas record) ──
       if (invoiceStatus) {
         if (hasExtra && bloqueoId) {
           // Multi-bloqueo invoice: use createInvoice with bloqueoIds
@@ -266,12 +266,16 @@ function AdminPaymentOptions({ onCreated }) {
           const vatPct = paymentOption === 'free' ? 0 : Math.round(pricing.vatRate * 100);
           const invoiceReq = { bloqueoIds: allIds, vatPercent: vatPct };
           if (stripeInvoiceId) invoiceReq.stripeInvoiceId = stripeInvoiceId;
+          if (paymentOption === 'no_invoice') invoiceReq.skipStripe = true;
           await createInvoice(invoiceReq);
         } else {
           // Single booking: use manual invoice
           const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
           if (stripeInvoiceId) {
             invoicePayload.stripeInvoiceId = stripeInvoiceId;
+          }
+          if (paymentOption === 'no_invoice') {
+            invoicePayload.skipStripe = true;
           }
           await createManualInvoice(invoicePayload);
         }
@@ -446,7 +450,7 @@ function AdminPaymentOptions({ onCreated }) {
       </Paper>
 
       {/* Uninvoiced bookings for same contact */}
-      {paymentOption && paymentOption !== 'no_invoice' && state.contact?.id && (
+      {paymentOption && state.contact?.id && (
         <UninvoicedBookings
           contactId={state.contact.id}
           currentBloqueoId={null}
