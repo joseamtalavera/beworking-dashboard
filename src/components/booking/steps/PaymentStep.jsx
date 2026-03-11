@@ -452,7 +452,6 @@ function AdminPaymentOptions({ onCreated }) {
       {/* Uninvoiced bookings for same contact — only when creating an invoice */}
       {(paymentOption === 'invoice' || paymentOption === 'no_invoice') && state.contact?.id && (
         <UninvoicedBookings
-          key={paymentOption}
           contactId={state.contact.id}
           currentBloqueoId={null}
           centroId={state.centro?.id}
