@@ -3323,7 +3323,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                   ) : null}
 
                   {/* Uninvoiced bookings for same contact */}
-                  {isBooked && canInvoice && !isEditMode && paymentOption && paymentOption !== 'no_invoice' && formState.clienteId && (
+                  {isBooked && canInvoice && !isEditMode && (paymentOption === 'invoice' || paymentOption === 'no_invoice') && formState.clienteId && (
                     <UninvoicedBookings
                       contactId={formState.clienteId}
                       currentBloqueoId={bloqueo?.id}
