@@ -2908,10 +2908,12 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
         });
         updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
       } else if (paymentOption === 'no_invoice') {
-        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Booked' });
+        const noInvoiceIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
+        await createInvoice({ bloqueoIds: noInvoiceIds, vatPercent: 21, extraLineItems, skipStripe: true });
+        updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Invoiced' });
       }
       // Pass along updated IDs + new status so the parent can refresh them in the list
-      const newStatus = paymentOption === 'free' ? 'Paid' : paymentOption === 'charge' ? 'Paid' : paymentOption === 'invoice' ? 'Invoiced' : 'Booked';
+      const newStatus = paymentOption === 'free' ? 'Paid' : paymentOption === 'charge' ? 'Paid' : paymentOption === 'invoice' ? 'Invoiced' : paymentOption === 'no_invoice' ? 'Invoiced' : 'Booked';
       if (updatedResponse) {
         updatedResponse._extraUpdatedIds = selectedUninvoicedIds;
         updatedResponse._extraNewStatus = newStatus;
