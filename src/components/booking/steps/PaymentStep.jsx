@@ -449,18 +449,20 @@ function AdminPaymentOptions({ onCreated }) {
         </Stack>
       </Paper>
 
-      {/* Uninvoiced bookings for same contact — only when creating an invoice */}
-      {(paymentOption === 'invoice' || paymentOption === 'no_invoice') && state.contact?.id && (
-        <UninvoicedBookings
-          contactId={state.contact.id}
-          currentBloqueoId={null}
-          centroId={state.centro?.id}
-          selectedIds={selectedUninvoicedIds}
-          onSelectionChange={(ids, subtotal) => {
-            setSelectedUninvoicedIds(ids);
-            setSelectedUninvoicedSubtotal(subtotal);
-          }}
-        />
+      {/* Uninvoiced bookings — mount eagerly so data is ready; hide when not invoicing */}
+      {state.contact?.id && (
+        <Box sx={{ display: (paymentOption === 'invoice' || paymentOption === 'no_invoice') ? 'block' : 'none' }}>
+          <UninvoicedBookings
+            contactId={state.contact.id}
+            currentBloqueoId={null}
+            centroId={state.centro?.id}
+            selectedIds={selectedUninvoicedIds}
+            onSelectionChange={(ids, subtotal) => {
+              setSelectedUninvoicedIds(ids);
+              setSelectedUninvoicedSubtotal(subtotal);
+            }}
+          />
+        </Box>
       )}
 
       <Stack direction="row" spacing={2} justifyContent="space-between">
