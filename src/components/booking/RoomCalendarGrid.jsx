@@ -56,10 +56,7 @@ export const CalendarLegend = ({ styles: stylesProp }) => {
   return (
     <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
       <CalendarLegendItem label={t('status.available')} color={styles.available} />
-      <CalendarLegendItem label={t('status.paid')} color={styles.paid} />
-      <CalendarLegendItem label={t('status.invoiced')} color={styles.invoiced} />
-      <CalendarLegendItem label={t('status.booked')} color={styles.created} />
-      <CalendarLegendItem label={t('status.free')} color={styles.free} />
+      <CalendarLegendItem label={t('status.booked')} color={styles.booked} />
     </Stack>
   );
 };
