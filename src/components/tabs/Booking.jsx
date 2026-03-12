@@ -628,8 +628,8 @@ const mapStatusKey = (status) => {
   if (normalized.includes('pag') || normalized.includes('paid')) {
     return 'paid';
   }
-  // recognize both legacy spanish 'fact' and english 'invoice' / 'invoiced'
-  if (normalized.includes('fact') || normalized.includes('invoice') || normalized.includes('invoiced')) {
+  // recognize both legacy spanish 'fact' and english 'invoice' / 'invoiced', plus 'pendiente'
+  if (normalized.includes('fact') || normalized.includes('invoice') || normalized.includes('invoiced') || normalized.includes('pend')) {
     return 'invoiced';
   }
   if (normalized.includes('grat') || normalized.includes('free')) {
