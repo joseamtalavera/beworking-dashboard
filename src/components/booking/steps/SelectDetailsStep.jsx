@@ -6,7 +6,7 @@ import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import InputAdornment from '@mui/material/InputAdornment';
+
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -17,7 +17,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 
 import EventRepeatRoundedIcon from '@mui/icons-material/EventRepeatRounded';
-import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
+
 
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
@@ -202,20 +202,235 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             </Typography>
           </Stack>
 
-          {/* Single date (non-recurring) */}
+          {/* ── Pill search bar: date / time / attendees / price ── */}
           {!recurring && (
-            <TextField
-              size="small"
-              label={t('steps.date')}
-              type="date"
-              value={state.dateFrom || ''}
-              onChange={(e) => {
-                setField('dateFrom', e.target.value);
-                setField('dateTo', e.target.value);
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                backgroundColor: 'background.paper',
+                display: 'flex',
+                alignItems: 'center',
+                overflow: 'hidden',
+                boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+                flexDirection: { xs: 'column', sm: 'row' },
+                borderRadius: { xs: 3, sm: 999 },
               }}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
+            >
+              {/* Date */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="date"
+                  label={t('steps.date')}
+                  value={state.dateFrom || ''}
+                  onChange={(e) => {
+                    setField('dateFrom', e.target.value);
+                    setField('dateTo', e.target.value);
+                  }}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.dateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* Start time */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="time"
+                  label={t('steps.startTime')}
+                  value={state.startTime || '09:00'}
+                  onChange={(e) => setField('startTime', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.startTime ? 'text.primary' : 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* End time */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="time"
+                  label={t('steps.endTime')}
+                  value={state.endTime || '10:00'}
+                  onChange={(e) => setField('endTime', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.endTime ? 'text.primary' : 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* Attendees */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="number"
+                  label={t('steps.numberOfAttendees')}
+                  value={state.attendees || ''}
+                  onChange={(e) => setField('attendees', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.attendees ? 'text.primary' : 'text.secondary', py: 0.25 },
+                    '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
+                    '& input[type=number]': { MozAppearance: 'textfield' },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* Price */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="number"
+                  label={t('steps.price')}
+                  value={state.customPrice !== '' ? state.customPrice : (state.producto?.priceFrom || '')}
+                  onChange={(e) => setField('customPrice', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.primary', py: 0.25 },
+                    '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
+                    '& input[type=number]': { MozAppearance: 'textfield' },
+                  }}
+                />
+              </Box>
+            </Paper>
+          )}
+
+          {/* Recurring: pill bar with date range */}
+          {recurring && (
+            <Paper
+              elevation={0}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                backgroundColor: 'background.paper',
+                display: 'flex',
+                alignItems: 'center',
+                overflow: 'hidden',
+                boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+                flexDirection: { xs: 'column', sm: 'row' },
+                borderRadius: { xs: 3, sm: 999 },
+              }}
+            >
+              {/* Date from */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="date"
+                  label={t('steps.dateFrom')}
+                  value={state.dateFrom || ''}
+                  onChange={(e) => setField('dateFrom', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.dateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* Date to */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="date"
+                  label={t('steps.dateTo')}
+                  value={state.dateTo || ''}
+                  onChange={(e) => setField('dateTo', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.dateTo ? 'text.primary' : 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* Start time */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="time"
+                  label={t('steps.startTime')}
+                  value={state.startTime || '09:00'}
+                  onChange={(e) => setField('startTime', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.startTime ? 'text.primary' : 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* End time */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="time"
+                  label={t('steps.endTime')}
+                  value={state.endTime || '10:00'}
+                  onChange={(e) => setField('endTime', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.endTime ? 'text.primary' : 'text.secondary', py: 0.25 },
+                  }}
+                />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+              {/* Attendees */}
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                <TextField
+                  variant="standard"
+                  type="number"
+                  label={t('steps.numberOfAttendees')}
+                  value={state.attendees || ''}
+                  onChange={(e) => setField('attendees', e.target.value)}
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.attendees ? 'text.primary' : 'text.secondary', py: 0.25 },
+                    '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
+                    '& input[type=number]': { MozAppearance: 'textfield' },
+                  }}
+                />
+              </Box>
+            </Paper>
           )}
 
           {/* Recurring toggle */}
@@ -243,30 +458,9 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             }
           />
 
-          {/* Recurring: date range + weekday selector */}
+          {/* Recurring: weekday selector */}
           {recurring && (
             <>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  size="small"
-                  label={t('steps.dateFrom')}
-                  type="date"
-                  value={state.dateFrom || ''}
-                  onChange={(e) => setField('dateFrom', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                />
-                <TextField
-                  size="small"
-                  label={t('steps.dateTo')}
-                  type="date"
-                  value={state.dateTo || ''}
-                  onChange={(e) => setField('dateTo', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                />
-              </Stack>
-
               <Stack spacing={1}>
                 <Typography variant="body2" fontWeight={600}>
                   {t('steps.selectWeekdays')}
@@ -312,60 +506,6 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
               )}
             </>
           )}
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField
-              size="small"
-              label={t('steps.startTime')}
-              type="time"
-              value={state.startTime || '09:00'}
-              onChange={(e) => setField('startTime', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
-            <TextField
-              size="small"
-              label={t('steps.endTime')}
-              type="time"
-              value={state.endTime || '10:00'}
-              onChange={(e) => setField('endTime', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
-          </Stack>
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField
-              size="small"
-              label={t('steps.numberOfAttendees')}
-              type="number"
-              value={state.attendees || ''}
-              onChange={(e) => setField('attendees', e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PeopleAltRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-                inputProps: { min: 1, max: state.producto?.capacity || 99 }
-              }}
-              fullWidth
-            />
-            <TextField
-              size="small"
-              label={t('steps.price')}
-              type="number"
-              value={state.customPrice !== '' ? state.customPrice : (state.producto?.priceFrom || '')}
-              onChange={(e) => setField('customPrice', e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">€</InputAdornment>
-                ),
-                inputProps: { min: 0, step: 0.01 }
-              }}
-              fullWidth
-            />
-          </Stack>
 
           <Divider />
 
