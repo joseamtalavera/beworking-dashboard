@@ -41,6 +41,7 @@ export default function UninvoicedBookings({
   centroId = null,
   selectedIds = [],
   onSelectionChange,
+  externalBloqueos = null,
 }) {
   const { t, i18n } = useTranslation('booking');
   const theme = useTheme();
@@ -49,11 +50,21 @@ export default function UninvoicedBookings({
   const [expandedMonths, setExpandedMonths] = useState({});
   const locale = i18n.language === 'es' ? es : undefined;
 
+  // When externalBloqueos is provided, use it directly (parent already fetched)
   useEffect(() => {
-    if (!contactId) {
-      setBloqueos([]);
+    if (externalBloqueos !== null) {
+      const filtered = currentBloqueoId
+        ? externalBloqueos.filter((b) => b.id !== currentBloqueoId)
+        : externalBloqueos;
+      setBloqueos(filtered);
+      const months = {};
+      for (const b of filtered) {
+        if (b.fechaIni) months[b.fechaIni.substring(0, 7)] = true;
+      }
+      setExpandedMonths(months);
       return;
     }
+    if (!contactId) { setBloqueos([]); return; }
     let cancelled = false;
     setLoading(true);
     fetchUninvoicedBloqueos(contactId)
@@ -64,24 +75,16 @@ export default function UninvoicedBookings({
           ? list.filter((b) => b.id !== currentBloqueoId)
           : list;
         setBloqueos(filtered);
-        // Auto-expand all months
         const months = {};
         for (const b of filtered) {
-          if (b.fechaIni) {
-            const key = b.fechaIni.substring(0, 7);
-            months[key] = true;
-          }
+          if (b.fechaIni) months[b.fechaIni.substring(0, 7)] = true;
         }
         setExpandedMonths(months);
       })
-      .catch(() => {
-        if (!cancelled) setBloqueos([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .catch(() => { if (!cancelled) setBloqueos([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [contactId, currentBloqueoId]);
+  }, [contactId, currentBloqueoId, externalBloqueos]);
 
   const groupedByMonth = useMemo(() => {
     const groups = {};

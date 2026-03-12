@@ -27,7 +27,7 @@ import i18n from '../../../i18n/i18n.js';
 import esBooking from '../../../i18n/locales/es/booking.json';
 import enBooking from '../../../i18n/locales/en/booking.json';
 
-import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation } from '../../../api/bookings.js';
+import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation, fetchUninvoicedBloqueos } from '../../../api/bookings.js';
 import { createInvoice, createManualInvoice } from '../../../api/invoices.js';
 import UninvoicedBookings from '../UninvoicedBookings';
 import {
@@ -121,12 +121,24 @@ function AdminPaymentOptions({ onCreated }) {
   const [selectedUninvoicedIds, setSelectedUninvoicedIds] = useState([]);
   const [selectedUninvoicedSubtotal, setSelectedUninvoicedSubtotal] = useState(0);
   const [extraLines, setExtraLines] = useState([]);
+  const [uninvoicedBloqueos, setUninvoicedBloqueos] = useState([]);
   const submittingRef = useRef(false);
 
   const contactEmail = state.contact?.email || '';
   const contactName = state.contact?.name || state.contact?.code || '';
   const productName = state.producto?.name || state.producto?.nombre || '';
   const pricing = useMemo(() => computePricing(state), [state]);
+
+  // Fetch uninvoiced bloqueos for this contact — done at parent level to avoid timing issues
+  useEffect(() => {
+    const contactId = state.contact?.id;
+    if (!contactId) { setUninvoicedBloqueos([]); return; }
+    let cancelled = false;
+    fetchUninvoicedBloqueos(contactId)
+      .then((data) => { if (!cancelled) setUninvoicedBloqueos(Array.isArray(data) ? data : []); })
+      .catch(() => { if (!cancelled) setUninvoicedBloqueos([]); });
+    return () => { cancelled = true; };
+  }, [state.contact?.id]);
 
   // Fetch saved cards
   useEffect(() => {
@@ -449,20 +461,19 @@ function AdminPaymentOptions({ onCreated }) {
         </Stack>
       </Paper>
 
-      {/* Uninvoiced bookings — mount eagerly so data is ready; hide when not invoicing */}
-      {state.contact?.id && (
-        <Box sx={{ display: (paymentOption === 'invoice' || paymentOption === 'no_invoice') ? 'block' : 'none' }}>
-          <UninvoicedBookings
-            contactId={state.contact.id}
-            currentBloqueoId={null}
-            centroId={state.centro?.id}
-            selectedIds={selectedUninvoicedIds}
-            onSelectionChange={(ids, subtotal) => {
-              setSelectedUninvoicedIds(ids);
-              setSelectedUninvoicedSubtotal(subtotal);
-            }}
-          />
-        </Box>
+      {/* Uninvoiced bookings — data fetched at parent level; show only when invoicing */}
+      {(paymentOption === 'invoice' || paymentOption === 'no_invoice') && uninvoicedBloqueos.length > 0 && (
+        <UninvoicedBookings
+          contactId={state.contact?.id}
+          currentBloqueoId={null}
+          centroId={state.centro?.id}
+          selectedIds={selectedUninvoicedIds}
+          externalBloqueos={uninvoicedBloqueos}
+          onSelectionChange={(ids, subtotal) => {
+            setSelectedUninvoicedIds(ids);
+            setSelectedUninvoicedSubtotal(subtotal);
+          }}
+        />
       )}
 
       <Stack direction="row" spacing={2} justifyContent="space-between">
