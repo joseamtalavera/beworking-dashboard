@@ -497,14 +497,14 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 sx={{ fontSize: '0.875rem', color: filters.tenantType ? 'text.primary' : 'text.secondary' }}
               >
                 <MenuItem value="">{t('allUserTypes')}</MenuItem>
-                <MenuItem value="Distribuidor">Distribuidor</MenuItem>
-                <MenuItem value="Proveedor">Proveedor</MenuItem>
-                <MenuItem value="Servicios">Servicios</MenuItem>
-                <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
-                <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
-                <MenuItem value="Usuario N&#xf3;mada">Usuario N&#xf3;mada</MenuItem>
-                <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
-                <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+                <MenuItem value="Distribuidor">{t('userTypes.Distribuidor')}</MenuItem>
+                <MenuItem value="Proveedor">{t('userTypes.Proveedor')}</MenuItem>
+                <MenuItem value="Servicios">{t('userTypes.Servicios')}</MenuItem>
+                <MenuItem value="Usuario Aulas">{t('userTypes.Usuario Aulas')}</MenuItem>
+                <MenuItem value="Usuario Mesa">{t('userTypes.Usuario Mesa')}</MenuItem>
+                <MenuItem value="Usuario Nómada">{t('userTypes.Usuario Nómada')}</MenuItem>
+                <MenuItem value="Usuario Portal">{t('userTypes.Usuario Portal')}</MenuItem>
+                <MenuItem value="Usuario Virtual">{t('userTypes.Usuario Virtual')}</MenuItem>
               </Select>
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -564,7 +564,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           <TableRow key={inv.id} hover>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                   <TableCell>{inv.clientName || '\u2014'}</TableCell>
-                  {isAdmin && <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.tenantType || '\u2014'}</TableCell>}
+                  {isAdmin && <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.tenantType ? t(`userTypes.${inv.tenantType}`, inv.tenantType) : '\u2014'}</TableCell>}
                   <TableCell align="right">
                     <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.8rem' }}>
                       {formatCurrency(inv.total)}

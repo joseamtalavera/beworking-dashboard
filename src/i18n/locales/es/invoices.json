@@ -89,5 +89,15 @@
   "invoiceUpdateError": "Error al actualizar la factura",
   "stripeChargeSuccess": "Factura cobrada exitosamente",
   "stripeInvoiceSent": "Factura enviada por email",
-  "stripeError": "Error Stripe. Factura creada como Pendiente."
+  "stripeError": "Error Stripe. Factura creada como Pendiente.",
+  "userTypes": {
+    "Distribuidor": "Distribuidor",
+    "Proveedor": "Proveedor",
+    "Servicios": "Servicios",
+    "Usuario Aulas": "Usuario Aulas",
+    "Usuario Mesa": "Usuario Mesa",
+    "Usuario Nómada": "Usuario Nómada",
+    "Usuario Portal": "Usuario Portal",
+    "Usuario Virtual": "Usuario Virtual"
+  }
 }

@@ -89,5 +89,15 @@
   "invoiceUpdateError": "Failed to update invoice",
   "stripeChargeSuccess": "Invoice charged successfully",
   "stripeInvoiceSent": "Invoice sent by email",
-  "stripeError": "Stripe error. Invoice created as Pending."
+  "stripeError": "Stripe error. Invoice created as Pending.",
+  "userTypes": {
+    "Distribuidor": "Distributor",
+    "Proveedor": "Supplier",
+    "Servicios": "Services",
+    "Usuario Aulas": "Classroom User",
+    "Usuario Mesa": "Desk User",
+    "Usuario Nómada": "Nomad User",
+    "Usuario Portal": "Portal User",
+    "Usuario Virtual": "Virtual User"
+  }
 }
