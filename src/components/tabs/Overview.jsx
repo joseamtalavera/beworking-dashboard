@@ -156,9 +156,9 @@ const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
   );
 };
 
-// Clean Area Chart
-const AreaChart = ({ data, loading, title, total, color, theme, gradientId, selectedYear }) => {
-  const [tooltip, setTooltip] = useState(null); // { x, y, value, month, monthlyValue }
+// Monthly Bar Chart
+const BarChart = ({ data, loading, title, total, color, theme, selectedYear }) => {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
 
   if (loading) {
     return (
@@ -176,52 +176,16 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
     );
   }
 
-  // Only draw line/dots for past and current months
   const now = new Date();
-  const currentMonth = now.getMonth(); // 0-based
+  const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
   const activeCount = selectedYear === currentYear ? currentMonth + 1 : data.length;
-
   const chartHeight = 160;
-  const chartWidth = 1000;
-  const padding = { top: 10, right: 10, bottom: 0, left: 10 };
   const maxValue = Math.max(...data.slice(0, activeCount).map(d => d.value || 0), 100);
 
-  // All 12 months get an x position; only activeCount months get a dot
-  const allPoints = data.map((item, index) => {
-    const x = padding.left + (index * (chartWidth - padding.left - padding.right) / (data.length - 1));
-    const y = padding.top + chartHeight - ((item.value / maxValue) * chartHeight);
-    const monthlyValue = index === 0 ? item.value : item.value - (data[index - 1]?.value || 0);
-    return { x, y, value: item.value, monthlyValue, month: item.month, active: index < activeCount };
-  });
-
-  const activePoints = allPoints.filter(p => p.active);
-  const linePath = activePoints.map((point, index) =>
-    `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
-  ).join(' ');
-
-  const baselineY = padding.top + chartHeight;
-  const lastActive = activePoints[activePoints.length - 1];
-  const lastPoint = allPoints[allPoints.length - 1];
-
-  // Area fills from first to last active point
-  const areaPath = activePoints.length > 1
-    ? `${linePath} L ${lastActive.x} ${baselineY} L ${activePoints[0].x} ${baselineY} Z`
-    : '';
-
-  // Dashed flat line from last active point to end of chart (future months)
-  const futurePath = lastActive && lastActive.x < lastPoint.x
-    ? `M ${lastActive.x} ${lastActive.y} L ${lastPoint.x} ${lastActive.y}`
-    : '';
-
-  // Filled area under the dashed future extension (very faint)
-  const futureAreaPath = futurePath
-    ? `M ${lastActive.x} ${lastActive.y} L ${lastPoint.x} ${lastActive.y} L ${lastPoint.x} ${baselineY} L ${lastActive.x} ${baselineY} Z`
-    : '';
-
   return (
-    <Box sx={{ position: 'relative' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1 }}>
+    <Box>
+      <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1.5 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
           {title}
         </Typography>
@@ -230,66 +194,79 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
         </Typography>
       </Stack>
 
-      <Box sx={{ width: '100%', position: 'relative' }}>
-        {/* SVG chart area — preserveAspectRatio="none" stretches only paths, not text */}
-        <Box sx={{ width: '100%', height: chartHeight + padding.top }}>
-          <svg width="100%" height={chartHeight + padding.top} viewBox={`0 0 ${chartWidth} ${chartHeight + padding.top}`} preserveAspectRatio="none"
-            onClick={() => setTooltip(null)}>
-            <defs>
-              <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-                <stop offset="100%" stopColor={color} stopOpacity="0" />
-              </linearGradient>
-            </defs>
+      <Box sx={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: chartHeight }}>
+        {data.map((item, idx) => {
+          const isActive = idx < activeCount;
+          const barHeight = isActive && maxValue > 0
+            ? Math.max(2, (item.value / maxValue) * (chartHeight - 20))
+            : 2;
+          const isHovered = hoveredIdx === idx;
 
-            {futureAreaPath && <path d={futureAreaPath} fill={color} fillOpacity="0.04" />}
-            {areaPath && <path d={areaPath} fill={`url(#${gradientId})`} />}
-            {futurePath && <path d={futurePath} fill="none" stroke={color} strokeWidth={1.5} strokeDasharray="4 4" strokeOpacity="0.35" />}
-            {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
+          return (
+            <Box
+              key={idx}
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                height: '100%',
+                position: 'relative',
+                cursor: isActive ? 'pointer' : 'default',
+              }}
+              onMouseEnter={() => isActive && setHoveredIdx(idx)}
+              onMouseLeave={() => setHoveredIdx(null)}
+            >
+              {/* Value label on hover */}
+              {isHovered && isActive && item.value > 0 && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 700,
+                    color,
+                    fontSize: '0.65rem',
+                    mb: 0.5,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {formatCurrency(item.value)}
+                </Typography>
+              )}
+              {/* Bar */}
+              <Box
+                sx={{
+                  width: '100%',
+                  maxWidth: 48,
+                  height: barHeight,
+                  bgcolor: isActive ? color : theme.palette.divider,
+                  opacity: isActive ? (isHovered ? 1 : 0.75) : 0.25,
+                  borderRadius: '4px 4px 0 0',
+                  transition: 'opacity 0.15s, height 0.3s',
+                }}
+              />
+            </Box>
+          );
+        })}
+      </Box>
 
-            {/* Dots only for active months */}
-            {activePoints.map((point, idx) => (
-              <g key={idx} style={{ cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setTooltip(tooltip?.index === idx ? null : { ...point, index: idx }); }}>
-                <circle cx={point.x} cy={point.y} r={tooltip?.index === idx ? 5 : 3} fill={color} stroke={tooltip?.index === idx ? theme.palette.background.paper : 'none'} strokeWidth={1.5} />
-                <circle cx={point.x} cy={point.y} r={12} fill="transparent" />
-              </g>
-            ))}
-          </svg>
-        </Box>
-
-        {/* Month labels — rendered as HTML so they don't stretch */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', px: `${(padding.left / chartWidth) * 100}%`, mt: 0.5 }}>
-          {allPoints.map((point, idx) => (
-            <Typography key={idx} variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem', textAlign: 'center', flex: 1 }}>
-              {point.month}
-            </Typography>
-          ))}
-        </Box>
-
-        {/* Tooltip */}
-        {tooltip && (
-          <Box sx={{
-            position: 'absolute',
-            top: `${(tooltip.y / (chartHeight + padding.top)) * 100}%`,
-            left: `${(tooltip.x / chartWidth) * 100}%`,
-            transform: 'translate(-50%, -130%)',
-            bgcolor: 'background.paper',
-            border: `1px solid ${color}`,
-            borderRadius: 1,
-            px: 1.2, py: 0.6,
-            boxShadow: 2,
-            pointerEvents: 'none',
-            zIndex: 10,
-            whiteSpace: 'nowrap'
-          }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, color, display: 'block' }}>
-              {tooltip.month}: {formatCurrency(tooltip.monthlyValue)}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-              {i18n.t('overview:charts.cumulative', { defaultValue: 'Acumulado' })}: {formatCurrency(tooltip.value)}
-            </Typography>
-          </Box>
-        )}
+      {/* Month labels */}
+      <Box sx={{ display: 'flex', gap: '4px', mt: 0.75 }}>
+        {data.map((item, idx) => (
+          <Typography
+            key={idx}
+            variant="caption"
+            sx={{
+              flex: 1,
+              textAlign: 'center',
+              color: hoveredIdx === idx ? 'text.primary' : 'text.disabled',
+              fontSize: '0.7rem',
+              fontWeight: hoveredIdx === idx ? 600 : 400,
+            }}
+          >
+            {item.month}
+          </Typography>
+        ))}
       </Box>
     </Box>
   );
@@ -838,17 +815,17 @@ const AdminOverview = () => {
       }
     });
 
-    // Build cumulative (ascending) series
-    let cumRevenue = 0, cumPending = 0;
-    const revenueCumulative = months.map(m => { cumRevenue += m.revenue; return { month: m.month, value: cumRevenue }; });
-    const pendingCumulative = months.map(m => { cumPending += m.pending; return { month: m.month, value: cumPending }; });
+    const revenueMonthly = months.map(m => ({ month: m.month, value: m.revenue }));
+    const pendingMonthly = months.map(m => ({ month: m.month, value: m.pending }));
+    const revenueTotal = months.reduce((s, m) => s + m.revenue, 0);
+    const pendingTotal = months.reduce((s, m) => s + m.pending, 0);
 
     return {
-      revenue: revenueCumulative,
-      pending: pendingCumulative,
+      revenue: revenueMonthly,
+      pending: pendingMonthly,
       overdue: months.map(m => ({ month: m.month, value: m.overdue })),
-      revenueTotal: cumRevenue,
-      pendingTotal: cumPending,
+      revenueTotal,
+      pendingTotal,
       overdueTotal: months.reduce((s, m) => s + m.overdue, 0)
     };
   }, [invoices, selectedYear, i18n.language]);
@@ -1168,24 +1145,22 @@ const AdminOverview = () => {
         </Stack>
 
         <Box sx={{ display: 'grid', gap: 4, gridTemplateColumns: '1fr' }}>
-          <AreaChart
+          <BarChart
             data={chartData.revenue}
             loading={loading}
             title={t('charts.revenue')}
             total={chartData.revenueTotal}
             color={dataColors.income}
             theme={theme}
-            gradientId="revenueGrad"
             selectedYear={selectedYear}
           />
-          <AreaChart
+          <BarChart
             data={chartData.pending}
             loading={loading}
             title={t('charts.pending')}
             total={chartData.pendingTotal}
             color={dataColors.pending}
             theme={theme}
-            gradientId="pendingGrad"
             selectedYear={selectedYear}
           />
         </Box>
