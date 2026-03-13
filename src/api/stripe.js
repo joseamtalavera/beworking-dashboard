@@ -30,11 +30,12 @@ export const createPaymentIntent = ({ amount, currency, reference, description, 
 export const fetchCustomerPaymentMethods = (email) =>
   stripeRequest(`/api/customers/payment-methods?email=${encodeURIComponent(email)}`);
 
-export const chargeCustomer = ({ customerEmail, paymentMethodId, amount, currency, description, reference }) =>
+export const chargeCustomer = ({ customerEmail, customerName, paymentMethodId, amount, currency, description, reference }) =>
   stripeRequest('/api/charge', {
     method: 'POST',
     body: {
       customer_email: customerEmail,
+      customer_name: customerName || '',
       payment_method_id: paymentMethodId,
       amount,
       currency,

@@ -2878,18 +2878,23 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
           setPaymentSubmitting(false);
           return;
         }
-        const chargeAmount = hasExtra ? combinedAmountCents : amountCents;
+        // Create invoice FIRST so the record exists even if the charge fails
+        const chargeIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
+        const invoiceResponse = await createInvoice({ bloqueoIds: chargeIds, vatPercent: 21, extraLineItems });
+        // Use backend-computed total for the charge
+        const chargeAmount = invoiceResponse?.total
+          ? Math.round(invoiceResponse.total * 100)
+          : (hasExtra ? combinedAmountCents : amountCents);
         await chargeCustomer({
           customerEmail: contactEmail,
+          customerName: contactName,
           paymentMethodId: selectedCard,
           amount: chargeAmount,
           currency: 'eur',
-          description,
-          reference: String(formState.productoId || ''),
+          description: invoiceResponse?.description || description,
+          reference: String(invoiceResponse?.legacyNumber || formState.productoId || ''),
         });
         updatedResponse = await updateBloqueo(bloqueo.id, { ...basePayload, status: 'Paid' });
-        const chargeIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
-        await createInvoice({ bloqueoIds: chargeIds, vatPercent: 21, extraLineItems });
       } else if (paymentOption === 'invoice') {
         // Create local invoice FIRST — backend computes correct total
         const invoiceIds = hasExtra ? [bloqueo.id, ...selectedUninvoicedIds] : [bloqueo.id];
