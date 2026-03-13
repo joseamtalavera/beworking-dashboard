@@ -93,7 +93,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
     status: '',
     tenantType: '',
     cuenta: '',
-    startDate: '',
+    startDate: `${new Date().getFullYear()}-01-01`,
     endDate: ''
   });
   const [queryFilters, setQueryFilters] = useState(filters);
@@ -401,7 +401,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             status: '',
             tenantType: '',
             cuenta: '',
-            startDate: '',
+            startDate: `${new Date().getFullYear()}-01-01`,
             endDate: ''
           })}
           sx={{
