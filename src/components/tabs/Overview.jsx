@@ -239,8 +239,10 @@ const BarChart = ({ data, loading, title, total, color, theme, selectedYear }) =
                   width: '100%',
                   maxWidth: 48,
                   height: barHeight,
-                  bgcolor: isActive ? color : theme.palette.divider,
-                  opacity: isActive ? (isHovered ? 1 : 0.75) : 0.25,
+                  bgcolor: 'transparent',
+                  border: `2px solid ${isActive ? color : theme.palette.divider}`,
+                  borderBottom: 'none',
+                  opacity: isActive ? (isHovered ? 1 : 0.7) : 0.25,
                   borderRadius: '4px 4px 0 0',
                   transition: 'opacity 0.15s, height 0.3s',
                 }}
