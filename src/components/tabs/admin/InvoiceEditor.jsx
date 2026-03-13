@@ -73,6 +73,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
   const [cuentaOptions, setCuentaOptions] = useState([]);
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [paymentInfoLoading, setPaymentInfoLoading] = useState(false);
+  const [paymentMode, setPaymentMode] = useState('card'); // 'card' | 'invoice'
   const [submitting, setSubmitting] = useState(false);
 
   const addLine = () => setLines((s) => [...s, { ...DEFAULT_LINE }]);
@@ -121,7 +122,8 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         price: parseDecimal(l.price),
         vatPercent: Number(l.vatPercent || 0)
       })),
-      computed: { subtotal, totalVat, total }
+      computed: { subtotal, totalVat, total },
+      paymentMode: paymentInfo?.hasPaymentMethod ? paymentMode : 'invoice'
     };
 
     try {
@@ -231,6 +233,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         setCuenta('');
       }
       setContactOptions([]);
+      setPaymentMode('card');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editMode]);
@@ -387,15 +390,14 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                     <MenuItem value="">
                       <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectUserType')}</span>
                     </MenuItem>
-                    <MenuItem value="Distribuidor">Distribuidor</MenuItem>
-                    <MenuItem value="Imported">Imported</MenuItem>
-                    <MenuItem value="Proveedor">Proveedor</MenuItem>
-                    <MenuItem value="Servicios">Servicios</MenuItem>
-                    <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
-                    <MenuItem value="Usuario Mesa">Usuario Mesa</MenuItem>
-                    <MenuItem value="Usuario Nómada">Usuario Nómada</MenuItem>
-                    <MenuItem value="Usuario Portal">Usuario Portal</MenuItem>
-                    <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
+                    <MenuItem value="Distribuidor">{t('userTypes.Distribuidor')}</MenuItem>
+                    <MenuItem value="Proveedor">{t('userTypes.Proveedor')}</MenuItem>
+                    <MenuItem value="Servicios">{t('userTypes.Servicios')}</MenuItem>
+                    <MenuItem value="Usuario Aulas">{t('userTypes.Usuario Aulas')}</MenuItem>
+                    <MenuItem value="Usuario Mesa">{t('userTypes.Usuario Mesa')}</MenuItem>
+                    <MenuItem value="Usuario Nómada">{t('userTypes.Usuario Nómada')}</MenuItem>
+                    <MenuItem value="Usuario Portal">{t('userTypes.Usuario Portal')}</MenuItem>
+                    <MenuItem value="Usuario Virtual">{t('userTypes.Usuario Virtual')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -647,47 +649,63 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
               </Box>
             </Box>
 
-            {/* Payment method indicator */}
+            {/* Payment method selector */}
             {!editMode && client?.value && cuenta && (
-              <Box sx={{
-                mt: 2,
-                mb: 1,
-                p: 2,
-                borderRadius: 2,
-                border: '1px solid',
-                borderColor: paymentInfoLoading ? 'divider'
-                  : paymentInfo?.hasPaymentMethod ? 'success.main'
-                  : 'warning.main',
-                backgroundColor: paymentInfoLoading ? 'transparent'
-                  : paymentInfo?.hasPaymentMethod ? alpha(theme.palette.success.main, 0.06)
-                  : alpha(theme.palette.warning.main, 0.06),
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-              }}>
+              <>
                 {paymentInfoLoading ? (
-                  <>
+                  <Box sx={{ mt: 2, mb: 1, p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <CircularProgress size={18} />
-                    <Typography variant="body2" color="text.secondary">
-                      {t('editor.checkingPaymentMethod')}
-                    </Typography>
-                  </>
+                    <Typography variant="body2" color="text.secondary">{t('editor.checkingPaymentMethod')}</Typography>
+                  </Box>
                 ) : paymentInfo?.hasPaymentMethod ? (
-                  <>
-                    <CreditCardIcon sx={{ color: 'success.main', fontSize: 20 }} />
-                    <Typography variant="body2" fontWeight={600} color="success.dark">
-                      {paymentInfo.paymentMethods?.[0]?.brand?.toUpperCase()} ****{paymentInfo.paymentMethods?.[0]?.last4} — {t('editor.willChargeCard')}
-                    </Typography>
-                  </>
+                  <Stack spacing={1} sx={{ mt: 2, mb: 1 }}>
+                    <Box
+                      onClick={() => setPaymentMode('card')}
+                      sx={{
+                        p: 2, borderRadius: 2, cursor: 'pointer',
+                        border: '1.5px solid',
+                        borderColor: paymentMode === 'card' ? 'success.main' : 'divider',
+                        backgroundColor: paymentMode === 'card' ? alpha(theme.palette.success.main, 0.06) : 'transparent',
+                        display: 'flex', alignItems: 'center', gap: 1.5,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <CreditCardIcon sx={{ color: paymentMode === 'card' ? 'success.main' : 'text.disabled', fontSize: 20 }} />
+                      <Typography variant="body2" fontWeight={600} color={paymentMode === 'card' ? 'success.dark' : 'text.secondary'}>
+                        {paymentInfo.paymentMethods?.[0]?.brand?.toUpperCase()} ****{paymentInfo.paymentMethods?.[0]?.last4} — {t('editor.willChargeCard')}
+                      </Typography>
+                    </Box>
+                    <Box
+                      onClick={() => setPaymentMode('invoice')}
+                      sx={{
+                        p: 2, borderRadius: 2, cursor: 'pointer',
+                        border: '1.5px solid',
+                        borderColor: paymentMode === 'invoice' ? 'warning.main' : 'divider',
+                        backgroundColor: paymentMode === 'invoice' ? alpha(theme.palette.warning.main, 0.06) : 'transparent',
+                        display: 'flex', alignItems: 'center', gap: 1.5,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <EmailIcon sx={{ color: paymentMode === 'invoice' ? 'warning.main' : 'text.disabled', fontSize: 20 }} />
+                      <Typography variant="body2" fontWeight={600} color={paymentMode === 'invoice' ? 'warning.dark' : 'text.secondary'}>
+                        {t('editor.sendStripeInvoice')}
+                      </Typography>
+                    </Box>
+                  </Stack>
                 ) : paymentInfo ? (
-                  <>
+                  <Box sx={{
+                    mt: 2, mb: 1, p: 2, borderRadius: 2,
+                    border: '1px solid', borderColor: 'warning.main',
+                    backgroundColor: alpha(theme.palette.warning.main, 0.06),
+                    display: 'flex', alignItems: 'center', gap: 1.5,
+                  }}>
                     <EmailIcon sx={{ color: 'warning.main', fontSize: 20 }} />
                     <Typography variant="body2" fontWeight={600} color="warning.dark">
                       {t('editor.noCardOnFile')} — {t('editor.willSendStripeInvoice')}
                     </Typography>
-                  </>
+                  </Box>
                 ) : null}
-              </Box>
+              </>
             )}
 
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>

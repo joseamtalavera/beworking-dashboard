@@ -82,7 +82,8 @@
     "checkingPaymentMethod": "Checking payment method...",
     "willChargeCard": "Will be charged automatically",
     "noCardOnFile": "No card on file",
-    "willSendStripeInvoice": "Stripe invoice will be sent by email"
+    "willSendStripeInvoice": "Stripe invoice will be sent by email",
+    "sendStripeInvoice": "Send Stripe invoice by email instead"
   },
   "edit": "Edit",
   "invoiceUpdated": "Invoice updated",

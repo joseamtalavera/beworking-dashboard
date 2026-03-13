@@ -82,7 +82,8 @@
     "checkingPaymentMethod": "Verificando método de pago...",
     "willChargeCard": "Se cobrará automáticamente",
     "noCardOnFile": "Sin tarjeta guardada",
-    "willSendStripeInvoice": "Se enviará factura por email"
+    "willSendStripeInvoice": "Se enviará factura por email",
+    "sendStripeInvoice": "Enviar factura Stripe por email"
   },
   "edit": "Editar",
   "invoiceUpdated": "Factura actualizada",
