@@ -54,7 +54,10 @@
     "soon": "Pronto"
   },
   "app": {
-    "redirecting": "Redirigiendo al inicio de sesión…"
+    "redirecting": "Redirigiendo al inicio de sesión…",
+    "sessionExpiredTitle": "Sesión expirada",
+    "sessionExpiredMessage": "Tu sesión ha expirado. Por favor, inicia sesión de nuevo para continuar.",
+    "login": "Iniciar sesión"
   },
   "language": {
     "toggle": "EN",

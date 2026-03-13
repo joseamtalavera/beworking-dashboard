@@ -54,7 +54,10 @@
     "soon": "Soon"
   },
   "app": {
-    "redirecting": "Redirecting to login…"
+    "redirecting": "Redirecting to login…",
+    "sessionExpiredTitle": "Session expired",
+    "sessionExpiredMessage": "Your session has expired. Please log in again to continue.",
+    "login": "Log in"
   },
   "language": {
     "toggle": "ES",
