@@ -182,8 +182,8 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
   const currentYear = now.getFullYear();
   const activeCount = selectedYear === currentYear ? currentMonth + 1 : data.length;
 
-  const chartHeight = 140;
-  const chartWidth = 800;
+  const chartHeight = 200;
+  const chartWidth = 1000;
   const padding = { top: 10, right: 10, bottom: 30, left: 10 };
   const maxValue = Math.max(...data.slice(0, activeCount).map(d => d.value || 0), 100);
 
