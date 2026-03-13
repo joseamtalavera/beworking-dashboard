@@ -383,7 +383,15 @@
     "deleteSelected": "Delete selected",
     "deleteBulkConfirmTitle": "Delete {{count}} bookings",
     "deleteBulkConfirmBody": "This will remove {{count}} bookings from the agenda. This action cannot be undone.",
-    "failedToDeleteCount": "Failed to delete {{count}} booking(s)."
+    "failedToDeleteCount": "Failed to delete {{count}} booking(s).",
+    "meetingRoomsTab": "Meeting Rooms",
+    "coworkingTab": "Coworking",
+    "deskAvailable": "Available",
+    "deskOccupied": "Occupied",
+    "deskNumber": "Desk {{number}}",
+    "occupiedBy": "{{name}}",
+    "desksAvailableCount": "{{available}} of {{total}} desks available",
+    "floorPlan": "Floor Plan"
   },
   "form": {
     "yourName": "Your name",

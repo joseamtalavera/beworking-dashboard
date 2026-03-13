@@ -65,6 +65,7 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded';
 import Collapse from '@mui/material/Collapse';
 import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
+import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 
@@ -91,6 +92,7 @@ import {
 } from '../../api/stripe.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
+import CoworkingFloorPlan, { buildDeskMap } from '../booking/CoworkingFloorPlan';
 import UninvoicedBookings from '../booking/UninvoicedBookings';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n.js';
@@ -653,6 +655,9 @@ const describeBloqueo = (bloqueo) => {
 };
 
 const ALLOWED_PRODUCT_NAMES = new Set(['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5']);
+const DESK_PRODUCT_NAMES = new Set(
+  Array.from({ length: 16 }, (_, i) => `MA1O1-${i + 1}`)
+);
 
 const isAulaProduct = (bloqueo) => {
   const productName = bloqueo?.producto?.nombre || '';
@@ -4340,12 +4345,13 @@ const Booking = ({ mode = 'user', userProfile }) => {
       }
 
         const productLabel = bloqueo?.producto?.nombre || '';
+        const allowedSet = view === 'coworking' ? DESK_PRODUCT_NAMES : ALLOWED_PRODUCT_NAMES;
         if (filterProduct) {
           if (productLabel !== filterProduct) {
             return false;
           }
         } else {
-          if (!ALLOWED_PRODUCT_NAMES.has(productLabel)) {
+          if (!allowedSet.has(productLabel)) {
             return false;
           }
         }
@@ -4376,7 +4382,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
       console.error('Error filtering bloqueos:', error);
       return [];
     }
-  }, [bloqueos, filterUser, filterCenter, filterProduct, filterUserType, filterEmail, filterPaymentStatus]);
+  }, [bloqueos, filterUser, filterCenter, filterProduct, filterUserType, filterEmail, filterPaymentStatus, view]);
 
   const totalAllowedBloqueos = useMemo(() => {
     try {
@@ -4559,6 +4565,18 @@ const Booking = ({ mode = 'user', userProfile }) => {
     }
   };
 
+  const deskDataMap = useMemo(() => {
+    return buildDeskMap(bloqueos, calendarDateFrom);
+  }, [bloqueos, calendarDateFrom]);
+
+  const handleDeskClick = useCallback((deskNumber, bloqueo) => {
+    if (bloqueo) {
+      handleSelectBloqueo(bloqueo);
+    } else {
+      handleOpenCreateDialog();
+    }
+  }, [handleOpenCreateDialog]);
+
   const handleAvailableSlotClick = useCallback((room, slot) => {
     const sample = (calendarBloqueos || []).find(b => b?.producto?.id === room.productId);
     const producto = sample?.producto
@@ -4630,9 +4648,10 @@ const Booking = ({ mode = 'user', userProfile }) => {
             {t('admin.subtitle')}
           </Typography>
         </Stack>
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
           <Tabs value={view} onChange={handleViewChange} sx={getViewToggleTabsStyle(theme)}>
-            <Tab icon={<CalendarMonthRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.calendarTab')} value="calendar" />
+            <Tab icon={<GridViewRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.coworkingTab')} value="coworking" />
+            <Tab icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.meetingRoomsTab')} value="calendar" />
             <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.agendaTab')} value="agenda" />
           </Tabs>
           <Button
@@ -4665,7 +4684,52 @@ const Booking = ({ mode = 'user', userProfile }) => {
 
       {error && <Alert severity="error">{error}</Alert>}
 
-      {view === 'calendar' ? (
+      {view === 'coworking' ? (
+        <Stack spacing={3}>
+          <Paper
+            elevation={0}
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: 'background.paper',
+              display: 'flex',
+              alignItems: 'center',
+              overflow: 'hidden',
+              boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+              flexDirection: { xs: 'column', sm: 'row' },
+              borderRadius: { xs: 3, sm: 999 },
+            }}
+          >
+            <Box sx={{ flex: 0.5, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <TextField
+                variant="standard"
+                type="date"
+                value={calendarDateFrom}
+                onChange={handleCalendarDateFromChange}
+                label={t('admin.selectDate')}
+                fullWidth
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', color: calendarDateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
+                }}
+              />
+            </Box>
+            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+              <Legend />
+            </Box>
+          </Paper>
+
+          <CoworkingFloorPlan
+            deskData={deskDataMap}
+            selectedDate={calendarDateFrom}
+            onDeskClick={handleDeskClick}
+            loading={loading}
+          />
+        </Stack>
+      ) : view === 'calendar' ? (
         <Stack spacing={3}>
           <Paper
             elevation={0}

@@ -383,7 +383,15 @@
     "deleteSelected": "Eliminar seleccionadas",
     "deleteBulkConfirmTitle": "Eliminar {{count}} reservas",
     "deleteBulkConfirmBody": "Esto eliminará {{count}} reservas de la agenda. Esta acción no se puede deshacer.",
-    "failedToDeleteCount": "No se pudieron eliminar {{count}} reserva(s)."
+    "failedToDeleteCount": "No se pudieron eliminar {{count}} reserva(s).",
+    "meetingRoomsTab": "Salas de reuniones",
+    "coworkingTab": "Coworking",
+    "deskAvailable": "Disponible",
+    "deskOccupied": "Ocupado",
+    "deskNumber": "Mesa {{number}}",
+    "occupiedBy": "{{name}}",
+    "desksAvailableCount": "{{available}} de {{total}} mesas disponibles",
+    "floorPlan": "Plano"
   },
   "form": {
     "yourName": "Tu nombre",
