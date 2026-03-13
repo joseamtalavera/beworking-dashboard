@@ -182,9 +182,9 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
   const currentYear = now.getFullYear();
   const activeCount = selectedYear === currentYear ? currentMonth + 1 : data.length;
 
-  const chartHeight = 200;
+  const chartHeight = 160;
   const chartWidth = 1000;
-  const padding = { top: 10, right: 10, bottom: 30, left: 10 };
+  const padding = { top: 10, right: 10, bottom: 0, left: 10 };
   const maxValue = Math.max(...data.slice(0, activeCount).map(d => d.value || 0), 100);
 
   // All 12 months get an x position; only activeCount months get a dot
@@ -230,41 +230,47 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
         </Typography>
       </Stack>
 
-      <Box sx={{ width: '100%', height: chartHeight + padding.top + padding.bottom, position: 'relative' }}>
-        <svg width="100%" height={chartHeight + padding.top + padding.bottom} viewBox={`0 0 ${chartWidth} ${chartHeight + padding.top + padding.bottom}`} preserveAspectRatio="none"
-          onClick={() => setTooltip(null)}>
-          <defs>
-            <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-              <stop offset="100%" stopColor={color} stopOpacity="0" />
-            </linearGradient>
-          </defs>
+      <Box sx={{ width: '100%', position: 'relative' }}>
+        {/* SVG chart area — preserveAspectRatio="none" stretches only paths, not text */}
+        <Box sx={{ width: '100%', height: chartHeight + padding.top }}>
+          <svg width="100%" height={chartHeight + padding.top} viewBox={`0 0 ${chartWidth} ${chartHeight + padding.top}`} preserveAspectRatio="none"
+            onClick={() => setTooltip(null)}>
+            <defs>
+              <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+                <stop offset="100%" stopColor={color} stopOpacity="0" />
+              </linearGradient>
+            </defs>
 
-          {futureAreaPath && <path d={futureAreaPath} fill={color} fillOpacity="0.04" />}
-          {areaPath && <path d={areaPath} fill={`url(#${gradientId})`} />}
-          {futurePath && <path d={futurePath} fill="none" stroke={color} strokeWidth={1.5} strokeDasharray="4 4" strokeOpacity="0.35" />}
-          {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
+            {futureAreaPath && <path d={futureAreaPath} fill={color} fillOpacity="0.04" />}
+            {areaPath && <path d={areaPath} fill={`url(#${gradientId})`} />}
+            {futurePath && <path d={futurePath} fill="none" stroke={color} strokeWidth={1.5} strokeDasharray="4 4" strokeOpacity="0.35" />}
+            {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />}
 
-          {/* All 12 month labels */}
-          {allPoints.map((point, index) => (
-            <text key={`lbl-${index}`} x={point.x} y={chartHeight + padding.top + 20} fontSize="11" fill={theme.palette.text.disabled} textAnchor="middle">
+            {/* Dots only for active months */}
+            {activePoints.map((point, idx) => (
+              <g key={idx} style={{ cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setTooltip(tooltip?.index === idx ? null : { ...point, index: idx }); }}>
+                <circle cx={point.x} cy={point.y} r={tooltip?.index === idx ? 5 : 3} fill={color} stroke={tooltip?.index === idx ? theme.palette.background.paper : 'none'} strokeWidth={1.5} />
+                <circle cx={point.x} cy={point.y} r={12} fill="transparent" />
+              </g>
+            ))}
+          </svg>
+        </Box>
+
+        {/* Month labels — rendered as HTML so they don't stretch */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', px: `${(padding.left / chartWidth) * 100}%`, mt: 0.5 }}>
+          {allPoints.map((point, idx) => (
+            <Typography key={idx} variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem', textAlign: 'center', flex: 1 }}>
               {point.month}
-            </text>
+            </Typography>
           ))}
+        </Box>
 
-          {/* Dots only for active months */}
-          {activePoints.map((point, index) => (
-            <g key={index} style={{ cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); setTooltip(tooltip?.index === index ? null : { ...point, index }); }}>
-              <circle cx={point.x} cy={point.y} r={tooltip?.index === index ? 5 : 3} fill={color} stroke={tooltip?.index === index ? theme.palette.background.paper : 'none'} strokeWidth={1.5} />
-              <circle cx={point.x} cy={point.y} r={12} fill="transparent" />
-            </g>
-          ))}
-        </svg>
-
+        {/* Tooltip */}
         {tooltip && (
           <Box sx={{
             position: 'absolute',
-            top: `${(tooltip.y / (chartHeight + padding.top + padding.bottom)) * 100}%`,
+            top: `${(tooltip.y / (chartHeight + padding.top)) * 100}%`,
             left: `${(tooltip.x / chartWidth) * 100}%`,
             transform: 'translate(-50%, -130%)',
             bgcolor: 'background.paper',
@@ -280,7 +286,7 @@ const AreaChart = ({ data, loading, title, total, color, theme, gradientId, sele
               {tooltip.month}: {formatCurrency(tooltip.monthlyValue)}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-              Acumulado: {formatCurrency(tooltip.value)}
+              {i18n.t('overview:charts.cumulative', { defaultValue: 'Acumulado' })}: {formatCurrency(tooltip.value)}
             </Typography>
           </Box>
         )}
@@ -845,7 +851,7 @@ const AdminOverview = () => {
       pendingTotal: cumPending,
       overdueTotal: months.reduce((s, m) => s + m.overdue, 0)
     };
-  }, [invoices, selectedYear]);
+  }, [invoices, selectedYear, i18n.language]);
 
   // Fetch quick stats (raw data for stat card computation)
   const fetchQuickStats = async () => {

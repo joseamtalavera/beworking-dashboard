@@ -24,7 +24,8 @@
     "revenue": "Ingresos",
     "pending": "Pendiente",
     "overdue": "Vencido",
-    "noData": "Sin datos"
+    "noData": "Sin datos",
+    "cumulative": "Acumulado"
   },
   "occupancy": {
     "title": "Ocupación del Espacio",

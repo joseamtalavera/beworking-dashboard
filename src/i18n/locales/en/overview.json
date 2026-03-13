@@ -24,7 +24,8 @@
     "revenue": "Revenue",
     "pending": "Pending",
     "overdue": "Overdue",
-    "noData": "No data"
+    "noData": "No data",
+    "cumulative": "Cumulative"
   },
   "occupancy": {
     "title": "Workspace Occupancy",
