@@ -823,11 +823,11 @@ const AdminOverview = () => {
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const status = (invoice.estado || '').toLowerCase();
 
-      const isCancelled = status.includes('cancel');
+      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
       if (!isCancelled) {
         months[month].revenue += amount;
       }
-      if (status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice')) {
+      if (status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice') || status.includes('created')) {
         months[month].pending += amount;
       }
     });
