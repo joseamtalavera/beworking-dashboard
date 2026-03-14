@@ -299,11 +299,12 @@
       "Servicios": "Services"
     },
     "allProducts": "All products",
+    "meetingRooms": "Meeting Rooms",
     "allReservationTypes": "All reservation types",
     "allStatuses": "All statuses",
     "filterCentro": "Centro",
     "filterUserType": "User Type",
-    "filterProducto": "Producto",
+    "filterProducto": "Product",
     "filterReservationType": "Reservation Type",
     "filterStatus": "Status",
     "selectCentro": "Select centro",

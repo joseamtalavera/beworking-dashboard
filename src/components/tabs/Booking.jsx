@@ -3988,7 +3988,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const [selectedBloqueo, setSelectedBloqueo] = useState(null);
   const [filterUser, setFilterUser] = useState('');
   const [filterCenter, setFilterCenter] = useState('');
-  const [filterProduct, setFilterProduct] = useState('');
+  const [filterProduct, setFilterProduct] = useState('Meeting Rooms');
   const [filterEmail, setFilterEmail] = useState('');
   const [filterUserType, setFilterUserType] = useState(defaultAgendaUserType);
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
@@ -3999,7 +3999,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const clearFilters = () => {
     setFilterUser('');
     setFilterCenter('');
-    setFilterProduct('');
+    setFilterProduct('Meeting Rooms');
     setFilterEmail('');
     setFilterUserType(defaultAgendaUserType);
     setFilterPaymentStatus('');
@@ -4363,6 +4363,8 @@ const Booking = ({ mode = 'user', userProfile }) => {
         if (filterProduct) {
           if (filterProduct === 'Coworking') {
             if (!DESK_PRODUCT_NAMES.has(productLabel)) return false;
+          } else if (filterProduct === 'Meeting Rooms') {
+            if (!ALLOWED_PRODUCT_NAMES.has(productLabel)) return false;
           } else if (productLabel !== filterProduct) {
             return false;
           }
@@ -4480,9 +4482,11 @@ const Booking = ({ mode = 'user', userProfile }) => {
     // Show meeting rooms individually + single "Coworking" entry for all desks
     const meetingRoomProducts = productList.filter((item) => ALLOWED_PRODUCT_NAMES.has(item));
     const hasDeskProducts = productList.some((item) => DESK_PRODUCT_NAMES.has(item));
-    const filteredProductList = hasDeskProducts
-      ? [...meetingRoomProducts, 'Coworking']
-      : meetingRoomProducts;
+    const filteredProductList = [
+      'Meeting Rooms',
+      ...meetingRoomProducts,
+      ...(hasDeskProducts ? ['Coworking'] : []),
+    ];
 
     return {
       users: Array.from(users).sort(sorter),
@@ -5224,11 +5228,11 @@ const Booking = ({ mode = 'user', userProfile }) => {
                   displayEmpty
                   fullWidth
                   disableUnderline
-                  sx={{ fontSize: '0.875rem', color: filterProduct ? 'text.primary' : 'text.secondary' }}
+                  sx={{ fontSize: '0.875rem', color: (filterProduct && filterProduct !== 'Meeting Rooms') ? 'text.primary' : 'text.secondary' }}
                 >
                   <MenuItem value="">{t('admin.allProducts')}</MenuItem>
                   {(filterOptions.products || []).map((option) => (
-                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                    <MenuItem key={option} value={option}>{option === 'Meeting Rooms' ? t('admin.meetingRooms') : option}</MenuItem>
                   ))}
                 </Select>
               </Box>
