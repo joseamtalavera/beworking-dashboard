@@ -248,6 +248,11 @@ const getStatusStyles = () => ({
     bgcolor: alpha(CALENDAR_COLORS.free.bg, 0.12),
     borderColor: CALENDAR_COLORS.free.border,
     color: CALENDAR_COLORS.free.text
+  },
+  subscription: {
+    bgcolor: alpha('#1565c0', 0.12),
+    borderColor: '#1565c0',
+    color: '#1565c0'
   }
 });
 
@@ -637,6 +642,9 @@ const mapStatusKey = (status) => {
   }
   if (normalized.includes('grat') || normalized.includes('free')) {
     return 'free';
+  }
+  if (normalized.includes('subscription') || normalized.includes('suscripci')) {
+    return 'subscription';
   }
   return 'created';
 };
@@ -1056,14 +1064,15 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
                   </TableCell>
               <TableCell align="right" sx={{ width: 120 }}>{bookingDate}</TableCell>
               <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
-              <TableCell align="right" sx={{ width: 120, display: { xs: 'none', md: 'table-cell' } }}>{startHour}</TableCell>
-              <TableCell align="right" sx={{ width: 120, display: { xs: 'none', md: 'table-cell' } }}>{finishHour}</TableCell>
+              <TableCell align="right" sx={{ width: 120, display: { xs: 'none', md: 'table-cell' } }}>{bloqueo._isSubscription ? '—' : startHour}</TableCell>
+              <TableCell align="right" sx={{ width: 120, display: { xs: 'none', md: 'table-cell' } }}>{bloqueo._isSubscription ? '—' : finishHour}</TableCell>
               <TableCell align="right" sx={{ width: 90, display: { xs: 'none', md: 'table-cell' } }}>{attendees ?? '—'}</TableCell>
               <TableCell align="right" sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 {chipContent}
               </TableCell>
                   {onDelete ? (
                     <TableCell align="right" sx={{ width: 72 }}>
+                      {bloqueo._isSubscription ? null : (
                       <Tooltip title={t('admin.deleteBloqueo')}>
                         <span>
                           <IconButton
@@ -1079,6 +1088,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
                           </IconButton>
                         </span>
                       </Tooltip>
+                      )}
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -4482,12 +4492,48 @@ const Booking = ({ mode = 'user', userProfile }) => {
     };
   }, [bloqueos]);
 
+  // Convert desk subscriptions to bloqueo-shaped rows for the bookings table
+  const deskSubscriptionRows = useMemo(() => {
+    if (!Array.isArray(deskOccupancy) || deskOccupancy.length === 0) return [];
+    return deskOccupancy.map((sub) => ({
+      id: `sub-${sub.subscriptionId}`,
+      _isSubscription: true,
+      fechaIni: sub.startDate ? `${sub.startDate}T00:00:00` : null,
+      fechaFin: null,
+      estado: 'Subscription',
+      asistentes: 1,
+      cliente: { nombre: sub.contactName || '', tipoTenant: 'Usuario Mesa' },
+      producto: { nombre: sub.productName || '' },
+      centro: { nombre: 'MA1 MALAGA DUMAS' },
+      monthlyAmount: sub.monthlyAmount,
+    }));
+  }, [deskOccupancy]);
+
   const agendaBloqueos = useMemo(() => {
+    let base;
     if (!agendaDateFrom && !agendaDateTo) {
-      return filteredBloqueos || [];
+      base = filteredBloqueos || [];
+    } else {
+      base = (filteredBloqueos || []).filter((bloqueo) => bloqueoAppliesToDateRange(bloqueo, agendaDateFrom, agendaDateTo));
     }
-    return (filteredBloqueos || []).filter((bloqueo) => bloqueoAppliesToDateRange(bloqueo, agendaDateFrom, agendaDateTo));
-  }, [filteredBloqueos, agendaDateFrom, agendaDateTo]);
+    // Merge desk subscriptions when filtering for Coworking or showing all
+    if (view === 'bookings' && deskSubscriptionRows.length > 0) {
+      const showDesks = !filterProduct || filterProduct === 'Coworking';
+      const matchesUserType = !filterUserType || filterUserType === 'Usuario Mesa';
+      const matchesName = !filterUser || deskSubscriptionRows.some((r) =>
+        r.cliente.nombre.toLowerCase().includes(filterUser.toLowerCase())
+      );
+      if (showDesks && matchesUserType) {
+        const filteredSubs = filterUser
+          ? deskSubscriptionRows.filter((r) =>
+              r.cliente.nombre.toLowerCase().includes(filterUser.toLowerCase())
+            )
+          : deskSubscriptionRows;
+        return [...base, ...filteredSubs];
+      }
+    }
+    return base;
+  }, [filteredBloqueos, agendaDateFrom, agendaDateTo, view, deskSubscriptionRows, filterProduct, filterUserType, filterUser]);
 
   // Clear selection when the visible list changes
   useEffect(() => {
@@ -4579,7 +4625,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
   const [deskOccupancyLoading, setDeskOccupancyLoading] = useState(false);
 
   useEffect(() => {
-    if (view !== 'coworking' || !isAdmin) return;
+    if ((view !== 'coworking' && view !== 'bookings') || !isAdmin) return;
     setDeskOccupancyLoading(true);
     fetchDeskOccupancy()
       .then(setDeskOccupancy)

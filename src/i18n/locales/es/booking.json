@@ -266,7 +266,8 @@
     "invoiced": "Facturado",
     "booked": "Reservado",
     "pending": "Pendiente",
-    "free": "Gratis"
+    "free": "Gratis",
+    "subscription": "Suscripción"
   },
   "admin": {
     "title": "Reservas de Espacios",

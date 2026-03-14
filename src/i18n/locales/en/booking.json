@@ -266,7 +266,8 @@
     "invoiced": "Invoiced",
     "booked": "Booked",
     "pending": "Pending",
-    "free": "Free"
+    "free": "Free",
+    "subscription": "Subscription"
   },
   "admin": {
     "title": "Workspace Bookings",
