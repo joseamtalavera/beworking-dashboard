@@ -9,69 +9,48 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 
-const CALENDAR_COLORS = {
-  available: { bg: '#a1a1aa', border: '#a1a1aa', text: '#52525b' },
-  paid:      { bg: '#009624', border: '#009624', text: '#007a1d' },
-  invoiced:  { bg: '#ef4444', border: '#dc2626', text: '#b91c1c' },
-  created:   { bg: '#f59e0b', border: '#f59e0b', text: '#d97706' },
-  free:      { bg: '#1a1a1a', border: '#1a1a1a', text: '#1a1a1a' }
-};
-
 const DESK_RE = /^MA1O1[-_ ]?(\d{1,2})$/i;
 
-const mapStatusKey = (status) => {
-  const normalized = (status || '').toLowerCase();
-  if (normalized.includes('pag') || normalized.includes('paid')) return 'paid';
-  if (normalized.includes('fact') || normalized.includes('invoice') || normalized.includes('pend')) return 'invoiced';
-  if (normalized.includes('grat') || normalized.includes('free')) return 'free';
-  return 'created';
-};
+const OCCUPIED_COLORS = { bg: '#009624', border: '#009624', text: '#007a1d' };
 
-export function buildDeskMap(bloqueos, targetDate) {
+/**
+ * Build a Map<deskNumber, { subscription }> from desk-occupancy API data.
+ * Each entry in `occupancyData` has: { subscriptionId, contactId, contactName, productoId, productName, ... }
+ */
+export function buildDeskMap(occupancyData) {
   const map = new Map();
-  for (let i = 1; i <= 16; i++) map.set(i, { bloqueos: [], primaryBloqueo: null });
+  for (let i = 1; i <= 16; i++) map.set(i, { subscription: null });
 
-  if (!Array.isArray(bloqueos) || !targetDate) return map;
+  if (!Array.isArray(occupancyData)) return map;
 
-  const dayStart = new Date(targetDate + 'T00:00:00');
-  const dayEnd = new Date(targetDate + 'T23:59:59');
-
-  bloqueos.forEach((b) => {
-    const productName = (b?.producto?.nombre || '').toUpperCase();
+  occupancyData.forEach((entry) => {
+    const productName = (entry.productName || '').toUpperCase();
     const match = productName.match(DESK_RE);
     if (!match) return;
 
     const deskNum = parseInt(match[1], 10);
     if (deskNum < 1 || deskNum > 16) return;
 
-    const bStart = new Date(b.fechaIni || b.fecha || b.date);
-    const bEnd = b.fechaFin || b.dateTo ? new Date(b.fechaFin || b.dateTo) : bStart;
-    if (bStart <= dayEnd && bEnd >= dayStart) {
-      const entry = map.get(deskNum);
-      entry.bloqueos.push(b);
-      if (!entry.primaryBloqueo) entry.primaryBloqueo = b;
-    }
+    map.set(deskNum, { subscription: entry });
   });
 
   return map;
 }
 
 function DeskButton({ deskNumber, data, onClick, t }) {
-  const { primaryBloqueo } = data || {};
-  const isOccupied = Boolean(primaryBloqueo);
-  const statusKey = isOccupied ? mapStatusKey(primaryBloqueo.estado) : null;
-  const colors = isOccupied ? (CALENDAR_COLORS[statusKey] || CALENDAR_COLORS.created) : null;
-  const occupantName = primaryBloqueo?.cliente?.nombre || '';
+  const { subscription } = data || {};
+  const isOccupied = Boolean(subscription);
+  const occupantName = subscription?.contactName || '';
 
   const tooltipContent = isOccupied
-    ? [occupantName, primaryBloqueo?.producto?.nombre, primaryBloqueo?.centro?.nombre].filter(Boolean).join(' · ')
+    ? [occupantName, subscription?.productName, subscription?.description].filter(Boolean).join(' · ')
     : t('admin.deskAvailable');
 
   return (
     <Tooltip arrow title={tooltipContent}>
       <Button
         variant="outlined"
-        onClick={() => onClick(deskNumber, primaryBloqueo)}
+        onClick={() => onClick(deskNumber, subscription)}
         sx={{
           py: 1.5,
           px: 1,
@@ -81,13 +60,13 @@ function DeskButton({ deskNumber, data, onClick, t }) {
           fontSize: '0.875rem',
           minWidth: 0,
           width: '100%',
-          borderColor: isOccupied ? colors.border : 'success.light',
-          color: isOccupied ? colors.text : 'success.dark',
-          bgcolor: isOccupied ? alpha(colors.bg, 0.12) : 'transparent',
+          borderColor: isOccupied ? OCCUPIED_COLORS.border : 'success.light',
+          color: isOccupied ? OCCUPIED_COLORS.text : 'success.dark',
+          bgcolor: isOccupied ? alpha(OCCUPIED_COLORS.bg, 0.12) : 'transparent',
           '&:hover': {
-            borderColor: isOccupied ? colors.border : 'success.main',
+            borderColor: isOccupied ? OCCUPIED_COLORS.border : 'success.main',
             bgcolor: (theme) => isOccupied
-              ? alpha(colors.bg, 0.18)
+              ? alpha(OCCUPIED_COLORS.bg, 0.18)
               : alpha(theme.palette.success.main, 0.08),
           },
         }}
@@ -113,9 +92,9 @@ function DeskButton({ deskNumber, data, onClick, t }) {
 /**
  * Physical room layout — 4 columns × 6 rows:
  *
- * Row 1:  [10]  [12]  [14]  [16]    ← top horizontal section
+ * Row 1:  [10]  [12]  [14]  [16]    <- top horizontal section
  * Row 2:  [9]   [11]  [13]  [15]
- * Row 3:  [8]               [4]     ← side walls begin
+ * Row 3:  [8]               [4]     <- side walls begin
  * Row 4:  [7]               [3]
  * Row 5:  [6]               [2]
  * Row 6:  [5]               [1]
@@ -129,7 +108,8 @@ export const GRID_DESKS = [
   [6, 1, 5],                           [2, 4, 5],
   [5, 1, 6],                           [1, 4, 6],
 ];
-export default function CoworkingFloorPlan({ deskData, selectedDate, onDeskClick, loading }) {
+
+export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
   const { t } = useTranslation('booking');
 
   const availableCount = useMemo(() => {
@@ -137,12 +117,12 @@ export default function CoworkingFloorPlan({ deskData, selectedDate, onDeskClick
     let count = 0;
     for (let i = 1; i <= 16; i++) {
       const entry = deskData.get(i);
-      if (!entry || !entry.primaryBloqueo) count++;
+      if (!entry || !entry.subscription) count++;
     }
     return count;
   }, [deskData]);
 
-  const getData = (n) => deskData?.get(n) || { bloqueos: [], primaryBloqueo: null };
+  const getData = (n) => deskData?.get(n) || { subscription: null };
 
   if (loading) {
     return (
@@ -166,7 +146,7 @@ export default function CoworkingFloorPlan({ deskData, selectedDate, onDeskClick
           </Typography>
         </Stack>
 
-        {/* Floor plan grid: 4 columns × 6 rows */}
+        {/* Floor plan grid: 4 columns x 6 rows */}
         <Box
           sx={{
             display: 'grid',

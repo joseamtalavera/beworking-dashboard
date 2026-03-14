@@ -200,7 +200,11 @@
     "linkAndSync": "Link & Sync",
     "linkSuccess": "Linked. {{invoices}} of {{total}} invoices created.",
     "saving": "Saving...",
-    "save": "Save"
+    "save": "Save",
+    "deskProduct": "Assigned Desk",
+    "deskProductHelper": "Link this subscription to a specific desk",
+    "noDesk": "No desk assigned",
+    "assignedDesk": "Assigned Desk"
   },
   "header": {
     "title": "Contacts",

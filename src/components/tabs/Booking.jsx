@@ -93,6 +93,7 @@ import {
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
 import CoworkingFloorPlan, { buildDeskMap } from '../booking/CoworkingFloorPlan';
+import { fetchDeskOccupancy } from '../../api/subscriptions.js';
 import UninvoicedBookings from '../booking/UninvoicedBookings';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n.js';
@@ -4565,14 +4566,25 @@ const Booking = ({ mode = 'user', userProfile }) => {
     }
   };
 
-  const deskDataMap = useMemo(() => {
-    return buildDeskMap(bloqueos, calendarDateFrom);
-  }, [bloqueos, calendarDateFrom]);
+  // Desk occupancy from subscriptions
+  const [deskOccupancy, setDeskOccupancy] = useState(null);
+  const [deskOccupancyLoading, setDeskOccupancyLoading] = useState(false);
 
-  const handleDeskClick = useCallback((deskNumber, bloqueo) => {
-    if (bloqueo) {
-      handleSelectBloqueo(bloqueo);
-    } else {
+  useEffect(() => {
+    if (view !== 'coworking' || !isAdmin) return;
+    setDeskOccupancyLoading(true);
+    fetchDeskOccupancy()
+      .then(setDeskOccupancy)
+      .catch(() => setDeskOccupancy([]))
+      .finally(() => setDeskOccupancyLoading(false));
+  }, [view, isAdmin]);
+
+  const deskDataMap = useMemo(() => {
+    return buildDeskMap(deskOccupancy);
+  }, [deskOccupancy]);
+
+  const handleDeskClick = useCallback((deskNumber, subscription) => {
+    if (!subscription) {
       handleOpenCreateDialog();
     }
   }, [handleOpenCreateDialog]);
@@ -4685,50 +4697,11 @@ const Booking = ({ mode = 'user', userProfile }) => {
       {error && <Alert severity="error">{error}</Alert>}
 
       {view === 'coworking' ? (
-        <Stack spacing={3}>
-          <Paper
-            elevation={0}
-            sx={{
-              border: '1px solid',
-              borderColor: 'divider',
-              backgroundColor: 'background.paper',
-              display: 'flex',
-              alignItems: 'center',
-              overflow: 'hidden',
-              boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
-              flexDirection: { xs: 'column', sm: 'row' },
-              borderRadius: { xs: 3, sm: 999 },
-            }}
-          >
-            <Box sx={{ flex: 0.5, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-              <TextField
-                variant="standard"
-                type="date"
-                value={calendarDateFrom}
-                onChange={handleCalendarDateFromChange}
-                label={t('admin.selectDate')}
-                fullWidth
-                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: calendarDateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
-                }}
-              />
-            </Box>
-            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
-            <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
-            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-              <Legend />
-            </Box>
-          </Paper>
-
-          <CoworkingFloorPlan
-            deskData={deskDataMap}
-            selectedDate={calendarDateFrom}
-            onDeskClick={handleDeskClick}
-            loading={loading}
-          />
-        </Stack>
+        <CoworkingFloorPlan
+          deskData={deskDataMap}
+          onDeskClick={handleDeskClick}
+          loading={deskOccupancyLoading}
+        />
       ) : view === 'calendar' ? (
         <Stack spacing={3}>
           <Paper

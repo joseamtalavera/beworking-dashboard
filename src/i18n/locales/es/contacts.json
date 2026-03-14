@@ -200,7 +200,11 @@
     "linkAndSync": "Vincular y sincronizar",
     "linkSuccess": "Vinculado. {{invoices}} de {{total}} facturas creadas.",
     "saving": "Guardando...",
-    "save": "Guardar"
+    "save": "Guardar",
+    "deskProduct": "Mesa asignada",
+    "deskProductHelper": "Vincular esta suscripción a una mesa específica",
+    "noDesk": "Sin mesa asignada",
+    "assignedDesk": "Mesa asignada"
   },
   "header": {
     "title": "Contactos",

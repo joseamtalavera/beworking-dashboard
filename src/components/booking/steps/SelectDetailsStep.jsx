@@ -27,6 +27,7 @@ import enBooking from '../../../i18n/locales/en/booking.json';
 
 import { useBookingFlow } from '../BookingFlowContext';
 import { fetchPublicAvailability, fetchBloqueos } from '../../../api/bookings';
+import { fetchDeskOccupancy } from '../../../api/subscriptions';
 import RoomCalendarGrid, { CalendarLegend } from '../RoomCalendarGrid';
 import { addMinutesToTime } from '../../../utils/calendarUtils';
 import { GRID_DESKS, buildDeskMap } from '../CoworkingFloorPlan';
@@ -139,36 +140,36 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
   const deskStartDate = deskBookingType === 'day' ? state.dateFrom : `${deskMonth}-01`;
   const deskEndDate = deskBookingType === 'day' ? state.dateFrom : getMonthEnd(deskStartDate, deskDuration);
 
-  // Desk floor plan: fetch all bloqueos (desk products included) and build map
-  const [deskBloqueos, setDeskBloqueos] = useState([]);
+  // Desk floor plan: fetch subscription-based occupancy
+  const [deskOccupancy, setDeskOccupancy] = useState([]);
   useEffect(() => {
-    if (!isDeskProduct || !deskStartDate) return;
+    if (!isDeskProduct) return;
     let cancelled = false;
     setAvailLoading(true);
-    fetchBloqueos({ from: deskStartDate, to: deskEndDate || deskStartDate })
+    fetchDeskOccupancy()
       .then((data) => {
-        if (!cancelled) setDeskBloqueos(Array.isArray(data) ? data : []);
+        if (!cancelled) setDeskOccupancy(Array.isArray(data) ? data : []);
       })
       .catch(() => {
-        if (!cancelled) setDeskBloqueos([]);
+        if (!cancelled) setDeskOccupancy([]);
       })
       .finally(() => {
         if (!cancelled) setAvailLoading(false);
       });
     return () => { cancelled = true; };
-  }, [isDeskProduct, deskStartDate, deskEndDate]);
+  }, [isDeskProduct]);
 
   const deskDataMap = useMemo(() => {
     if (!isDeskProduct) return null;
-    return buildDeskMap(deskBloqueos, deskStartDate);
-  }, [isDeskProduct, deskBloqueos, deskStartDate]);
+    return buildDeskMap(deskOccupancy);
+  }, [isDeskProduct, deskOccupancy]);
 
   const deskAvailableCount = useMemo(() => {
     if (!deskDataMap) return 16;
     let count = 0;
     for (let i = 1; i <= 16; i++) {
       const entry = deskDataMap.get(i);
-      if (!entry || !entry.primaryBloqueo) count++;
+      if (!entry || !entry.subscription) count++;
     }
     return count;
   }, [deskDataMap]);
@@ -440,7 +441,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                 >
                   {GRID_DESKS.map(([deskNum, col, row]) => {
                     const deskEntry = deskDataMap?.get(deskNum);
-                    const isBooked = Boolean(deskEntry?.primaryBloqueo);
+                    const isBooked = Boolean(deskEntry?.subscription);
                     const isSelected = selectedDesk === deskNum;
 
                     return (

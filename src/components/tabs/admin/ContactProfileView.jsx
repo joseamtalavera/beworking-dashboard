@@ -49,7 +49,7 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
-import { fetchBookingStats } from '../../../api/bookings';
+import { fetchBookingStats, fetchBookingProductos } from '../../../api/bookings';
 import { fetchSubscriptions, createSubscription, updateSubscription, linkStripeSubscription } from '../../../api/subscriptions';
 import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
 import { loadStripe } from '@stripe/stripe-js';
@@ -82,6 +82,8 @@ const STATUS_OPTIONS = [
 ];
 
 const CENTER_OPTIONS = ['MA1 MALAGA DUMAS'];
+
+const DESK_PRODUCT_RE = /^MA1O1[-_ ]?\d{1,2}$/i;
 
 if (!i18n.hasResourceBundle('es', 'contacts')) {
   i18n.addResourceBundle('es', 'contacts', esContacts);
@@ -254,11 +256,27 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // Subscriptions
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
-  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0] });
+  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
   const [subSaving, setSubSaving] = useState(false);
   const [editSubDialog, setEditSubDialog] = useState({ open: false, sub: null, stripeSubscriptionId: '' });
   const [editSubSaving, setEditSubSaving] = useState(false);
   const [editSubResult, setEditSubResult] = useState(null);
+
+  // Desk product options for subscription linking
+  const [deskProducts, setDeskProducts] = useState([]);
+  useEffect(() => {
+    fetchBookingProductos()
+      .then((productos) => {
+        const desks = (productos || []).filter(p => DESK_PRODUCT_RE.test(p.nombre));
+        desks.sort((a, b) => {
+          const numA = parseInt(a.nombre.match(/(\d+)$/)?.[1] || '0', 10);
+          const numB = parseInt(b.nombre.match(/(\d+)$/)?.[1] || '0', 10);
+          return numA - numB;
+        });
+        setDeskProducts(desks);
+      })
+      .catch(() => setDeskProducts([]));
+  }, []);
 
   const handleEditSubOpen = (sub) => {
     setEditSubDialog({ open: true, sub, stripeSubscriptionId: sub.stripeSubscriptionId || '' });
@@ -334,10 +352,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         monthlyAmount: Number(newSub.monthlyAmount),
         cuenta: newSub.cuenta,
         description: newSub.description,
-        startDate: newSub.startDate
+        startDate: newSub.startDate,
+        productoId: newSub.productoId || undefined
       });
       setSubDialogOpen(false);
-      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0] });
+      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
       loadSubscriptions();
     } catch (err) {
       console.error('Failed to add subscription', err);
@@ -643,6 +662,12 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               <InfoRow label={t('profile.userType')} value={contact.user_type} />
               <InfoRow label={t('profile.status')} value={contact.status ? t('status.' + contact.status, { defaultValue: contact.status }) : undefined} />
               <InfoRow label={t('profile.center')} value={contact.center} />
+              {(() => {
+                const deskSub = subscriptions.find(s => s.active && s.productoId);
+                if (!deskSub) return null;
+                const dp = deskProducts.find(p => p.id === deskSub.productoId);
+                return <InfoRow label={t('profile.assignedDesk')} value={dp?.nombre || `Desk #${deskSub.productoId}`} />;
+              })()}
             </Stack>
           </InfoCard>
         </Box>
@@ -718,6 +743,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                           <Typography variant="caption" color="text.secondary">
                             {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t('profile.month')} · {t('profile.since')} {sub.startDate}
                             {sub.billingMethod === 'bank_transfer' && sub.lastInvoicedMonth && ` · ${t('profile.lastInvoiced')}: ${sub.lastInvoicedMonth}`}
+                            {sub.productoId && (() => {
+                              const dp = deskProducts.find(p => p.id === sub.productoId);
+                              return dp ? ` · ${dp.nombre}` : '';
+                            })()}
                           </Typography>
                           {sub.stripeSubscriptionId && (
                             <Typography variant="caption" color="text.disabled" sx={{ fontFamily: 'monospace', fontSize: '0.65rem' }}>
@@ -1300,6 +1329,26 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               onChange={(e) => setNewSub({ ...newSub, description: e.target.value })}
               fullWidth
             />
+            {deskProducts.length > 0 && (
+            <TextField
+              size="small"
+              label={t('profile.deskProduct')}
+              value={newSub.productoId}
+              onChange={(e) => setNewSub({ ...newSub, productoId: e.target.value })}
+              select
+              fullWidth
+              helperText={t('profile.deskProductHelper')}
+            >
+              <MenuItem value="">
+                <em>{t('profile.noDesk')}</em>
+              </MenuItem>
+              {deskProducts.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {p.nombre}
+                </MenuItem>
+              ))}
+            </TextField>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
