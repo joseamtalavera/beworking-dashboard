@@ -107,6 +107,8 @@
     "hours": "horas",
     "minutes": "minutos",
     "reservationType": "Tipo de reserva",
+    "monthly": "Mensual",
+    "daily": "Pase de día",
     "centro": "Centro",
     "producto": "Producto",
     "selectCentro": "Seleccionar centro",

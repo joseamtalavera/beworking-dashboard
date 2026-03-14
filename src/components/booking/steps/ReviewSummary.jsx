@@ -31,7 +31,24 @@ function getVatRate(state) {
   return 0.21;
 }
 
+function isDeskBooking(state) {
+  const name = (state.producto?.name || '').toUpperCase().replace(/[-_\s]/g, '');
+  return name === 'MA1DESK' || name === 'MA1DESKS' || /^MA1O1\d{1,2}$/.test(name);
+}
+
 function computePricing(state) {
+  const vatRate = getVatRate(state);
+
+  // Desk pricing: flat rate per day or per month
+  if (isDeskBooking(state)) {
+    const isMonthly = state.reservationType === 'Mensual';
+    const subtotal = isMonthly ? 90 : 10;
+    const label = isMonthly ? state.producto?.deskDuration ? `${state.producto.deskDuration} month(s)` : '1 month' : '1 day';
+    const vat = +(subtotal * vatRate).toFixed(2);
+    const total = +(subtotal + vat).toFixed(2);
+    return { subtotal, vat, total, label, vatRate, isDesk: true };
+  }
+
   const priceFrom = state.customPrice !== '' && state.customPrice != null
     ? Number(state.customPrice)
     : state.producto?.priceFrom;
@@ -43,7 +60,6 @@ function computePricing(state) {
     return { subtotal: 0, vat: 0, total: 0, label: '', vatRate: 0.21 };
   }
 
-  const vatRate = getVatRate(state);
   const hours = (end - start) / 60;
   const subtotal = hours * priceFrom;
   const vat = +(subtotal * vatRate).toFixed(2);
@@ -68,7 +84,7 @@ function computeBookingCount(state) {
 
 export default function ReviewSummary({ state }) {
   const { t } = useTranslation('booking');
-  const { subtotal, vat, total, label, vatRate } = computePricing(state);
+  const { subtotal, vat, total, label, vatRate, isDesk } = computePricing(state);
   const heroImage = state.producto?.heroImage || state.producto?.imageUrl || null;
   const roomName = state.producto?.name || '—';
   const centroName = state.centro?.name || state.centro?.code || '—';
@@ -169,15 +185,27 @@ export default function ReviewSummary({ state }) {
             {isRecurring ? t('admin.dateRange') : t('steps.date')}
           </Typography>
         </Stack>
-        <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
-          <AccessTimeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {state.startTime && state.endTime
-              ? `${state.startTime} – ${state.endTime}`
-              : '—'}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.time')}</Typography>
-        </Stack>
+        {isDesk ? (
+          <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
+            <PlaceRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {roomName}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {state.reservationType === 'Mensual' ? t('steps.monthly') : t('steps.daily')}
+            </Typography>
+          </Stack>
+        ) : (
+          <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
+            <AccessTimeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {state.startTime && state.endTime
+                ? `${state.startTime} – ${state.endTime}`
+                : '—'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.time')}</Typography>
+          </Stack>
+        )}
         {isRecurring && (
           <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
             <EventRepeatRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />

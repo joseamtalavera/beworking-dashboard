@@ -280,7 +280,9 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               {state.producto.capacity ? `${t('steps.capacity')} ${state.producto.capacity}` : ''}
-              {state.producto.priceFrom ? ` · ${t('steps.from')} ${state.producto.priceFrom} ${state.producto.priceUnit || 'EUR'}/h` : ''}
+              {isDeskProduct
+                ? ' · € 10/day · € 90/month'
+                : state.producto.priceFrom ? ` · ${t('steps.from')} ${state.producto.priceFrom} ${state.producto.priceUnit || 'EUR/h'}` : ''}
             </Typography>
           </Stack>
         </Paper>
