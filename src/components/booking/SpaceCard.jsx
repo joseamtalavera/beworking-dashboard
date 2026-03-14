@@ -88,7 +88,7 @@ const SpaceCard = ({ space, onBookNow }) => {
                 label={t('card.instantBooking')}
                 size="small"
                 sx={{
-                  background: '#ffffff',
+                  backgroundColor: '#ffffff !important',
                   color: 'text.primary',
                   fontWeight: 500,
                   fontSize: '0.75rem',
