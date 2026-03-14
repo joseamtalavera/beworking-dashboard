@@ -92,7 +92,7 @@ import {
 } from '../../api/stripe.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
-import CoworkingFloorPlan, { buildDeskMap } from '../booking/CoworkingFloorPlan';
+import CoworkingFloorPlan, { buildDeskMap, DeskLegend } from '../booking/CoworkingFloorPlan';
 import { fetchDeskOccupancy } from '../../api/subscriptions.js';
 import UninvoicedBookings from '../booking/UninvoicedBookings';
 import { useTranslation } from 'react-i18next';
@@ -4585,9 +4585,15 @@ const Booking = ({ mode = 'user', userProfile }) => {
 
   const handleDeskClick = useCallback((deskNumber, subscription) => {
     if (!subscription) {
-      handleOpenCreateDialog();
+      // Pre-select the desk product for the booking flow
+      const productName = `MA1O1-${deskNumber}`;
+      setSlotBookingRoom({
+        _producto: { name: productName },
+        _centro: { name: 'MA1 MALAGA DUMAS', label: 'MA1 MALAGA DUMAS' }
+      });
+      setBookingFlowActive(true);
     }
-  }, [handleOpenCreateDialog]);
+  }, []);
 
   const handleAvailableSlotClick = useCallback((room, slot) => {
     const sample = (calendarBloqueos || []).find(b => b?.producto?.id === room.productId);
@@ -4697,11 +4703,27 @@ const Booking = ({ mode = 'user', userProfile }) => {
       {error && <Alert severity="error">{error}</Alert>}
 
       {view === 'coworking' ? (
-        <CoworkingFloorPlan
-          deskData={deskDataMap}
-          onDeskClick={handleDeskClick}
-          loading={deskOccupancyLoading}
-        />
+        <Stack spacing={2}>
+          <Paper
+            elevation={0}
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: 'background.paper',
+              py: 1.5,
+              px: 3,
+              borderRadius: 999,
+              boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+            }}
+          >
+            <DeskLegend />
+          </Paper>
+          <CoworkingFloorPlan
+            deskData={deskDataMap}
+            onDeskClick={handleDeskClick}
+            loading={deskOccupancyLoading}
+          />
+        </Stack>
       ) : view === 'calendar' ? (
         <Stack spacing={3}>
           <Paper

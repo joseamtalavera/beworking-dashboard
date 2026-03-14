@@ -109,6 +109,22 @@ export const GRID_DESKS = [
   [5, 1, 6],                           [1, 4, 6],
 ];
 
+export function DeskLegend() {
+  const { t } = useTranslation('booking');
+  return (
+    <Stack direction="row" spacing={3} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Box sx={{ width: 16, height: 16, borderRadius: 1, border: '1px solid', borderColor: OCCUPIED_COLORS.border, bgcolor: alpha(OCCUPIED_COLORS.bg, 0.12) }} />
+        <Typography variant="caption" color="text.secondary">{t('admin.deskOccupied')}</Typography>
+      </Stack>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Box sx={{ width: 16, height: 16, borderRadius: 1, border: '1px solid', borderColor: 'success.light', bgcolor: 'transparent' }} />
+        <Typography variant="caption" color="text.secondary">{t('admin.deskAvailable')}</Typography>
+      </Stack>
+    </Stack>
+  );
+}
+
 export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
   const { t } = useTranslation('booking');
 
