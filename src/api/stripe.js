@@ -21,10 +21,10 @@ const stripeRequest = async (path, options = {}) => {
   return res.json();
 };
 
-export const createPaymentIntent = ({ amount, currency, reference, description, customerEmail }) =>
+export const createPaymentIntent = ({ amount, currency, reference, description, customerEmail, customerName }) =>
   stripeRequest('/api/payment-intents', {
     method: 'POST',
-    body: { amount, currency, reference, description, customer_email: customerEmail },
+    body: { amount, currency, reference, description, customer_email: customerEmail, customer_name: customerName || '' },
   });
 
 export const fetchCustomerPaymentMethods = (email) =>

@@ -616,6 +616,8 @@ function UserFreeBookingForm({ onCreated, usage }) {
 /* ─────────────────────────────────────
    User: Stripe Payment Form (inner)
    ───────────────────────────────────── */
+const PENDING_BOOKING_KEY = 'beworking_pending_booking';
+
 function UserPaymentFormInner({ onCreated }) {
   const { t } = useTranslation('booking');
   const stripe = useStripe();
@@ -626,18 +628,58 @@ function UserPaymentFormInner({ onCreated }) {
   const [success, setSuccess] = useState(false);
   const pricing = useMemo(() => computePricing(state), [state]);
 
+  // On mount, check if returning from a 3DS redirect with a succeeded payment
+  useEffect(() => {
+    if (!stripe) return;
+    const params = new URLSearchParams(window.location.search);
+    const piClientSecret = params.get('payment_intent_client_secret');
+    if (!piClientSecret) return;
+
+    const savedJson = sessionStorage.getItem(PENDING_BOOKING_KEY);
+    if (!savedJson) return;
+
+    setSubmitting(true);
+    stripe.retrievePaymentIntent(piClientSecret).then(async ({ paymentIntent }) => {
+      if (paymentIntent?.status === 'succeeded') {
+        try {
+          const savedPayload = JSON.parse(savedJson);
+          savedPayload.stripePaymentIntentId = paymentIntent.id;
+          await createPublicBooking(savedPayload);
+          sessionStorage.removeItem(PENDING_BOOKING_KEY);
+          setSuccess(true);
+          onCreated?.({});
+        } catch (err) {
+          setError(err.message || t('steps.somethingWentWrong'));
+        }
+      } else {
+        setError(t('steps.somethingWentWrong'));
+      }
+      // Clean up URL params
+      window.history.replaceState({}, '', window.location.pathname);
+      setSubmitting(false);
+    });
+  }, [stripe]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSubmit = async () => {
     if (!stripe || !elements) return;
     setError('');
     setSubmitting(true);
 
     try {
+      // Save the booking payload before payment in case of 3DS redirect
+      const pendingPayload = buildPublicPayload(state);
+      sessionStorage.setItem(PENDING_BOOKING_KEY, JSON.stringify(pendingPayload));
+
       const result = await stripe.confirmPayment({
         elements,
+        confirmParams: {
+          return_url: window.location.href.split('?')[0],
+        },
         redirect: 'if_required',
       });
 
       if (result.error) {
+        sessionStorage.removeItem(PENDING_BOOKING_KEY);
         setError(result.error.message || t('steps.somethingWentWrong'));
         setSubmitting(false);
         return;
@@ -648,6 +690,7 @@ function UserPaymentFormInner({ onCreated }) {
           stripePaymentIntentId: result.paymentIntent.id,
         });
         await createPublicBooking(payload);
+        sessionStorage.removeItem(PENDING_BOOKING_KEY);
         setSuccess(true);
         onCreated?.({});
       }
@@ -721,8 +764,19 @@ function UserPaymentForm({ onCreated }) {
   const contactEmail = state.contact?.email || '';
   const productName = state.producto?.name || '';
 
+  // Check if returning from a 3DS redirect (URL contains payment_intent_client_secret)
+  const redirectClientSecret = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('payment_intent_client_secret') || null;
+  }, []);
+
   // Check free booking eligibility on mount
   useEffect(() => {
+    if (redirectClientSecret) {
+      // Skip eligibility check — we're returning from 3DS redirect
+      setUsageLoading(false);
+      return;
+    }
     if (!contactEmail || !productName) {
       setUsageLoading(false);
       return;
@@ -732,24 +786,31 @@ function UserPaymentForm({ onCreated }) {
       .then((res) => setUsage(res))
       .catch(() => setUsage(null))
       .finally(() => setUsageLoading(false));
-  }, [contactEmail, productName]);
+  }, [contactEmail, productName, redirectClientSecret]);
 
-  // Only create Stripe intent if NOT free
+  // Only create Stripe intent if NOT free (and not returning from redirect)
   useEffect(() => {
+    if (redirectClientSecret) {
+      setClientSecret(redirectClientSecret);
+      return;
+    }
     if (usageLoading) return;
     if (usage?.isFree) return; // skip Stripe for free bookings
     const amountCents = Math.round(pricing.total * 100);
     if (amountCents <= 0) return;
+    const contactName = [state.contact?.firstName, state.contact?.lastName].filter(Boolean).join(' ')
+      || state.contact?.name || '';
     createPaymentIntent({
       amount: amountCents,
       currency: 'eur',
       reference: String(state.producto?.id || 'booking'),
       description: `Booking: ${state.producto?.name || ''} (${state.dateFrom})`,
       customerEmail: contactEmail,
+      customerName: contactName,
     })
       .then((res) => setClientSecret(res.clientSecret))
       .catch((err) => setError(err.message || 'Failed to initialize payment.'));
-  }, [usageLoading, usage, pricing.total, state.producto, state.dateFrom, contactEmail]);
+  }, [usageLoading, usage, pricing.total, state.producto, state.dateFrom, contactEmail, redirectClientSecret]);
 
   // Loading state
   if (usageLoading) {
@@ -768,8 +829,8 @@ function UserPaymentForm({ onCreated }) {
     );
   }
 
-  // Free booking path
-  if (usage?.isFree) {
+  // Free booking path (only when not returning from redirect)
+  if (!redirectClientSecret && usage?.isFree) {
     return <UserFreeBookingForm onCreated={onCreated} usage={usage} />;
   }
 
