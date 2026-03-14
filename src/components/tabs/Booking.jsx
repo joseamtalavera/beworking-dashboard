@@ -4351,7 +4351,9 @@ const Booking = ({ mode = 'user', userProfile }) => {
           : view === 'bookings' ? ALL_PRODUCT_NAMES
           : ALLOWED_PRODUCT_NAMES;
         if (filterProduct) {
-          if (productLabel !== filterProduct) {
+          if (filterProduct === 'Coworking') {
+            if (!DESK_PRODUCT_NAMES.has(productLabel)) return false;
+          } else if (productLabel !== filterProduct) {
             return false;
           }
         } else {
@@ -4465,8 +4467,12 @@ const Booking = ({ mode = 'user', userProfile }) => {
     userTypes.add('Usuario Aulas');
 
     const productList = Array.from(products).sort(sorter);
-    const allAllowed = new Set([...ALLOWED_PRODUCT_NAMES, ...DESK_PRODUCT_NAMES]);
-    const filteredProductList = productList.filter((item) => allAllowed.has(item));
+    // Show meeting rooms individually + single "Coworking" entry for all desks
+    const meetingRoomProducts = productList.filter((item) => ALLOWED_PRODUCT_NAMES.has(item));
+    const hasDeskProducts = productList.some((item) => DESK_PRODUCT_NAMES.has(item));
+    const filteredProductList = hasDeskProducts
+      ? [...meetingRoomProducts, 'Coworking']
+      : meetingRoomProducts;
 
     return {
       users: Array.from(users).sort(sorter),

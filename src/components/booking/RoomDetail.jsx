@@ -390,7 +390,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
         {/* Content: left column + right sidebar */}
         <Grid container spacing={5}>
-          <Grid item xs={12} md={7}>
+          <Grid item xs={12} md={isDesk ? 12 : 7}>
             <Stack spacing={4}>
               {/* Description */}
               <section>
@@ -486,7 +486,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           </Grid>
 
           {/* Sidebar — availability + CTA */}
-          <Grid item xs={12} md={5}>
+          <Grid item xs={12} md={isDesk ? 12 : 5}>
             <Stack
               spacing={3}
               sx={{
@@ -495,8 +495,8 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 borderRadius: 3,
                 p: 3,
                 bgcolor: 'background.paper',
-                position: { md: 'sticky' },
-                top: { md: 24 },
+                position: isDesk ? 'static' : { md: 'sticky' },
+                top: isDesk ? undefined : { md: 24 },
               }}
             >
               {isDesk ? (
