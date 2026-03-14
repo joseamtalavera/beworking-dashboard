@@ -18,7 +18,9 @@ import esBooking from '../../i18n/locales/es/booking.json';
 import enBooking from '../../i18n/locales/en/booking.json';
 
 import { fetchPublicAvailability } from '../../api/bookings';
+import { fetchDeskOccupancy } from '../../api/subscriptions';
 import RoomCalendarGrid, { CalendarLegend } from './RoomCalendarGrid';
+import CoworkingFloorPlan, { buildDeskMap } from './CoworkingFloorPlan';
 
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
@@ -129,6 +131,21 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
   const [availError, setAvailError] = useState(null);
 
   const producto = space?._producto || {};
+  const isDesk = space?.type === 'desk';
+
+  // Desk occupancy state (only for coworking/desk spaces)
+  const [deskOccupancy, setDeskOccupancy] = useState(null);
+  const [deskLoading, setDeskLoading] = useState(false);
+  const deskDataMap = useMemo(() => buildDeskMap(deskOccupancy), [deskOccupancy]);
+
+  useEffect(() => {
+    if (!isDesk) return;
+    setDeskLoading(true);
+    fetchDeskOccupancy()
+      .then(setDeskOccupancy)
+      .catch(() => setDeskOccupancy([]))
+      .finally(() => setDeskLoading(false));
+  }, [isDesk]);
 
   const name = space?.name || producto.name || '';
   const centroName = space?.centerName || space?._centro?.label || '';
@@ -167,10 +184,10 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
     producto.mapEmbedUrl ??
     `https://maps.google.com/maps?q=BeWorking+Coworking+${encodeURIComponent(centroName || 'Málaga')}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
 
-  // Fetch availability when date changes
+  // Fetch availability when date changes (meeting rooms only)
   const productName = producto.name || space?.name || '';
   useEffect(() => {
-    if (!selectedDate) return;
+    if (!selectedDate || isDesk) return;
     let cancelled = false;
     setAvailLoading(true);
     setAvailError(null);
@@ -478,38 +495,48 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 top: { md: 24 },
               }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
-                {t('detail.availability')}
-              </Typography>
-
-              <TextField
-                size="small"
-                label={t('detail.date')}
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-
-              {availError ? (
-                <Alert severity="error">{availError}</Alert>
-              ) : null}
-
-              {availLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <CircularProgress size={28} />
-                </Box>
+              {isDesk ? (
+                <CoworkingFloorPlan
+                  deskData={deskDataMap}
+                  onDeskClick={() => {}}
+                  loading={deskLoading}
+                />
               ) : (
-                <Stack spacing={1.5}>
-                  <CalendarLegend />
-                  <RoomCalendarGrid
-                    room={{ id: producto.id || space?.id, name, capacity }}
-                    dateLabel={dateLabel}
-                    bloqueos={roomBloqueos}
-                    interactive={false}
+                <>
+                  <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
+                    {t('detail.availability')}
+                  </Typography>
+
+                  <TextField
+                    size="small"
+                    label={t('detail.date')}
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
                   />
-                </Stack>
+
+                  {availError ? (
+                    <Alert severity="error">{availError}</Alert>
+                  ) : null}
+
+                  {availLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                      <CircularProgress size={28} />
+                    </Box>
+                  ) : (
+                    <Stack spacing={1.5}>
+                      <CalendarLegend />
+                      <RoomCalendarGrid
+                        room={{ id: producto.id || space?.id, name, capacity }}
+                        dateLabel={dateLabel}
+                        bloqueos={roomBloqueos}
+                        interactive={false}
+                      />
+                    </Stack>
+                  )}
+                </>
               )}
 
               <Divider />
