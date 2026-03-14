@@ -32,7 +32,7 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
 
 const SPACE_TYPES = [
   { value: 'meeting_room', labelKey: 'catalog.meetingRooms', icon: <MeetingRoomRoundedIcon /> },
-  { value: 'desk', labelKey: 'catalog.desks', icon: <DeskRoundedIcon /> },
+  { value: 'desk', labelKey: 'catalog.coworking', icon: <DeskRoundedIcon /> },
 ];
 
 // Helpers ported from beworking-booking store
@@ -184,6 +184,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
         typeLabel: rawType || 'Meeting room',
         image: producto.heroImage || '',
         capacity: producto.capacity != null ? String(producto.capacity) : '—',
+        sizeSqm: producto.sizeSqm ?? producto.size_sqm ?? null,
         priceFrom: producto.priceFrom,
         price: producto.priceFrom != null ? `€ ${producto.priceFrom}` : '€ —',
         priceUnit: producto.priceUnit || '/h',

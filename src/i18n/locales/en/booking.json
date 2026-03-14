@@ -15,6 +15,7 @@
     "subtitle": "Select a meeting room or desk to book",
     "meetingRooms": "Meeting Rooms",
     "desks": "Desks",
+    "coworking": "Coworking",
     "allSpaces": "All Spaces",
     "noSpaces": "No spaces available",
     "loading": "Loading spaces...",
