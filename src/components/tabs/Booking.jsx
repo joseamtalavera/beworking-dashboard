@@ -659,6 +659,7 @@ const ALLOWED_PRODUCT_NAMES = new Set(['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A
 const DESK_PRODUCT_NAMES = new Set(
   Array.from({ length: 16 }, (_, i) => `MA1O1-${i + 1}`)
 );
+const ALL_PRODUCT_NAMES = new Set([...ALLOWED_PRODUCT_NAMES, ...DESK_PRODUCT_NAMES]);
 
 const isAulaProduct = (bloqueo) => {
   const productName = bloqueo?.producto?.nombre || '';
@@ -4346,7 +4347,9 @@ const Booking = ({ mode = 'user', userProfile }) => {
       }
 
         const productLabel = bloqueo?.producto?.nombre || '';
-        const allowedSet = view === 'coworking' ? DESK_PRODUCT_NAMES : ALLOWED_PRODUCT_NAMES;
+        const allowedSet = view === 'coworking' ? DESK_PRODUCT_NAMES
+          : view === 'bookings' ? ALL_PRODUCT_NAMES
+          : ALLOWED_PRODUCT_NAMES;
         if (filterProduct) {
           if (productLabel !== filterProduct) {
             return false;
@@ -4389,7 +4392,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
     try {
       return (bloqueos || []).filter((bloqueo) => {
         const productLabel = bloqueo?.producto?.nombre || '';
-        return ALLOWED_PRODUCT_NAMES.has(productLabel);
+        return ALL_PRODUCT_NAMES.has(productLabel);
       }).length;
     } catch (error) {
       console.error('Error counting allowed bloqueos:', error);
@@ -4462,14 +4465,13 @@ const Booking = ({ mode = 'user', userProfile }) => {
     userTypes.add('Usuario Aulas');
 
     const productList = Array.from(products).sort(sorter);
-    const preferredProducts = ['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5'];
-    const preferredSet = new Set(preferredProducts.map((item) => item.toUpperCase()));
-    const preferredList = productList.filter((item) => preferredSet.has(String(item).toUpperCase()));
+    const allAllowed = new Set([...ALLOWED_PRODUCT_NAMES, ...DESK_PRODUCT_NAMES]);
+    const filteredProductList = productList.filter((item) => allAllowed.has(item));
 
     return {
       users: Array.from(users).sort(sorter),
       centers: Array.from(centers).sort(sorter),
-      products: preferredList,
+      products: filteredProductList,
       userTypes: Array.from(userTypes).sort(sorter)
     };
   }, [bloqueos]);
@@ -5152,7 +5154,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                 >
                   <MenuItem value="">{t('admin.allUserTypes')}</MenuItem>
                   {(filterOptions.userTypes || []).map((option) => (
-                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                    <MenuItem key={option} value={option}>{t(`admin.userTypeLabels.${option}`, option)}</MenuItem>
                   ))}
                 </Select>
               </Box>

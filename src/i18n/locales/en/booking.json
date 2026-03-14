@@ -288,6 +288,15 @@
     "bookingsDate": "Bookings Date",
     "allCentros": "All centros",
     "allUserTypes": "All user types",
+    "userTypeLabels": {
+      "Usuario Mesa": "Desk User",
+      "Usuario Aulas": "Room User",
+      "Usuario Virtual": "Virtual Office",
+      "Usuario Nómada": "Nomad User",
+      "Distribuidor": "Distributor",
+      "Proveedor": "Supplier",
+      "Servicios": "Services"
+    },
     "allProducts": "All products",
     "allReservationTypes": "All reservation types",
     "allStatuses": "All statuses",

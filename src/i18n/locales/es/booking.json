@@ -288,6 +288,15 @@
     "bookingsDate": "Fecha de reservas",
     "allCentros": "Todos los centros",
     "allUserTypes": "Todos los tipos de usuario",
+    "userTypeLabels": {
+      "Usuario Mesa": "Usuario Mesa",
+      "Usuario Aulas": "Usuario Aulas",
+      "Usuario Virtual": "Usuario Virtual",
+      "Usuario Nómada": "Usuario Nómada",
+      "Distribuidor": "Distribuidor",
+      "Proveedor": "Proveedor",
+      "Servicios": "Servicios"
+    },
     "allProducts": "Todos los productos",
     "allReservationTypes": "Todos los tipos de reserva",
     "allStatuses": "Todos los estados",
