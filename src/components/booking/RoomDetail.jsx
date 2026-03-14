@@ -157,6 +157,8 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
   const capacity = space?.capacity || (producto.capacity != null ? String(producto.capacity) : '');
   const priceFrom = producto.priceFrom ?? space?.priceFrom ?? null;
   const priceUnit = space?.priceUnit || producto.priceUnit || '';
+  const priceDay = space?.priceDay ?? null;
+  const priceMonth = space?.priceMonth ?? null;
 
   const amenities = (() => {
     if (Array.isArray(producto.amenities) && producto.amenities.length > 0) return producto.amenities;
@@ -285,7 +287,9 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               </Typography>
             )}
             <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '1rem' }}>
-              {t('detail.capacityLine', { capacity: capacity || '—', price: priceFrom ?? '—', unit: priceUnit })}
+              {isDesk && priceDay != null && priceMonth != null
+                ? `${t('detail.capacityOnly', { capacity: capacity || '—' })} · € ${priceDay}/day · € ${priceMonth}/month`
+                : t('detail.capacityLine', { capacity: capacity || '—', price: priceFrom ?? '—', unit: priceUnit })}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
@@ -541,9 +545,14 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
               <Divider />
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {capacity ? t('detail.capacityOnly', { capacity }) : ''}
-                {capacity && priceFrom != null ? ' · ' : ''}
-                {priceFrom != null ? t('detail.fromPrice', { price: priceFrom, unit: priceUnit }) : ''}
+                {isDesk && priceDay != null && priceMonth != null
+                  ? `${capacity ? t('detail.capacityOnly', { capacity }) + ' · ' : ''}€ ${priceDay}/day · € ${priceMonth}/month`
+                  : <>
+                      {capacity ? t('detail.capacityOnly', { capacity }) : ''}
+                      {capacity && priceFrom != null ? ' · ' : ''}
+                      {priceFrom != null ? t('detail.fromPrice', { price: priceFrom, unit: priceUnit }) : ''}
+                    </>
+                }
               </Typography>
               <Button
                 onClick={onStartBooking}

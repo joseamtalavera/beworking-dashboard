@@ -224,6 +224,8 @@ export default function RoomCatalog({ onClose, onBookNow }) {
         capacity: canonical.capacity != null ? String(canonical.capacity) : String(mesas.length),
         price: canonical.priceFrom != null ? `€ ${canonical.priceFrom}` : '€ 90',
         priceUnit: '/month',
+        priceDay: 10,
+        priceMonth: canonical.priceFrom ?? 90,
         location: city || centerName || 'Málaga',
         instantBooking: true,
         centroCode: pc || undefined,

@@ -203,8 +203,10 @@ const SpaceCard = ({ space, onBookNow }) => {
                 minWidth: 0
               }}
             >
-              {t('card.from')} {space.price}
-              {space.priceUnit}
+              {space.priceDay != null
+                ? `€ ${space.priceDay}/day · € ${space.priceMonth}/mo`
+                : <>{t('card.from')} {space.price}{space.priceUnit}</>
+              }
             </Typography>
 
             <Button
