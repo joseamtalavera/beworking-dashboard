@@ -487,92 +487,111 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
           {/* Sidebar — availability + CTA */}
           <Grid item xs={12} md={isDesk ? 12 : 5}>
-            <Stack
-              spacing={3}
-              sx={{
-                border: '1px solid',
-                borderColor: 'grey.200',
-                borderRadius: 3,
-                p: 3,
-                bgcolor: 'background.paper',
-                position: isDesk ? 'static' : { md: 'sticky' },
-                top: isDesk ? undefined : { md: 24 },
-              }}
-            >
-              {isDesk ? (
+            {isDesk ? (
+              <Stack spacing={3}>
                 <CoworkingFloorPlan
                   deskData={deskDataMap}
                   onDeskClick={() => {}}
                   loading={deskLoading}
                 />
-              ) : (
-                <>
-                  <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
-                    {t('detail.availability')}
+                <Stack spacing={2} alignItems="center">
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {`${capacity ? t('detail.capacityOnly', { capacity }) + ' · ' : ''}€ ${priceDay}/day · € ${priceMonth}/month`}
                   </Typography>
-
-                  <TextField
-                    size="small"
-                    label={t('detail.date')}
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                  />
-
-                  {availError ? (
-                    <Alert severity="error">{availError}</Alert>
-                  ) : null}
-
-                  {availLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                      <CircularProgress size={28} />
-                    </Box>
-                  ) : (
-                    <Stack spacing={1.5}>
-                      <CalendarLegend />
-                      <RoomCalendarGrid
-                        room={{ id: producto.id || space?.id, name, capacity }}
-                        dateLabel={dateLabel}
-                        bloqueos={roomBloqueos}
-                        interactive={false}
-                      />
-                    </Stack>
-                  )}
-                </>
-              )}
-
-              <Divider />
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {isDesk && priceDay != null && priceMonth != null
-                  ? `${capacity ? t('detail.capacityOnly', { capacity }) + ' · ' : ''}€ ${priceDay}/day · € ${priceMonth}/month`
-                  : <>
-                      {capacity ? t('detail.capacityOnly', { capacity }) : ''}
-                      {capacity && priceFrom != null ? ' · ' : ''}
-                      {priceFrom != null ? t('detail.fromPrice', { price: priceFrom, unit: priceUnit }) : ''}
-                    </>
-                }
-              </Typography>
-              <Button
-                onClick={onStartBooking}
-                variant="contained"
-                size="large"
+                  <Button
+                    onClick={onStartBooking}
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.95rem',
+                      backgroundColor: 'primary.main',
+                      '&:hover': { backgroundColor: 'primary.dark' },
+                      borderRadius: 999,
+                      px: 5,
+                      py: 1.25,
+                    }}
+                  >
+                    {t('detail.startBooking')}
+                  </Button>
+                </Stack>
+              </Stack>
+            ) : (
+              <Stack
+                spacing={3}
                 sx={{
-                  alignSelf: 'center',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  fontSize: '0.95rem',
-                  backgroundColor: 'primary.main',
-                  '&:hover': { backgroundColor: 'primary.dark' },
-                  borderRadius: 999,
-                  px: 5,
-                  py: 1.25,
+                  border: '1px solid',
+                  borderColor: 'grey.200',
+                  borderRadius: 3,
+                  p: 3,
+                  bgcolor: 'background.paper',
+                  position: { md: 'sticky' },
+                  top: { md: 24 },
                 }}
               >
-                {t('detail.startBooking')}
-              </Button>
-            </Stack>
+                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
+                  {t('detail.availability')}
+                </Typography>
+
+                <TextField
+                  size="small"
+                  label={t('detail.date')}
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+
+                {availError ? (
+                  <Alert severity="error">{availError}</Alert>
+                ) : null}
+
+                {availLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress size={28} />
+                  </Box>
+                ) : (
+                  <Stack spacing={1.5}>
+                    <CalendarLegend />
+                    <RoomCalendarGrid
+                      room={{ id: producto.id || space?.id, name, capacity }}
+                      dateLabel={dateLabel}
+                      bloqueos={roomBloqueos}
+                      interactive={false}
+                    />
+                  </Stack>
+                )}
+
+                <Divider />
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  <>
+                    {capacity ? t('detail.capacityOnly', { capacity }) : ''}
+                    {capacity && priceFrom != null ? ' · ' : ''}
+                    {priceFrom != null ? t('detail.fromPrice', { price: priceFrom, unit: priceUnit }) : ''}
+                  </>
+                </Typography>
+                <Button
+                  onClick={onStartBooking}
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    alignSelf: 'center',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    backgroundColor: 'primary.main',
+                    '&:hover': { backgroundColor: 'primary.dark' },
+                    borderRadius: 999,
+                    px: 5,
+                    py: 1.25,
+                  }}
+                >
+                  {t('detail.startBooking')}
+                </Button>
+              </Stack>
+            )}
           </Grid>
         </Grid>
 
