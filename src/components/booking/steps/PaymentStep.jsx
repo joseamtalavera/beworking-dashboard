@@ -29,6 +29,7 @@ import enBooking from '../../../i18n/locales/en/booking.json';
 
 import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation } from '../../../api/bookings.js';
 import { createInvoice, createManualInvoice } from '../../../api/invoices.js';
+import { createSubscription } from '../../../api/subscriptions.js';
 import UninvoicedBookings from '../UninvoicedBookings';
 import {
   createPaymentIntent,
@@ -69,6 +70,26 @@ const backButtonSx = {
   fontWeight: 600,
   color: 'text.secondary',
 };
+
+function isMonthlyDeskBooking(state) {
+  const name = (state.producto?.name || '').toUpperCase().replace(/[-_\s]/g, '');
+  const isDesk = name === 'MA1DESK' || name === 'MA1DESKS' || /^MA1O1\d{1,2}$/.test(name);
+  return isDesk && state.deskBookingType === 'month';
+}
+
+function buildSubscriptionPayload(state) {
+  return {
+    contactId: state.contact?.id,
+    monthlyAmount: 90,
+    currency: 'EUR',
+    cuenta: state.cuenta || 'PT',
+    description: `${state.producto?.name} — Coworking desk subscription`,
+    startDate: state.dateFrom,
+    endDate: state.dateTo,
+    billingMethod: 'bank_transfer',
+    productoId: state.producto?.deskProductoId || null,
+  };
+}
 
 function buildBookingPayload(state) {
   const contactId = state.contact?.id;
@@ -195,6 +216,17 @@ function AdminPaymentOptions({ onCreated }) {
     setSubmitting(true);
 
     try {
+      // ── Monthly desk subscription flow ──
+      if (isMonthlyDeskBooking(state)) {
+        const subPayload = buildSubscriptionPayload(state);
+        subPayload.billingMethod = paymentOption === 'charge' ? 'stripe' : 'bank_transfer';
+        await createSubscription(subPayload);
+        setCreatedResponse({});
+        setSuccess(true);
+        return;
+      }
+
+      // ── Standard booking flow ──
       const bookingPayload = buildBookingPayload(state);
       const combinedAmountCents = Math.round((pricing.total + selectedUninvoicedSubtotal * (1 + pricing.vatRate)) * 100);
       const amountCents = Math.round(pricing.total * 100);

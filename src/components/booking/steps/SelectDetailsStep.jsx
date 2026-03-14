@@ -176,10 +176,19 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
   const handleDeskSelect = (deskNum) => {
     setSelectedDesk(deskNum);
+    const deskName = `MA1O1-${deskNum}`;
+    // Look up the actual productoId from the desk products list
+    const deskProducts = state.producto?._deskProducts || [];
+    const match = deskProducts.find((p) => {
+      const n = (p.name || '').toUpperCase().replace(/[-_\s]/g, '');
+      return n === `MA1O1${deskNum}`;
+    });
     setField('producto', {
       ...state.producto,
-      name: `MA1O1-${deskNum}`,
+      name: deskName,
       deskNumber: deskNum,
+      deskProductoId: match?.id || null,
+      _deskProducts: deskProducts,
     });
     setFields({
       dateFrom: deskStartDate,
@@ -188,6 +197,8 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       endTime: '23:59',
       attendees: 1,
       reservationType: deskBookingType === 'month' ? 'Mensual' : 'Diaria',
+      deskBookingType,
+      deskDuration,
     });
   };
 

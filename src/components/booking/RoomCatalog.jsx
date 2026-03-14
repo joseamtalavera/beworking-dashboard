@@ -234,6 +234,10 @@ export default function RoomCatalog({ onClose, onBookNow }) {
         isBookable: true,
         _producto: canonical,
         _centro: matchingCentro || null,
+        _deskProducts: mesas.map((p) => ({
+          id: p.id,
+          name: p.name ?? p.nombre ?? '',
+        })),
       };
     })();
 
