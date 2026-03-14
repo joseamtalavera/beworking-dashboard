@@ -4667,11 +4667,6 @@ const Booking = ({ mode = 'user', userProfile }) => {
           </Typography>
         </Stack>
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-          <Tabs value={view} onChange={handleViewChange} sx={getViewToggleTabsStyle(theme)}>
-            <Tab icon={<GridViewRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.coworkingTab')} value="coworking" />
-            <Tab icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.meetingRoomsTab')} value="calendar" />
-            <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.agendaTab')} value="agenda" />
-          </Tabs>
           <Button
             variant="contained"
             startIcon={<AddRoundedIcon />}
@@ -4699,6 +4694,12 @@ const Booking = ({ mode = 'user', userProfile }) => {
           </Button>
         </Stack>
       </Stack>
+
+      <Tabs value={view} onChange={handleViewChange} sx={getViewToggleTabsStyle(theme)}>
+        <Tab icon={<GridViewRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.coworkingTab')} value="coworking" />
+        <Tab icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.meetingRoomsTab')} value="calendar" />
+        <Tab icon={<CalendarViewWeekRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('admin.agendaTab')} value="agenda" />
+      </Tabs>
 
       {error && <Alert severity="error">{error}</Alert>}
 
