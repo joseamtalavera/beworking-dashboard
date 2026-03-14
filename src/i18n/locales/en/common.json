@@ -3,7 +3,7 @@
     "Overview": "Overview",
     "Contacts": "Contacts",
     "Business Address": "Business Address",
-    "Booking": "Spaces",
+    "Booking": "BeSpaces",
     "Invoices": "Invoices",
     "Expenses": "Expenses",
     "BankReconciliation": "Banks",
@@ -26,7 +26,7 @@
     "evening": "Good evening"
   },
   "header": {
-    "subtitle": "Here's the latest across your spaces.",
+    "subtitle": "Here's the latest across your BeSpaces.",
     "search": "Search…",
     "clearSearch": "Clear search",
     "openNav": "Open navigation",

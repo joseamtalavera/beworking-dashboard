@@ -3,7 +3,7 @@
     "Overview": "Resumen",
     "Contacts": "Contactos",
     "Business Address": "Domicilio Fiscal",
-    "Booking": "Espacios",
+    "Booking": "BeSpaces",
     "Invoices": "Facturas",
     "Expenses": "Gastos",
     "BankReconciliation": "Bancos",
@@ -26,7 +26,7 @@
     "evening": "Buenas noches"
   },
   "header": {
-    "subtitle": "Aquí tienes lo último de tus espacios.",
+    "subtitle": "Aquí tienes lo último de tus BeSpaces.",
     "search": "Buscar…",
     "clearSearch": "Limpiar búsqueda",
     "openNav": "Abrir navegación",

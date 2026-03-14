@@ -3927,21 +3927,21 @@ const UserBookingWrapper = ({ userProfile }) => {
   return (
     <Box sx={{ minHeight: '100vh' }}>
       <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} sx={{ mb: 3 }}>
-          <Stack spacing={1}>
+        {mainView === 'bookings' && (
+          <Stack spacing={1} sx={{ mb: 3 }}>
             <Typography variant="h5" fontWeight="bold" color="text.primary">
-              {mainView === 'spaces' ? t('userView.meetingRooms') : t('userView.myBookings')}
+              {t('userView.myBookings')}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {mainView === 'spaces' ? t('steps.spacesSubtitle') : t('steps.bookingsSubtitle')}
+              {t('steps.bookingsSubtitle')}
             </Typography>
           </Stack>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Tabs value={mainView} onChange={handleMainViewChange} sx={getViewToggleTabsStyle(theme)}>
-              <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.spacesTab')} />
-              <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.bookingsTab')} />
-            </Tabs>
-          </Stack>
+        )}
+        <Stack direction="row" justifyContent="flex-end" sx={{ mb: 3 }}>
+          <Tabs value={mainView} onChange={handleMainViewChange} sx={getViewToggleTabsStyle(theme)}>
+            <Tab value="spaces" icon={<MeetingRoomRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.spacesTab')} />
+            <Tab value="bookings" icon={<CalendarTodayRoundedIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={t('userView.bookingsTab')} />
+          </Tabs>
         </Stack>
 
         {mainView === 'bookings' && (
