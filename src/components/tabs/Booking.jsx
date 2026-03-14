@@ -4358,7 +4358,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
 
         const productLabel = bloqueo?.producto?.nombre || '';
         const allowedSet = view === 'coworking' ? DESK_PRODUCT_NAMES
-          : view === 'bookings' ? ALL_PRODUCT_NAMES
+          : view === 'agenda' ? ALL_PRODUCT_NAMES
           : ALLOWED_PRODUCT_NAMES;
         if (filterProduct) {
           if (filterProduct === 'Coworking') {
@@ -4492,6 +4492,23 @@ const Booking = ({ mode = 'user', userProfile }) => {
     };
   }, [bloqueos]);
 
+  // Desk occupancy from subscriptions (must be declared before deskSubscriptionRows)
+  const [deskOccupancy, setDeskOccupancy] = useState(null);
+  const [deskOccupancyLoading, setDeskOccupancyLoading] = useState(false);
+
+  useEffect(() => {
+    if ((view !== 'coworking' && view !== 'agenda') || !isAdmin) return;
+    setDeskOccupancyLoading(true);
+    fetchDeskOccupancy()
+      .then(setDeskOccupancy)
+      .catch(() => setDeskOccupancy([]))
+      .finally(() => setDeskOccupancyLoading(false));
+  }, [view, isAdmin]);
+
+  const deskDataMap = useMemo(() => {
+    return buildDeskMap(deskOccupancy);
+  }, [deskOccupancy]);
+
   // Convert desk subscriptions to bloqueo-shaped rows for the bookings table
   const deskSubscriptionRows = useMemo(() => {
     if (!Array.isArray(deskOccupancy) || deskOccupancy.length === 0) return [];
@@ -4517,7 +4534,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
       base = (filteredBloqueos || []).filter((bloqueo) => bloqueoAppliesToDateRange(bloqueo, agendaDateFrom, agendaDateTo));
     }
     // Merge desk subscriptions when filtering for Coworking or showing all
-    if (view === 'bookings' && deskSubscriptionRows.length > 0) {
+    if (view === 'agenda' && deskSubscriptionRows.length > 0) {
       const showDesks = !filterProduct || filterProduct === 'Coworking';
       const matchesUserType = !filterUserType || filterUserType === 'Usuario Mesa';
       const matchesName = !filterUser || deskSubscriptionRows.some((r) =>
@@ -4619,23 +4636,6 @@ const Booking = ({ mode = 'user', userProfile }) => {
       setSelectedBloqueo(bloqueo);
     }
   };
-
-  // Desk occupancy from subscriptions
-  const [deskOccupancy, setDeskOccupancy] = useState(null);
-  const [deskOccupancyLoading, setDeskOccupancyLoading] = useState(false);
-
-  useEffect(() => {
-    if ((view !== 'coworking' && view !== 'bookings') || !isAdmin) return;
-    setDeskOccupancyLoading(true);
-    fetchDeskOccupancy()
-      .then(setDeskOccupancy)
-      .catch(() => setDeskOccupancy([]))
-      .finally(() => setDeskOccupancyLoading(false));
-  }, [view, isAdmin]);
-
-  const deskDataMap = useMemo(() => {
-    return buildDeskMap(deskOccupancy);
-  }, [deskOccupancy]);
 
   const handleDeskClick = useCallback((deskNumber, subscription) => {
     if (!subscription) {
