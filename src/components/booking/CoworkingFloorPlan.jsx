@@ -11,7 +11,8 @@ import { useTranslation } from 'react-i18next';
 
 const DESK_RE = /^MA1O1[-_ ]?(\d{1,2})$/i;
 
-const OCCUPIED_COLORS = { bg: '#009624', border: '#009624', text: '#007a1d' };
+// Consistent with booking flow: occupied = gray, available = green
+const OCCUPIED_COLORS = { border: 'action.disabled', text: 'text.disabled', bg: 'action.disabled' };
 
 /**
  * Build a Map<deskNumber, { subscription }> from desk-occupancy API data.
@@ -60,13 +61,15 @@ function DeskButton({ deskNumber, data, onClick, t }) {
           fontSize: '0.875rem',
           minWidth: 0,
           width: '100%',
-          borderColor: isOccupied ? OCCUPIED_COLORS.border : 'success.light',
-          color: isOccupied ? OCCUPIED_COLORS.text : 'success.dark',
-          bgcolor: isOccupied ? alpha(OCCUPIED_COLORS.bg, 0.12) : 'transparent',
+          borderColor: isOccupied ? 'action.disabled' : 'success.light',
+          color: isOccupied ? 'text.disabled' : 'success.dark',
+          bgcolor: (theme) => isOccupied
+            ? alpha(theme.palette.action.disabled, 0.08)
+            : 'transparent',
           '&:hover': {
-            borderColor: isOccupied ? OCCUPIED_COLORS.border : 'success.main',
+            borderColor: isOccupied ? 'action.disabled' : 'success.main',
             bgcolor: (theme) => isOccupied
-              ? alpha(OCCUPIED_COLORS.bg, 0.18)
+              ? alpha(theme.palette.action.disabled, 0.12)
               : alpha(theme.palette.success.main, 0.08),
           },
         }}
@@ -114,12 +117,12 @@ export function DeskLegend() {
   return (
     <Stack direction="row" spacing={3} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap>
       <Stack direction="row" spacing={1} alignItems="center">
-        <Box sx={{ width: 16, height: 16, borderRadius: 1, border: '1px solid', borderColor: OCCUPIED_COLORS.border, bgcolor: alpha(OCCUPIED_COLORS.bg, 0.12) }} />
-        <Typography variant="caption" color="text.secondary">{t('admin.deskOccupied')}</Typography>
+        <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: 'success.light' }} />
+        <Typography variant="caption" color="text.secondary">{t('admin.deskAvailable')}</Typography>
       </Stack>
       <Stack direction="row" spacing={1} alignItems="center">
-        <Box sx={{ width: 16, height: 16, borderRadius: 1, border: '1px solid', borderColor: 'success.light', bgcolor: 'transparent' }} />
-        <Typography variant="caption" color="text.secondary">{t('admin.deskAvailable')}</Typography>
+        <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: 'action.disabled' }} />
+        <Typography variant="caption" color="text.secondary">{t('admin.deskOccupied')}</Typography>
       </Stack>
     </Stack>
   );
