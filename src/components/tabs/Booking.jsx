@@ -92,7 +92,7 @@ import {
 } from '../../api/stripe.js';
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
-import CoworkingFloorPlan, { buildDeskMap, DeskLegend } from '../booking/CoworkingFloorPlan';
+import CoworkingFloorPlan, { buildDeskMap } from '../booking/CoworkingFloorPlan';
 import { fetchDeskOccupancy } from '../../api/subscriptions.js';
 import UninvoicedBookings from '../booking/UninvoicedBookings';
 import { useTranslation } from 'react-i18next';
@@ -4704,27 +4704,11 @@ const Booking = ({ mode = 'user', userProfile }) => {
       {error && <Alert severity="error">{error}</Alert>}
 
       {view === 'coworking' ? (
-        <Stack spacing={2}>
-          <Paper
-            elevation={0}
-            sx={{
-              border: '1px solid',
-              borderColor: 'divider',
-              backgroundColor: 'background.paper',
-              py: 1.5,
-              px: 3,
-              borderRadius: 999,
-              boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
-            }}
-          >
-            <DeskLegend />
-          </Paper>
-          <CoworkingFloorPlan
-            deskData={deskDataMap}
-            onDeskClick={handleDeskClick}
-            loading={deskOccupancyLoading}
-          />
-        </Stack>
+        <CoworkingFloorPlan
+          deskData={deskDataMap}
+          onDeskClick={handleDeskClick}
+          loading={deskOccupancyLoading}
+        />
       ) : view === 'calendar' ? (
         <Stack spacing={3}>
           <Paper

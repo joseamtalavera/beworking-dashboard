@@ -162,6 +162,8 @@ export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
           </Typography>
         </Stack>
 
+        <DeskLegend />
+
         {/* Floor plan grid: 4 columns x 6 rows */}
         <Box
           sx={{
