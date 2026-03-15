@@ -586,14 +586,6 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   />
                 )}
 
-                <Divider />
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  <>
-                    {capacity ? t('detail.capacityOnly', { capacity }) : ''}
-                    {capacity && priceFrom != null ? ' · ' : ''}
-                    {priceFrom != null ? t('detail.fromPrice', { price: priceFrom, unit: priceUnit }) : ''}
-                  </>
-                </Typography>
                 <Button
                   onClick={onStartBooking}
                   variant="contained"
