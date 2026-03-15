@@ -292,12 +292,12 @@ export default function RoomCatalog({ onClose, onBookNow }) {
           sx={{
             fontSize: '0.875rem',
             fontWeight: 500,
-            color: 'text.secondary',
+            color: '#4a7c59',
             textTransform: 'none',
             px: 1,
             mb: 1,
             borderRadius: '6px',
-            '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', color: 'text.primary' },
+            '&:hover': { backgroundColor: 'rgba(74, 124, 89, 0.08)', color: '#3d6b4a' },
           }}
         >
           {t('catalog.backToCalendar')}
