@@ -9,17 +9,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import EventNoteRoundedIcon from '@mui/icons-material/EventNoteRounded';
-import ReceiptRoundedIcon from '@mui/icons-material/ReceiptRounded';
-import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -42,11 +33,9 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
   const { t, i18n } = useTranslation();
   const { mode, toggleColorMode } = useColorMode();
   const accentColor = theme.palette.brand.green;
-  const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const open = Boolean(anchorEl);
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'es' ? 'en' : 'es';
@@ -61,13 +50,6 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
     return t('greeting.evening');
   }, [t]);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   // Search functionality
   const performSearch = useCallback(async (query) => {
@@ -177,12 +159,6 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
     }
   };
 
-  const actionOptions = [
-    { label: t('header.addBloqueo'), icon: <EventNoteRoundedIcon />, action: () => console.log('Add bloqueo') },
-    { label: t('header.createInvoice'), icon: <ReceiptRoundedIcon />, action: () => console.log('Create invoice') },
-    { label: t('header.addContact'), icon: <PersonAddRoundedIcon />, action: () => console.log('Add contact') },
-    { label: t('header.settings'), icon: <SettingsRoundedIcon />, action: () => console.log('Settings') }
-  ];
 
   return (
     <Box component="header" sx={{ position: 'sticky', top: 0, zIndex: 1100, bgcolor: 'background.paper', borderBottom: '1px solid', borderBottomColor: 'divider', px: { xs: 2, sm: 3, lg: 4 }, py: { xs: 2, sm: 3 } }}>
@@ -370,74 +346,6 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
             </Box>}
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
-              {isAdmin && <>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<AddRoundedIcon />}
-                onClick={handleClick}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: { xs: 1.5, sm: 3 },
-                  py: 1,
-                  height: 36,
-                  borderColor: accentColor,
-                  color: accentColor,
-                  '&:hover': {
-                    borderColor: accentColor,
-                    color: accentColor,
-                    backgroundColor: theme.palette.brand.accentSoft,
-                    transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(accentColor, 0.2)}`
-                  },
-                  transition: 'all 0.2s ease-in-out'
-                }}
-              >
-                {t('header.action')}
-              </Button>
-              <Menu
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                PaperProps={{
-                  sx: {
-                    mt: 1,
-                    minWidth: 180,
-                    borderRadius: 2,
-                    boxShadow: (theme) => theme.shadows[4]
-                  }
-                }}
-              >
-                {actionOptions.map((option, index) => (
-                  <MenuItem
-                    key={index}
-                    onClick={() => {
-                      option.action();
-                      handleClose();
-                    }}
-                    sx={{
-                      py: 1.5,
-                      px: 2,
-                      '&:hover': {
-                        backgroundColor: (theme) => theme.palette.brand.greenSoft
-                      }
-                    }}
-                  >
-                    <ListItemIcon sx={{ color: 'primary.main', minWidth: 36 }}>
-                      {option.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={option.label}
-                      primaryTypographyProps={{
-                        fontSize: '0.875rem',
-                        fontWeight: 500
-                      }}
-                    />
-                  </MenuItem>
-                ))}
-              </Menu>
-              </>}
               {/* AI Chat button */}
               <Button
                 variant="outlined"
