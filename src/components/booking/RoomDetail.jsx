@@ -564,6 +564,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                       }}
                     />
                   </Box>
+                  <Divider orientation="vertical" flexItem />
                   <Box sx={{ display: 'flex', justifyContent: 'center', px: 3, py: { xs: 1.5, sm: 2 } }}>
                     <CalendarLegend />
                   </Box>
