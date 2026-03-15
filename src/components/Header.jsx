@@ -185,7 +185,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ width: { xs: '100%', md: 'auto' } }}>
-            {isAdmin && <Box sx={{ position: 'relative', width: { xs: '100%', md: 280, lg: 320 }, flex: { sm: 1, md: 'none' }, order: { xs: 1, sm: 0 } }}>
+            <Box sx={{ position: 'relative', width: { xs: '100%', md: 280, lg: 320 }, flex: { sm: 1, md: 'none' }, order: { xs: 1, sm: 0 } }}>
             <TextField
               placeholder={t('header.search')}
               size="small"
@@ -343,7 +343,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                   ))}
                 </Box>
               )}
-            </Box>}
+            </Box>
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
               {/* AI Chat button */}

@@ -610,27 +610,29 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   }}
                 />
               </Box>
-              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
-              <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
-
-              {/* Price */}
-              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <TextField
-                  variant="standard"
-                  type="number"
-                  label={t('steps.price')}
-                  value={state.customPrice !== '' ? state.customPrice : (state.producto?.priceFrom || '')}
-                  onChange={(e) => setField('customPrice', e.target.value)}
-                  fullWidth
-                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.primary', py: 0.25 },
-                    '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
-                    '& input[type=number]': { MozAppearance: 'textfield' },
-                  }}
-                />
-              </Box>
+              {mode === 'admin' && (
+                <>
+                  <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+                  <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+                  <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                    <TextField
+                      variant="standard"
+                      type="number"
+                      label={t('steps.price')}
+                      value={state.customPrice !== '' ? state.customPrice : (state.producto?.priceFrom || '')}
+                      onChange={(e) => setField('customPrice', e.target.value)}
+                      fullWidth
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{
+                        '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                        '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.primary', py: 0.25 },
+                        '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
+                        '& input[type=number]': { MozAppearance: 'textfield' },
+                      }}
+                    />
+                  </Box>
+                </>
+              )}
             </Paper>
           )}
 
