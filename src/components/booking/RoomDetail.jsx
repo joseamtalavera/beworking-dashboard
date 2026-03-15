@@ -564,6 +564,9 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                       }}
                     />
                   </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', px: 3, py: { xs: 1.5, sm: 2 } }}>
+                    <CalendarLegend />
+                  </Box>
                 </Paper>
 
                 {availError ? (
@@ -575,15 +578,12 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                     <CircularProgress size={28} />
                   </Box>
                 ) : (
-                  <Stack spacing={1.5}>
-                    <CalendarLegend />
-                    <RoomCalendarGrid
-                      room={{ id: producto.id || space?.id, name, capacity }}
-                      dateLabel={dateLabel}
-                      bloqueos={roomBloqueos}
-                      interactive={false}
-                    />
-                  </Stack>
+                  <RoomCalendarGrid
+                    room={{ id: producto.id || space?.id, name, capacity }}
+                    dateLabel={dateLabel}
+                    bloqueos={roomBloqueos}
+                    interactive={false}
+                  />
                 )}
 
                 <Divider />
