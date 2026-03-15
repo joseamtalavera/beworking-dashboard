@@ -255,7 +255,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
                       {isDesk ? t('catalog.desks') : (room?.name || room?.label || t('steps.meetingRoom'))}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                      {isDesk ? `${deskCount} ${t('catalog.desks').toLowerCase()}` : (room?.capacity ? `${t('steps.capacity')} ${room.capacity}` : '')}
+                      {isDesk ? `${deskCount} ${t('catalog.desks').toLowerCase()}` : (room?.capacity ? `${t('steps.capacity')} ${room.capacity} ${t('detail.people')}` : '')}
                     </Typography>
                   </Stack>
                 </TableCell>
