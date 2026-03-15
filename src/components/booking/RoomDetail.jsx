@@ -534,15 +534,36 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   {t('detail.availability')}
                 </Typography>
 
-                <TextField
-                  size="small"
-                  label={t('detail.date')}
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
-                />
+                <Paper
+                  elevation={0}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    backgroundColor: 'background.paper',
+                    display: 'flex',
+                    alignItems: 'center',
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    borderRadius: { xs: 3, sm: 999 },
+                  }}
+                >
+                  <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                    <TextField
+                      variant="standard"
+                      type="date"
+                      label={t('detail.date')}
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      fullWidth
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{
+                        '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                        '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.primary', py: 0.25 },
+                      }}
+                    />
+                  </Box>
+                </Paper>
 
                 {availError ? (
                   <Alert severity="error">{availError}</Alert>
