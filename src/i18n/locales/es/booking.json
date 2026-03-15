@@ -7,7 +7,7 @@
   "dialog": {
     "createReserva": "Crear reserva",
     "addReservation": "Añadir una nueva reserva al sistema",
-    "backToRoom": "Volver a detalles de sala",
+    "backToRoom": "Volver",
     "booking": "Reserva"
   },
   "catalog": {
@@ -115,7 +115,7 @@
     "selectProducto": "Seleccionar producto",
     "selectType": "Seleccionar tipo",
     "next": "Siguiente",
-    "back": "Atrás",
+    "back": "Volver",
     "contact": "Contacto",
     "selectContact": "Seleccionar contacto",
     "searchContact": "Buscar contacto...",
