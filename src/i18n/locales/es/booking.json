@@ -171,6 +171,8 @@
     "sendInvoice": "Enviar Stripe",
     "noInvoice": "Factura sin Stripe",
     "noInvoiceDesc": "Se creará la factura en el dashboard pero no se enviará por Stripe.",
+    "bookOnly": "Solo reservar",
+    "bookOnlyDesc": "Se crea la reserva sin factura ni cobro. Podrás facturar más adelante.",
     "chargeSavedCard": "Cobrar tarjeta guardada",
     "noSavedCards": "No se encontraron tarjetas guardadas para {{email}}",
     "sendStripeInvoice": "Enviar factura de Stripe",

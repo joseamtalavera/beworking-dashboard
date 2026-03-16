@@ -130,7 +130,7 @@ function AdminPaymentOptions({ onCreated }) {
   const { t } = useTranslation('booking');
   const theme = useTheme();
   const { state, prevStep } = useBookingFlow();
-  const [paymentOption, setPaymentOption] = useState('free'); // 'free' | 'charge' | 'invoice' | 'no_invoice'
+  const [paymentOption, setPaymentOption] = useState('free'); // 'free' | 'charge' | 'invoice' | 'no_invoice' | 'book_only'
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState('');
   const [cardsLoading, setCardsLoading] = useState(false);
@@ -279,6 +279,9 @@ function AdminPaymentOptions({ onCreated }) {
       } else if (paymentOption === 'no_invoice') {
         bookingPayload.status = 'Facturado';
         invoiceStatus = 'Facturado';
+      } else if (paymentOption === 'book_only') {
+        bookingPayload.status = 'Reservado';
+        invoiceStatus = null;
       }
 
       // When grouping with uninvoiced bookings, create as 'Booked' first —
@@ -438,6 +441,17 @@ function AdminPaymentOptions({ onCreated }) {
             {paymentOption === 'no_invoice' && (
               <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
                 {t('steps.noInvoiceDesc')}
+              </Typography>
+            )}
+
+            <FormControlLabel
+              value="book_only"
+              control={<Radio size="small" />}
+              label={t('steps.bookOnly')}
+            />
+            {paymentOption === 'book_only' && (
+              <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
+                {t('steps.bookOnlyDesc')}
               </Typography>
             )}
           </RadioGroup>

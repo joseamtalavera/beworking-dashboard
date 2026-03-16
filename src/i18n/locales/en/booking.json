@@ -171,6 +171,8 @@
     "sendInvoice": "Send Stripe",
     "noInvoice": "Invoice without Stripe",
     "noInvoiceDesc": "Invoice will be created in the dashboard but not sent via Stripe.",
+    "bookOnly": "Book only",
+    "bookOnlyDesc": "Creates the booking with no invoice or charge. You can invoice later.",
     "chargeSavedCard": "Charge saved card",
     "noSavedCards": "No saved cards found for {{email}}",
     "sendStripeInvoice": "Send Stripe invoice",
