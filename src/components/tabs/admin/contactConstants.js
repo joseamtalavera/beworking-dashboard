@@ -9,7 +9,8 @@ export const CANONICAL_USER_TYPES = [
 ];
 
 export const LEGACY_USER_TYPE_MAP = {
-  'Usuario Oficinas Virtuales': 'Usuario Virtual'
+  'Usuario Oficinas Virtuales': 'Usuario Virtual',
+  'Por Horas': 'Usuario Aulas'
 };
 
 export const normalizeUserTypeLabel = (value) => {
