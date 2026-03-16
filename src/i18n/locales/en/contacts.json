@@ -172,6 +172,7 @@
     "subscriptionsDesc": "Active Stripe subscriptions",
     "noSubscriptions": "No active subscriptions",
     "addSubscription": "Add subscription",
+    "addSubscriptionError": "Failed to create subscription.",
     "monthlyAmount": "Monthly amount",
     "cuenta": "Account",
     "description": "Description",

@@ -256,6 +256,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // Subscriptions
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
+  const [subError, setSubError] = useState('');
   const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
   const [subSaving, setSubSaving] = useState(false);
   const [editSubDialog, setEditSubDialog] = useState({ open: false, sub: null, stripeSubscriptionId: '' });
@@ -344,6 +345,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
 
   const handleAddSubscription = async () => {
     setSubSaving(true);
+    setSubError('');
     try {
       await createSubscription({
         contactId: contact.id,
@@ -356,10 +358,13 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         productoId: newSub.productoId || undefined
       });
       setSubDialogOpen(false);
+      setSubError('');
       setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
       loadSubscriptions();
     } catch (err) {
-      console.error('Failed to add subscription', err);
+      let msg = err?.message || t('profile.addSubscriptionError');
+      try { const parsed = JSON.parse(msg); if (parsed.error) msg = parsed.error; } catch {}
+      setSubError(msg);
     } finally {
       setSubSaving(false);
     }
@@ -1267,10 +1272,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         </DialogActions>
       </Dialog>
 
-      <Dialog open={subDialogOpen} onClose={() => setSubDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={subDialogOpen} onClose={() => { setSubDialogOpen(false); setSubError(''); }} maxWidth="sm" fullWidth>
         <DialogTitle>{t('profile.addSubscription')}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
+            {subError && <Alert severity="error">{subError}</Alert>}
             <TextField
               size="small"
               label={t('profile.billingMethod')}

@@ -172,6 +172,7 @@
     "subscriptionsDesc": "Suscripciones activas de Stripe",
     "noSubscriptions": "Sin suscripciones activas",
     "addSubscription": "Añadir suscripción",
+    "addSubscriptionError": "No se pudo crear la suscripción.",
     "monthlyAmount": "Importe mensual",
     "cuenta": "Cuenta",
     "description": "Descripción",
