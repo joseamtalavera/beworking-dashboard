@@ -29,7 +29,8 @@ import { useBookingFlow } from '../BookingFlowContext';
 import { fetchPublicAvailability, fetchBloqueos } from '../../../api/bookings';
 import { fetchDeskOccupancy } from '../../../api/subscriptions';
 import RoomCalendarGrid, { CalendarLegend } from '../RoomCalendarGrid';
-import { addMinutesToTime } from '../../../utils/calendarUtils';
+import TimeSlotSelect from '../TimeSlotSelect';
+import { addMinutesToTime, buildTimeSlots, getBookedSlotIds, getMaxEndTime } from '../../../utils/calendarUtils';
 import { GRID_DESKS, buildDeskMap } from '../CoworkingFloorPlan';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
@@ -135,6 +136,27 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       (item) => (item?.producto?.nombre || '').toLowerCase() === productName.toLowerCase()
     );
   }, [bloqueos, productName]);
+
+  const timeSlots = useMemo(() => buildTimeSlots(), []);
+
+  const bookedSlotIds = useMemo(() => getBookedSlotIds(roomBloqueos), [roomBloqueos]);
+
+  const maxEndTime = useMemo(
+    () => getMaxEndTime(state.startTime, roomBloqueos),
+    [state.startTime, roomBloqueos]
+  );
+
+  // Auto-adjust if selected startTime is booked
+  useEffect(() => {
+    if (!state.startTime || bookedSlotIds.size === 0) return;
+    if (bookedSlotIds.has(state.startTime)) {
+      const next = timeSlots.find((s) => !bookedSlotIds.has(s.id));
+      if (next) {
+        setFields({ startTime: next.id, endTime: addMinutesToTime(next.id, 60) });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookedSlotIds]);
 
   // Compute desk date range based on booking type
   const deskStartDate = deskBookingType === 'day' ? state.dateFrom : `${deskMonth}-01`;
@@ -556,18 +578,12 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
               {/* Start time */}
               <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <TextField
-                  variant="standard"
-                  type="time"
+                <TimeSlotSelect
                   label={t('steps.startTime')}
                   value={state.startTime || '09:00'}
-                  onChange={(e) => setField('startTime', e.target.value)}
-                  fullWidth
-                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.startTime ? 'text.primary' : 'text.secondary', py: 0.25 },
-                  }}
+                  onChange={(val) => setField('startTime', val)}
+                  slots={timeSlots}
+                  bookedSlotIds={bookedSlotIds}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -575,18 +591,14 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
               {/* End time */}
               <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <TextField
-                  variant="standard"
-                  type="time"
+                <TimeSlotSelect
                   label={t('steps.endTime')}
                   value={state.endTime || '10:00'}
-                  onChange={(e) => setField('endTime', e.target.value)}
-                  fullWidth
-                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.endTime ? 'text.primary' : 'text.secondary', py: 0.25 },
-                  }}
+                  onChange={(val) => setField('endTime', val)}
+                  slots={timeSlots}
+                  bookedSlotIds={bookedSlotIds}
+                  minTime={state.startTime ? addMinutesToTime(state.startTime, 30) : undefined}
+                  maxTime={maxEndTime || undefined}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -669,18 +681,12 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
               {/* Start time */}
               <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <TextField
-                  variant="standard"
-                  type="time"
+                <TimeSlotSelect
                   label={t('steps.startTime')}
                   value={state.startTime || '09:00'}
-                  onChange={(e) => setField('startTime', e.target.value)}
-                  fullWidth
-                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.startTime ? 'text.primary' : 'text.secondary', py: 0.25 },
-                  }}
+                  onChange={(val) => setField('startTime', val)}
+                  slots={timeSlots}
+                  bookedSlotIds={bookedSlotIds}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -688,18 +694,14 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
               {/* End time */}
               <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <TextField
-                  variant="standard"
-                  type="time"
+                <TimeSlotSelect
                   label={t('steps.endTime')}
                   value={state.endTime || '10:00'}
-                  onChange={(e) => setField('endTime', e.target.value)}
-                  fullWidth
-                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.endTime ? 'text.primary' : 'text.secondary', py: 0.25 },
-                  }}
+                  onChange={(val) => setField('endTime', val)}
+                  slots={timeSlots}
+                  bookedSlotIds={bookedSlotIds}
+                  minTime={state.startTime ? addMinutesToTime(state.startTime, 30) : undefined}
+                  maxTime={maxEndTime || undefined}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />

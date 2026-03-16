@@ -103,6 +103,7 @@
     "date": "Date",
     "startTime": "Start time",
     "endTime": "End time",
+    "slotBooked": "Booked",
     "duration": "Duration",
     "hours": "hours",
     "minutes": "minutes",
