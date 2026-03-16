@@ -842,28 +842,46 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             {t('steps.additionalDetails')}
           </Typography>
           {mode === 'admin' && (
-            <TextField
-              size="small"
-              label={t('steps.cuenta')}
-              value={state.cuenta || 'PT'}
-              onChange={(e) => setField('cuenta', e.target.value)}
-              select
-              fullWidth
-            >
-              <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
-              <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
-            </TextField>
+            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', borderRadius: { xs: 3, sm: 999 } }}>
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: '100%' }}>
+                <TextField
+                  variant="standard"
+                  label={t('steps.cuenta')}
+                  value={state.cuenta || 'PT'}
+                  onChange={(e) => setField('cuenta', e.target.value)}
+                  select
+                  fullWidth
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
+                  }}
+                >
+                  <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
+                  <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
+                </TextField>
+              </Box>
+            </Paper>
           )}
-          <TextField
-            size="small"
-            label={t('steps.notesOptional')}
-            value={state.note || ''}
-            onChange={(e) => setField('note', e.target.value)}
-            fullWidth
-            multiline
-            minRows={2}
-            placeholder={t('steps.notesRequirementsPlaceholder')}
-          />
+          <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', borderRadius: 3 }}>
+            <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: '100%' }}>
+              <TextField
+                variant="standard"
+                label={t('steps.notesOptional')}
+                value={state.note || ''}
+                onChange={(e) => setField('note', e.target.value)}
+                fullWidth
+                multiline
+                minRows={2}
+                placeholder={t('steps.notesRequirementsPlaceholder')}
+                slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                  '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
+                }}
+              />
+            </Box>
+          </Paper>
         </Stack>
       </Paper>
 

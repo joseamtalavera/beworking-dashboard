@@ -165,31 +165,36 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
         {mode === 'admin' ? (
           /* Admin: contact search */
           <Box sx={{ position: 'relative' }}>
-            <TextField
-              fullWidth
-              label={t('steps.searchContact')}
-              value={contactInputValue}
-              onChange={(e) => setContactInputValue(e.target.value)}
-              placeholder={t('steps.searchByName')}
-              required
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                  </InputAdornment>
-                ),
-                endAdornment: contactsLoading ? (
-                  <CircularProgress color="inherit" size={18} />
-                ) : selectedContact ? (
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={handleClearContact} sx={{ color: 'text.disabled' }}>
-                      <CloseRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ) : null,
-              }}
-            />
+            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', borderRadius: { xs: 3, sm: 999 } }}>
+              <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: '100%' }}>
+                <TextField
+                  variant="standard"
+                  fullWidth
+                  label={t('steps.searchContact')}
+                  value={contactInputValue}
+                  onChange={(e) => setContactInputValue(e.target.value)}
+                  placeholder={t('steps.searchByName')}
+                  required
+                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  sx={{
+                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                    '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
+                  }}
+                  InputProps={{
+                    disableUnderline: true,
+                    endAdornment: contactsLoading ? (
+                      <CircularProgress color="inherit" size={18} />
+                    ) : selectedContact ? (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={handleClearContact} sx={{ color: 'text.disabled' }}>
+                          <CloseRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  }}
+                />
+              </Box>
+            </Paper>
             {contactInputValue && contactOptions.length > 0 && !selectedContact && (
               <Paper
                 elevation={3}
