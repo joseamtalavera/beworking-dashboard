@@ -794,7 +794,9 @@ const SpaceCatalog = () => {
                       onChange={handleChange}
                       select
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     >
                       {CENTRO_OPTIONS.map((option) => (
                         <MenuItem key={option.code} value={option.code}>
@@ -810,7 +812,9 @@ const SpaceCatalog = () => {
                       value={formValues.displayName}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -820,7 +824,9 @@ const SpaceCatalog = () => {
                       value={formValues.code}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                       helperText={t('dialog.codeHelper')}
                     />
                   </Grid>
@@ -832,7 +838,9 @@ const SpaceCatalog = () => {
                       onChange={handleChange}
                       select
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     >
                       {TYPE_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -849,7 +857,9 @@ const SpaceCatalog = () => {
                       onChange={handleChange}
                       select
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     >
                       {STATUS_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -867,7 +877,9 @@ const SpaceCatalog = () => {
                       type="date"
                       slotProps={{ inputLabel: { shrink: true } }}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -877,7 +889,9 @@ const SpaceCatalog = () => {
                       value={formValues.productCode}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -887,7 +901,9 @@ const SpaceCatalog = () => {
                       value={formValues.capacity}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -897,7 +913,9 @@ const SpaceCatalog = () => {
                       value={formValues.size}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -907,7 +925,9 @@ const SpaceCatalog = () => {
                       value={formValues.priceFrom}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -918,7 +938,9 @@ const SpaceCatalog = () => {
                       onChange={handleChange}
                       select
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     >
                       {PRICE_UNIT_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -934,7 +956,9 @@ const SpaceCatalog = () => {
                       value={formValues.rating}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -944,7 +968,9 @@ const SpaceCatalog = () => {
                       value={formValues.reviewCount}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -954,7 +980,9 @@ const SpaceCatalog = () => {
                       value={formValues.order}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -964,7 +992,9 @@ const SpaceCatalog = () => {
                       value={formValues.wifi}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                   <Grid size={12}>
@@ -974,7 +1004,9 @@ const SpaceCatalog = () => {
                       value={formValues.heroImage}
                       onChange={handleChange}
                       fullWidth
-                      size="small"
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                     />
                   </Grid>
                 </Grid>
@@ -1052,7 +1084,9 @@ const SpaceCatalog = () => {
                     value={formValues.subtitle}
                     onChange={handleChange}
                     fullWidth
-                    size="small"
+                    variant="standard"
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                   />
                   <TextField
                     label={t('dialog.description')}
@@ -1069,7 +1103,9 @@ const SpaceCatalog = () => {
                     value={formValues.tags}
                     onChange={handleChange}
                     fullWidth
-                    size="small"
+                    variant="standard"
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                   />
                 </Stack>
               </Paper>
@@ -1152,16 +1188,20 @@ const SpaceCatalog = () => {
                           <TextField
                             value={image.url}
                             onChange={updateImageField(index, 'url')}
-                            size="small"
+                            variant="standard"
                             fullWidth
+                            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                            sx={{ '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                           />
                         </Stack>
                         <TextField
                           label={t('dialog.imageDescription')}
                           value={image.caption ?? ''}
                           onChange={updateImageField(index, 'caption')}
-                          size="small"
+                          variant="standard"
                           fullWidth
+                          slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                          sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
                         />
                         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
                           <Button

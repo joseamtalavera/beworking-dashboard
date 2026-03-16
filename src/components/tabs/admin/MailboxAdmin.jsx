@@ -1292,84 +1292,46 @@ const MailboxAdmin = () => {
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
                 {t('uploadDialog.searchContacts')}
               </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  placeholder={t('uploadDialog.searchPlaceholder')}
-                  value={searchForm.nameSearch}
-                  onChange={(e) => handleSearchChange('nameSearch', e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchRoundedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: isSearching && (
-                      <InputAdornment position="end">
-                        <Box
-                          sx={{
-                            width: 16,
-                            height: 16,
-                            border: `2px solid ${theme.palette.grey[200]}`,
-                            borderTop: `2px solid ${theme.palette.secondary.main}`,
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite',
-                            '@keyframes spin': {
-                              '0%': { transform: 'rotate(0deg)' },
-                              '100%': { transform: 'rotate(360deg)' }
-                            }
-                          }}
-                        />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: 'background.default',
-                      '& fieldset': { borderColor: 'grey.200' },
-                      '&:hover fieldset': { borderColor: 'secondary.main' },
-                      '&.Mui-focused fieldset': { borderColor: 'secondary.main' }
-                    }
-                  }}
-                  sx={{ flex: 1 }}
-                />
-                <TextField
-                  placeholder={t('uploadDialog.searchByEmail')}
-                  value={searchForm.emailSearch}
-                  onChange={(e) => handleSearchChange('emailSearch', e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailOutlinedIcon sx={{ color: 'text.disabled' }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: isSearching && (
-                      <InputAdornment position="end">
-                        <Box
-                          sx={{
-                            width: 16,
-                            height: 16,
-                            border: `2px solid ${theme.palette.grey[200]}`,
-                            borderTop: `2px solid ${theme.palette.secondary.main}`,
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite',
-                            '@keyframes spin': {
-                              '0%': { transform: 'rotate(0deg)' },
-                              '100%': { transform: 'rotate(360deg)' }
-                            }
-                          }}
-                        />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: 'background.default',
-                      '& fieldset': { borderColor: 'grey.200' },
-                      '&:hover fieldset': { borderColor: 'secondary.main' },
-                      '&.Mui-focused fieldset': { borderColor: 'secondary.main' }
-                    }
-                  }}
-                  sx={{ flex: 1 }}
-                />
-              </Stack>
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', flexDirection: { xs: 'column', sm: 'row' }, borderRadius: { xs: 3, sm: 999 } }}>
+                <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                  <TextField
+                    variant="standard"
+                    label={t('uploadDialog.searchPlaceholder')}
+                    value={searchForm.nameSearch}
+                    onChange={(e) => handleSearchChange('nameSearch', e.target.value)}
+                    fullWidth
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    InputProps={{
+                      disableUnderline: true,
+                      endAdornment: isSearching ? <CircularProgress color="inherit" size={16} /> : null,
+                    }}
+                    sx={{
+                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
+                    }}
+                  />
+                </Box>
+                <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+                <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+                <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                  <TextField
+                    variant="standard"
+                    label={t('uploadDialog.searchByEmail')}
+                    value={searchForm.emailSearch}
+                    onChange={(e) => handleSearchChange('emailSearch', e.target.value)}
+                    fullWidth
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    InputProps={{
+                      disableUnderline: true,
+                      endAdornment: isSearching ? <CircularProgress color="inherit" size={16} /> : null,
+                    }}
+                    sx={{
+                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
+                    }}
+                  />
+                </Box>
+              </Paper>
 
               {/* Search Results */}
               {searchResults.length > 0 && (
@@ -1422,25 +1384,43 @@ const MailboxAdmin = () => {
               <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
                 {t('uploadDialog.manualEntry')}
               </Typography>
-              <Stack spacing={2}>
-                <TextField
-                  label={t('uploadDialog.contactName')}
-                  value={uploadForm.contactName}
-                  onChange={(e) => handleFormChange('contactName', e.target.value)}
-                  fullWidth
-                  required
-                  placeholder={t('uploadDialog.contactNamePlaceholder')}
-                />
-                <TextField
-                  label={t('uploadDialog.contactEmail')}
-                  type="email"
-                  value={uploadForm.contactEmail}
-                  onChange={(e) => handleFormChange('contactEmail', e.target.value)}
-                  fullWidth
-                  required
-                  placeholder={t('uploadDialog.contactEmailPlaceholder')}
-                />
-              </Stack>
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', flexDirection: { xs: 'column', sm: 'row' }, borderRadius: { xs: 3, sm: 999 } }}>
+                <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                  <TextField
+                    variant="standard"
+                    label={t('uploadDialog.contactName')}
+                    value={uploadForm.contactName}
+                    onChange={(e) => handleFormChange('contactName', e.target.value)}
+                    fullWidth
+                    required
+                    placeholder={t('uploadDialog.contactNamePlaceholder')}
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    sx={{
+                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
+                    }}
+                  />
+                </Box>
+                <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+                <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+                <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+                  <TextField
+                    variant="standard"
+                    label={t('uploadDialog.contactEmail')}
+                    type="email"
+                    value={uploadForm.contactEmail}
+                    onChange={(e) => handleFormChange('contactEmail', e.target.value)}
+                    fullWidth
+                    required
+                    placeholder={t('uploadDialog.contactEmailPlaceholder')}
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    sx={{
+                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
+                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
+                    }}
+                  />
+                </Box>
+              </Paper>
             </Box>
 
             <Divider />
