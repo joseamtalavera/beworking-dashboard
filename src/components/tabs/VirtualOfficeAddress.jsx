@@ -16,6 +16,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
+import SubscriptionGate from '../SubscriptionGate.jsx';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import BusinessIcon from '@mui/icons-material/Business';
 import DirectionsIcon from '@mui/icons-material/Directions';
@@ -156,7 +157,7 @@ const TransportItem = ({ transport }) => (
   </Stack>
 );
 
-const VirtualOfficeAddress = () => {
+const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
   const { t } = useTranslation('mailbox');
   const theme = useTheme();
   const accentColor = theme.palette.primary.main;
@@ -166,11 +167,22 @@ const VirtualOfficeAddress = () => {
   const [addTransportOpen, setAddTransportOpen] = useState(false);
   const [editForm, setEditForm] = useState(initialOfficeData);
   const [transportForm, setTransportForm] = useState({ name: '', distance: '' });
+  const [gateOpen, setGateOpen] = useState(false);
   const mapSrc = 'https://maps.google.com/maps?q=BeWorking+Coworking+M%C3%A1laga+Calle+Alejandro+Dumas+17&t=&z=16&ie=UTF8&iwloc=&output=embed';
 
+  const guardAction = (callback) => {
+    if (hasActiveSubscription) {
+      callback();
+    } else {
+      setGateOpen(true);
+    }
+  };
+
   const openEditDialog = () => {
-    setEditForm(officeData);
-    setEditOpen(true);
+    guardAction(() => {
+      setEditForm(officeData);
+      setEditOpen(true);
+    });
   };
 
   const handleEditChange = (field) => (event) => {
@@ -220,22 +232,29 @@ const VirtualOfficeAddress = () => {
     setAddTransportOpen(false);
   };
   const handleGetDirections = () => {
-    const { lat, lng } = officeData.coordinates;
-    const address = `${officeData.address.street}, ${officeData.address.city}`;
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
-    window.open(googleMapsUrl, '_blank', 'noopener');
+    guardAction(() => {
+      const address = `${officeData.address.street}, ${officeData.address.city}`;
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+      window.open(googleMapsUrl, '_blank', 'noopener');
+    });
   };
 
   const handleCallOffice = () => {
-    window.open(`tel:${officeData.contact.phone}`, '_self');
+    guardAction(() => {
+      window.open(`tel:${officeData.contact.phone}`, '_self');
+    });
   };
 
   const handleEmailOffice = () => {
-    window.open(`mailto:${officeData.contact.email}`, '_self');
+    guardAction(() => {
+      window.open(`mailto:${officeData.contact.email}`, '_self');
+    });
   };
 
   const handleVisitWebsite = () => {
-    window.open(officeData.contact.website, '_blank', 'noopener');
+    guardAction(() => {
+      window.open(officeData.contact.website, '_blank', 'noopener');
+    });
   };
 
   return (
@@ -247,7 +266,7 @@ const VirtualOfficeAddress = () => {
             {t('address.title')}
           </Typography>
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" onClick={() => setAddTransportOpen(true)} sx={{ borderRadius: 2 }}>
+            <Button variant="outlined" onClick={() => guardAction(() => setAddTransportOpen(true))} sx={{ borderRadius: 2 }}>
               {t('address.addTransport')}
             </Button>
             <Button variant="contained" onClick={openEditDialog} sx={{ borderRadius: 2 }}>
@@ -496,6 +515,8 @@ const VirtualOfficeAddress = () => {
           <Button variant="contained" onClick={handleAddTransport}>{t('address.transportDialog.add')}</Button>
         </DialogActions>
       </Dialog>
+
+      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} />
     </Stack>
   );
 };

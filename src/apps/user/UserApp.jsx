@@ -7,9 +7,8 @@ import Header from '../../components/Header.jsx';
 import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
 import ChatSupportDrawer from '../../components/ChatSupportDrawer.jsx';
-import { USER_TABS, FREE_TAB_IDS } from '../../constants.js';
+import { USER_TABS } from '../../constants.js';
 import SpiralLoader from '../../components/SpiralLoader.jsx';
-import SubscriptionGate from '../../components/SubscriptionGate.jsx';
 
 const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
 const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
@@ -60,12 +59,6 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
   const isSubscribed = userProfile?.hasActiveSubscription || userProfile?.role === 'ADMIN';
 
   const TabContent = useMemo(() => {
-    // Gate locked tabs for non-subscribers
-    if (!isSubscribed && !FREE_TAB_IDS.includes(activeTab)) {
-      const tabDef = USER_TABS.find(t => t.id === activeTab);
-      return <SubscriptionGate tabLabel={tabDef?.label || activeTab} />;
-    }
-
     if (activeTab === 'Booking') {
       return <Booking mode="user" userProfile={userProfile} />;
     }
@@ -78,7 +71,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
       return <Component userType="user" userProfile={userProfile} setActiveTab={handleTabChange} />;
     }
     if (activeTab === 'Business Address') {
-      return <Component userType="user" userProfile={userProfile} />;
+      return <Component userType="user" userProfile={userProfile} hasActiveSubscription={isSubscribed} />;
     }
     return <Component />;
   }, [activeTab, userProfile, isSubscribed]);
@@ -96,7 +89,6 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
         onMobileClose={() => setMobileOpen(false)}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
-        hasActiveSubscription={isSubscribed}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'auto' }}>
         <Header

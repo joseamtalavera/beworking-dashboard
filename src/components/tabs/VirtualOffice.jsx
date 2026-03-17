@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import SpiralLoader from '../SpiralLoader.jsx';
+import SubscriptionGate, { useSubscriptionGate } from '../SubscriptionGate.jsx';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n.js';
 import esMailbox from '../../i18n/locales/es/mailbox.json';
@@ -22,12 +23,18 @@ const MailboxUser = React.lazy(() => import('./user/MailboxUser.jsx'));
 const MailboxAdmin = React.lazy(() => import('./admin/MailboxAdmin.jsx'));
 const VirtualOfficeAddress = React.lazy(() => import('./VirtualOfficeAddress.jsx'));
 
-const VirtualOffice = ({ userType = 'user', userProfile }) => {
+const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription = true }) => {
   const { t } = useTranslation('mailbox');
   const [activeSubTab, setActiveSubTab] = useState(0);
+  const [gateOpen, triggerGate, gateProps] = useSubscriptionGate(hasActiveSubscription);
 
   const handleSubTabChange = (event, newValue) => {
-    setActiveSubTab(newValue);
+    // Gate the "Office Address" subtab (index 1) for non-subscribers
+    if (newValue === 1) {
+      triggerGate(() => setActiveSubTab(newValue));
+    } else {
+      setActiveSubTab(newValue);
+    }
   };
 
   const subtabs = [
@@ -98,10 +105,12 @@ const VirtualOffice = ({ userType = 'user', userProfile }) => {
           <React.Suspense
             fallback={<SpiralLoader />}
           >
-            <ActiveComponent userType={userType} userProfile={userProfile} />
+            <ActiveComponent userType={userType} userProfile={userProfile} hasActiveSubscription={hasActiveSubscription} />
           </React.Suspense>
         )}
       </Box>
+
+      <SubscriptionGate {...gateProps} />
     </Stack>
   );
 };
