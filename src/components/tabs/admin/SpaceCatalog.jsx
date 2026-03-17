@@ -337,6 +337,11 @@ const createEmptyForm = () => ({
   images: []
 });
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
 const SpaceCatalog = () => {
   const { t } = useTranslation('spaceCatalog');
   const [rows, setRows] = useState([]);
@@ -796,7 +801,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.centroCode)}
                     >
                       {CENTRO_OPTIONS.map((option) => (
                         <MenuItem key={option.code} value={option.code}>
@@ -814,7 +819,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.displayName)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -826,7 +831,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.code)}
                       helperText={t('dialog.codeHelper')}
                     />
                   </Grid>
@@ -840,7 +845,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.type)}
                     >
                       {TYPE_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -859,7 +864,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.status)}
                     >
                       {STATUS_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -879,7 +884,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.creationDate)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -891,7 +896,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.productCode)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -903,7 +908,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.capacity)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -915,7 +920,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.size)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -927,7 +932,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.priceFrom)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -940,7 +945,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.priceUnit)}
                     >
                       {PRICE_UNIT_OPTIONS.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -958,7 +963,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.rating)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -970,7 +975,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.reviewCount)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -982,7 +987,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.order)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -994,7 +999,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.wifi)}
                     />
                   </Grid>
                   <Grid size={12}>
@@ -1006,7 +1011,7 @@ const SpaceCatalog = () => {
                       fullWidth
                       variant="standard"
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                      sx={pillFieldSx(formValues.heroImage)}
                     />
                   </Grid>
                 </Grid>
@@ -1086,7 +1091,7 @@ const SpaceCatalog = () => {
                     fullWidth
                     variant="standard"
                     slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                    sx={pillFieldSx(formValues.subtitle)}
                   />
                   <TextField
                     label={t('dialog.description')}
@@ -1105,7 +1110,7 @@ const SpaceCatalog = () => {
                     fullWidth
                     variant="standard"
                     slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                    sx={pillFieldSx(formValues.tags)}
                   />
                 </Stack>
               </Paper>
@@ -1201,7 +1206,7 @@ const SpaceCatalog = () => {
                           variant="standard"
                           fullWidth
                           slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                          sx={{ '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' }, '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 } }}
+                          sx={pillFieldSx(image.caption)}
                         />
                         <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
                           <Button

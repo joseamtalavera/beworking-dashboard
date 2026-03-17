@@ -38,6 +38,17 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('en', 'booking', enBooking);
 }
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
+const pillFieldNumberSx = (hasValue) => ({
+  ...pillFieldSx(hasValue),
+  '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
+  '& input[type=number]': { MozAppearance: 'textfield' },
+});
+
 const pillSx = {
   borderRadius: 999,
   px: 4,
@@ -379,10 +390,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                       }}
                       fullWidth
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{
-                        '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                        '& .MuiInput-input': { fontSize: '0.875rem', color: state.dateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
-                      }}
+                      sx={pillFieldSx(state.dateFrom)}
                     />
                   </Box>
                 </Paper>
@@ -407,10 +415,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                         onChange={(e) => setDeskMonth(e.target.value)}
                         fullWidth
                         slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                        sx={{
-                          '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                          '& .MuiInput-input': { fontSize: '0.875rem', color: deskMonth ? 'text.primary' : 'text.secondary', py: 0.25 },
-                        }}
+                        sx={pillFieldSx(deskMonth)}
                       />
                     </Box>
                   </Paper>
@@ -567,10 +572,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   }}
                   fullWidth
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.dateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
-                  }}
+                  sx={pillFieldSx(state.dateFrom)}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -610,16 +612,12 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   variant="standard"
                   type="number"
                   label={t('steps.numberOfAttendees')}
+                  placeholder="1"
                   value={state.attendees || ''}
                   onChange={(e) => setField('attendees', e.target.value)}
                   fullWidth
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.attendees ? 'text.primary' : 'text.secondary', py: 0.25 },
-                    '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
-                    '& input[type=number]': { MozAppearance: 'textfield' },
-                  }}
+                  sx={pillFieldNumberSx(state.attendees)}
                 />
               </Box>
             </Paper>
@@ -651,10 +649,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   onChange={(e) => setField('dateFrom', e.target.value)}
                   fullWidth
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.dateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
-                  }}
+                  sx={pillFieldSx(state.dateFrom)}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -670,10 +665,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   onChange={(e) => setField('dateTo', e.target.value)}
                   fullWidth
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.dateTo ? 'text.primary' : 'text.secondary', py: 0.25 },
-                  }}
+                  sx={pillFieldSx(state.dateTo)}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -713,16 +705,12 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   variant="standard"
                   type="number"
                   label={t('steps.numberOfAttendees')}
+                  placeholder="1"
                   value={state.attendees || ''}
                   onChange={(e) => setField('attendees', e.target.value)}
                   fullWidth
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: state.attendees ? 'text.primary' : 'text.secondary', py: 0.25 },
-                    '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
-                    '& input[type=number]': { MozAppearance: 'textfield' },
-                  }}
+                  sx={pillFieldNumberSx(state.attendees)}
                 />
               </Box>
             </Paper>
@@ -854,10 +842,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   select
                   fullWidth
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-                  }}
+                  sx={pillFieldSx(state.cuenta)}
                 >
                   <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
                   <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
@@ -877,10 +862,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                 minRows={2}
                 placeholder={t('steps.notesRequirementsPlaceholder')}
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-                }}
+                sx={pillFieldSx(state.note)}
               />
             </Box>
           </Paper>

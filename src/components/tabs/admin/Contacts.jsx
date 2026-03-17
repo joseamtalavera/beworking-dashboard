@@ -775,6 +775,11 @@ const buildQueryString = ({ page, search, status, email, userType }) => {
   return params.toString();
 };
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
 const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const theme = useTheme();
   const { t } = useTranslation('contacts');
@@ -1239,10 +1244,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               placeholder={t('filters.searchByName')}
               fullWidth
               slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-              sx={{
-                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-              }}
+              sx={pillFieldSx(search)}
             />
           </Box>
           <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -1258,10 +1260,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               placeholder={t('filters.searchByEmail')}
               fullWidth
               slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-              sx={{
-                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-              }}
+              sx={pillFieldSx(emailFilter !== 'all' && emailFilter)}
             />
           </Box>
           <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />

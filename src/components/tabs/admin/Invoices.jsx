@@ -77,6 +77,11 @@ const getStatusInfo = (inv, t) => {
 
 const PAGE_SIZE = 100; // Server-side pagination - 100 invoices per page
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
 const Invoices = ({ mode = 'admin', userProfile }) => {
   const theme = useTheme();
   const { t } = useTranslation('invoices');
@@ -274,10 +279,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 placeholder={t('searchByName')}
                 fullWidth
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(filters.name)}
               />
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -295,10 +297,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             placeholder={t('searchById')}
             fullWidth
             slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-            sx={{
-              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-              '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-            }}
+            sx={pillFieldSx(filters.idFactura)}
           />
         </Box>
         <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -336,10 +335,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             label={t('startDate')}
             fullWidth
             slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-            sx={{
-              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-              '& .MuiInput-input': { fontSize: '0.875rem', color: filters.startDate ? 'text.primary' : 'text.secondary', py: 0.25 },
-            }}
+            sx={pillFieldSx(filters.startDate)}
           />
         </Box>
         <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -355,10 +351,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             label={t('endDate')}
             fullWidth
             slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-            sx={{
-              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-              '& .MuiInput-input': { fontSize: '0.875rem', color: filters.endDate ? 'text.primary' : 'text.secondary', py: 0.25 },
-            }}
+            sx={pillFieldSx(filters.endDate)}
           />
         </Box>
 
@@ -473,10 +466,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 placeholder={t('searchByEmail')}
                 fullWidth
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(filters.email)}
               />
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />

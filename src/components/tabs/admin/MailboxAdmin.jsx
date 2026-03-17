@@ -124,6 +124,11 @@ const formatDateTime = (isoString) => {
   });
 };
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
 const MailboxAdmin = () => {
   const { t } = useTranslation('mailbox');
   const theme = useTheme();
@@ -881,10 +886,7 @@ const MailboxAdmin = () => {
               label={t('admin.startDate')}
               fullWidth
               slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-              sx={{
-                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                '& .MuiInput-input': { fontSize: '0.875rem', color: dateFilters.startDate ? 'text.primary' : 'text.secondary', py: 0.25 },
-              }}
+              sx={pillFieldSx(dateFilters.startDate)}
             />
           </Box>
           <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -900,10 +902,7 @@ const MailboxAdmin = () => {
               label={t('admin.endDate')}
               fullWidth
               slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-              sx={{
-                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                '& .MuiInput-input': { fontSize: '0.875rem', color: dateFilters.endDate ? 'text.primary' : 'text.secondary', py: 0.25 },
-              }}
+              sx={pillFieldSx(dateFilters.endDate)}
             />
           </Box>
           <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -919,10 +918,7 @@ const MailboxAdmin = () => {
               placeholder={t('admin.searchByName')}
               fullWidth
               slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-              sx={{
-                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-              }}
+              sx={pillFieldSx(mainSearchForm.nameSearch)}
             />
           </Box>
           <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -938,10 +934,7 @@ const MailboxAdmin = () => {
               placeholder={t('admin.searchByEmail')}
               fullWidth
               slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-              sx={{
-                '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-              }}
+              sx={pillFieldSx(mainSearchForm.emailSearch)}
             />
           </Box>
 
@@ -1305,10 +1298,7 @@ const MailboxAdmin = () => {
                       disableUnderline: true,
                       endAdornment: isSearching ? <CircularProgress color="inherit" size={16} /> : null,
                     }}
-                    sx={{
-                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-                    }}
+                    sx={pillFieldSx(searchForm.nameSearch)}
                   />
                 </Box>
                 <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -1325,10 +1315,7 @@ const MailboxAdmin = () => {
                       disableUnderline: true,
                       endAdornment: isSearching ? <CircularProgress color="inherit" size={16} /> : null,
                     }}
-                    sx={{
-                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-                    }}
+                    sx={pillFieldSx(searchForm.emailSearch)}
                   />
                 </Box>
               </Paper>
@@ -1395,10 +1382,7 @@ const MailboxAdmin = () => {
                     required
                     placeholder={t('uploadDialog.contactNamePlaceholder')}
                     slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                    sx={{
-                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-                    }}
+                    sx={pillFieldSx(uploadForm.contactName)}
                   />
                 </Box>
                 <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -1414,10 +1398,7 @@ const MailboxAdmin = () => {
                     required
                     placeholder={t('uploadDialog.contactEmailPlaceholder')}
                     slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                    sx={{
-                      '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                      '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-                    }}
+                    sx={pillFieldSx(uploadForm.contactEmail)}
                   />
                 </Box>
               </Paper>

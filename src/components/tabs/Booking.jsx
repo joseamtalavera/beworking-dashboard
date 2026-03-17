@@ -3970,6 +3970,11 @@ const UserBookingWrapper = ({ userProfile }) => {
   );
 };
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
 const Booking = ({ mode = 'user', userProfile }) => {
   const theme = useTheme();
   const { t } = useTranslation('booking');
@@ -4792,10 +4797,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                 label={t('admin.dateFrom')}
                 fullWidth
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: calendarDateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(calendarDateFrom)}
               />
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -4810,10 +4812,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                 label={t('admin.dateTo')}
                 fullWidth
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: calendarDateTo ? 'text.primary' : 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(calendarDateTo)}
               />
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -5025,10 +5024,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                 label={t('admin.dateFrom')}
                 fullWidth
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: agendaDateFrom ? 'text.primary' : 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(agendaDateFrom)}
               />
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -5043,10 +5039,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                 label={t('admin.dateTo')}
                 fullWidth
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: agendaDateTo ? 'text.primary' : 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(agendaDateTo)}
               />
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -5061,10 +5054,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                 placeholder={t('admin.searchByName')}
                 fullWidth
                 slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(filterUser)}
               />
             </Box>
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -5164,10 +5154,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
                   placeholder={t('admin.searchByEmail')}
                   fullWidth
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-                  }}
+                  sx={pillFieldSx(filterEmail)}
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />

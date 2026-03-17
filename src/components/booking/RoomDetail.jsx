@@ -120,6 +120,11 @@ const DEFAULT_BOOKING_INSTRUCTIONS = [
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
 export default function RoomDetail({ space, onBack, onStartBooking }) {
   const { t } = useTranslation('booking');
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -558,10 +563,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                       onChange={(e) => setSelectedDate(e.target.value)}
                       fullWidth
                       slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={{
-                        '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                        '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.primary', py: 0.25 },
-                      }}
+                      sx={pillFieldSx(selectedDate)}
                     />
                   </Box>
                   <Divider orientation="vertical" flexItem />

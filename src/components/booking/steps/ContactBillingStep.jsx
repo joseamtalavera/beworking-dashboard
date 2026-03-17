@@ -59,6 +59,11 @@ const splitName = (fullName) => {
   return { first: parts[0], last: parts.slice(1).join(' ') };
 };
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
 export default function ContactBillingStep({ mode = 'admin', userProfile }) {
   const { t } = useTranslation('booking');
   const { state, setField, nextStep, prevStep } = useBookingFlow();
@@ -176,10 +181,7 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
                   placeholder={t('steps.searchByName')}
                   required
                   slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                  sx={{
-                    '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                    '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-                  }}
+                  sx={pillFieldSx(contactInputValue)}
                   InputProps={{
                     disableUnderline: true,
                     endAdornment: contactsLoading ? (

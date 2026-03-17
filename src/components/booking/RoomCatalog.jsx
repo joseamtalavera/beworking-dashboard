@@ -49,6 +49,17 @@ const isDeskProducto = (p) => {
   return /^MA1[-_]?O1[-_ ]?\d{1,2}$/.test(name);
 };
 
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
+
+const pillFieldNumberSx = (hasValue) => ({
+  ...pillFieldSx(hasValue),
+  '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
+  '& input[type=number]': { MozAppearance: 'textfield' },
+});
+
 export default function RoomCatalog({ onClose, onBookNow }) {
   const { t } = useTranslation('booking');
   const [activeTab, setActiveTab] = useState(0);
@@ -359,10 +370,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
                 placeholder={t('catalog.location')}
                 label={t('catalog.where')}
                 slotProps={{ input: { ...params.InputProps, disableUnderline: true }, inputLabel: { shrink: true } }}
-                sx={{
-                  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-                  '& .MuiInput-input': { fontSize: '0.875rem', color: 'text.secondary', py: 0.25 },
-                }}
+                sx={pillFieldSx(cityFilter)}
               />
             )}
           />
@@ -380,10 +388,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
             label={t('catalog.when')}
             fullWidth
             slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-            sx={{
-              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-              '& .MuiInput-input': { fontSize: '0.875rem', color: checkIn ? 'text.primary' : 'text.secondary', py: 0.25 },
-            }}
+            sx={pillFieldSx(checkIn)}
           />
         </Box>
         <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -400,10 +405,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
             placeholder={t('catalog.timePlaceholder')}
             fullWidth
             slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-            sx={{
-              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-              '& .MuiInput-input': { fontSize: '0.875rem', color: timeFilter ? 'text.primary' : 'text.secondary', py: 0.25 },
-            }}
+            sx={pillFieldSx(timeFilter)}
           />
         </Box>
         <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -420,12 +422,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
             placeholder={t('catalog.numberOfUsers')}
             fullWidth
             slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-            sx={{
-              '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em' },
-              '& .MuiInput-input': { fontSize: '0.875rem', color: people ? 'text.primary' : 'text.secondary', py: 0.25 },
-              '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { display: 'none' },
-              '& input[type=number]': { MozAppearance: 'textfield' },
-            }}
+            sx={pillFieldNumberSx(people)}
           />
         </Box>
 
