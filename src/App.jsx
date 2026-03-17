@@ -1,14 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogActions from '@mui/material/DialogActions';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import Typography from '@mui/material/Typography';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import AdminApp from './apps/admin/AdminApp.jsx';
 import UserApp from './apps/user/UserApp.jsx';
 import { useAuthProfile } from './components/hooks/useAuthProfile.js';
+
+const BrandedDialog = ({ open, icon: Icon, title, message, buttonText, onAction }) => (
+  <Dialog open={open} disableEscapeKeyDown PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden', maxWidth: 400 } }}>
+    <Box sx={{ background: 'linear-gradient(135deg, #009624 0%, #00c853 100%)', px: 4, pt: 4, pb: 3, textAlign: 'center' }}>
+      <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+        <Icon sx={{ fontSize: 28, color: '#fff' }} />
+      </Box>
+      <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>{title}</Typography>
+    </Box>
+    <Box sx={{ px: 4, pt: 3, pb: 4, textAlign: 'center' }}>
+      <Typography sx={{ color: 'text.secondary', fontSize: '0.9375rem', lineHeight: 1.6, mb: 3 }}>{message}</Typography>
+      <Button variant="contained" fullWidth onClick={onAction} sx={{ borderRadius: 2, py: 1.2, fontWeight: 600, textTransform: 'none', fontSize: '0.9375rem' }}>
+        {buttonText}
+      </Button>
+    </Box>
+  </Dialog>
+);
 
 const App = () => {
   const { t } = useTranslation();
@@ -44,17 +61,14 @@ const App = () => {
   if (status === 'fetch_error') {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-        <Dialog open disableEscapeKeyDown>
-          <DialogTitle>{t('app.sessionErrorTitle', 'Sesión no disponible')}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {t('app.sessionErrorMessage', 'No hemos podido cargar tu sesión. Por favor, inicia sesión de nuevo.')}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button variant="contained" onClick={handleLogin}>{t('app.login', 'Iniciar sesión')}</Button>
-          </DialogActions>
-        </Dialog>
+        <BrandedDialog
+          open
+          icon={ErrorOutlineIcon}
+          title={t('app.sessionErrorTitle', 'Sesión no disponible')}
+          message={t('app.sessionErrorMessage', 'No hemos podido cargar tu sesión. Por favor, inicia sesión de nuevo.')}
+          buttonText={t('app.login', 'Iniciar sesión')}
+          onAction={handleLogin}
+        />
       </div>
     );
   }
@@ -79,15 +93,14 @@ const App = () => {
   return (
     <>
       {mainApp}
-      <Dialog open={sessionExpired} disableEscapeKeyDown>
-        <DialogTitle>{t('app.sessionExpiredTitle')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{t('app.sessionExpiredMessage')}</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={handleLogin}>{t('app.login')}</Button>
-        </DialogActions>
-      </Dialog>
+      <BrandedDialog
+        open={sessionExpired}
+        icon={LockOutlinedIcon}
+        title={t('app.sessionExpiredTitle', 'Sesión expirada')}
+        message={t('app.sessionExpiredMessage', 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.')}
+        buttonText={t('app.login', 'Iniciar sesión')}
+        onAction={handleLogin}
+      />
     </>
   );
 };
