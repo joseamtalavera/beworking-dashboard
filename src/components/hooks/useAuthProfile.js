@@ -72,7 +72,7 @@ export const useAuthProfile = () => {
     } catch (error) {
       console.error('Failed to fetch current user', error);
       setStoredToken(null);
-      setState({ status: 'unauthenticated', profile: null, error: error.message || 'Authentication required.' });
+      setState({ status: 'fetch_error', profile: null, error: error.message || 'Authentication required.' });
     }
   };
 

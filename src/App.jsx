@@ -41,6 +41,24 @@ const App = () => {
     );
   }
 
+  if (status === 'fetch_error') {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+        <Dialog open disableEscapeKeyDown>
+          <DialogTitle>{t('app.sessionErrorTitle', 'Sesión no disponible')}</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {t('app.sessionErrorMessage', 'No hemos podido cargar tu sesión. Por favor, inicia sesión de nuevo.')}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="contained" onClick={handleLogin}>{t('app.login', 'Iniciar sesión')}</Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    );
+  }
+
   if (status === 'unauthenticated') {
     if (loginUrl) {
       window.location.href = loginUrl;
