@@ -57,7 +57,8 @@ const composeProfile = (apiProfile = {}) => ({
   role: apiProfile.role || BASE_PROFILE.role,
   email: apiProfile.email || BASE_PROFILE.email,
   tenantId: apiProfile.tenantId ?? BASE_PROFILE.tenantId,
-  avatar: apiProfile.avatar || undefined
+  avatar: apiProfile.avatar || undefined,
+  hasActiveSubscription: apiProfile.hasActiveSubscription ?? false
 });
 
 export const useAuthProfile = () => {

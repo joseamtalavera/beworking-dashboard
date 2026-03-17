@@ -17,11 +17,13 @@ import { useTranslation } from 'react-i18next';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { FREE_TAB_IDS } from '../constants.js';
 
 export const drawerWidth = 260;
 export const collapsedDrawerWidth = 72;
 
-const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => {
+const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse, hasActiveSubscription = true }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -122,6 +124,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                                 '& .MuiChip-label': { px: 0.5, py: 0 }
                               }}
                             />
+                          )}
+                          {!hasActiveSubscription && !FREE_TAB_IDS.includes(tab.id) && (
+                            <LockOutlinedIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
                           )}
                         </Stack>
                       }
