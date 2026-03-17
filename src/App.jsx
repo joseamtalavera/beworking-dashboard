@@ -11,16 +11,14 @@ import UserApp from './apps/user/UserApp.jsx';
 import { useAuthProfile } from './components/hooks/useAuthProfile.js';
 
 const BrandedDialog = ({ open, icon: Icon, title, message, buttonText, onAction }) => (
-  <Dialog open={open} disableEscapeKeyDown PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden', maxWidth: 400 } }}>
-    <Box sx={{ background: 'linear-gradient(135deg, #009624 0%, #00c853 100%)', px: 4, pt: 4, pb: 3, textAlign: 'center' }}>
-      <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-        <Icon sx={{ fontSize: 28, color: '#fff' }} />
+  <Dialog open={open} disableEscapeKeyDown PaperProps={{ sx: { borderRadius: 4, maxWidth: 380, mx: 2 } }}>
+    <Box sx={{ px: 4, pt: 5, pb: 4, textAlign: 'center' }}>
+      <Box sx={{ width: 52, height: 52, borderRadius: '50%', bgcolor: 'rgba(0,150,36,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2.5 }}>
+        <Icon sx={{ fontSize: 26, color: '#009624' }} />
       </Box>
-      <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>{title}</Typography>
-    </Box>
-    <Box sx={{ px: 4, pt: 3, pb: 4, textAlign: 'center' }}>
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.9375rem', lineHeight: 1.6, mb: 3 }}>{message}</Typography>
-      <Button variant="contained" fullWidth onClick={onAction} sx={{ borderRadius: 2, py: 1.2, fontWeight: 600, textTransform: 'none', fontSize: '0.9375rem' }}>
+      <Typography sx={{ fontWeight: 700, fontSize: '1.125rem', color: 'text.primary', mb: 1 }}>{title}</Typography>
+      <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem', lineHeight: 1.6, mb: 3.5 }}>{message}</Typography>
+      <Button variant="contained" fullWidth onClick={onAction} sx={{ borderRadius: 2, py: 1.2, fontWeight: 600, textTransform: 'none', fontSize: '0.875rem' }}>
         {buttonText}
       </Button>
     </Box>
