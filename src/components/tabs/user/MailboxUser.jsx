@@ -44,6 +44,7 @@ if (!i18n.hasResourceBundle('es', 'mailbox')) {
 }
 
 import { getMailboxDocumentDownloadUrl, listMailboxDocuments } from '../../../api/mailbox.js';
+import SubscriptionGate from '../../SubscriptionGate.jsx';
 
 // accentColor and accentHover are defined inside component using theme.palette.brand
 
@@ -114,7 +115,7 @@ const normalizeDocuments = (payload) => {
   });
 };
 
-const MailboxUser = ({ userProfile }) => {
+const MailboxUser = ({ userProfile, hasActiveSubscription = true }) => {
   const { t } = useTranslation('mailbox');
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
@@ -134,6 +135,16 @@ const MailboxUser = ({ userProfile }) => {
   // QR dialog state
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrDialogDoc, setQrDialogDoc] = useState(null);
+
+  // Subscription gate
+  const [gateOpen, setGateOpen] = useState(false);
+  const guardAction = (callback) => {
+    if (hasActiveSubscription) {
+      callback();
+    } else {
+      setGateOpen(true);
+    }
+  };
 
   const profileEmail = userProfile?.email;
 
@@ -186,14 +197,18 @@ const MailboxUser = ({ userProfile }) => {
   };
 
   const handlePreviewDocument = (docId) => {
-    const downloadUrl = getMailboxDocumentDownloadUrl(docId);
-    if (!downloadUrl) return;
-    window.open(downloadUrl, '_blank', 'noopener');
+    guardAction(() => {
+      const downloadUrl = getMailboxDocumentDownloadUrl(docId);
+      if (!downloadUrl) return;
+      window.open(downloadUrl, '_blank', 'noopener');
+    });
   };
 
   const handleShowQr = (doc) => {
-    setQrDialogDoc(doc);
-    setQrDialogOpen(true);
+    guardAction(() => {
+      setQrDialogDoc(doc);
+      setQrDialogOpen(true);
+    });
   };
 
   const handleCloseQrDialog = () => {
@@ -465,6 +480,8 @@ const MailboxUser = ({ userProfile }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} />
     </Stack>
   );
 };
