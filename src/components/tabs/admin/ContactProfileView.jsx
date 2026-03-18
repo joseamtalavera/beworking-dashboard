@@ -257,7 +257,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
   const [subError, setSubError] = useState('');
-  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
+  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', billingInterval: 'month', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
   const [subSaving, setSubSaving] = useState(false);
   const [editSubDialog, setEditSubDialog] = useState({ open: false, sub: null, stripeSubscriptionId: '' });
   const [editSubSaving, setEditSubSaving] = useState(false);
@@ -352,6 +352,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         billingMethod: newSub.billingMethod,
         stripeSubscriptionId: newSub.billingMethod === 'stripe' ? (newSub.stripeSubscriptionId || undefined) : undefined,
         monthlyAmount: Number(newSub.monthlyAmount),
+        billingInterval: newSub.billingInterval,
         cuenta: newSub.cuenta,
         description: newSub.description,
         startDate: newSub.startDate,
@@ -359,7 +360,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       });
       setSubDialogOpen(false);
       setSubError('');
-      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
+      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', billingInterval: 'month', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
       loadSubscriptions();
     } catch (err) {
       let msg = err?.message || t('profile.addSubscriptionError');
@@ -746,7 +747,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             />
                           </Box>
                           <Typography variant="caption" color="text.secondary">
-                            {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t('profile.month')} · {t('profile.since')} {sub.startDate}
+                            {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t(`profile.interval_${sub.billingInterval || 'month'}`)} · {t('profile.since')} {sub.startDate}
                             {sub.billingMethod === 'bank_transfer' && sub.lastInvoicedMonth && ` · ${t('profile.lastInvoiced')}: ${sub.lastInvoicedMonth}`}
                             {sub.productoId && (() => {
                               const dp = deskProducts.find(p => p.id === sub.productoId);
@@ -1301,13 +1302,26 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             )}
             <TextField
               size="small"
-              label={t('profile.monthlyAmount')}
+              label={t('profile.amount')}
               type="number"
               value={newSub.monthlyAmount}
               onChange={(e) => setNewSub({ ...newSub, monthlyAmount: e.target.value })}
               slotProps={{ input: { startAdornment: <InputAdornment position="start">€</InputAdornment> } }}
               fullWidth
             />
+            <TextField
+              size="small"
+              label={t('profile.billingInterval')}
+              value={newSub.billingInterval}
+              onChange={(e) => setNewSub({ ...newSub, billingInterval: e.target.value })}
+              select
+              fullWidth
+            >
+              <MenuItem value="month">{t('profile.monthly')}</MenuItem>
+              <MenuItem value="quarter">{t('profile.quarterly')}</MenuItem>
+              <MenuItem value="half_year">{t('profile.halfYearly')}</MenuItem>
+              <MenuItem value="year">{t('profile.yearly')}</MenuItem>
+            </TextField>
             <TextField
               size="small"
               label={t('profile.startDate')}
