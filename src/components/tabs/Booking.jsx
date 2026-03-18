@@ -2017,8 +2017,8 @@ const ReservaDialog = ({
                     >
                       <MenuItem value="">{t('admin.allStatuses')}</MenuItem>
                       <MenuItem value="Booked">{t('status.booked')}</MenuItem>
-                      <MenuItem value="Pendiente">{t('status.pending')}</MenuItem>
                       <MenuItem value="Paid">{t('status.paid')}</MenuItem>
+                      <MenuItem value="Invoiced">{t('status.invoiced')}</MenuItem>
                       <MenuItem value="Free">{t('status.free')}</MenuItem>
                     </TextField>
                   </Grid>
@@ -3157,7 +3157,6 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                         <Grid item xs={12} sm={4}>
                           <TextField fullWidth label={t('admin.status')} value={formState.status || 'Booked'} onChange={(e) => handleFieldChange('status', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
                             <MenuItem value="Booked">{t('status.booked')}</MenuItem>
-                            <MenuItem value="Pendiente">{t('status.pending')}</MenuItem>
                             <MenuItem value="Paid">{t('status.paid')}</MenuItem>
                             <MenuItem value="Invoiced">{t('status.invoiced')}</MenuItem>
                             <MenuItem value="Free">{t('status.free')}</MenuItem>
