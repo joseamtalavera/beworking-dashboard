@@ -168,9 +168,9 @@
       "noServicesHint": "Try selecting a different category or check back later for new services."
     },
     "connectors": {
-      "title": "Connectors",
+      "title": "Integrations",
       "subtitle": "Connect the tools your team relies on and stream their data into BeWorking.",
-      "totalConnectors": "Total connectors",
+      "totalConnectors": "Total integrations",
       "connected": "Connected",
       "available": "Available",
       "connectedBadge": "Connected",

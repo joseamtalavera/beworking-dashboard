@@ -168,9 +168,9 @@
       "noServicesHint": "Prueba seleccionando una categoría diferente o vuelve más tarde para nuevos servicios."
     },
     "connectors": {
-      "title": "Conectores",
+      "title": "Integraciones",
       "subtitle": "Conecta las herramientas de tu equipo y envía sus datos a BeWorking.",
-      "totalConnectors": "Total conectores",
+      "totalConnectors": "Total integraciones",
       "connected": "Conectados",
       "available": "Disponibles",
       "connectedBadge": "Conectado",
