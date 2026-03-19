@@ -148,8 +148,9 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const loadPaymentMethods = () => {
     const email = user?.email;
     if (!email || !email.includes('@')) return;
+    const stripeCustomerId = subscriptions?.[0]?.stripeCustomerId || subscriptions?.[0]?.stripe_customer_id;
     setPmLoading(true);
-    fetchCustomerPaymentMethods(email)
+    fetchCustomerPaymentMethods(email, stripeCustomerId)
       .then(data => setPaymentMethods(data?.paymentMethods || []))
       .catch(() => setPaymentMethods([]))
       .finally(() => setPmLoading(false));
@@ -313,7 +314,8 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     try {
       const email = user?.email;
       const name = contactProfile?.name || user?.name;
-      const data = await createSetupIntent({ customerEmail: email, customerName: name });
+      const stripeCustomerId = subscriptions?.[0]?.stripeCustomerId || subscriptions?.[0]?.stripe_customer_id;
+      const data = await createSetupIntent({ customerEmail: email, customerName: name, customerId: stripeCustomerId });
       setSetupClientSecret(data.clientSecret);
       setPmDialogOpen(true);
     } catch (err) {

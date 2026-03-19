@@ -27,8 +27,11 @@ export const createPaymentIntent = ({ amount, currency, reference, description, 
     body: { amount, currency, reference, description, customer_email: customerEmail, customer_name: customerName || '' },
   });
 
-export const fetchCustomerPaymentMethods = (email) =>
-  stripeRequest(`/api/customers/payment-methods?email=${encodeURIComponent(email)}`);
+export const fetchCustomerPaymentMethods = (email, customerId) => {
+  const params = new URLSearchParams({ email });
+  if (customerId) params.set('customer_id', customerId);
+  return stripeRequest(`/api/customers/payment-methods?${params}`);
+};
 
 export const chargeCustomer = ({ customerEmail, customerName, paymentMethodId, amount, currency, description, reference }) =>
   stripeRequest('/api/charge', {
@@ -44,10 +47,10 @@ export const chargeCustomer = ({ customerEmail, customerName, paymentMethodId, a
     },
   });
 
-export const createSetupIntent = ({ customerEmail, customerName }) =>
+export const createSetupIntent = ({ customerEmail, customerName, customerId }) =>
   stripeRequest('/api/setup-intents', {
     method: 'POST',
-    body: { customer_email: customerEmail, customer_name: customerName },
+    body: { customer_email: customerEmail, customer_name: customerName, customer_id: customerId || undefined },
   });
 
 export const setDefaultPaymentMethod = ({ customerEmail, paymentMethodId }) =>
