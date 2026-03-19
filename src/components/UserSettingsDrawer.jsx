@@ -55,7 +55,7 @@ const SetupForm = ({ onSuccess, onCancel }) => {
     if (!stripe || !elements) return;
     setSubmitting(true);
     setError(null);
-    const { error: stripeError } = await stripe.confirmSetup({
+    const { error: stripeError, setupIntent } = await stripe.confirmSetup({
       elements,
       redirect: 'if_required',
     });
@@ -63,7 +63,7 @@ const SetupForm = ({ onSuccess, onCancel }) => {
       setError(stripeError.message);
       setSubmitting(false);
     } else {
-      onSuccess();
+      onSuccess(setupIntent?.payment_method);
     }
   };
 
@@ -323,9 +323,16 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     }
   };
 
-  const handleSetupSuccess = () => {
+  const handleSetupSuccess = async (paymentMethodId) => {
     setPmDialogOpen(false);
     setSetupClientSecret(null);
+    if (paymentMethodId) {
+      try {
+        await setDefaultPaymentMethod({ customerEmail: user?.email, paymentMethodId });
+      } catch (e) {
+        console.error('Failed to set new payment method as default', e);
+      }
+    }
     loadPaymentMethods();
   };
 
