@@ -174,87 +174,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
           ))}
         </List>
 
-        {/* Departments section — collapsible */}
-        <List sx={{ px: collapsed ? 1 : 2, pt: 1, pb: 0 }}>
-          {!collapsed ? (
-            <ButtonBase
-              onClick={() => toggleGroup('_departments')}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                px: 2,
-                py: 0.5,
-                borderRadius: 1,
-                '&:hover': { backgroundColor: alpha(theme.palette.text.secondary, 0.04) },
-              }}
-            >
-              <Typography
-                variant="overline"
-                sx={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', color: 'text.disabled', lineHeight: 1 }}
-              >
-                {t('sidebar.sections.departments')}
-              </Typography>
-              <ExpandMoreRoundedIcon
-                sx={{
-                  fontSize: 14,
-                  color: 'text.disabled',
-                  transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
-                  transform: isGroupCollapsed('_departments') ? 'rotate(-90deg)' : 'rotate(0deg)',
-                }}
-              />
-            </ButtonBase>
-          ) : (
-            <Divider sx={{ my: 0.5 }} />
-          )}
-          <Collapse in={!isGroupCollapsed('_departments')} timeout="auto">
-            {DEPT_TABS.filter(d => !d.hero).map((dept) => (
-              <ListItem key={dept.id} disablePadding>
-                <Tooltip title={collapsed ? t(`departments.${dept.id}.name`, { defaultValue: dept.label }) : ''} placement="right" arrow>
-                  <ListItemButton
-                    selected={activeTab === dept.id}
-                    onClick={() => handleTabClick(dept.id)}
-                    sx={{
-                      borderRadius: 2,
-                      mb: 0.5,
-                      minHeight: 44,
-                      justifyContent: collapsed ? 'center' : 'initial',
-                      px: collapsed ? 1.5 : 2,
-                      color: 'text.primary',
-                      '& .MuiListItemIcon-root': { color: accentColor },
-                      '&:hover': { backgroundColor: activeHover, color: activeColor },
-                      '&.Mui-selected': {
-                        backgroundColor: activeHover,
-                        color: activeColor,
-                        border: 'none',
-                        boxShadow: theme.shadows[1],
-                      },
-                      '&.Mui-selected .MuiListItemIcon-root': { color: activeColor },
-                      '&.Mui-selected:hover': { backgroundColor: activeHover, color: activeColor },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                      <dept.icon sx={{ fontSize: 20, color: 'inherit' }} />
-                    </ListItemIcon>
-                    {!collapsed && (
-                      <ListItemText
-                        primary={
-                          <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>
-                            {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
-                          </Typography>
-                        }
-                      />
-                    )}
-                  </ListItemButton>
-                </Tooltip>
-              </ListItem>
-            ))}
-          </Collapse>
-        </List>
-
         {/* Platform section — collapsible */}
-        <List sx={{ px: collapsed ? 1 : 2, pt: 0.5, pb: 0 }}>
+        <List sx={{ px: collapsed ? 1 : 2, pt: 1, pb: 0 }}>
           {!collapsed ? (
             <ButtonBase
               onClick={() => toggleGroup('_platform')}
@@ -402,6 +323,85 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
           })}
         </List>
         </Collapse>
+
+        {/* Departments section — collapsible */}
+        <List sx={{ px: collapsed ? 1 : 2, pt: 0.5, pb: 0 }}>
+          {!collapsed ? (
+            <ButtonBase
+              onClick={() => toggleGroup('_departments')}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                px: 2,
+                py: 0.5,
+                borderRadius: 1,
+                '&:hover': { backgroundColor: alpha(theme.palette.text.secondary, 0.04) },
+              }}
+            >
+              <Typography
+                variant="overline"
+                sx={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', color: 'text.disabled', lineHeight: 1 }}
+              >
+                {t('sidebar.sections.departments')}
+              </Typography>
+              <ExpandMoreRoundedIcon
+                sx={{
+                  fontSize: 14,
+                  color: 'text.disabled',
+                  transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
+                  transform: isGroupCollapsed('_departments') ? 'rotate(-90deg)' : 'rotate(0deg)',
+                }}
+              />
+            </ButtonBase>
+          ) : (
+            <Divider sx={{ my: 0.5 }} />
+          )}
+          <Collapse in={!isGroupCollapsed('_departments')} timeout="auto">
+            {DEPT_TABS.filter(d => !d.hero).map((dept) => (
+              <ListItem key={dept.id} disablePadding>
+                <Tooltip title={collapsed ? t(`departments.${dept.id}.name`, { defaultValue: dept.label }) : ''} placement="right" arrow>
+                  <ListItemButton
+                    selected={activeTab === dept.id}
+                    onClick={() => handleTabClick(dept.id)}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      minHeight: 44,
+                      justifyContent: collapsed ? 'center' : 'initial',
+                      px: collapsed ? 1.5 : 2,
+                      color: 'text.primary',
+                      '& .MuiListItemIcon-root': { color: accentColor },
+                      '&:hover': { backgroundColor: activeHover, color: activeColor },
+                      '&.Mui-selected': {
+                        backgroundColor: activeHover,
+                        color: activeColor,
+                        border: 'none',
+                        boxShadow: theme.shadows[1],
+                      },
+                      '&.Mui-selected .MuiListItemIcon-root': { color: activeColor },
+                      '&.Mui-selected:hover': { backgroundColor: activeHover, color: activeColor },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
+                      <dept.icon sx={{ fontSize: 20, color: 'inherit' }} />
+                    </ListItemIcon>
+                    {!collapsed && (
+                      <ListItemText
+                        primary={
+                          <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>
+                            {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
+                          </Typography>
+                        }
+                      />
+                    )}
+                  </ListItemButton>
+                </Tooltip>
+              </ListItem>
+            ))}
+          </Collapse>
+        </List>
         </Box>
       <Divider />
       <List sx={{ px: collapsed ? 1 : 2, py: 2, flexShrink: 0 }}>
