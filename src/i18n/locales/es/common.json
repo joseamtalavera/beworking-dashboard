@@ -287,6 +287,14 @@
     "CommunityAI": {
       "name": "Comunidad",
       "description": "Muro, eventos y canales para tu comunidad."
+    },
+    "Platform": {
+      "name": "Plataforma",
+      "description": "Resumen, espacios, integraciones y herramientas de la plataforma."
+    },
+    "Tools": {
+      "name": "Herramientas",
+      "description": "Almacenamiento, firma digital, contraseñas y tickets."
     }
   }
 }

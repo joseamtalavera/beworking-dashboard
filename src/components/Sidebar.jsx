@@ -21,14 +21,14 @@ import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import { TAB_GROUPS, DEPT_TABS } from '../constants.js';
+import { DEPT_TABS } from '../constants.js';
 
 const STORAGE_KEY = 'bw_sidebar_collapsed_groups';
 
 function loadCollapsedGroups() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : ['_departments'];
+    return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
@@ -43,43 +43,16 @@ function saveCollapsedGroups(groups) {
 export const drawerWidth = 260;
 export const collapsedDrawerWidth = 72;
 
-const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => {
+const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse, isAdmin }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const accentColor = theme.palette.primary.main;
   const activeColor = theme.palette.primary.dark;
-  const accentHover = alpha(theme.palette.primary.main, 0.12);
-  const activeHover = accentHover;
+  const activeHover = alpha(theme.palette.primary.main, 0.12);
 
   const currentWidth = collapsed ? collapsedDrawerWidth : drawerWidth;
 
   const [collapsedGroupIds, setCollapsedGroupIds] = useState(loadCollapsedGroups);
-
-  // Auto-expand the section/group that contains the active tab
-  const activeGroup = useMemo(
-    () => tabs.find(tab => tab.id === activeTab)?.group,
-    [tabs, activeTab]
-  );
-
-  const activeSection = useMemo(() => {
-    if (DEPT_TABS.some(d => !d.hero && (d.id === activeTab || d.subtabs?.some(s => s.id === activeTab)))) return '_departments';
-    if (tabs.some(tab => tab.id === activeTab)) return '_platform';
-    return null;
-  }, [tabs, activeTab]);
-
-  const isGroupCollapsed = useCallback(
-    (groupId) => {
-      if (!groupId) return false;
-      if (!collapsedGroupIds.includes(groupId)) return false;
-      // Auto-expand section containing active tab
-      if ((groupId === '_departments' || groupId === '_platform') && groupId === activeSection) return false;
-      // Auto-expand sub-group containing active tab
-      if (groupId === activeGroup) return false;
-      return true;
-    },
-    [collapsedGroupIds, activeGroup, activeSection]
-  );
 
   const toggleGroup = useCallback((groupId) => {
     setCollapsedGroupIds(prev => {
@@ -95,6 +68,25 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
     setActiveTab(tabId);
     if (isMobile) onMobileClose?.();
   };
+
+  // Filter subtabs based on admin status
+  const getVisibleSubtabs = useCallback((dept) => {
+    if (!dept.subtabs) return null;
+    const filtered = dept.subtabs.filter(s => !s.adminOnly || isAdmin);
+    return filtered.length > 0 ? filtered : null;
+  }, [isAdmin]);
+
+  // Check if a dept item or any of its subtabs is active
+  const isDeptActive = useCallback((dept) => {
+    if (activeTab === dept.id) return true;
+    return dept.subtabs?.some(s => s.id === activeTab) || false;
+  }, [activeTab]);
+
+  const isItemCollapsed = useCallback((deptId) => {
+    return collapsedGroupIds.includes(deptId);
+  }, [collapsedGroupIds]);
+
+  const nonHeroTabs = useMemo(() => DEPT_TABS.filter(d => !d.hero), []);
 
   const drawerContent = (
     <>
@@ -128,7 +120,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
         </IconButton>
       </Box>
       <Box sx={{ flex: 1, overflowY: 'auto' }}>
-        {/* MariaAI hero — always visible */}
+        {/* MariaAI hero */}
         <List sx={{ px: collapsed ? 1 : 2, pt: 2, pb: 0 }}>
           {DEPT_TABS.filter(d => d.hero).map((dept) => (
             <ListItem key={dept.id} disablePadding>
@@ -174,201 +166,42 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
           ))}
         </List>
 
-        {/* Platform section — collapsible */}
-        <List sx={{ px: collapsed ? 1 : 2, pt: 1, pb: 0 }}>
-          {!collapsed ? (
-            <ButtonBase
-              onClick={() => toggleGroup('_platform')}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                px: 2,
-                py: 0.5,
-                borderRadius: 1,
-                '&:hover': { backgroundColor: alpha(theme.palette.text.secondary, 0.04) },
-              }}
-            >
-              <Typography
-                variant="overline"
-                sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', color: 'text.secondary', lineHeight: 1 }}
-              >
-                {t('sidebar.sections.platform')}
-              </Typography>
-              <ExpandMoreRoundedIcon
-                sx={{
-                  fontSize: 16,
-                  color: 'text.secondary',
-                  transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
-                  transform: isGroupCollapsed('_platform') ? 'rotate(-90deg)' : 'rotate(0deg)',
-                }}
-              />
-            </ButtonBase>
-          ) : (
-            <Divider sx={{ my: 0.5 }} />
-          )}
-        </List>
-        <Collapse in={!isGroupCollapsed('_platform')} timeout="auto">
-        <List sx={{ px: collapsed ? 1 : 2, py: 0 }}>
-          {TAB_GROUPS.map((group) => {
-            const groupTabs = tabs.filter(tab => tab.group === group.id);
-            if (groupTabs.length === 0) return null;
+        {/* Accordion items */}
+        <Box sx={{ px: collapsed ? 1 : 0 }}>
+          {nonHeroTabs.map((dept) => {
+            const visibleSubtabs = getVisibleSubtabs(dept);
+            const hasSubtabs = visibleSubtabs && visibleSubtabs.length > 0;
+            const active = isDeptActive(dept);
+            const expanded = hasSubtabs && active && !isItemCollapsed(dept.id);
+
             return (
-              <Box key={group.id ?? '_ungrouped'}>
-                {group.id && !collapsed && (
-                  <ButtonBase
-                    onClick={() => {
-                      const wasCollapsed = isGroupCollapsed(group.id);
-                      toggleGroup(group.id);
-                      if (wasCollapsed && groupTabs.length > 0) {
-                        handleTabClick(groupTabs[0].id);
-                      }
-                    }}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      px: 2,
-                      pt: 2,
-                      pb: 0.5,
-                      borderRadius: 1,
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: alpha(theme.palette.text.secondary, 0.04) },
-                    }}
-                  >
-                    <Typography
-                      variant="overline"
+              <Box key={dept.id}>
+                <Divider sx={{ mx: collapsed ? 0 : 2 }} />
+                {collapsed ? (
+                  <Tooltip title={t(`departments.${dept.id}.name`, { defaultValue: dept.label })} placement="right" arrow>
+                    <ButtonBase
+                      onClick={() => handleTabClick(dept.id)}
                       sx={{
-                        fontSize: '0.65rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.08em',
-                        color: 'text.secondary',
-                        lineHeight: 1,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: '100%',
+                        py: 1.5,
+                        ...(active && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
+                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
                       }}
                     >
-                      {t(group.i18nKey)}
-                    </Typography>
-                    <ExpandMoreRoundedIcon
-                      sx={{
-                        fontSize: 16,
-                        color: 'text.secondary',
-                        transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
-                        transform: isGroupCollapsed(group.id) ? 'rotate(-90deg)' : 'rotate(0deg)',
-                      }}
-                    />
-                  </ButtonBase>
-                )}
-                {group.id && collapsed && <Divider sx={{ my: 1 }} />}
-                <Collapse in={!isGroupCollapsed(group.id)} timeout="auto">
-                {groupTabs.map((tab) => (
-                  <ListItem key={tab.id} disablePadding>
-                    <Tooltip title={collapsed ? t('tabs.' + tab.id, { defaultValue: tab.label }) : ''} placement="right" arrow>
-                      <ListItemButton
-                        selected={activeTab === tab.id}
-                        onClick={() => handleTabClick(tab.id)}
-                        sx={{
-                          borderRadius: 2,
-                          mb: 0.5,
-                          minHeight: 44,
-                          justifyContent: collapsed ? 'center' : 'initial',
-                          px: collapsed ? 1.5 : 2,
-                          color: 'text.primary',
-                          '& .MuiListItemIcon-root': { color: accentColor },
-                          '&:hover': { backgroundColor: activeHover, color: activeColor },
-                          '&.Mui-selected': {
-                            backgroundColor: activeHover,
-                            color: activeColor,
-                            border: 'none',
-                            boxShadow: theme.shadows[1]
-                          },
-                          '&.Mui-selected .MuiListItemIcon-root': {
-                            color: activeColor
-                          },
-                          '&.Mui-selected:hover': {
-                            backgroundColor: activeHover,
-                            color: activeColor
-                          }
-                        }}
-                      >
-                        <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                          <tab.icon sx={{ fontSize: 20, color: 'inherit' }} />
-                        </ListItemIcon>
-                        {!collapsed && (
-                          <ListItemText
-                            primary={
-                              <Stack direction="row" alignItems="center" spacing={1}>
-                                <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>{t('tabs.' + tab.id, { defaultValue: tab.label })}</Typography>
-                                {tab.soon && (
-                                  <Chip
-                                    label={t('sidebar.soon')}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{
-                                      borderColor: theme.palette.secondary.light,
-                                      color: theme.palette.secondary.light,
-                                      fontSize: '0.6rem',
-                                      height: 16,
-                                      minWidth: 'auto',
-                                      '& .MuiChip-label': { px: 0.5, py: 0 }
-                                    }}
-                                  />
-                                )}
-                              </Stack>
-                            }
-                          />
-                        )}
-                      </ListItemButton>
-                    </Tooltip>
-                  </ListItem>
-                ))}
-                </Collapse>
-              </Box>
-            );
-          })}
-        </List>
-        </Collapse>
-
-        {/* Departments section — IKEA accordion style */}
-        <Box sx={{ px: collapsed ? 1 : 0 }}>
-          {!collapsed ? (
-            <ButtonBase
-              onClick={() => toggleGroup('_departments')}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                px: 3,
-                py: 1,
-                '&:hover': { backgroundColor: alpha(theme.palette.text.secondary, 0.04) },
-              }}
-            >
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', color: 'text.secondary', textTransform: 'uppercase' }}>
-                {t('sidebar.sections.departments')}
-              </Typography>
-              <ExpandMoreRoundedIcon
-                sx={{
-                  fontSize: 18,
-                  color: 'text.secondary',
-                  transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
-                  transform: isGroupCollapsed('_departments') ? 'rotate(-90deg)' : 'rotate(0deg)',
-                }}
-              />
-            </ButtonBase>
-          ) : (
-            <Divider sx={{ my: 0.5 }} />
-          )}
-          <Collapse in={!isGroupCollapsed('_departments')} timeout="auto">
-            {DEPT_TABS.filter(d => !d.hero).map((dept, idx, arr) => {
-              const hasSubtabs = dept.subtabs && dept.subtabs.length > 0;
-              const isExpanded = hasSubtabs && (activeTab === dept.id || dept.subtabs.some(s => s.id === activeTab));
-              return (
-                <Box key={dept.id}>
-                  <Divider sx={{ mx: collapsed ? 0 : 2 }} />
+                      <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
+                    </ButtonBase>
+                  </Tooltip>
+                ) : (
                   <ButtonBase
-                    onClick={() => handleTabClick(dept.id)}
+                    onClick={() => {
+                      if (hasSubtabs && active) {
+                        toggleGroup(dept.id);
+                      } else {
+                        handleTabClick(dept.id);
+                      }
+                    }}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -377,91 +210,85 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                       px: 3,
                       py: 1.5,
                       '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
-                      ...(activeTab === dept.id && {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.06),
-                      }),
+                      ...(activeTab === dept.id && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <dept.icon sx={{ fontSize: 20, color: activeTab === dept.id || isExpanded ? activeColor : 'text.secondary' }} />
-                      {!collapsed && (
-                        <Typography sx={{
-                          fontSize: '0.9rem',
-                          fontWeight: activeTab === dept.id || isExpanded ? 700 : 600,
-                          color: activeTab === dept.id || isExpanded ? activeColor : 'text.primary',
-                        }}>
-                          {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
-                        </Typography>
-                      )}
+                      <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
+                      <Typography sx={{
+                        fontSize: '0.9rem',
+                        fontWeight: active ? 700 : 600,
+                        color: active ? activeColor : 'text.primary',
+                      }}>
+                        {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
+                      </Typography>
                     </Stack>
-                    {!collapsed && hasSubtabs && (
+                    {hasSubtabs && (
                       <ExpandMoreRoundedIcon
                         sx={{
                           fontSize: 18,
                           color: 'text.secondary',
                           transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
-                          transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                          transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
                         }}
                       />
                     )}
                   </ButtonBase>
-                  {hasSubtabs && !collapsed && (
-                    <Collapse in={isExpanded} timeout="auto">
-                      <Box sx={{ pl: 3, pr: 2, pb: 1 }}>
-                        {dept.subtabs.map((sub) => (
-                          <ButtonBase
-                            key={sub.id}
-                            onClick={() => handleTabClick(sub.id)}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              width: '100%',
-                              px: 2,
-                              py: 1,
-                              borderRadius: 1.5,
-                              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.06) },
-                              ...(activeTab === sub.id && {
-                                backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                              }),
-                            }}
-                          >
-                            <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.disabled', mr: 1.5 }} />
-                            <Typography sx={{
-                              fontSize: '0.85rem',
-                              fontWeight: activeTab === sub.id ? 600 : 400,
-                              color: activeTab === sub.id ? activeColor : 'text.secondary',
-                              flex: 1,
-                              textAlign: 'left',
-                            }}>
-                              {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
-                            </Typography>
-                            {sub.soon && (
-                              <Chip
-                                label={t('sidebar.soon')}
-                                size="small"
-                                variant="outlined"
-                                sx={{
-                                  borderColor: theme.palette.secondary.light,
-                                  color: theme.palette.secondary.light,
-                                  fontSize: '0.55rem',
-                                  height: 14,
-                                  minWidth: 'auto',
-                                  '& .MuiChip-label': { px: 0.5, py: 0 }
-                                }}
-                              />
-                            )}
-                          </ButtonBase>
-                        ))}
-                      </Box>
-                    </Collapse>
-                  )}
-                  {idx === arr.length - 1 && <Divider sx={{ mx: collapsed ? 0 : 2 }} />}
-                </Box>
-              );
-            })}
-          </Collapse>
+                )}
+                {hasSubtabs && !collapsed && (
+                  <Collapse in={expanded} timeout="auto">
+                    <Box sx={{ pl: 3, pr: 2, pb: 1 }}>
+                      {visibleSubtabs.map((sub) => (
+                        <ButtonBase
+                          key={sub.id}
+                          onClick={() => handleTabClick(sub.id)}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '100%',
+                            px: 2,
+                            py: 1,
+                            borderRadius: 1.5,
+                            '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.06) },
+                            ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.primary.main, 0.08) }),
+                          }}
+                        >
+                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.disabled', mr: 1.5 }} />
+                          <Typography sx={{
+                            fontSize: '0.85rem',
+                            fontWeight: activeTab === sub.id ? 600 : 400,
+                            color: activeTab === sub.id ? activeColor : 'text.secondary',
+                            flex: 1,
+                            textAlign: 'left',
+                          }}>
+                            {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
+                          </Typography>
+                          {sub.soon && (
+                            <Chip
+                              label={t('sidebar.soon')}
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                borderColor: theme.palette.secondary.light,
+                                color: theme.palette.secondary.light,
+                                fontSize: '0.55rem',
+                                height: 14,
+                                minWidth: 'auto',
+                                '& .MuiChip-label': { px: 0.5, py: 0 }
+                              }}
+                            />
+                          )}
+                        </ButtonBase>
+                      ))}
+                    </Box>
+                  </Collapse>
+                )}
+              </Box>
+            );
+          })}
+          <Divider sx={{ mx: collapsed ? 0 : 2 }} />
         </Box>
-        </Box>
+      </Box>
       <Divider />
       <List sx={{ px: collapsed ? 1 : 2, py: 2, flexShrink: 0 }}>
         <ListItem disablePadding>
@@ -507,7 +334,6 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
 
   return (
     <>
-      {/* Mobile: temporary drawer with overlay */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -525,8 +351,6 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
       >
         {drawerContent}
       </Drawer>
-
-      {/* Desktop: permanent drawer */}
       <Drawer
         variant="permanent"
         anchor="left"

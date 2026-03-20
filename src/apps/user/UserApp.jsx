@@ -7,7 +7,7 @@ import Header from '../../components/Header.jsx';
 import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
 import ChatSupportDrawer from '../../components/ChatSupportDrawer.jsx';
-import { USER_TABS, DEPT_TABS } from '../../constants.js';
+import { DEPT_TABS } from '../../constants.js';
 import SpiralLoader from '../../components/SpiralLoader.jsx';
 
 const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
@@ -86,7 +86,6 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
-        tabs={USER_TABS}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAgent={() => setAgentOpen(true)}
         onLogout={logout}
@@ -94,6 +93,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
         onMobileClose={() => setMobileOpen(false)}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+        isAdmin={false}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'auto' }}>
         <Header
