@@ -39,6 +39,7 @@ export const DEPT_TABS = [
     { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
   ]},
+  { id: 'SupportAI', label: 'Support', icon: SupportAIIcon },
   { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
   ]},
@@ -48,7 +49,6 @@ export const DEPT_TABS = [
     { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },
     { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true },
   ]},
-  { id: 'SupportAI', label: 'Support', icon: SupportAIIcon },
   { id: 'HumanResourcesAI', label: 'Human Resources', icon: HumanResourcesAIIcon },
   { id: 'ProjectsAI', label: 'Projects', icon: ProjectsAIIcon },
   { id: 'MarketingAI', label: 'Marketing', icon: MarketingAIIcon },
