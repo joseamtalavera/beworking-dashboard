@@ -28,7 +28,7 @@ const STORAGE_KEY = 'bw_sidebar_collapsed_groups';
 function loadCollapsedGroups() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : ['_platform'];
+    return raw ? JSON.parse(raw) : ['_platform', '_departments'];
   } catch {
     return [];
   }
@@ -192,14 +192,14 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             >
               <Typography
                 variant="overline"
-                sx={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', color: 'text.disabled', lineHeight: 1 }}
+                sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', color: 'text.secondary', lineHeight: 1 }}
               >
                 {t('sidebar.sections.platform')}
               </Typography>
               <ExpandMoreRoundedIcon
                 sx={{
-                  fontSize: 14,
-                  color: 'text.disabled',
+                  fontSize: 16,
+                  color: 'text.secondary',
                   transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
                   transform: isGroupCollapsed('_platform') ? 'rotate(-90deg)' : 'rotate(0deg)',
                 }}
@@ -342,14 +342,14 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             >
               <Typography
                 variant="overline"
-                sx={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', color: 'text.disabled', lineHeight: 1 }}
+                sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', color: 'text.secondary', lineHeight: 1 }}
               >
                 {t('sidebar.sections.departments')}
               </Typography>
               <ExpandMoreRoundedIcon
                 sx={{
-                  fontSize: 14,
-                  color: 'text.disabled',
+                  fontSize: 16,
+                  color: 'text.secondary',
                   transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
                   transform: isGroupCollapsed('_departments') ? 'rotate(-90deg)' : 'rotate(0deg)',
                 }}
