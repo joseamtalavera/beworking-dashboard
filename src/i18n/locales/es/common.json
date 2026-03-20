@@ -51,7 +51,14 @@
   "sidebar": {
     "settings": "Ajustes",
     "logout": "Cerrar sesión",
-    "soon": "Pronto"
+    "soon": "Pronto",
+    "groups": {
+      "sales": "Clientes",
+      "operations": "Operaciones",
+      "finance": "Finanzas",
+      "tools": "Herramientas",
+      "community": "Comunidad"
+    }
   },
   "app": {
     "redirecting": "Redirigiendo al inicio de sesión…",

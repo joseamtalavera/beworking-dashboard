@@ -51,7 +51,14 @@
   "sidebar": {
     "settings": "Settings",
     "logout": "Logout",
-    "soon": "Soon"
+    "soon": "Soon",
+    "groups": {
+      "sales": "Clients",
+      "operations": "Operations",
+      "finance": "Finance",
+      "tools": "Tools",
+      "community": "Community"
+    }
   },
   "app": {
     "redirecting": "Redirecting to login…",

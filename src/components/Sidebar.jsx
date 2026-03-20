@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import { TAB_GROUPS } from '../constants.js';
 
 export const drawerWidth = 260;
 export const collapsedDrawerWidth = 72;
@@ -70,67 +71,93 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
       </Box>
       <Box sx={{ flex: 1, overflowY: 'auto' }}>
         <List sx={{ px: collapsed ? 1 : 2, py: 2 }}>
-          {tabs.map((tab) => (
-            <ListItem key={tab.id} disablePadding>
-              <Tooltip title={collapsed ? t('tabs.' + tab.id, { defaultValue: tab.label }) : ''} placement="right" arrow>
-                <ListItemButton
-                  selected={activeTab === tab.id}
-                  onClick={() => handleTabClick(tab.id)}
-                  sx={{
-                    borderRadius: 2,
-                    mb: 0.5,
-                    minHeight: 44,
-                    justifyContent: collapsed ? 'center' : 'initial',
-                    px: collapsed ? 1.5 : 2,
-                    color: 'text.primary',
-                    '& .MuiListItemIcon-root': { color: accentColor },
-                    '&:hover': { backgroundColor: activeHover, color: activeColor },
-                    '&.Mui-selected': {
-                      backgroundColor: activeHover,
-                      color: activeColor,
-                      border: 'none',
-                      boxShadow: theme.shadows[1]
-                    },
-                    '&.Mui-selected .MuiListItemIcon-root': {
-                      color: activeColor
-                    },
-                    '&.Mui-selected:hover': {
-                      backgroundColor: activeHover,
-                      color: activeColor
-                    }
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                    <tab.icon sx={{ fontSize: 20, color: 'inherit' }} />
-                  </ListItemIcon>
-                  {!collapsed && (
-                    <ListItemText
-                      primary={
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>{t('tabs.' + tab.id, { defaultValue: tab.label })}</Typography>
-                          {tab.soon && (
-                            <Chip
-                              label={t('sidebar.soon')}
-                              size="small"
-                              variant="outlined"
-                              sx={{
-                                borderColor: theme.palette.secondary.light,
-                                color: theme.palette.secondary.light,
-                                fontSize: '0.6rem',
-                                height: 16,
-                                minWidth: 'auto',
-                                '& .MuiChip-label': { px: 0.5, py: 0 }
-                              }}
-                            />
-                          )}
-                        </Stack>
-                      }
-                    />
-                  )}
-                </ListItemButton>
-              </Tooltip>
-            </ListItem>
-          ))}
+          {TAB_GROUPS.map((group) => {
+            const groupTabs = tabs.filter(tab => tab.group === group.id);
+            if (groupTabs.length === 0) return null;
+            return (
+              <Box key={group.id ?? '_ungrouped'}>
+                {group.id && !collapsed && (
+                  <Typography
+                    variant="overline"
+                    sx={{
+                      display: 'block',
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {t(group.i18nKey)}
+                  </Typography>
+                )}
+                {group.id && collapsed && <Divider sx={{ my: 1 }} />}
+                {groupTabs.map((tab) => (
+                  <ListItem key={tab.id} disablePadding>
+                    <Tooltip title={collapsed ? t('tabs.' + tab.id, { defaultValue: tab.label }) : ''} placement="right" arrow>
+                      <ListItemButton
+                        selected={activeTab === tab.id}
+                        onClick={() => handleTabClick(tab.id)}
+                        sx={{
+                          borderRadius: 2,
+                          mb: 0.5,
+                          minHeight: 44,
+                          justifyContent: collapsed ? 'center' : 'initial',
+                          px: collapsed ? 1.5 : 2,
+                          color: 'text.primary',
+                          '& .MuiListItemIcon-root': { color: accentColor },
+                          '&:hover': { backgroundColor: activeHover, color: activeColor },
+                          '&.Mui-selected': {
+                            backgroundColor: activeHover,
+                            color: activeColor,
+                            border: 'none',
+                            boxShadow: theme.shadows[1]
+                          },
+                          '&.Mui-selected .MuiListItemIcon-root': {
+                            color: activeColor
+                          },
+                          '&.Mui-selected:hover': {
+                            backgroundColor: activeHover,
+                            color: activeColor
+                          }
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
+                          <tab.icon sx={{ fontSize: 20, color: 'inherit' }} />
+                        </ListItemIcon>
+                        {!collapsed && (
+                          <ListItemText
+                            primary={
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>{t('tabs.' + tab.id, { defaultValue: tab.label })}</Typography>
+                                {tab.soon && (
+                                  <Chip
+                                    label={t('sidebar.soon')}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{
+                                      borderColor: theme.palette.secondary.light,
+                                      color: theme.palette.secondary.light,
+                                      fontSize: '0.6rem',
+                                      height: 16,
+                                      minWidth: 'auto',
+                                      '& .MuiChip-label': { px: 0.5, py: 0 }
+                                    }}
+                                  />
+                                )}
+                              </Stack>
+                            }
+                          />
+                        )}
+                      </ListItemButton>
+                    </Tooltip>
+                  </ListItem>
+                ))}
+              </Box>
+            );
+          })}
         </List>
         </Box>
       <Divider />
