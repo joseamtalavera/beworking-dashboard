@@ -3684,7 +3684,15 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const handleChangePage = (event, newPage) => setPage(newPage);
+  // Reset page if bloqueos shrinks and current page is out of bounds
+  const maxPage = Math.max(0, Math.ceil((bloqueos?.length || 0) / rowsPerPage) - 1);
+  useEffect(() => {
+    if (page > maxPage) setPage(maxPage);
+  }, [page, maxPage]);
+
+  const handleChangePage = (_event, newPage) => {
+    setPage(newPage);
+  };
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -3948,7 +3956,7 @@ const UserBookingWrapper = ({ userProfile }) => {
             <UserBookingsTable
               bloqueos={userBloqueos}
               loading={bloqueosLoading}
-              onViewDetails={(bloqueo) => setSelectedBloqueo(bloqueo)}
+              onViewDetails={setSelectedBloqueo}
             />
             <UserBookingDetailsDialog
               bloqueo={selectedBloqueo}
