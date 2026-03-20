@@ -7,7 +7,7 @@ import Header from '../../components/Header.jsx';
 import UserSettingsDrawer from '../../components/UserSettingsDrawer.jsx';
 import HelpSupportDrawer from '../../components/HelpSupportDrawer.jsx';
 import ChatSupportDrawer from '../../components/ChatSupportDrawer.jsx';
-import { ADMIN_TABS } from '../../constants.js';
+import { ADMIN_TABS, DEPT_TABS } from '../../constants.js';
 import SpiralLoader from '../../components/SpiralLoader.jsx';
 
 const Overview = React.lazy(() => import('../../components/tabs/Overview.jsx'));
@@ -26,6 +26,7 @@ const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx
 const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
 const SpaceCatalog = React.lazy(() => import('../../components/tabs/admin/SpaceCatalog.jsx'));
 import Marketplace from '../../components/tabs/Marketplace.jsx';
+const DeptComingSoon = React.lazy(() => import('../../components/tabs/DeptComingSoon.jsx'));
 
 const TAB_COMPONENTS = {
   Overview,
@@ -42,7 +43,8 @@ const TAB_COMPONENTS = {
   Tickets,
   Reports,
   SpaceCatalog,
-  Marketplace
+  Marketplace,
+  ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
 };
 
 const AdminApp = ({ userProfile, refreshProfile, logout }) => {
@@ -80,6 +82,9 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
     }
     if (activeTab === 'Business Address') {
       return <Component userType="admin" userProfile={userProfile} />;
+    }
+    if (DEPT_TABS.some(d => d.id === activeTab)) {
+      return <Component deptId={activeTab} />;
     }
     return <Component />;
   }, [activeTab, contactsKey]);

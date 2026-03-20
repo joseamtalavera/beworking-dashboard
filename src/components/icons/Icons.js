@@ -23,6 +23,17 @@ import PasswordManagementIcon from '@mui/icons-material/LockOutlined';
 import DigitalSignatureIcon from '@mui/icons-material/EditOutlined';
 import SpaceCatalogIcon from '@mui/icons-material/WorkspacesOutlined';
 
+// Department icons
+import MariaAIIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import AccountsAIIcon from '@mui/icons-material/CalculateOutlined';
+import SupportAIIcon from '@mui/icons-material/HeadsetMicOutlined';
+import HumanResourcesAIIcon from '@mui/icons-material/BadgeOutlined';
+import ProjectsAIIcon from '@mui/icons-material/ViewKanbanOutlined';
+import SalesAIIcon from '@mui/icons-material/TrendingUpOutlined';
+import MarketingAIIcon from '@mui/icons-material/CampaignOutlined';
+import CodeAIIcon from '@mui/icons-material/TerminalOutlined';
+import CommunityAIIcon from '@mui/icons-material/Diversity3Outlined';
+
 export {
   OverviewIcon,
   StorageIcon,
@@ -47,5 +58,14 @@ export {
   CryptWalletIcon,
   PasswordManagementIcon,
   DigitalSignatureIcon,
-  SpaceCatalogIcon
+  SpaceCatalogIcon,
+  MariaAIIcon,
+  AccountsAIIcon,
+  SupportAIIcon,
+  HumanResourcesAIIcon,
+  ProjectsAIIcon,
+  SalesAIIcon,
+  MarketingAIIcon,
+  CodeAIIcon,
+  CommunityAIIcon
 };

@@ -16,7 +16,16 @@ import {
   CryptWalletIcon,
   PasswordManagementIcon,
   DigitalSignatureIcon,
-  SpaceCatalogIcon
+  SpaceCatalogIcon,
+  MariaAIIcon,
+  AccountsAIIcon,
+  SupportAIIcon,
+  HumanResourcesAIIcon,
+  ProjectsAIIcon,
+  SalesAIIcon,
+  MarketingAIIcon,
+  CodeAIIcon,
+  CommunityAIIcon,
 } from './components/icons/Icons.js';
 
 export const TAB_GROUPS = [
@@ -53,6 +62,18 @@ const BASE_TABS = [
   // Community
   { id: 'Community', label: 'Community', icon: CommunityIcon, soon: true, group: 'community' },
   { id: 'Events', label: 'Events', icon: EventsIcon, soon: true, group: 'community' },
+];
+
+export const DEPT_TABS = [
+  { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon, hero: true },
+  { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon },
+  { id: 'SupportAI', label: 'Support', icon: SupportAIIcon },
+  { id: 'HumanResourcesAI', label: 'Human Resources', icon: HumanResourcesAIIcon },
+  { id: 'ProjectsAI', label: 'Projects', icon: ProjectsAIIcon },
+  { id: 'SalesAI', label: 'Sales', icon: SalesAIIcon },
+  { id: 'MarketingAI', label: 'Marketing', icon: MarketingAIIcon },
+  { id: 'CodeAI', label: 'Code', icon: CodeAIIcon },
+  { id: 'CommunityAI', label: 'Community', icon: CommunityAIIcon },
 ];
 
 export const DEFAULT_TABS = BASE_TABS;

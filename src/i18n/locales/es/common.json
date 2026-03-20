@@ -52,6 +52,10 @@
     "settings": "Ajustes",
     "logout": "Cerrar sesión",
     "soon": "Pronto",
+    "sections": {
+      "departments": "Departamentos",
+      "platform": "Plataforma"
+    },
     "groups": {
       "sales": "Clientes",
       "operations": "Operaciones",
@@ -247,6 +251,46 @@
       "title": "Tickets de soporte",
       "subtitle": "Rastrea solicitudes de inquilinos y SLA en el espacio de trabajo.",
       "openTicket": "ABRIR TICKET"
+    }
+  },
+  "departments": {
+    "beingSetUp": "Este departamento está en preparación",
+    "comingSoonDefault": "Este módulo estará disponible próximamente. Estamos construyendo algo increíble.",
+    "MariaAI": {
+      "name": "MariaAI",
+      "description": "Tu orquestador de IA. Habla con Maria para gestionar todos tus departamentos."
+    },
+    "AccountsAI": {
+      "name": "Contabilidad",
+      "description": "Facturas, gastos, bancos y crypto wallet — todo gestionado por tu agente de contabilidad."
+    },
+    "SupportAI": {
+      "name": "Soporte",
+      "description": "Tickets, bandeja de entrada y base de conocimiento para tu equipo de soporte."
+    },
+    "HumanResourcesAI": {
+      "name": "Recursos Humanos",
+      "description": "Equipo, contratación, contratos e incorporación gestionados por tu agente de RRHH."
+    },
+    "ProjectsAI": {
+      "name": "Proyectos",
+      "description": "Tablero, cronología y tareas para gestionar tus proyectos."
+    },
+    "SalesAI": {
+      "name": "Ventas",
+      "description": "Pipeline, contactos y previsiones para tu equipo comercial."
+    },
+    "MarketingAI": {
+      "name": "Marketing",
+      "description": "Campañas, calendario de contenido y analíticas de marketing."
+    },
+    "CodeAI": {
+      "name": "Código",
+      "description": "Repositorios, despliegues y gestión de bugs para tu equipo de desarrollo."
+    },
+    "CommunityAI": {
+      "name": "Comunidad",
+      "description": "Muro, eventos y canales para tu comunidad."
     }
   }
 }

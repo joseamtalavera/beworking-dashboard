@@ -52,6 +52,10 @@
     "settings": "Settings",
     "logout": "Logout",
     "soon": "Soon",
+    "sections": {
+      "departments": "Departments",
+      "platform": "Platform"
+    },
     "groups": {
       "sales": "Clients",
       "operations": "Operations",
@@ -247,6 +251,46 @@
       "title": "Support tickets",
       "subtitle": "Track tenant requests and SLA across the workspace.",
       "openTicket": "OPEN TICKET"
+    }
+  },
+  "departments": {
+    "beingSetUp": "This department is being set up",
+    "comingSoonDefault": "This module will be available soon. We're building something amazing.",
+    "MariaAI": {
+      "name": "MariaAI",
+      "description": "Your AI orchestrator. Talk to Maria to manage all your departments."
+    },
+    "AccountsAI": {
+      "name": "Accounts",
+      "description": "Invoices, expenses, banks, and crypto wallet — all managed by your accounting agent."
+    },
+    "SupportAI": {
+      "name": "Support",
+      "description": "Tickets, inbox, and knowledge base for your support team."
+    },
+    "HumanResourcesAI": {
+      "name": "Human Resources",
+      "description": "Team, hiring, contracts, and onboarding managed by your HR agent."
+    },
+    "ProjectsAI": {
+      "name": "Projects",
+      "description": "Board, timeline, and tasks to manage your projects."
+    },
+    "SalesAI": {
+      "name": "Sales",
+      "description": "Pipeline, contacts, and forecasts for your sales team."
+    },
+    "MarketingAI": {
+      "name": "Marketing",
+      "description": "Campaigns, content calendar, and marketing analytics."
+    },
+    "CodeAI": {
+      "name": "Code",
+      "description": "Repositories, deployments, and bug tracking for your dev team."
+    },
+    "CommunityAI": {
+      "name": "Community",
+      "description": "Wall, events, and channels for your community."
     }
   }
 }
