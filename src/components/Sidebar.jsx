@@ -1,5 +1,8 @@
+import { useState, useCallback, useMemo } from 'react';
 import Box from '@mui/material/Box';
+import ButtonBase from '@mui/material/ButtonBase';
 import Chip from '@mui/material/Chip';
+import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
@@ -15,9 +18,27 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { TAB_GROUPS } from '../constants.js';
+
+const STORAGE_KEY = 'bw_sidebar_collapsed_groups';
+
+function loadCollapsedGroups() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCollapsedGroups(groups) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
+  } catch { /* ignore */ }
+}
 
 export const drawerWidth = 260;
 export const collapsedDrawerWidth = 72;
@@ -32,6 +53,29 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
   const activeHover = accentHover;
 
   const currentWidth = collapsed ? collapsedDrawerWidth : drawerWidth;
+
+  const [collapsedGroupIds, setCollapsedGroupIds] = useState(loadCollapsedGroups);
+
+  // Auto-expand the group that contains the active tab
+  const activeGroup = useMemo(
+    () => tabs.find(tab => tab.id === activeTab)?.group,
+    [tabs, activeTab]
+  );
+
+  const isGroupCollapsed = useCallback(
+    (groupId) => groupId && groupId !== activeGroup && collapsedGroupIds.includes(groupId),
+    [collapsedGroupIds, activeGroup]
+  );
+
+  const toggleGroup = useCallback((groupId) => {
+    setCollapsedGroupIds(prev => {
+      const next = prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId];
+      saveCollapsedGroups(next);
+      return next;
+    });
+  }, []);
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
@@ -77,23 +121,45 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             return (
               <Box key={group.id ?? '_ungrouped'}>
                 {group.id && !collapsed && (
-                  <Typography
-                    variant="overline"
+                  <ButtonBase
+                    onClick={() => toggleGroup(group.id)}
                     sx={{
-                      display: 'block',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
                       px: 2,
                       pt: 2,
                       pb: 0.5,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.08em',
-                      color: 'text.secondary',
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: alpha(theme.palette.text.secondary, 0.04) },
                     }}
                   >
-                    {t(group.i18nKey)}
-                  </Typography>
+                    <Typography
+                      variant="overline"
+                      sx={{
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        color: 'text.secondary',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {t(group.i18nKey)}
+                    </Typography>
+                    <ExpandMoreRoundedIcon
+                      sx={{
+                        fontSize: 16,
+                        color: 'text.secondary',
+                        transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
+                        transform: isGroupCollapsed(group.id) ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      }}
+                    />
+                  </ButtonBase>
                 )}
                 {group.id && collapsed && <Divider sx={{ my: 1 }} />}
+                <Collapse in={!isGroupCollapsed(group.id)} timeout="auto">
                 {groupTabs.map((tab) => (
                   <ListItem key={tab.id} disablePadding>
                     <Tooltip title={collapsed ? t('tabs.' + tab.id, { defaultValue: tab.label }) : ''} placement="right" arrow>
@@ -155,6 +221,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                     </Tooltip>
                   </ListItem>
                 ))}
+                </Collapse>
               </Box>
             );
           })}
