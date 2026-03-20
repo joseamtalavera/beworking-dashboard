@@ -28,7 +28,7 @@ const STORAGE_KEY = 'bw_sidebar_collapsed_groups';
 function loadCollapsedGroups() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? JSON.parse(raw) : ['_platform'];
   } catch {
     return [];
   }
