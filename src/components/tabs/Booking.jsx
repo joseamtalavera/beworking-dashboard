@@ -3750,7 +3750,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
   const paginatedBloqueos = bloqueos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'visible' }}>
       <TableContainer>
         <Table>
           <TableHead>
