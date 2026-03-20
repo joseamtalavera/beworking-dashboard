@@ -86,7 +86,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
     return collapsedGroupIds.includes(deptId);
   }, [collapsedGroupIds]);
 
-  const nonHeroTabs = useMemo(() => DEPT_TABS.filter(d => !d.hero), []);
+  const allTabs = DEPT_TABS;
 
   const drawerContent = (
     <>
@@ -120,63 +120,18 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
         </IconButton>
       </Box>
       <Box sx={{ flex: 1, overflowY: 'auto' }}>
-        {/* MariaAI hero */}
-        <List sx={{ px: collapsed ? 1 : 2, pt: 2, pb: 0 }}>
-          {DEPT_TABS.filter(d => d.hero).map((dept) => (
-            <ListItem key={dept.id} disablePadding>
-              <Tooltip title={collapsed ? t(`departments.${dept.id}.name`, { defaultValue: dept.label }) : ''} placement="right" arrow>
-                <ListItemButton
-                  selected={activeTab === dept.id}
-                  onClick={() => handleTabClick(dept.id)}
-                  sx={{
-                    borderRadius: 2,
-                    mb: 0.5,
-                    minHeight: 44,
-                    justifyContent: collapsed ? 'center' : 'initial',
-                    px: collapsed ? 1.5 : 2,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    color: 'primary.main',
-                    '& .MuiListItemIcon-root': { color: 'primary.main' },
-                    '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.16), color: activeColor },
-                    '&.Mui-selected': {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.16),
-                      color: activeColor,
-                      border: 'none',
-                      boxShadow: theme.shadows[1],
-                    },
-                    '&.Mui-selected .MuiListItemIcon-root': { color: activeColor },
-                    '&.Mui-selected:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.16), color: activeColor },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                    <dept.icon sx={{ fontSize: 20, color: 'inherit' }} />
-                  </ListItemIcon>
-                  {!collapsed && (
-                    <ListItemText
-                      primary={
-                        <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                          {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
-                        </Typography>
-                      }
-                    />
-                  )}
-                </ListItemButton>
-              </Tooltip>
-            </ListItem>
-          ))}
-        </List>
-
         {/* Accordion items */}
-        <Box sx={{ px: collapsed ? 1 : 0 }}>
-          {nonHeroTabs.map((dept) => {
+        <Box sx={{ px: collapsed ? 1 : 0, pt: 1 }}>
+          {allTabs.map((dept) => {
             const visibleSubtabs = getVisibleSubtabs(dept);
             const hasSubtabs = visibleSubtabs && visibleSubtabs.length > 0;
             const active = isDeptActive(dept);
             const expanded = hasSubtabs && active && !isItemCollapsed(dept.id);
 
+            const isHero = dept.hero;
             return (
               <Box key={dept.id}>
-                <Divider sx={{ mx: collapsed ? 0 : 2 }} />
+                {!isHero && <Divider sx={{ mx: collapsed ? 0 : 2 }} />}
                 {collapsed ? (
                   <Tooltip title={t(`departments.${dept.id}.name`, { defaultValue: dept.label })} placement="right" arrow>
                     <ButtonBase
@@ -186,11 +141,16 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                         justifyContent: 'center',
                         width: '100%',
                         py: 1.5,
-                        ...(active && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
-                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+                        ...(isHero && {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                          mb: 0.5,
+                          borderRadius: 2,
+                        }),
+                        ...(active && { backgroundColor: alpha(theme.palette.primary.main, isHero ? 0.16 : 0.06) }),
+                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, isHero ? 0.16 : 0.04) },
                       }}
                     >
-                      <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
+                      <dept.icon sx={{ fontSize: 20, color: isHero ? theme.palette.primary.main : (active ? activeColor : 'text.secondary') }} />
                     </ButtonBase>
                   </Tooltip>
                 ) : (
@@ -209,16 +169,24 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                       width: '100%',
                       px: 3,
                       py: 1.5,
-                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
-                      ...(activeTab === dept.id && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
+                      ...(isHero && {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                        mx: 2,
+                        width: 'calc(100% - 32px)',
+                        borderRadius: 2,
+                        mb: 0.5,
+                      }),
+                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, isHero ? 0.16 : 0.04) },
+                      ...(activeTab === dept.id && !isHero && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
+                      ...(activeTab === dept.id && isHero && { backgroundColor: alpha(theme.palette.primary.main, 0.16) }),
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
+                      <dept.icon sx={{ fontSize: 20, color: isHero ? theme.palette.primary.main : (active ? activeColor : 'text.secondary') }} />
                       <Typography sx={{
                         fontSize: '0.9rem',
-                        fontWeight: active ? 700 : 600,
-                        color: active ? activeColor : 'text.primary',
+                        fontWeight: isHero ? 700 : (active ? 700 : 600),
+                        color: isHero ? theme.palette.primary.main : (active ? activeColor : 'text.primary'),
                       }}>
                         {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
                       </Typography>
