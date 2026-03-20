@@ -75,7 +75,7 @@ const getStatusInfo = (inv, t) => {
   return { label: t('unpaid'), color: 'error' };
 };
 
-const PAGE_SIZE = 100; // Server-side pagination - 100 invoices per page
+const PAGE_SIZE = 25; // Server-side pagination
 
 const pillFieldSx = (hasValue) => ({
   '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
