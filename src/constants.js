@@ -39,14 +39,14 @@ export const DEPT_TABS = [
     { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
   ]},
+  { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
+    { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
+  ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
     { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
     { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
     { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },
     { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true },
-  ]},
-  { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
-    { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
   ]},
   { id: 'SupportAI', label: 'Support', icon: SupportAIIcon },
   { id: 'HumanResourcesAI', label: 'Human Resources', icon: HumanResourcesAIIcon },
