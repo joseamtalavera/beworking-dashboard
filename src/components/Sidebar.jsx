@@ -253,11 +253,11 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                             ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.primary.main, 0.08) }),
                           }}
                         >
-                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.primary', mr: 1.5 }} />
+                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.secondary', mr: 1.5 }} />
                           <Typography sx={{
                             fontSize: '0.85rem',
                             fontWeight: activeTab === sub.id ? 600 : 400,
-                            color: activeTab === sub.id ? activeColor : 'text.primary',
+                            color: activeTab === sub.id ? activeColor : 'text.secondary',
                             flex: 1,
                             textAlign: 'left',
                           }}>
