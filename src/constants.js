@@ -78,6 +78,6 @@ export const DEPT_TABS = [
 
 export const DEFAULT_TABS = BASE_TABS;
 
-export const ADMIN_TABS = BASE_TABS.filter(tab => !tab.soon);
+export const ADMIN_TABS = BASE_TABS;
 
-export const USER_TABS = BASE_TABS.filter(tab => !tab.soon && tab.id !== 'SpaceCatalog' && tab.id !== 'Contacts');
+export const USER_TABS = BASE_TABS.filter(tab => tab.id !== 'SpaceCatalog' && tab.id !== 'Contacts');
