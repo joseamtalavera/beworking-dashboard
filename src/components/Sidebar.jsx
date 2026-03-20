@@ -218,7 +218,13 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
               <Box key={group.id ?? '_ungrouped'}>
                 {group.id && !collapsed && (
                   <ButtonBase
-                    onClick={() => toggleGroup(group.id)}
+                    onClick={() => {
+                      const wasCollapsed = isGroupCollapsed(group.id);
+                      toggleGroup(group.id);
+                      if (wasCollapsed && groupTabs.length > 0) {
+                        handleTabClick(groupTabs[0].id);
+                      }
+                    }}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -371,17 +377,18 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                       minHeight: 44,
                       justifyContent: collapsed ? 'center' : 'initial',
                       px: collapsed ? 1.5 : 2,
+                      backgroundColor: alpha(theme.palette.primary.main, 0.04),
                       color: 'text.primary',
                       '& .MuiListItemIcon-root': { color: accentColor },
-                      '&:hover': { backgroundColor: activeHover, color: activeColor },
+                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.10), color: activeColor },
                       '&.Mui-selected': {
-                        backgroundColor: activeHover,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.12),
                         color: activeColor,
                         border: 'none',
                         boxShadow: theme.shadows[1],
                       },
                       '&.Mui-selected .MuiListItemIcon-root': { color: activeColor },
-                      '&.Mui-selected:hover': { backgroundColor: activeHover, color: activeColor },
+                      '&.Mui-selected:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.12), color: activeColor },
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
