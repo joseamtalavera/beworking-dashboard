@@ -31,7 +31,6 @@ import {
 export const TAB_GROUPS = [
   { id: null },
   { id: 'tools', i18nKey: 'sidebar.groups.tools' },
-  { id: 'community', i18nKey: 'sidebar.groups.community' },
 ];
 
 const BASE_TABS = [
@@ -48,9 +47,6 @@ const BASE_TABS = [
   { id: 'DigitalSignature', label: 'Signature', icon: DigitalSignatureIcon, soon: true, group: 'tools' },
   { id: 'PasswordManagement', label: 'Passwords', icon: PasswordManagementIcon, soon: true, group: 'tools' },
   { id: 'Tickets', label: 'Tickets', icon: TicketsIcon, soon: true, group: 'tools' },
-  // Community
-  { id: 'Community', label: 'Community', icon: CommunityIcon, soon: true, group: 'community' },
-  { id: 'Events', label: 'Events', icon: EventsIcon, soon: true, group: 'community' },
 ];
 
 export const DEPT_TABS = [
@@ -69,7 +65,9 @@ export const DEPT_TABS = [
   ]},
   { id: 'MarketingAI', label: 'Marketing', icon: MarketingAIIcon },
   { id: 'CodeAI', label: 'Code', icon: CodeAIIcon },
-  { id: 'CommunityAI', label: 'Community', icon: CommunityAIIcon },
+  { id: 'CommunityAI', label: 'Community', icon: CommunityAIIcon, subtabs: [
+    { id: 'Events', label: 'Events', icon: EventsIcon, soon: true },
+  ]},
 ];
 
 export const DEFAULT_TABS = BASE_TABS;

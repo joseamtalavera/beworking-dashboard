@@ -57,8 +57,7 @@
       "platform": "Plataforma"
     },
     "groups": {
-      "tools": "Herramientas",
-      "community": "Comunidad"
+      "tools": "Herramientas"
     }
   },
   "app": {
