@@ -57,7 +57,7 @@
       "platform": "Plataforma"
     },
     "groups": {
-      "sales": "Clientes",
+      "crm": "CRM",
       "operations": "Operaciones",
       "finance": "Finanzas",
       "tools": "Herramientas",

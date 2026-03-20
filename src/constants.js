@@ -30,7 +30,7 @@ import {
 
 export const TAB_GROUPS = [
   { id: null },
-  { id: 'sales', i18nKey: 'sidebar.groups.sales' },
+  { id: 'crm', i18nKey: 'sidebar.groups.crm' },
   { id: 'operations', i18nKey: 'sidebar.groups.operations' },
   { id: 'finance', i18nKey: 'sidebar.groups.finance' },
   { id: 'tools', i18nKey: 'sidebar.groups.tools' },
@@ -42,8 +42,8 @@ const BASE_TABS = [
   { id: 'Overview', label: 'Overview', icon: OverviewIcon, group: null },
   { id: 'Business Address', label: 'Business Address', icon: MailboxIcon, group: null },
   { id: 'Booking', label: 'Spaces', icon: BookingIcon, group: null },
-  // Sales
-  { id: 'Contacts', label: 'Contacts', icon: ContactsIcon, group: 'sales' },
+  // CRM
+  { id: 'Contacts', label: 'Contacts', icon: ContactsIcon, group: 'crm' },
   // Operations
   { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, group: 'operations' },
   { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true, group: 'operations' },
