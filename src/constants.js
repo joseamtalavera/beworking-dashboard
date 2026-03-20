@@ -30,7 +30,6 @@ import {
 
 export const TAB_GROUPS = [
   { id: null },
-  { id: 'finance', i18nKey: 'sidebar.groups.finance' },
   { id: 'tools', i18nKey: 'sidebar.groups.tools' },
   { id: 'community', i18nKey: 'sidebar.groups.community' },
 ];
@@ -43,12 +42,7 @@ const BASE_TABS = [
   { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, group: null },
   { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true, group: null },
   { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, group: null },
-  // Finance
-  { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon, group: 'finance' },
-  { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true, group: 'finance' },
-  { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true, group: 'finance' },
-  { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true, group: 'finance' },
-  { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true, group: 'finance' },
+  { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true, group: null },
   // Tools
   { id: 'Storage', label: 'Storage', icon: StorageIcon, soon: true, group: 'tools' },
   { id: 'DigitalSignature', label: 'Signature', icon: DigitalSignatureIcon, soon: true, group: 'tools' },
@@ -61,7 +55,12 @@ const BASE_TABS = [
 
 export const DEPT_TABS = [
   { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon, hero: true },
-  { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon },
+  { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
+    { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
+    { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
+    { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },
+    { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true },
+  ]},
   { id: 'SupportAI', label: 'Support', icon: SupportAIIcon },
   { id: 'HumanResourcesAI', label: 'Human Resources', icon: HumanResourcesAIIcon },
   { id: 'ProjectsAI', label: 'Projects', icon: ProjectsAIIcon },

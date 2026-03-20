@@ -451,9 +451,26 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                             </ListItemIcon>
                             <ListItemText
                               primary={
-                                <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                                  {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
-                                </Typography>
+                                <Stack direction="row" alignItems="center" spacing={1}>
+                                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                                    {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
+                                  </Typography>
+                                  {sub.soon && (
+                                    <Chip
+                                      label={t('sidebar.soon')}
+                                      size="small"
+                                      variant="outlined"
+                                      sx={{
+                                        borderColor: theme.palette.secondary.light,
+                                        color: theme.palette.secondary.light,
+                                        fontSize: '0.55rem',
+                                        height: 14,
+                                        minWidth: 'auto',
+                                        '& .MuiChip-label': { px: 0.5, py: 0 }
+                                      }}
+                                    />
+                                  )}
+                                </Stack>
                               }
                             />
                           </ListItemButton>
