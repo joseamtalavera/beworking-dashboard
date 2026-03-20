@@ -63,7 +63,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
   );
 
   const activeSection = useMemo(() => {
-    if (DEPT_TABS.some(d => d.id === activeTab && !d.hero)) return '_departments';
+    if (DEPT_TABS.some(d => !d.hero && (d.id === activeTab || d.subtabs?.some(s => s.id === activeTab)))) return '_departments';
     if (tabs.some(tab => tab.id === activeTab)) return '_platform';
     return null;
   }, [tabs, activeTab]);
@@ -365,48 +365,105 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             <Divider sx={{ my: 0.5 }} />
           )}
           <Collapse in={!isGroupCollapsed('_departments')} timeout="auto">
-            {DEPT_TABS.filter(d => !d.hero).map((dept) => (
-              <ListItem key={dept.id} disablePadding>
-                <Tooltip title={collapsed ? t(`departments.${dept.id}.name`, { defaultValue: dept.label }) : ''} placement="right" arrow>
-                  <ListItemButton
-                    selected={activeTab === dept.id}
-                    onClick={() => handleTabClick(dept.id)}
-                    sx={{
-                      borderRadius: 2,
-                      mb: 0.5,
-                      minHeight: 44,
-                      justifyContent: collapsed ? 'center' : 'initial',
-                      px: collapsed ? 1.5 : 2,
-                      backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                      color: 'text.primary',
-                      '& .MuiListItemIcon-root': { color: accentColor },
-                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.10), color: activeColor },
-                      '&.Mui-selected': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.12),
-                        color: activeColor,
-                        border: 'none',
-                        boxShadow: theme.shadows[1],
-                      },
-                      '&.Mui-selected .MuiListItemIcon-root': { color: activeColor },
-                      '&.Mui-selected:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.12), color: activeColor },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                      <dept.icon sx={{ fontSize: 20, color: 'inherit' }} />
-                    </ListItemIcon>
-                    {!collapsed && (
-                      <ListItemText
-                        primary={
-                          <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>
-                            {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
-                          </Typography>
-                        }
-                      />
-                    )}
-                  </ListItemButton>
-                </Tooltip>
-              </ListItem>
-            ))}
+            {DEPT_TABS.filter(d => !d.hero).map((dept) => {
+              const hasSubtabs = dept.subtabs && dept.subtabs.length > 0;
+              const isExpanded = hasSubtabs && (activeTab === dept.id || dept.subtabs.some(s => s.id === activeTab));
+              return (
+                <Box key={dept.id}>
+                  <ListItem disablePadding>
+                    <Tooltip title={collapsed ? t(`departments.${dept.id}.name`, { defaultValue: dept.label }) : ''} placement="right" arrow>
+                      <ListItemButton
+                        selected={activeTab === dept.id}
+                        onClick={() => handleTabClick(dept.id)}
+                        sx={{
+                          borderRadius: 2,
+                          mb: hasSubtabs && isExpanded ? 0 : 0.5,
+                          minHeight: 44,
+                          justifyContent: collapsed ? 'center' : 'initial',
+                          px: collapsed ? 1.5 : 2,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                          color: 'text.primary',
+                          '& .MuiListItemIcon-root': { color: accentColor },
+                          '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.10), color: activeColor },
+                          '&.Mui-selected': {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.12),
+                            color: activeColor,
+                            border: 'none',
+                            boxShadow: theme.shadows[1],
+                          },
+                          '&.Mui-selected .MuiListItemIcon-root': { color: activeColor },
+                          '&.Mui-selected:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.12), color: activeColor },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
+                          <dept.icon sx={{ fontSize: 20, color: 'inherit' }} />
+                        </ListItemIcon>
+                        {!collapsed && (
+                          <>
+                            <ListItemText
+                              primary={
+                                <Typography variant="body1" sx={{ fontSize: '0.95rem', fontWeight: 500 }}>
+                                  {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
+                                </Typography>
+                              }
+                            />
+                            {hasSubtabs && (
+                              <ExpandMoreRoundedIcon
+                                sx={{
+                                  fontSize: 16,
+                                  color: 'text.secondary',
+                                  transition: theme.transitions.create('transform', { duration: theme.transitions.duration.short }),
+                                  transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                                }}
+                              />
+                            )}
+                          </>
+                        )}
+                      </ListItemButton>
+                    </Tooltip>
+                  </ListItem>
+                  {hasSubtabs && !collapsed && (
+                    <Collapse in={isExpanded} timeout="auto">
+                      {dept.subtabs.map((sub) => (
+                        <ListItem key={sub.id} disablePadding>
+                          <ListItemButton
+                            selected={activeTab === sub.id}
+                            onClick={() => handleTabClick(sub.id)}
+                            sx={{
+                              borderRadius: 2,
+                              mb: 0.5,
+                              minHeight: 36,
+                              pl: 6,
+                              pr: 2,
+                              color: 'text.secondary',
+                              '& .MuiListItemIcon-root': { color: 'text.secondary' },
+                              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.06), color: activeColor },
+                              '&.Mui-selected': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.10),
+                                color: activeColor,
+                                '& .MuiListItemIcon-root': { color: activeColor },
+                              },
+                              '&.Mui-selected:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.10), color: activeColor },
+                            }}
+                          >
+                            <ListItemIcon sx={{ minWidth: 32, justifyContent: 'center' }}>
+                              <sub.icon sx={{ fontSize: 18, color: 'inherit' }} />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={
+                                <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                                  {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
+                                </Typography>
+                              }
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      ))}
+                    </Collapse>
+                  )}
+                </Box>
+              );
+            })}
           </Collapse>
         </List>
         </Box>

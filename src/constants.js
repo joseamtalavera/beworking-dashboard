@@ -22,7 +22,7 @@ import {
   SupportAIIcon,
   HumanResourcesAIIcon,
   ProjectsAIIcon,
-  SalesAIIcon,
+  CrmAIIcon,
   MarketingAIIcon,
   CodeAIIcon,
   CommunityAIIcon,
@@ -30,8 +30,6 @@ import {
 
 export const TAB_GROUPS = [
   { id: null },
-  { id: 'crm', i18nKey: 'sidebar.groups.crm' },
-  { id: 'operations', i18nKey: 'sidebar.groups.operations' },
   { id: 'finance', i18nKey: 'sidebar.groups.finance' },
   { id: 'tools', i18nKey: 'sidebar.groups.tools' },
   { id: 'community', i18nKey: 'sidebar.groups.community' },
@@ -42,12 +40,9 @@ const BASE_TABS = [
   { id: 'Overview', label: 'Overview', icon: OverviewIcon, group: null },
   { id: 'Business Address', label: 'Business Address', icon: MailboxIcon, group: null },
   { id: 'Booking', label: 'Spaces', icon: BookingIcon, group: null },
-  // CRM
-  { id: 'Contacts', label: 'Contacts', icon: ContactsIcon, group: 'crm' },
-  // Operations
-  { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, group: 'operations' },
-  { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true, group: 'operations' },
-  { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, group: 'operations' },
+  { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, group: null },
+  { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true, group: null },
+  { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, group: null },
   // Finance
   { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon, group: 'finance' },
   { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true, group: 'finance' },
@@ -70,7 +65,9 @@ export const DEPT_TABS = [
   { id: 'SupportAI', label: 'Support', icon: SupportAIIcon },
   { id: 'HumanResourcesAI', label: 'Human Resources', icon: HumanResourcesAIIcon },
   { id: 'ProjectsAI', label: 'Projects', icon: ProjectsAIIcon },
-  { id: 'SalesAI', label: 'Sales', icon: SalesAIIcon },
+  { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
+    { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
+  ]},
   { id: 'MarketingAI', label: 'Marketing', icon: MarketingAIIcon },
   { id: 'CodeAI', label: 'Code', icon: CodeAIIcon },
   { id: 'CommunityAI', label: 'Community', icon: CommunityAIIcon },
@@ -80,4 +77,4 @@ export const DEFAULT_TABS = BASE_TABS;
 
 export const ADMIN_TABS = BASE_TABS;
 
-export const USER_TABS = BASE_TABS.filter(tab => tab.id !== 'SpaceCatalog' && tab.id !== 'Contacts');
+export const USER_TABS = BASE_TABS.filter(tab => tab.id !== 'SpaceCatalog');

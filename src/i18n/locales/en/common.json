@@ -57,8 +57,6 @@
       "platform": "Platform"
     },
     "groups": {
-      "crm": "CRM",
-      "operations": "Operations",
       "finance": "Finance",
       "tools": "Tools",
       "community": "Community"
@@ -276,8 +274,8 @@
       "name": "Projects",
       "description": "Board, timeline, and tasks to manage your projects."
     },
-    "SalesAI": {
-      "name": "Sales",
+    "CRM": {
+      "name": "CRM",
       "description": "Pipeline, contacts, and forecasts for your sales team."
     },
     "MarketingAI": {

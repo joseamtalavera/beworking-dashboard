@@ -29,7 +29,7 @@ import AccountsAIIcon from '@mui/icons-material/CalculateOutlined';
 import SupportAIIcon from '@mui/icons-material/HeadsetMicOutlined';
 import HumanResourcesAIIcon from '@mui/icons-material/BadgeOutlined';
 import ProjectsAIIcon from '@mui/icons-material/ViewKanbanOutlined';
-import SalesAIIcon from '@mui/icons-material/TrendingUpOutlined';
+import CrmAIIcon from '@mui/icons-material/TrendingUpOutlined';
 import MarketingAIIcon from '@mui/icons-material/CampaignOutlined';
 import CodeAIIcon from '@mui/icons-material/TerminalOutlined';
 import CommunityAIIcon from '@mui/icons-material/Diversity3Outlined';
@@ -64,7 +64,7 @@ export {
   SupportAIIcon,
   HumanResourcesAIIcon,
   ProjectsAIIcon,
-  SalesAIIcon,
+  CrmAIIcon,
   MarketingAIIcon,
   CodeAIIcon,
   CommunityAIIcon
