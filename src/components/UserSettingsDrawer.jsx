@@ -3,8 +3,9 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile, changePassword } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
 import { fetchSubscriptions } from '../api/subscriptions.js';
-import { fetchInvoices } from '../api/invoices.js';
+import { fetchInvoices, fetchInvoicePdfBlob, fetchInvoicePdfUrl } from '../api/invoices.js';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -474,9 +475,12 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
         {/* Contact Information */}
         <Stack spacing={2}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {t('contact.title')}
-            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <PersonRoundedIcon fontSize="small" sx={{ color: accentColor }} />
+              <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('contact.title')}
+              </Typography>
+            </Stack>
             {!isEditing ? (
               <Button variant="outlined" size="small" onClick={() => setIsEditing(true)} sx={editBtnSx}>
                 {t('actions.edit')}
@@ -533,35 +537,20 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             )}
           </Stack>
 
-          {isEditingBilling ? (
-            <Stack spacing={2}>
-              <TextField label={t('billingDetails.company')} value={billingForm.company} onChange={(e) => handleBillingFormChange('company', e.target.value)} fullWidth size="small" sx={fieldSx} />
-              <TextField label={t('billingDetails.billingEmail')} value={billingForm.email} onChange={(e) => handleBillingFormChange('email', e.target.value)} fullWidth size="small" type="email" sx={fieldSx} />
-              <TextField label={t('billingDetails.address')} value={billingForm.address} onChange={(e) => handleBillingFormChange('address', e.target.value)} fullWidth size="small" sx={fieldSx} />
-              <Stack direction="row" spacing={2}>
-                <TextField label={t('billingDetails.country')} value={billingForm.country} onChange={(e) => handleBillingFormChange('country', e.target.value)} fullWidth size="small" sx={fieldSx} />
-                <TextField label={t('billingDetails.province')} value={billingForm.province} onChange={(e) => handleBillingFormChange('province', e.target.value)} fullWidth size="small" sx={fieldSx} />
-              </Stack>
-              <Stack direction="row" spacing={2}>
-                <TextField label={t('billingDetails.city')} value={billingForm.city} onChange={(e) => handleBillingFormChange('city', e.target.value)} fullWidth size="small" sx={fieldSx} />
-                <TextField label={t('billingDetails.postalCode')} value={billingForm.postalCode} onChange={(e) => handleBillingFormChange('postalCode', e.target.value)} fullWidth size="small" sx={fieldSx} />
-              </Stack>
-              <TextField label={t('billingDetails.taxId')} value={billingForm.taxId} onChange={(e) => handleBillingFormChange('taxId', e.target.value)} fullWidth size="small" sx={fieldSx} />
+          <Stack spacing={2}>
+            <TextField label={t('billingDetails.company')} value={billingForm.company} onChange={(e) => handleBillingFormChange('company', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
+            <TextField label={t('billingDetails.billingEmail')} value={billingForm.email} onChange={(e) => handleBillingFormChange('email', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" type="email" sx={fieldSx} />
+            <TextField label={t('billingDetails.address')} value={billingForm.address} onChange={(e) => handleBillingFormChange('address', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
+            <Stack direction="row" spacing={2}>
+              <TextField label={t('billingDetails.country')} value={billingForm.country} onChange={(e) => handleBillingFormChange('country', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
+              <TextField label={t('billingDetails.province')} value={billingForm.province} onChange={(e) => handleBillingFormChange('province', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
             </Stack>
-          ) : (
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-              <Stack spacing={1.5}>
-                <InfoRow label={t('billingDetails.company')} value={billingForm.company} />
-                <InfoRow label={t('billingDetails.billingEmail')} value={billingForm.email} />
-                <InfoRow label={t('billingDetails.address')} value={billingForm.address} />
-                <InfoRow label={t('billingDetails.country')} value={billingForm.country} />
-                <InfoRow label={t('billingDetails.province')} value={billingForm.province} />
-                <InfoRow label={t('billingDetails.city')} value={billingForm.city} />
-                <InfoRow label={t('billingDetails.postalCode')} value={billingForm.postalCode} />
-                <InfoRow label={t('billingDetails.taxId')} value={billingForm.taxId} />
-              </Stack>
-            </Paper>
-          )}
+            <Stack direction="row" spacing={2}>
+              <TextField label={t('billingDetails.city')} value={billingForm.city} onChange={(e) => handleBillingFormChange('city', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
+              <TextField label={t('billingDetails.postalCode')} value={billingForm.postalCode} onChange={(e) => handleBillingFormChange('postalCode', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
+            </Stack>
+            <TextField label={t('billingDetails.taxId')} value={billingForm.taxId} onChange={(e) => handleBillingFormChange('taxId', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
+          </Stack>
         </Stack>
 
         <Divider sx={{ my: 3 }} />
@@ -729,7 +718,24 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                 </TableHead>
                 <TableBody>
                   {userInvoices.slice(0, 10).map(inv => (
-                    <TableRow key={inv.id} hover>
+                    <TableRow
+                      key={inv.id}
+                      hover
+                      sx={{ cursor: 'pointer', '&:hover': { bgcolor: alpha(accentColor, 0.04) } }}
+                      onClick={async () => {
+                        try {
+                          const blob = await fetchInvoicePdfBlob(inv.id);
+                          const url = URL.createObjectURL(blob);
+                          window.open(url, '_blank');
+                          setTimeout(() => URL.revokeObjectURL(url), 30000);
+                        } catch {
+                          try {
+                            const url = inv.holdedinvoicepdf || inv.holdedInvoicePdf || (await fetchInvoicePdfUrl(inv.id));
+                            if (url) window.open(url, '_blank');
+                          } catch { /* silent */ }
+                        }
+                      }}
+                    >
                       <TableCell sx={{ fontSize: '0.8125rem' }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                       <TableCell sx={{ fontSize: '0.8125rem' }}>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : '—'}</TableCell>
                       <TableCell sx={{ fontSize: '0.8125rem', fontWeight: 600 }} align="right">€{parseFloat(inv.total || 0).toFixed(2)}</TableCell>

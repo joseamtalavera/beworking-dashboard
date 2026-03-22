@@ -107,14 +107,11 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null });
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
-  // Build the effective filters: for user mode, always filter by user email
+  // Build the effective filters: user mode no longer auto-filters by email
+  // (user's own BeWorking invoices are now in Settings > Invoice History)
   const effectiveFilters = useMemo(() => {
-    const base = { ...queryFilters };
-    if (!isAdmin && userProfile?.email) {
-      base.email = userProfile.email;
-    }
-    return base;
-  }, [queryFilters, isAdmin, userProfile]);
+    return { ...queryFilters };
+  }, [queryFilters]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
