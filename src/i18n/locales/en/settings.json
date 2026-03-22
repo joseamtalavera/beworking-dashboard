@@ -122,6 +122,13 @@
       "desc": "9 min video · building flows and syncing executions"
     }
   },
+  "invoiceHistory": {
+    "title": "Invoice History",
+    "noInvoices": "No invoices yet.",
+    "date": "Date",
+    "amount": "Amount",
+    "status": "Status"
+  },
   "paymentMethod": {
     "title": "Payment Method",
     "description": "Saved cards on Stripe",

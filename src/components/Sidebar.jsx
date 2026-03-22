@@ -239,8 +239,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                               size="small"
                               variant="outlined"
                               sx={{
-                                borderColor: theme.palette.secondary.light,
-                                color: theme.palette.secondary.light,
+                                borderColor: alpha(theme.palette.primary.main, 0.4),
+                                color: theme.palette.primary.main,
                                 fontSize: '0.55rem',
                                 height: 14,
                                 minWidth: 'auto',

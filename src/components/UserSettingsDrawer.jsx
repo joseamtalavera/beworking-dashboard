@@ -3,6 +3,14 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile, changePassword } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
 import { fetchSubscriptions } from '../api/subscriptions.js';
+import { fetchInvoices } from '../api/invoices.js';
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import { fetchCustomerPaymentMethods, createSetupIntent, setDefaultPaymentMethod } from '../api/stripe.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -112,6 +120,8 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const [loading, setLoading] = useState(false);
   const [contactProfile, setContactProfile] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [userInvoices, setUserInvoices] = useState([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
 
   // Billing edit state
   const [isEditingBilling, setIsEditingBilling] = useState(false);
@@ -205,6 +215,18 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
     loadContactProfile();
     loadPaymentMethods();
+
+    // Load user's own BeWorking invoices
+    if (user?.email) {
+      setInvoicesLoading(true);
+      fetchInvoices({ page: 0, size: 20, email: user.email })
+        .then(response => {
+          if (!cancelled && response?.content) setUserInvoices(response.content);
+        })
+        .catch(() => { if (!cancelled) setUserInvoices([]); })
+        .finally(() => { if (!cancelled) setInvoicesLoading(false); });
+    }
+
     return () => { cancelled = true; };
   }, [open, user?.tenantId, user?.email]);
 
@@ -675,6 +697,56 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             <Typography variant="body2" color="text.secondary">
               {t('subscription.noActive')}
             </Typography>
+          )}
+        </Stack>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Invoice History */}
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <ReceiptLongRoundedIcon fontSize="small" sx={{ color: accentColor }} />
+            <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              {t('invoiceHistory.title', { defaultValue: 'Invoice History' })}
+            </Typography>
+          </Stack>
+          {invoicesLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}><CircularProgress size={24} /></Box>
+          ) : userInvoices.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              {t('invoiceHistory.noInvoices', { defaultValue: 'No invoices yet.' })}
+            </Typography>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{t('invoiceHistory.date', { defaultValue: 'Date' })}</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }} align="right">{t('invoiceHistory.amount', { defaultValue: 'Amount' })}</TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{t('invoiceHistory.status', { defaultValue: 'Status' })}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {userInvoices.slice(0, 10).map(inv => (
+                    <TableRow key={inv.id} hover>
+                      <TableCell sx={{ fontSize: '0.8125rem' }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8125rem' }}>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : '—'}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8125rem', fontWeight: 600 }} align="right">€{parseFloat(inv.total || 0).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={inv.estado || '—'}
+                          size="small"
+                          color={(inv.estado || '').toLowerCase().includes('pag') ? 'success' : 'default'}
+                          variant="outlined"
+                          sx={{ fontSize: '0.7rem', height: 20 }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </Stack>
 

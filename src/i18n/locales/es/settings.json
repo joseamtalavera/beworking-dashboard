@@ -122,6 +122,13 @@
       "desc": "Vídeo de 9 min · crear flujos y sincronizar ejecuciones"
     }
   },
+  "invoiceHistory": {
+    "title": "Historial de Facturas",
+    "noInvoices": "Sin facturas todavía.",
+    "date": "Fecha",
+    "amount": "Importe",
+    "status": "Estado"
+  },
   "paymentMethod": {
     "title": "Método de Pago",
     "description": "Tarjetas guardadas en Stripe",

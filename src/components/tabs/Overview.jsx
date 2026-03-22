@@ -618,47 +618,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
         </DialogActions>
       </Dialog>
 
-      {/* Row 4: Recent Invoices */}
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('user.recentInvoices.title')}</Typography>
-          {setActiveTab && (
-            <Button size="small" onClick={() => setActiveTab('Invoices')} sx={{ textTransform: 'none', fontWeight: 600 }}>
-              {t('user.recentInvoices.viewAll')} →
-            </Button>
-          )}
-        </Stack>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('user.recentInvoices.number')}</TableCell>
-                <TableCell>{t('user.recentInvoices.date')}</TableCell>
-                <TableCell align="right">{t('user.recentInvoices.amount')}</TableCell>
-                <TableCell>{t('user.recentInvoices.status')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading.invoices ? (
-                <TableRow><TableCell colSpan={4} align="center" sx={{ py: 3 }}><CircularProgress size={24} /></TableCell></TableRow>
-              ) : recentInvoices.length === 0 ? (
-                <TableRow><TableCell colSpan={4} align="center" sx={{ py: 3 }}>
-                  <Typography variant="body2" color="text.secondary">{t('user.recentInvoices.noInvoices')}</Typography>
-                </TableCell></TableRow>
-              ) : recentInvoices.map(inv => (
-                <TableRow key={inv.id} hover>
-                  <TableCell>#{inv.idFactura || inv.id}</TableCell>
-                  <TableCell>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>€{parseFloat(inv.total || 0).toFixed(2)}</TableCell>
-                  <TableCell><Chip label={inv.estado || '-'} size="small" color={statusChipColor(inv.estado)} variant="outlined" /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-
-      {/* Row 5: Mailbox Preview (conditional) */}
+      {/* Row 4: Mailbox Preview (conditional) */}
       {recentMail.length > 0 && (
         <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
