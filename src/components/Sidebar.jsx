@@ -135,7 +135,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                 {collapsed ? (
                   <Tooltip title={t(`departments.${dept.id}.name`, { defaultValue: dept.label })} placement="right" arrow>
                     <ButtonBase
-                      onClick={() => handleTabClick(dept.id)}
+                      onClick={() => isHero ? onOpenAgent?.() : handleTabClick(dept.id)}
                       sx={{
                         display: 'flex',
                         justifyContent: 'center',
@@ -156,7 +156,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                 ) : (
                   <ButtonBase
                     onClick={() => {
-                      if (hasSubtabs && active) {
+                      if (isHero) {
+                        onOpenAgent?.();
+                      } else if (hasSubtabs && active) {
                         toggleGroup(dept.id);
                       } else {
                         handleTabClick(dept.id);

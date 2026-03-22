@@ -346,33 +346,6 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
             </Box>
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
-              {/* AI Chat button */}
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={onOpenChat}
-                sx={{
-                  height: 36,
-                  display: { xs: 'none', sm: 'inline-flex' },
-                  borderColor: 'primary.main',
-                  color: 'primary.main',
-                  '&:hover': { bgcolor: 'rgba(0,150,36,0.06)', borderColor: 'primary.main' },
-                }}
-                startIcon={<AutoAwesomeOutlinedIcon sx={{ fontSize: 16 }} />}
-              >
-                MariaAI
-              </Button>
-              <IconButton
-                onClick={onOpenChat}
-                sx={{
-                  display: { xs: 'inline-flex', sm: 'none' },
-                  color: 'primary.main',
-                }}
-                aria-label="MariaAI"
-              >
-                <AutoAwesomeOutlinedIcon />
-              </IconButton>
-              {/* Help button — hidden for now */}
               <IconButton
                 onClick={toggleColorMode}
                 size="small"
