@@ -129,7 +129,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             const visibleSubtabs = getVisibleSubtabs(dept);
             const hasSubtabs = visibleSubtabs && visibleSubtabs.length > 0;
             const active = isDeptActive(dept);
-            const expanded = hasSubtabs && active && !isItemCollapsed(dept.id);
+            const expanded = hasSubtabs && !isItemCollapsed(dept.id);
 
             const isHero = dept.hero;
             return (
