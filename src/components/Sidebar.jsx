@@ -205,7 +205,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                 )}
                 {hasSubtabs && !collapsed && (
                   <Collapse in={expanded} timeout="auto">
-                    <Box sx={{ pl: 3, pr: 2, pb: 1 }}>
+                    <Box sx={{ pl: 3, pr: 2, pb: 1, ml: 2, mr: 1, mb: 0.5, borderRadius: 2, backgroundColor: alpha('#000', 0.03) }}>
                       {visibleSubtabs.map((sub) => (
                         <ButtonBase
                           key={sub.id}
@@ -218,14 +218,14 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                             py: 1,
                             borderRadius: 1.5,
                             '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.06) },
-                            ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.primary.main, 0.08) }),
+                            ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.primary.main, 0.1) }),
                           }}
                         >
-                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.secondary', mr: 1.5 }} />
+                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'rgba(0,0,0,0.45)', mr: 1.5 }} />
                           <Typography sx={{
                             fontSize: '0.85rem',
-                            fontWeight: activeTab === sub.id ? 600 : 400,
-                            color: activeTab === sub.id ? activeColor : 'text.secondary',
+                            fontWeight: activeTab === sub.id ? 600 : 500,
+                            color: activeTab === sub.id ? activeColor : 'rgba(0,0,0,0.55)',
                             flex: 1,
                             textAlign: 'left',
                           }}>
