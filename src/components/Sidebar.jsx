@@ -28,7 +28,10 @@ const STORAGE_KEY = 'bw_sidebar_collapsed_groups';
 function loadCollapsedGroups() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (raw) return JSON.parse(raw);
+    // Default: all groups collapsed on first visit
+    const allGroupIds = DEPT_TABS.filter(d => d.subtabs?.length > 0).map(d => d.id);
+    return allGroupIds;
   } catch {
     return [];
   }
