@@ -418,18 +418,6 @@ const Integrations = () => {
                           </Box>
                         </Stack>
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, ml: 2 }}>
-                          {app.departments.map((dept) => (
-                            <Chip
-                              key={dept} size="small" label={dept}
-                              sx={{
-                                fontSize: '0.625rem', height: 20,
-                                bgcolor: alpha(DEPT_COLORS[dept] || '#666', 0.1),
-                                color: DEPT_COLORS[dept] || '#666',
-                                fontWeight: 600,
-                                display: { xs: 'none', md: 'flex' },
-                              }}
-                            />
-                          ))}
                           <Chip
                             size="small"
                             label={isOn ? 'Active' : 'Ready'}
