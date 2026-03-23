@@ -34,7 +34,7 @@ export const DEPT_TABS = [
     { id: 'Overview', label: 'Overview', icon: OverviewIcon },
     { id: 'Business Address', label: 'Business Address', icon: MailboxIcon },
     { id: 'Booking', label: 'Spaces', icon: BookingIcon },
-    { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon },
+    { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, soon: true },
     { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true },
     { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
@@ -44,7 +44,7 @@ export const DEPT_TABS = [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
   ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
-    { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
+    { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon, soon: true },
     { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
     { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },
     { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true },
