@@ -539,7 +539,6 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
           <Stack spacing={2}>
             <TextField label={t('billingDetails.company')} value={billingForm.company} onChange={(e) => handleBillingFormChange('company', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
-            <TextField label={t('billingDetails.billingEmail')} value={billingForm.email} onChange={(e) => handleBillingFormChange('email', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" type="email" sx={fieldSx} />
             <TextField label={t('billingDetails.address')} value={billingForm.address} onChange={(e) => handleBillingFormChange('address', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
             <Stack direction="row" spacing={2}>
               <TextField label={t('billingDetails.country')} value={billingForm.country} onChange={(e) => handleBillingFormChange('country', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
