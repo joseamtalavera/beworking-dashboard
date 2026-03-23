@@ -17,9 +17,12 @@ import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Switch from '@mui/material/Switch';
+import Collapse from '@mui/material/Collapse';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 
 const favicon = (domain) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
@@ -94,18 +97,36 @@ const SUITES = [
   {
     id: 'google-workspace-suite',
     name: 'Google Workspace',
+    description: 'Gmail, Drive, Docs, Calendar, Meet and more — full suite connected via Service Account + OAuth',
     logo: favicon('workspace.google.com'),
-    apps: ['Gmail', 'Drive', 'Calendar', 'Docs', 'Sheets', 'Meet'],
     color: '#4285F4',
     status: 'available',
+    apps: [
+      { id: 'google-docs', name: 'Google Docs', logo: favicon('docs.google.com'), description: 'Contract generation from templates · auto-fill user data on registration', departments: ['HumanResourcesAI', 'AccountsAI'], status: 'ready' },
+      { id: 'google-drive', name: 'Google Drive', logo: favicon('drive.google.com'), description: 'Per-user folders for signed contracts · shared storage for documents and reports', departments: ['AccountsAI', 'HumanResourcesAI', 'ProjectsAI'], status: 'active' },
+      { id: 'gmail', name: 'Gmail', logo: favicon('gmail.com'), description: 'Read/send on behalf of your domain · SalesAI outreach · SupportAI inbox · MarketingAI campaigns', departments: ['SalesAI', 'SupportAI', 'MarketingAI'], status: 'ready' },
+      { id: 'google-calendar', name: 'Google Calendar', logo: favicon('calendar.google.com'), description: 'Booking sync · interview scheduling (HR) · project milestones · sales call booking', departments: ['HumanResourcesAI', 'ProjectsAI', 'SalesAI'], status: 'ready' },
+      { id: 'google-meet', name: 'Google Meet', logo: favicon('meet.google.com'), description: 'Auto-create meeting links for booked slots · interview links · sales demo scheduling', departments: ['HumanResourcesAI', 'SalesAI'], status: 'ready' },
+      { id: 'google-sheets', name: 'Google Sheets', logo: favicon('sheets.google.com'), description: 'Export reports, payroll data, financial summaries · bi-directional sync with AccountsAI', departments: ['AccountsAI', 'HumanResourcesAI'], status: 'ready' },
+      { id: 'google-analytics', name: 'Google Analytics / Tag Manager', logo: favicon('analytics.google.com'), description: 'MarketingAI reads traffic data · CodeAI manages GTM deployments and event tracking', departments: ['MarketingAI', 'CodeAI'], status: 'ready' },
+      { id: 'google-forms', name: 'Google Forms', logo: favicon('forms.google.com'), description: 'Onboarding forms · feedback collection · HR intake · data flows into CRM automatically', departments: ['HumanResourcesAI', 'SalesAI'], status: 'ready' },
+    ],
   },
   {
     id: 'microsoft-365-suite',
     name: 'Microsoft 365',
+    description: 'Outlook, OneDrive, Teams, Word, Excel and more — connected via Microsoft Graph API',
     logo: favicon('microsoft.com'),
-    apps: ['Outlook', 'OneDrive', 'Teams', 'Word', 'Excel', 'SharePoint'],
     color: '#0078D4',
     status: 'available',
+    apps: [
+      { id: 'outlook', name: 'Outlook', logo: favicon('outlook.com'), description: 'Email sync · calendar integration · SalesAI outreach · SupportAI inbox', departments: ['SalesAI', 'SupportAI', 'MarketingAI'], status: 'ready' },
+      { id: 'onedrive', name: 'OneDrive', logo: favicon('onedrive.live.com'), description: 'Document storage · shared folders · contract management', departments: ['AccountsAI', 'HumanResourcesAI', 'ProjectsAI'], status: 'ready' },
+      { id: 'ms-teams', name: 'Microsoft Teams', logo: favicon('teams.microsoft.com'), description: 'Chat channels · video meetings · team collaboration', departments: ['SupportAI', 'ProjectsAI', 'SalesAI'], status: 'ready' },
+      { id: 'ms-word', name: 'Word', logo: favicon('word.office.com'), description: 'Document generation · contract templates · proposal drafts', departments: ['HumanResourcesAI', 'AccountsAI'], status: 'ready' },
+      { id: 'ms-excel', name: 'Excel', logo: favicon('excel.office.com'), description: 'Financial reports · payroll exports · data analysis', departments: ['AccountsAI', 'HumanResourcesAI'], status: 'ready' },
+      { id: 'sharepoint', name: 'SharePoint', logo: favicon('sharepoint.com'), description: 'Team sites · document libraries · knowledge base', departments: ['ProjectsAI', 'HumanResourcesAI'], status: 'ready' },
+    ],
   },
 ];
 
@@ -125,8 +146,14 @@ const Integrations = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [connectors, setConnectors] = useState(CONNECTORS);
   const [suites, setSuites] = useState(SUITES);
+  const [expandedSuite, setExpandedSuite] = useState(null);
+  const [appToggles, setAppToggles] = useState({});
   const [connectingId, setConnectingId] = useState(null);
   const [hoveredConnected, setHoveredConnected] = useState(null);
+
+  const toggleApp = (appId) => {
+    setAppToggles((prev) => ({ ...prev, [appId]: !prev[appId] }));
+  };
 
   const filtered = useMemo(() => {
     let items = [...connectors];
@@ -297,118 +324,140 @@ const Integrations = () => {
       </Paper>
 
       {/* Featured Suites */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-          gap: 2.5,
-        }}
-      >
-        {suites.map((suite) => (
-          <Paper
-            key={suite.id}
-            elevation={0}
-            sx={{
-              p: 3, borderRadius: 3,
-              border: '1px solid',
-              borderColor: suite.status === 'connected' ? alpha(suite.color, 0.4) : 'divider',
-              bgcolor: alpha(suite.color, 0.03),
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                borderColor: alpha(suite.color, 0.5),
-                boxShadow: `0 0 0 1px ${alpha(suite.color, 0.1)}`,
-                transform: 'translateY(-2px)',
-              },
-            }}
-          >
-            <Stack spacing={2.5}>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+      <Stack spacing={2}>
+        {suites.map((suite) => {
+          const isExpanded = expandedSuite === suite.id;
+          const DEPT_COLORS = {
+            AccountsAI: '#8B5CF6', HumanResourcesAI: '#EC4899', ProjectsAI: '#F59E0B',
+            SalesAI: '#10B981', SupportAI: '#6366F1', MarketingAI: '#EF4444', CodeAI: '#6B7280',
+          };
+          return (
+            <Paper
+              key={suite.id}
+              elevation={0}
+              sx={{
+                borderRadius: 3, border: '1px solid',
+                borderColor: suite.status === 'connected' ? alpha(suite.color, 0.4) : 'divider',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Suite header */}
+              <Box
+                onClick={() => setExpandedSuite(isExpanded ? null : suite.id)}
+                sx={{
+                  p: 2.5, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  bgcolor: alpha(suite.color, 0.03),
+                  '&:hover': { bgcolor: alpha(suite.color, 0.06) },
+                }}
+              >
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Avatar
-                    src={suite.logo}
-                    alt={suite.name}
-                    sx={{
-                      width: 48, height: 48,
-                      border: '2px solid', borderColor: alpha(suite.color, 0.3),
-                      bgcolor: alpha(suite.color, 0.08),
-                    }}
+                    src={suite.logo} alt={suite.name}
+                    sx={{ width: 44, height: 44, border: '2px solid', borderColor: alpha(suite.color, 0.3), bgcolor: alpha(suite.color, 0.08) }}
                   >
                     {suite.name.slice(0, 2)}
                   </Avatar>
                   <Box>
-                    <Typography variant="h6" fontWeight={700} color="text.primary">
-                      {suite.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('stubs.connectors.suites.title', 'Suite')}
-                    </Typography>
+                    <Typography variant="subtitle1" fontWeight={700} color="text.primary">{suite.name}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>{suite.description}</Typography>
                   </Box>
                 </Stack>
-                {suite.status === 'connected' && (
-                  <Chip
-                    size="small"
-                    icon={<CheckCircleRoundedIcon sx={{ fontSize: 14 }} />}
-                    label={t('stubs.connectors.connectedBadge')}
-                    sx={{
-                      bgcolor: alpha(green, 0.1), color: green,
-                      fontWeight: 600, fontSize: '0.75rem',
-                      '& .MuiChip-icon': { color: green },
-                    }}
-                  />
-                )}
-              </Stack>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  {suite.status === 'connected' ? (
+                    <Chip
+                      size="small"
+                      icon={<CheckCircleRoundedIcon sx={{ fontSize: 14 }} />}
+                      label={t('stubs.connectors.connectedBadge')}
+                      sx={{ bgcolor: alpha(green, 0.1), color: green, fontWeight: 600, fontSize: '0.75rem', '& .MuiChip-icon': { color: green } }}
+                    />
+                  ) : (
+                    <Button
+                      variant="outlined" size="small"
+                      onClick={(e) => { e.stopPropagation(); handleSuiteConnect(suite.id); }}
+                      sx={{ borderRadius: 2, borderColor: suite.color, color: suite.color, fontWeight: 600, '&:hover': { bgcolor: alpha(suite.color, 0.06) } }}
+                    >
+                      {t('stubs.connectors.suites.connectSuite', 'Connect Suite')}
+                    </Button>
+                  )}
+                  <ExpandMoreRoundedIcon sx={{
+                    fontSize: 20, color: 'text.secondary',
+                    transition: 'transform 0.2s',
+                    transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                  }} />
+                </Stack>
+              </Box>
 
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {suite.apps.map((app) => (
-                  <Chip
-                    key={app}
-                    size="small"
-                    label={app}
-                    sx={{
-                      bgcolor: alpha(suite.color, 0.08),
-                      color: suite.color,
-                      fontWeight: 500,
-                      fontSize: '0.75rem',
-                      border: `1px solid ${alpha(suite.color, 0.15)}`,
-                    }}
-                  />
-                ))}
-              </Stack>
-
-              {suite.status === 'available' ? (
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => handleSuiteConnect(suite.id)}
-                  sx={{
-                    borderRadius: 2,
-                    borderColor: suite.color,
-                    color: suite.color,
-                    fontWeight: 600,
-                    '&:hover': { bgcolor: alpha(suite.color, 0.06), borderColor: suite.color },
-                  }}
-                >
-                  {t('stubs.connectors.suites.connectSuite', 'Connect Suite')}
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() => handleSuiteDisconnect(suite.id)}
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: suite.color,
-                    fontWeight: 600,
-                    '&:hover': { bgcolor: alpha(suite.color, 0.85) },
-                  }}
-                >
-                  {t('stubs.connectors.connectedBadge')}
-                </Button>
-              )}
-            </Stack>
-          </Paper>
-        ))}
-      </Box>
+              {/* Expanded sub-apps */}
+              <Collapse in={isExpanded} timeout="auto">
+                <Divider />
+                <Box sx={{ px: 1, py: 1 }}>
+                  {suite.apps.map((app) => {
+                    const isOn = appToggles[app.id] ?? (app.status === 'active');
+                    return (
+                      <Box
+                        key={app.id}
+                        sx={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          px: 2, py: 1.5,
+                          borderBottom: '1px solid', borderColor: 'divider',
+                          '&:last-child': { borderBottom: 'none' },
+                          '&:hover': { bgcolor: alpha(suite.color, 0.02) },
+                        }}
+                      >
+                        <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+                          <Avatar
+                            src={app.logo} alt={app.name}
+                            sx={{ width: 32, height: 32, bgcolor: alpha(suite.color, 0.06) }}
+                          >
+                            {app.name.slice(0, 2)}
+                          </Avatar>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" fontWeight={600} color="text.primary">{app.name}</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>{app.description}</Typography>
+                          </Box>
+                        </Stack>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, ml: 2 }}>
+                          {app.departments.map((dept) => (
+                            <Chip
+                              key={dept} size="small" label={dept}
+                              sx={{
+                                fontSize: '0.625rem', height: 20,
+                                bgcolor: alpha(DEPT_COLORS[dept] || '#666', 0.1),
+                                color: DEPT_COLORS[dept] || '#666',
+                                fontWeight: 600,
+                                display: { xs: 'none', md: 'flex' },
+                              }}
+                            />
+                          ))}
+                          <Chip
+                            size="small"
+                            label={isOn ? 'Active' : 'Ready'}
+                            sx={{
+                              fontSize: '0.625rem', height: 20, fontWeight: 600,
+                              bgcolor: isOn ? alpha(green, 0.1) : alpha('#666', 0.08),
+                              color: isOn ? green : 'text.secondary',
+                            }}
+                          />
+                          <Switch
+                            size="small"
+                            checked={isOn}
+                            onChange={() => toggleApp(app.id)}
+                            sx={{
+                              '& .MuiSwitch-switchBase.Mui-checked': { color: green },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: green },
+                            }}
+                          />
+                        </Stack>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Collapse>
+            </Paper>
+          );
+        })}
+      </Stack>
 
       {/* Connector Grid */}
       {filtered.length === 0 ? (
