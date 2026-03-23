@@ -188,6 +188,13 @@
       "comingSoon": "Coming soon",
       "searchPlaceholder": "Search connectors…",
       "noResults": "No connectors match your search.",
+      "categoryLabel": "Category",
+      "statusLabel": "Status",
+      "allStatuses": "All statuses",
+      "suites": {
+        "title": "Suite",
+        "connectSuite": "Connect Suite"
+      },
       "filter": {
         "popular": "Popular",
         "all": "All",

@@ -8,9 +8,12 @@ import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
+import Divider from '@mui/material/Divider';
 import Fade from '@mui/material/Fade';
-import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
+import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -87,28 +90,50 @@ const CATEGORIES = [
   { id: 'automation', label: 'connectors.categories.automation' },
 ];
 
-const FILTER_TABS = ['popular', 'all', 'connected', 'available'];
+const SUITES = [
+  {
+    id: 'google-workspace-suite',
+    name: 'Google Workspace',
+    logo: favicon('workspace.google.com'),
+    apps: ['Gmail', 'Drive', 'Calendar', 'Docs', 'Sheets', 'Meet'],
+    color: '#4285F4',
+    status: 'available',
+  },
+  {
+    id: 'microsoft-365-suite',
+    name: 'Microsoft 365',
+    logo: favicon('microsoft.com'),
+    apps: ['Outlook', 'OneDrive', 'Teams', 'Word', 'Excel', 'SharePoint'],
+    color: '#0078D4',
+    status: 'available',
+  },
+];
+
+const pillFieldSx = (hasValue) => ({
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
+});
 
 const Integrations = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const green = theme.palette.brand.green;
   const greenHover = theme.palette.brand.greenHover;
-  const greenSoft = theme.palette.brand.greenSoft;
 
-  const [activeFilter, setActiveFilter] = useState('popular');
-  const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('');
   const [connectors, setConnectors] = useState(CONNECTORS);
+  const [suites, setSuites] = useState(SUITES);
   const [connectingId, setConnectingId] = useState(null);
   const [hoveredConnected, setHoveredConnected] = useState(null);
 
   const filtered = useMemo(() => {
     let items = [...connectors];
 
-    if (activeFilter === 'popular') items = items.filter((c) => c.popular);
-    else if (activeFilter === 'connected') items = items.filter((c) => c.status === 'connected');
-    else if (activeFilter === 'available') items = items.filter((c) => c.status === 'available');
+    if (statusFilter === 'connected') items = items.filter((c) => c.status === 'connected');
+    else if (statusFilter === 'available') items = items.filter((c) => c.status === 'available');
+    else if (statusFilter === 'coming_soon') items = items.filter((c) => c.status === 'coming_soon');
 
     if (category !== 'all') items = items.filter((c) => c.category === category);
 
@@ -118,7 +143,7 @@ const Integrations = () => {
     }
 
     return items;
-  }, [connectors, activeFilter, category, search]);
+  }, [connectors, statusFilter, category, search]);
 
   const connectedCount = connectors.filter((c) => c.status === 'connected').length;
   const availableCount = connectors.filter((c) => c.status === 'available').length;
@@ -133,6 +158,18 @@ const Integrations = () => {
 
   const handleDisconnect = (id) => {
     setConnectors((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'available' } : c)));
+  };
+
+  const handleSuiteConnect = (suiteId) => {
+    setConnectingId(suiteId);
+    setTimeout(() => {
+      setSuites((prev) => prev.map((s) => (s.id === suiteId ? { ...s, status: 'connected' } : s)));
+      setConnectingId(null);
+    }, 1800);
+  };
+
+  const handleSuiteDisconnect = (suiteId) => {
+    setSuites((prev) => prev.map((s) => (s.id === suiteId ? { ...s, status: 'available' } : s)));
   };
 
   return (
@@ -157,11 +194,8 @@ const Integrations = () => {
           <Box
             key={stat.label}
             sx={{
-              px: 3,
-              py: 2,
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: 'divider',
+              px: 3, py: 2, borderRadius: 3,
+              border: '1px solid', borderColor: 'divider',
               minWidth: 140,
               bgcolor: stat.accent ? alpha(green, 0.04) : 'background.paper',
             }}
@@ -176,65 +210,207 @@ const Integrations = () => {
         ))}
       </Stack>
 
-      {/* Filter tabs + Search + Category */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} flexWrap="wrap" useFlexGap>
-        <Stack direction="row" spacing={0.5} sx={{ bgcolor: alpha(theme.palette.text.primary, 0.04), borderRadius: 2, p: 0.5 }}>
-          {FILTER_TABS.map((tab) => (
-            <Button
-              key={tab}
-              size="small"
-              onClick={() => setActiveFilter(tab)}
-              sx={{
-                px: 2,
-                py: 0.75,
-                borderRadius: 1.5,
-                fontSize: '0.8125rem',
-                fontWeight: activeFilter === tab ? 600 : 400,
-                color: activeFilter === tab ? '#fff' : 'text.secondary',
-                bgcolor: activeFilter === tab ? green : 'transparent',
-                '&:hover': {
-                  bgcolor: activeFilter === tab ? greenHover : alpha(theme.palette.text.primary, 0.06),
-                },
-              }}
-            >
-              {t(`stubs.connectors.filter.${tab}`)}
-            </Button>
-          ))}
-        </Stack>
+      {/* Pill-bar search/filter */}
+      <Paper
+        elevation={0}
+        sx={{
+          border: '1px solid', borderColor: 'divider',
+          backgroundColor: 'background.paper',
+          display: 'flex', alignItems: 'center', overflow: 'hidden',
+          boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+          flexDirection: { xs: 'column', sm: 'row' },
+          borderRadius: { xs: 3, sm: 999 },
+        }}
+      >
+        {/* Search */}
+        <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <TextField
+            variant="standard"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            label={t('stubs.connectors.searchPlaceholder', 'Search')}
+            placeholder={t('stubs.connectors.searchPlaceholder')}
+            fullWidth
+            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+            sx={pillFieldSx(search)}
+          />
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
-        <TextField
-          size="small"
-          placeholder={t('stubs.connectors.searchPlaceholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchRoundedIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
-                </InputAdornment>
-              ),
-            },
-          }}
-          sx={{ minWidth: 220 }}
-        />
+        {/* Category */}
+        <Box sx={{ flex: 0.7, px: 2, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+            {t('stubs.connectors.categoryLabel', 'Category')}
+          </Typography>
+          <Select
+            variant="standard"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            displayEmpty
+            fullWidth
+            disableUnderline
+            sx={{ fontSize: '0.875rem', color: category !== 'all' ? 'text.primary' : 'text.secondary' }}
+          >
+            {CATEGORIES.map((cat) => (
+              <MenuItem key={cat.id} value={cat.id}>{t(cat.label)}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
-        <TextField
-          select
-          size="small"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          sx={{ minWidth: 180 }}
-        >
-          {CATEGORIES.map((cat) => (
-            <MenuItem key={cat.id} value={cat.id}>
-              {t(cat.label)}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Stack>
+        {/* Status */}
+        <Box sx={{ flex: 0.6, px: 2, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+            {t('stubs.connectors.statusLabel', 'Status')}
+          </Typography>
+          <Select
+            variant="standard"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            displayEmpty
+            fullWidth
+            disableUnderline
+            sx={{ fontSize: '0.875rem', color: statusFilter ? 'text.primary' : 'text.secondary' }}
+          >
+            <MenuItem value="">{t('stubs.connectors.allStatuses', 'All statuses')}</MenuItem>
+            <MenuItem value="connected">{t('stubs.connectors.connectedBadge')}</MenuItem>
+            <MenuItem value="available">{t('stubs.connectors.filter.available')}</MenuItem>
+            <MenuItem value="coming_soon">{t('stubs.connectors.comingSoon')}</MenuItem>
+          </Select>
+        </Box>
 
-      {/* Grid */}
+        {/* Search button */}
+        <Box sx={{ px: { xs: 2, sm: 1.5 }, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: 'center' }}>
+          <IconButton
+            aria-label="Search"
+            sx={{
+              bgcolor: 'primary.main', color: 'common.white',
+              width: 44, height: 44,
+              '&:hover': { bgcolor: 'primary.dark' },
+            }}
+          >
+            <SearchRoundedIcon />
+          </IconButton>
+        </Box>
+      </Paper>
+
+      {/* Featured Suites */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+          gap: 2.5,
+        }}
+      >
+        {suites.map((suite) => (
+          <Paper
+            key={suite.id}
+            elevation={0}
+            sx={{
+              p: 3, borderRadius: 3,
+              border: '1px solid',
+              borderColor: suite.status === 'connected' ? alpha(suite.color, 0.4) : 'divider',
+              bgcolor: alpha(suite.color, 0.03),
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: alpha(suite.color, 0.5),
+                boxShadow: `0 0 0 1px ${alpha(suite.color, 0.1)}`,
+                transform: 'translateY(-2px)',
+              },
+            }}
+          >
+            <Stack spacing={2.5}>
+              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Avatar
+                    src={suite.logo}
+                    alt={suite.name}
+                    sx={{
+                      width: 48, height: 48,
+                      border: '2px solid', borderColor: alpha(suite.color, 0.3),
+                      bgcolor: alpha(suite.color, 0.08),
+                    }}
+                  >
+                    {suite.name.slice(0, 2)}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6" fontWeight={700} color="text.primary">
+                      {suite.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {t('stubs.connectors.suites.title', 'Suite')}
+                    </Typography>
+                  </Box>
+                </Stack>
+                {suite.status === 'connected' && (
+                  <Chip
+                    size="small"
+                    icon={<CheckCircleRoundedIcon sx={{ fontSize: 14 }} />}
+                    label={t('stubs.connectors.connectedBadge')}
+                    sx={{
+                      bgcolor: alpha(green, 0.1), color: green,
+                      fontWeight: 600, fontSize: '0.75rem',
+                      '& .MuiChip-icon': { color: green },
+                    }}
+                  />
+                )}
+              </Stack>
+
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {suite.apps.map((app) => (
+                  <Chip
+                    key={app}
+                    size="small"
+                    label={app}
+                    sx={{
+                      bgcolor: alpha(suite.color, 0.08),
+                      color: suite.color,
+                      fontWeight: 500,
+                      fontSize: '0.75rem',
+                      border: `1px solid ${alpha(suite.color, 0.15)}`,
+                    }}
+                  />
+                ))}
+              </Stack>
+
+              {suite.status === 'available' ? (
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => handleSuiteConnect(suite.id)}
+                  sx={{
+                    borderRadius: 2,
+                    borderColor: suite.color,
+                    color: suite.color,
+                    fontWeight: 600,
+                    '&:hover': { bgcolor: alpha(suite.color, 0.06), borderColor: suite.color },
+                  }}
+                >
+                  {t('stubs.connectors.suites.connectSuite', 'Connect Suite')}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => handleSuiteDisconnect(suite.id)}
+                  sx={{
+                    borderRadius: 2,
+                    bgcolor: suite.color,
+                    fontWeight: 600,
+                    '&:hover': { bgcolor: alpha(suite.color, 0.85) },
+                  }}
+                >
+                  {t('stubs.connectors.connectedBadge')}
+                </Button>
+              )}
+            </Stack>
+          </Paper>
+        ))}
+      </Box>
+
+      {/* Connector Grid */}
       {filtered.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography variant="body1" color="text.secondary">
@@ -255,8 +431,7 @@ const Integrations = () => {
                 onMouseEnter={() => connector.status === 'connected' && setHoveredConnected(connector.id)}
                 onMouseLeave={() => setHoveredConnected(null)}
                 sx={{
-                  p: 3,
-                  borderRadius: 3,
+                  p: 3, borderRadius: 3,
                   border: '1px solid',
                   borderColor: connector.status === 'connected' ? alpha(green, 0.3) : 'divider',
                   bgcolor: connector.status === 'coming_soon' ? alpha(theme.palette.text.primary, 0.02) : 'background.paper',
@@ -270,20 +445,16 @@ const Integrations = () => {
                 }}
               >
                 <Stack spacing={2}>
-                  {/* Top row: logo + status */}
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                     <Avatar
                       src={connector.logo}
                       alt={connector.name}
                       sx={{
-                        width: 44,
-                        height: 44,
+                        width: 44, height: 44,
                         border: '2px solid',
                         borderColor: connector.status === 'connected' ? alpha(green, 0.3) : 'divider',
-                        bgcolor: alpha(green, 0.08),
-                        color: green,
-                        fontSize: 16,
-                        fontWeight: 700,
+                        bgcolor: alpha(green, 0.08), color: green,
+                        fontSize: 16, fontWeight: 700,
                       }}
                     >
                       {connector.name.slice(0, 2)}
@@ -294,10 +465,8 @@ const Integrations = () => {
                         icon={<CheckCircleRoundedIcon sx={{ fontSize: 14 }} />}
                         label={t('stubs.connectors.connectedBadge')}
                         sx={{
-                          bgcolor: alpha(green, 0.1),
-                          color: green,
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
+                          bgcolor: alpha(green, 0.1), color: green,
+                          fontWeight: 600, fontSize: '0.75rem',
                           '& .MuiChip-icon': { color: green },
                         }}
                       />
@@ -309,14 +478,12 @@ const Integrations = () => {
                         sx={{
                           bgcolor: alpha(theme.palette.text.secondary, 0.1),
                           color: 'text.secondary',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
+                          fontWeight: 600, fontSize: '0.75rem',
                         }}
                       />
                     )}
                   </Stack>
 
-                  {/* Name + description */}
                   <Box>
                     <Typography variant="subtitle1" fontWeight={700} color="text.primary">
                       {connector.name}
@@ -326,7 +493,6 @@ const Integrations = () => {
                     </Typography>
                   </Box>
 
-                  {/* Category chip */}
                   <Box>
                     <Chip
                       size="small"
@@ -336,18 +502,12 @@ const Integrations = () => {
                     />
                   </Box>
 
-                  {/* Action button */}
                   {connector.status === 'available' && (
                     <Button
-                      variant="outlined"
-                      size="small"
-                      fullWidth
+                      variant="outlined" size="small" fullWidth
                       onClick={() => handleConnect(connector.id)}
                       sx={{
-                        borderRadius: 2,
-                        borderColor: green,
-                        color: green,
-                        fontWeight: 600,
+                        borderRadius: 2, borderColor: green, color: green, fontWeight: 600,
                         '&:hover': { bgcolor: alpha(green, 0.06), borderColor: greenHover, color: greenHover },
                       }}
                     >
@@ -357,24 +517,18 @@ const Integrations = () => {
                   {connector.status === 'connected' && (
                     <Button
                       variant={hoveredConnected === connector.id ? 'outlined' : 'contained'}
-                      size="small"
-                      fullWidth
+                      size="small" fullWidth
                       onClick={() => handleDisconnect(connector.id)}
                       startIcon={hoveredConnected === connector.id ? <LinkOffRoundedIcon sx={{ fontSize: 16 }} /> : null}
                       sx={{
-                        borderRadius: 2,
-                        fontWeight: 600,
+                        borderRadius: 2, fontWeight: 600,
                         ...(hoveredConnected === connector.id
                           ? {
-                              borderColor: theme.palette.error.main,
-                              color: theme.palette.error.main,
+                              borderColor: theme.palette.error.main, color: theme.palette.error.main,
                               bgcolor: 'transparent',
                               '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.06), borderColor: theme.palette.error.dark },
                             }
-                          : {
-                              bgcolor: green,
-                              '&:hover': { bgcolor: greenHover },
-                            }),
+                          : { bgcolor: green, '&:hover': { bgcolor: greenHover } }),
                       }}
                     >
                       {hoveredConnected === connector.id ? t('stubs.connectors.disconnect') : t('stubs.connectors.connectedBadge')}
@@ -395,27 +549,31 @@ const Integrations = () => {
       {/* Connecting modal */}
       <Dialog
         open={!!connectingId}
-        PaperProps={{
-          sx: { borderRadius: 3, p: 2, minWidth: 300, textAlign: 'center' },
-        }}
+        PaperProps={{ sx: { borderRadius: 3, p: 2, minWidth: 300, textAlign: 'center' } }}
       >
         <DialogContent>
           <Stack spacing={3} alignItems="center" sx={{ py: 2 }}>
-            {connectingId && (
-              <Avatar
-                src={connectors.find((c) => c.id === connectingId)?.logo}
-                alt=""
-                sx={{ width: 56, height: 56, border: '2px solid', borderColor: alpha(green, 0.3), bgcolor: alpha(green, 0.08), color: green, fontSize: 18, fontWeight: 700 }}
-              >
-                {connectors.find((c) => c.id === connectingId)?.name.slice(0, 2)}
-              </Avatar>
-            )}
+            {connectingId && (() => {
+              const item = connectors.find((c) => c.id === connectingId) || suites.find((s) => s.id === connectingId);
+              return item ? (
+                <Avatar
+                  src={item.logo}
+                  alt=""
+                  sx={{ width: 56, height: 56, border: '2px solid', borderColor: alpha(green, 0.3), bgcolor: alpha(green, 0.08), color: green, fontSize: 18, fontWeight: 700 }}
+                >
+                  {item.name.slice(0, 2)}
+                </Avatar>
+              ) : null;
+            })()}
             <CircularProgress size={32} sx={{ color: green }} />
             <Typography variant="subtitle1" fontWeight={600}>
               {t('stubs.connectors.connecting')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {connectingId && connectors.find((c) => c.id === connectingId)?.name}
+              {(() => {
+                const item = connectors.find((c) => c.id === connectingId) || suites.find((s) => s.id === connectingId);
+                return item?.name || '';
+              })()}
             </Typography>
           </Stack>
         </DialogContent>

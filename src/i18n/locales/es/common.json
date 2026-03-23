@@ -188,6 +188,13 @@
       "comingSoon": "Próximamente",
       "searchPlaceholder": "Buscar conectores…",
       "noResults": "Ningún conector coincide con tu búsqueda.",
+      "categoryLabel": "Categoría",
+      "statusLabel": "Estado",
+      "allStatuses": "Todos los estados",
+      "suites": {
+        "title": "Suite",
+        "connectSuite": "Conectar Suite"
+      },
       "filter": {
         "popular": "Populares",
         "all": "Todos",
