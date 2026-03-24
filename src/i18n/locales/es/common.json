@@ -18,7 +18,9 @@
     "Tickets": "Tickets",
     "Reports": "Informes",
     "Marketplace": "Marketplace",
-    "SpaceCatalog": "Catálogo de Espacios"
+    "SpaceCatalog": "Catálogo de Espacios",
+    "WebGen": "Generación Web",
+    "QA": "QA"
   },
   "greeting": {
     "morning": "Buenos días",
@@ -287,9 +289,9 @@
       "name": "Marketing",
       "description": "Campañas, calendario de contenido y analíticas de marketing."
     },
-    "CodeAI": {
-      "name": "Código",
-      "description": "Repositorios, despliegues y gestión de bugs para tu equipo de desarrollo."
+    "WebAI": {
+      "name": "Web",
+      "description": "Generación web y control de calidad para tu producto digital."
     },
     "CommunityAI": {
       "name": "Comunidad",

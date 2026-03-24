@@ -18,7 +18,9 @@
     "Tickets": "Tickets",
     "Reports": "Reports",
     "Marketplace": "Marketplace",
-    "SpaceCatalog": "Space Catalog"
+    "SpaceCatalog": "Space Catalog",
+    "WebGen": "Web Generation",
+    "QA": "QA"
   },
   "greeting": {
     "morning": "Good morning",
@@ -287,9 +289,9 @@
       "name": "Marketing",
       "description": "Campaigns, content calendar, and marketing analytics."
     },
-    "CodeAI": {
-      "name": "Code",
-      "description": "Repositories, deployments, and bug tracking for your dev team."
+    "WebAI": {
+      "name": "Web",
+      "description": "Web generation and quality assurance for your digital product."
     },
     "CommunityAI": {
       "name": "Community",

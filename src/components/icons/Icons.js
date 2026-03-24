@@ -32,6 +32,8 @@ import ProjectsAIIcon from '@mui/icons-material/ViewKanbanOutlined';
 import CrmAIIcon from '@mui/icons-material/TrendingUpOutlined';
 import MarketingAIIcon from '@mui/icons-material/CampaignOutlined';
 import CodeAIIcon from '@mui/icons-material/TerminalOutlined';
+import WebGenIcon from '@mui/icons-material/LanguageOutlined';
+import QAIcon from '@mui/icons-material/BugReportOutlined';
 import CommunityAIIcon from '@mui/icons-material/Diversity3Outlined';
 
 export {
@@ -67,5 +69,7 @@ export {
   CrmAIIcon,
   MarketingAIIcon,
   CodeAIIcon,
+  WebGenIcon,
+  QAIcon,
   CommunityAIIcon
 };

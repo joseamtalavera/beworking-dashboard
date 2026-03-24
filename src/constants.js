@@ -25,6 +25,8 @@ import {
   CrmAIIcon,
   MarketingAIIcon,
   CodeAIIcon,
+  WebGenIcon,
+  QAIcon,
   CommunityAIIcon,
 } from './components/icons/Icons.js';
 
@@ -52,7 +54,10 @@ export const DEPT_TABS = [
   { id: 'HumanResourcesAI', label: 'Human Resources', icon: HumanResourcesAIIcon },
   { id: 'ProjectsAI', label: 'Projects', icon: ProjectsAIIcon },
   { id: 'MarketingAI', label: 'Marketing', icon: MarketingAIIcon },
-  { id: 'CodeAI', label: 'Code', icon: CodeAIIcon },
+  { id: 'WebAI', label: 'Web', icon: CodeAIIcon, subtabs: [
+    { id: 'WebGen', label: 'Web Generation', icon: WebGenIcon, soon: true },
+    { id: 'QA', label: 'QA', icon: QAIcon, soon: true },
+  ]},
   { id: 'CommunityAI', label: 'Community', icon: CommunityAIIcon, subtabs: [
     { id: 'Events', label: 'Events', icon: EventsIcon, soon: true },
   ]},
