@@ -263,42 +263,43 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
         </Box>
       </Box>
       <Divider />
-      <List sx={{ px: collapsed ? 1 : 2, py: 2, flexShrink: 0 }}>
+      <List sx={{ px: collapsed ? 1 : 0, py: 1, flexShrink: 0 }}>
         <ListItem disablePadding>
           <Tooltip title={collapsed ? t('sidebar.settings') : ''} placement="right" arrow>
-            <ListItemButton
-              sx={{ borderRadius: 2, mb: 0.5, justifyContent: collapsed ? 'center' : 'initial', px: collapsed ? 1.5 : 2 }}
+            <ButtonBase
               onClick={onOpenSettings}
+              sx={{
+                display: 'flex', alignItems: 'center', width: '100%',
+                px: 3, py: 1.5,
+                '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+              }}
             >
-              <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                <SettingsIcon sx={{ fontSize: 20 }} />
-              </ListItemIcon>
-              {!collapsed && <ListItemText primary={t('sidebar.settings')} />}
-            </ListItemButton>
+              <SettingsIcon sx={{ fontSize: 20, color: 'text.secondary', mr: collapsed ? 0 : 1.5 }} />
+              {!collapsed && (
+                <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'text.primary' }}>
+                  {t('sidebar.settings')}
+                </Typography>
+              )}
+            </ButtonBase>
           </Tooltip>
         </ListItem>
         <ListItem disablePadding>
           <Tooltip title={collapsed ? t('sidebar.logout') : ''} placement="right" arrow>
-            <ListItemButton
-              sx={{
-                borderRadius: 2,
-                justifyContent: collapsed ? 'center' : 'initial',
-                px: collapsed ? 1.5 : 2,
-                color: 'primary.main',
-                '& .MuiListItemIcon-root': { color: 'primary.main' },
-                '&:hover': {
-                  backgroundColor: (theme) => theme.palette.brand.greenSoft,
-                  color: 'primary.dark',
-                  '& .MuiListItemIcon-root': { color: 'primary.dark' }
-                }
-              }}
+            <ButtonBase
               onClick={onLogout}
+              sx={{
+                display: 'flex', alignItems: 'center', width: '100%',
+                px: 3, py: 1.5,
+                '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+              }}
             >
-              <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, justifyContent: 'center' }}>
-                <LogoutRoundedIcon sx={{ fontSize: 20 }} />
-              </ListItemIcon>
-              {!collapsed && <ListItemText primary={t('sidebar.logout')} />}
-            </ListItemButton>
+              <LogoutRoundedIcon sx={{ fontSize: 20, color: 'primary.main', mr: collapsed ? 0 : 1.5 }} />
+              {!collapsed && (
+                <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'primary.main' }}>
+                  {t('sidebar.logout')}
+                </Typography>
+              )}
+            </ButtonBase>
           </Tooltip>
         </ListItem>
       </List>
