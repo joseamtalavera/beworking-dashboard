@@ -601,6 +601,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   bookedSlotIds={bookedSlotIds}
                   minTime={state.startTime ? addMinutesToTime(state.startTime, 30) : undefined}
                   maxTime={maxEndTime || undefined}
+                  isEndTime
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
@@ -694,6 +695,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                   bookedSlotIds={bookedSlotIds}
                   minTime={state.startTime ? addMinutesToTime(state.startTime, 30) : undefined}
                   maxTime={maxEndTime || undefined}
+                  isEndTime
                 />
               </Box>
               <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />

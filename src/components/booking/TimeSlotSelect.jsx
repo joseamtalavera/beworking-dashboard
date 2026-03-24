@@ -12,6 +12,7 @@ export default function TimeSlotSelect({
   bookedSlotIds,
   minTime,
   maxTime,
+  isEndTime = false,
 }) {
   const { t } = useTranslation('booking');
 
@@ -53,7 +54,7 @@ export default function TimeSlotSelect({
       }}
     >
       {filteredSlots.map((slot) => {
-        const isBooked = bookedSlotIds?.has(slot.id);
+        const isBooked = bookedSlotIds?.has(slot.id) && !(isEndTime && maxTime && slot.id === maxTime);
         return (
           <MenuItem key={slot.id} value={slot.id} disabled={isBooked}>
             {slot.label}
