@@ -65,7 +65,19 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
       return <Booking mode="user" userProfile={userProfile} />;
     }
     if (activeTab === 'Invoices') {
-      return <Invoices mode="user" userProfile={userProfile} />;
+      return (
+        <Box sx={{ textAlign: 'center', py: 10 }}>
+          <Typography variant="h5" fontWeight={700} color="text.primary" gutterBottom>
+            Invoices
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mx: 'auto' }}>
+            Create and manage invoices for your clients. This feature is coming soon.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Your BeWorking subscription invoices are available in Settings.
+          </Typography>
+        </Box>
+      );
     }
     const Component = TAB_COMPONENTS[activeTab];
     if (!Component) return null;
