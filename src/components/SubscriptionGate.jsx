@@ -10,7 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { alpha } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 
-const SUBSCRIBE_URL = 'https://oficinavirtual.be-working.com';
+const SUBSCRIBE_URL = 'https://be-spaces.com/malaga/oficina-virtual';
 
 /**
  * Transparent overlay that gates an action for non-subscribers.
