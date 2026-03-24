@@ -24,10 +24,18 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('en', 'booking', enBooking);
 }
 
+const EU_VAT_PREFIXES = new Set([
+  'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR',
+  'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL',
+  'PT', 'RO', 'SE', 'SI', 'SK',
+]);
+
 function getVatRate(state) {
   const taxId = (state.contact?.billingTaxId || '').trim().toUpperCase();
-  // Intra-EU reverse charge: 0% VAT for EU VAT-registered companies outside Spain
-  if (taxId && /^[A-Z]{2}/.test(taxId) && !taxId.startsWith('ES')) return 0;
+  if (!taxId || taxId.length < 2) return 0.21;
+  const prefix = taxId.substring(0, 2);
+  // Intra-EU reverse charge: 0% only for EU VAT-registered companies outside Spain
+  if (EU_VAT_PREFIXES.has(prefix) && prefix !== 'ES') return 0;
   return 0.21;
 }
 
