@@ -129,7 +129,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             const visibleSubtabs = getVisibleSubtabs(dept);
             const hasSubtabs = visibleSubtabs && visibleSubtabs.length > 0;
             const active = isDeptActive(dept);
-            const expanded = hasSubtabs && !isItemCollapsed(dept.id);
+            // In user view, only Platform can expand
+            const canExpand = isAdmin || dept.id === 'Platform';
+            const expanded = hasSubtabs && canExpand && !isItemCollapsed(dept.id);
 
             const isHero = dept.hero;
             return (
@@ -161,9 +163,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                     onClick={() => {
                       if (isHero) {
                         onOpenAgent?.();
-                      } else if (hasSubtabs && active) {
+                      } else if (hasSubtabs && canExpand) {
                         toggleGroup(dept.id);
-                      } else {
+                      } else if (!hasSubtabs || !canExpand) {
                         handleTabClick(dept.id);
                       }
                     }}
@@ -196,7 +198,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                         {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
                       </Typography>
                     </Stack>
-                    {hasSubtabs && (
+                    {hasSubtabs && canExpand && (
                       <ExpandMoreRoundedIcon
                         sx={{
                           fontSize: 18,
@@ -208,7 +210,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                     )}
                   </ButtonBase>
                 )}
-                {hasSubtabs && !collapsed && (
+                {hasSubtabs && canExpand && !collapsed && (
                   <Collapse in={expanded} timeout="auto">
                     <Box sx={{ pl: 3, pr: 2, pb: 1, ml: 2, mr: 1, mb: 0.5, borderRadius: 2, backgroundColor: alpha('#000', 0.03) }}>
                       {visibleSubtabs.map((sub) => (
