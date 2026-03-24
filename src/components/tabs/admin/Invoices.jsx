@@ -550,7 +550,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               {paginatedRows.map((inv) => (
           <TableRow key={inv.id} hover>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
-                  <TableCell>{inv.clientName || '\u2014'}</TableCell>
+                  <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.clientName || '\u2014'}</TableCell>
                   {isAdmin && <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.tenantType ? t(`userTypes.${inv.tenantType}`, inv.tenantType) : '\u2014'}</TableCell>}
                   <TableCell align="right">
                     <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.8rem' }}>
