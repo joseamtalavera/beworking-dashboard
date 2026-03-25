@@ -159,9 +159,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const loadPaymentMethods = () => {
     const email = user?.email;
     if (!email || !email.includes('@')) return;
-    const stripeCustomerId = subscriptions?.[0]?.stripeCustomerId || subscriptions?.[0]?.stripe_customer_id;
+    const sub = subscriptions?.[0];
+    const stripeCustomerId = sub?.stripeCustomerId || sub?.stripe_customer_id;
+    const tenant = (sub?.cuenta || 'beworking').toLowerCase();
     setPmLoading(true);
-    fetchCustomerPaymentMethods(email, stripeCustomerId)
+    fetchCustomerPaymentMethods(email, stripeCustomerId, tenant)
       .then(data => setPaymentMethods(data?.paymentMethods || []))
       .catch(() => setPaymentMethods([]))
       .finally(() => setPmLoading(false));
@@ -337,8 +339,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     try {
       const email = user?.email;
       const name = contactProfile?.name || user?.name;
-      const stripeCustomerId = subscriptions?.[0]?.stripeCustomerId || subscriptions?.[0]?.stripe_customer_id;
-      const data = await createSetupIntent({ customerEmail: email, customerName: name, customerId: stripeCustomerId });
+      const sub = subscriptions?.[0];
+      const stripeCustomerId = sub?.stripeCustomerId || sub?.stripe_customer_id;
+      const tenant = (sub?.cuenta || 'beworking').toLowerCase();
+      const data = await createSetupIntent({ customerEmail: email, customerName: name, customerId: stripeCustomerId, tenant });
       setSetupClientSecret(data.clientSecret);
       setPmDialogOpen(true);
     } catch (err) {
