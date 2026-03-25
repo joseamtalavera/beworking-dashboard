@@ -265,46 +265,42 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
         </Box>
       </Box>
       <Divider />
-      <List sx={{ px: collapsed ? 1 : 0, py: 1, flexShrink: 0 }}>
-        <ListItem disablePadding>
-          <Tooltip title={collapsed ? t('sidebar.settings') : ''} placement="right" arrow>
-            <ButtonBase
-              onClick={onOpenSettings}
-              sx={{
-                display: 'flex', alignItems: 'center', width: '100%',
-                px: 3, py: 1.5,
-                '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
-              }}
-            >
-              <SettingsIcon sx={{ fontSize: 20, color: 'text.secondary', mr: collapsed ? 0 : 1.5 }} />
-              {!collapsed && (
-                <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'text.primary' }}>
-                  {t('sidebar.settings')}
-                </Typography>
-              )}
-            </ButtonBase>
-          </Tooltip>
-        </ListItem>
-        <ListItem disablePadding>
-          <Tooltip title={collapsed ? t('sidebar.logout') : ''} placement="right" arrow>
-            <ButtonBase
-              onClick={onLogout}
-              sx={{
-                display: 'flex', alignItems: 'center', width: '100%',
-                px: 3, py: 1.5,
-                '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
-              }}
-            >
-              <LogoutRoundedIcon sx={{ fontSize: 20, color: 'primary.main', mr: collapsed ? 0 : 1.5 }} />
-              {!collapsed && (
-                <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'primary.main' }}>
-                  {t('sidebar.logout')}
-                </Typography>
-              )}
-            </ButtonBase>
-          </Tooltip>
-        </ListItem>
-      </List>
+      <Box sx={{ px: collapsed ? 1 : 0, py: 1, flexShrink: 0 }}>
+        <Tooltip title={collapsed ? t('sidebar.settings') : ''} placement="right" arrow>
+          <ButtonBase
+            onClick={onOpenSettings}
+            sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%',
+              px: 3, py: 1.5,
+              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+            }}
+          >
+            <SettingsIcon sx={{ fontSize: 20, color: 'text.secondary', mr: collapsed ? 0 : 1.5 }} />
+            {!collapsed && (
+              <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'text.primary' }}>
+                {t('sidebar.settings')}
+              </Typography>
+            )}
+          </ButtonBase>
+        </Tooltip>
+        <Tooltip title={collapsed ? t('sidebar.logout') : ''} placement="right" arrow>
+          <ButtonBase
+            onClick={onLogout}
+            sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%',
+              px: 3, py: 1.5,
+              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+            }}
+          >
+            <LogoutRoundedIcon sx={{ fontSize: 20, color: 'primary.main', mr: collapsed ? 0 : 1.5 }} />
+            {!collapsed && (
+              <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'primary.main' }}>
+                {t('sidebar.logout')}
+              </Typography>
+            )}
+          </ButtonBase>
+        </Tooltip>
+      </Box>
     </>
   );
 
