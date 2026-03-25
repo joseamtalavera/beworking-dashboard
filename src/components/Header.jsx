@@ -345,7 +345,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
               )}
             </Box>
 
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, justifyContent: 'flex-end' }}>
               <IconButton
                 onClick={toggleColorMode}
                 size="small"

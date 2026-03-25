@@ -480,7 +480,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
   return (
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Row 1: Quick Stats */}
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' } }}>
         <StatCard label={t('user.stats.upcomingBookings')} value={upcomingCount} sublabel={t('user.stats.next30days')} loading={loading.bookings} theme={theme} />
         <StatCard label={t('user.stats.bookingsThisMonth')} value={bookingStats?.totalBookingsMonth ?? 0} sublabel={t('user.stats.thisMonth')} loading={loading.stats} theme={theme} />
         {isVirtualUser ? (
@@ -1040,7 +1040,7 @@ const AdminOverview = () => {
   return (
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Quick Stats Row */}
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' } }}>
         <StatCard label={t('stats.businessAddresses')} value={registrationStats.today} sublabel={t('stats.today')} mtd={registrationStats.mtd} ytd={registrationStats.ytd} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
@@ -1048,7 +1048,7 @@ const AdminOverview = () => {
       </Box>
 
       {/* Financial Metrics */}
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' } }}>
         <MetricCard
           label={t('metrics.incomeYTD')}
           value={metrics.incomeYTD}
