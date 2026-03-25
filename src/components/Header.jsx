@@ -165,19 +165,36 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
       <style>{spinAnimation}</style>
       <Stack spacing={2}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
-          <Stack spacing={0.75}>
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              {/* Hamburger menu — mobile only */}
-              <IconButton
-                onClick={onMenuToggle}
-                sx={{ display: { xs: 'inline-flex', md: 'none' }, color: 'text.primary', ml: -1 }}
-                aria-label={t('header.openNav')}
-              >
-                <MenuRoundedIcon />
-              </IconButton>
-              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' } }}>
-                {t('tabs.' + activeTab, { defaultValue: activeTab })}
-              </Typography>
+          <Stack spacing={0.75} sx={{ width: { xs: '100%', md: 'auto' } }}>
+            <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                {/* Hamburger menu — mobile only */}
+                <IconButton
+                  onClick={onMenuToggle}
+                  sx={{ display: { xs: 'inline-flex', md: 'none' }, color: 'text.primary', ml: -1 }}
+                  aria-label={t('header.openNav')}
+                >
+                  <MenuRoundedIcon />
+                </IconButton>
+                <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' } }}>
+                  {t('tabs.' + activeTab, { defaultValue: activeTab })}
+                </Typography>
+              </Stack>
+              {/* Icons — inline next to title on mobile */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'flex', md: 'none' } }}>
+                <IconButton onClick={toggleColorMode} size="small" sx={{ color: accentColor, width: 32, height: 32 }} aria-label="Toggle dark mode">
+                  {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
+                </IconButton>
+                <Button variant="outlined" size="small" onClick={toggleLanguage} sx={{ textTransform: 'none', fontWeight: 700, minWidth: 36, px: 1, height: 32, fontSize: '0.75rem', borderColor: accentColor, color: accentColor, '&:hover': { borderColor: accentColor, backgroundColor: theme.palette.brand.accentSoft } }}>
+                  {i18n.language === 'es' ? 'EN' : 'ES'}
+                </Button>
+                {userProfile?.hasMultipleAccounts && (
+                  <AccountSwitcher currentTenantId={userProfile?.tenantId} />
+                )}
+                <Avatar src={userProfile?.avatar || userProfile?.photo || undefined} alt={userProfile?.name || userProfile?.email || 'User'} onClick={onOpenSettings} sx={{ width: 32, height: 32, border: '2px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6), bgcolor: accentColor, cursor: 'pointer', fontSize: '0.75rem' }}>
+                  {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('') : 'U'}
+                </Avatar>
+              </Stack>
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
               {greeting}, {userProfile?.name || 'User'}. {t('header.subtitle')}
@@ -345,7 +362,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
               )}
             </Box>
 
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, justifyContent: 'flex-end' }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, justifyContent: 'flex-end', display: { xs: 'none', md: 'flex' } }}>
               <IconButton
                 onClick={toggleColorMode}
                 size="small"
