@@ -476,6 +476,43 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
         <Divider sx={{ my: 3 }} />
 
+        {/* Photo */}
+        <Stack spacing={2}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {t('photo.title')}
+          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Avatar
+              src={avatarPreview || user.avatar}
+              alt={user.name}
+              sx={{ width: 64, height: 64, border: '2px solid', borderColor: 'divider' }}
+            >
+              {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
+            </Avatar>
+            <Stack spacing={1}>
+              <input accept="image/*" style={{ display: 'none' }} id="avatar-upload" type="file" onChange={handlePhotoUpload} />
+              <label htmlFor="avatar-upload">
+                <Button
+                  component="span" variant="outlined" size="small" startIcon={<PhotoCameraRoundedIcon />}
+                  sx={{
+                    minWidth: 120, height: 36, textTransform: 'none', fontWeight: 600,
+                    borderColor: accentColor, color: accentColor,
+                    '&:hover': {
+                      borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover,
+                      backgroundColor: alpha(theme.palette.brand.green, 0.08),
+                    },
+                  }}
+                >
+                  {t('photo.change')}
+                </Button>
+              </label>
+              <Typography variant="caption" color="text.secondary">{t('photo.hint')}</Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+
+        <Divider sx={{ my: 3 }} />
+
         {/* Contact Information */}
         <Stack spacing={2}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -613,43 +650,6 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
           >
             {paymentMethods.length > 0 ? t('paymentMethod.change') : t('paymentMethod.add')}
           </Button>
-        </Stack>
-
-        <Divider sx={{ my: 3 }} />
-
-        {/* Photo */}
-        <Stack spacing={2}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            {t('photo.title')}
-          </Typography>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar
-              src={avatarPreview || user.avatar}
-              alt={user.name}
-              sx={{ width: 64, height: 64, border: '2px solid', borderColor: 'divider' }}
-            >
-              {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
-            </Avatar>
-            <Stack spacing={1}>
-              <input accept="image/*" style={{ display: 'none' }} id="avatar-upload" type="file" onChange={handlePhotoUpload} />
-              <label htmlFor="avatar-upload">
-                <Button
-                  component="span" variant="outlined" size="small" startIcon={<PhotoCameraRoundedIcon />}
-                  sx={{
-                    minWidth: 120, height: 36, textTransform: 'none', fontWeight: 600,
-                    borderColor: accentColor, color: accentColor,
-                    '&:hover': {
-                      borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover,
-                      backgroundColor: alpha(theme.palette.brand.green, 0.08),
-                    },
-                  }}
-                >
-                  {t('photo.change')}
-                </Button>
-              </label>
-              <Typography variant="caption" color="text.secondary">{t('photo.hint')}</Typography>
-            </Stack>
-          </Stack>
         </Stack>
 
         <Divider sx={{ my: 3 }} />
@@ -809,19 +809,6 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
           ) : (
             passwordSuccess && <Alert severity="success">{t('password.success')}</Alert>
           )}
-        </Stack>
-
-        <Divider sx={{ my: 3 }} />
-
-        {/* Account */}
-        <Stack spacing={2}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            {t('account.title')}
-          </Typography>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <VerifiedRoundedIcon fontSize="small" sx={{ color: accentColor }} />
-            <Chip label={contactStatus} color="success" size="small" />
-          </Stack>
         </Stack>
 
         <Divider sx={{ my: 3 }} />
