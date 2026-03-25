@@ -50,7 +50,17 @@ if (!i18n.hasResourceBundle('es', 'settings')) {
   i18n.addResourceBundle('en', 'settings', enSettings);
 }
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const PT_STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
+const GT_STRIPE_KEY = import.meta.env.VITE_GT_STRIPE_PUBLISHABLE_KEY || '';
+
+const stripeInstances = {};
+function getStripePromise(tenant) {
+  const key = tenant === 'gt' ? GT_STRIPE_KEY : PT_STRIPE_KEY;
+  if (!stripeInstances[key]) {
+    stripeInstances[key] = loadStripe(key);
+  }
+  return stripeInstances[key];
+}
 
 const SetupForm = ({ onSuccess, onCancel }) => {
   const stripe = useStripe();
@@ -136,6 +146,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const [pmLoading, setPmLoading] = useState(false);
   const [pmDialogOpen, setPmDialogOpen] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState(null);
+  const [setupTenant, setSetupTenant] = useState('beworking');
 
   // Password change state
   const [isEditingPassword, setIsEditingPassword] = useState(false);
@@ -344,6 +355,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
       const tenant = (sub?.cuenta || 'beworking').toLowerCase();
       const data = await createSetupIntent({ customerEmail: email, customerName: name, customerId: stripeCustomerId, tenant });
       setSetupClientSecret(data.clientSecret);
+      setSetupTenant(tenant);
       setPmDialogOpen(true);
     } catch (err) {
       console.error('Failed to create setup intent:', err);
@@ -851,7 +863,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
         <Dialog open={pmDialogOpen} onClose={() => { setPmDialogOpen(false); setSetupClientSecret(null); }} maxWidth="sm" fullWidth>
           <DialogTitle>{t('paymentMethod.setup')}</DialogTitle>
           <DialogContent>
-            <Elements stripe={stripePromise} options={{ clientSecret: setupClientSecret, appearance: { theme: 'stripe' } }}>
+            <Elements stripe={getStripePromise(setupTenant)} options={{ clientSecret: setupClientSecret, appearance: { theme: 'stripe' } }}>
               <SetupForm onSuccess={handleSetupSuccess} onCancel={() => { setPmDialogOpen(false); setSetupClientSecret(null); }} />
             </Elements>
           </DialogContent>

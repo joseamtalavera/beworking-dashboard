@@ -36,7 +36,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Fetch Stripe publishable key from Secrets Manager
+      - name: Fetch Stripe publishable keys from Secrets Manager
         id: stripe
         run: |
           PK=$(aws secretsmanager get-secret-value \
@@ -44,6 +44,11 @@ jobs:
             --query SecretString --output text)
           echo "::add-mask::$PK"
           echo "pk=$PK" >> "$GITHUB_OUTPUT"
+          GT_PK=$(aws secretsmanager get-secret-value \
+            --secret-id gt-stripe-publishable-key \
+            --query SecretString --output text)
+          echo "::add-mask::$GT_PK"
+          echo "gt_pk=$GT_PK" >> "$GITHUB_OUTPUT"
 
       - name: Login to ECR
         id: ecr
@@ -58,6 +63,7 @@ jobs:
           tags: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ inputs.image_tag || 'main' }}
           build-args: |
             VITE_STRIPE_PUBLISHABLE_KEY=${{ steps.stripe.outputs.pk }}
+            VITE_GT_STRIPE_PUBLISHABLE_KEY=${{ steps.stripe.outputs.gt_pk }}
             VITE_PAYMENTS_BASE_URL=https://stripe.be-working.com
             VITE_STRIPE_TENANT=beworking
 
