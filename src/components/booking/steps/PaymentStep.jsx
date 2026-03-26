@@ -265,7 +265,7 @@ function AdminPaymentOptions({ onCreated }) {
         invoiceStatus = 'Pagado';
       } else if (paymentOption === 'invoice') {
         const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
-        const idempotencyKey = `new-${state.producto?.id}-${state.contact?.id}-${state.dateFrom}-${state.startTime}-${state.endTime}`;
+        const idempotencyKey = `new-${state.producto?.id}-${state.contact?.id}-${state.dateFrom}-${state.startTime}-${state.endTime}-${amountCents}-${Date.now()}`;
         const invoiceResult = await createStripeInvoice({
           customerEmail: contactEmail,
           customerName: contactName,
