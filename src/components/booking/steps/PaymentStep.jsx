@@ -39,7 +39,7 @@ import {
 } from '../../../api/stripe.js';
 import { useBookingFlow } from '../BookingFlowContext';
 import { timeStringToMinutes } from '../../../utils/calendarUtils';
-import ReviewSummary, { computePricing } from './ReviewSummary';
+import ReviewSummary, { computePricing, computeBookingCount } from './ReviewSummary';
 import ExtraLineItems from '../ExtraLineItems';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
@@ -229,9 +229,13 @@ function AdminPaymentOptions({ onCreated }) {
 
       // ── Standard booking flow ──
       const bookingPayload = buildBookingPayload(state);
-      const combinedAmountCents = Math.round((pricing.total + selectedUninvoicedSubtotal * (1 + pricing.vatRate)) * 100);
-      const amountCents = Math.round(pricing.total * 100);
-      const description = `Reserva: ${productName} (${state.dateFrom})`;
+      const bookingCount = computeBookingCount(state);
+      const grandTotal = +(pricing.total * bookingCount).toFixed(2);
+      const grandSubtotal = +(pricing.subtotal * bookingCount).toFixed(2);
+      const combinedAmountCents = Math.round((grandTotal + selectedUninvoicedSubtotal * (1 + pricing.vatRate)) * 100);
+      const amountCents = Math.round(grandTotal * 100);
+      const dateRange = bookingCount > 1 ? `${state.dateFrom} — ${state.dateTo}` : state.dateFrom;
+      const description = `Reserva: ${productName} (${dateRange})`;
       let invoiceStatus;
       let stripeInvoiceId = null;
       const hasExtra = selectedUninvoicedIds.length > 0;
@@ -292,13 +296,14 @@ function AdminPaymentOptions({ onCreated }) {
 
       // ── Step 2: Create the booking ──
       const bookingResponse = await createReserva(bookingPayload);
-      const bloqueoId = bookingResponse.bloqueos?.[0]?.id;
+      const allBloqueoIds = (bookingResponse.bloqueos || []).map(b => b.id).filter(Boolean);
+      const bloqueoId = allBloqueoIds[0];
 
       // ── Step 3: Create the internal invoice (facturas record) ──
       if (invoiceStatus) {
-        if (hasExtra && bloqueoId) {
+        if ((hasExtra || allBloqueoIds.length > 1) && allBloqueoIds.length > 0) {
           // Multi-bloqueo invoice: use createInvoice with bloqueoIds
-          const allIds = [bloqueoId, ...selectedUninvoicedIds];
+          const allIds = [...allBloqueoIds, ...selectedUninvoicedIds];
           const vatPct = paymentOption === 'free' ? 0 : Math.round(pricing.vatRate * 100);
           const invoiceReq = { bloqueoIds: allIds, vatPercent: vatPct };
           if (stripeInvoiceId) invoiceReq.stripeInvoiceId = stripeInvoiceId;

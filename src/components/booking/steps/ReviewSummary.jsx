@@ -289,4 +289,4 @@ export default function ReviewSummary({ state }) {
   );
 }
 
-export { computePricing };
+export { computePricing, computeBookingCount };
