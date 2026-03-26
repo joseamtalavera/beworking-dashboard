@@ -691,7 +691,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     />
                   </Stack>
                   <Typography variant="body2" color="text.secondary">
-                    {sub.cuenta} · {'\u20AC'}{Number(sub.monthlyAmount).toFixed(2)}/{i18n.language === 'es' ? 'mes' : 'mo'}
+                    {sub.cuenta} · {'\u20AC'}{Number(sub.monthlyAmount).toFixed(2)}/{{ month: i18n.language === 'es' ? 'mes' : 'mo', quarter: i18n.language === 'es' ? 'trimestre' : 'quarter', year: i18n.language === 'es' ? 'año' : 'year' }[sub.billingInterval || 'month']}
                     {sub.startDate && ` · ${i18n.language === 'es' ? 'desde' : 'since'} ${sub.startDate}`}
                   </Typography>
                 </Stack>
