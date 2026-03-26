@@ -11,7 +11,7 @@
   },
   "photo": {
     "title": "Foto de Perfil",
-    "change": "CAMBIAR FOTO",
+    "change": "Cambiar foto",
     "hint": "Haz clic para subir una nueva foto de perfil"
   },
   "account": {
@@ -25,7 +25,7 @@
     "mismatch": "Las contraseñas no coinciden",
     "requirements": "Mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y carácter especial",
     "success": "Contraseña cambiada correctamente",
-    "changing": "CAMBIANDO..."
+    "changing": "Cambiando..."
   },
   "subscription": {
     "title": "Suscripción",
@@ -34,8 +34,8 @@
     "price": "Precio:",
     "nextBilling": "Próxima facturación:",
     "active": "Activa",
-    "manage": "GESTIONAR",
-    "subscribe": "SUSCRIBIRSE",
+    "manage": "Gestionar",
+    "subscribe": "Suscribirse",
     "choosePlan": "Elige tu Plan de Suscripción",
     "selectPlan": "Selecciona el plan que mejor se adapte a tus necesidades",
     "selected": "Seleccionado",
@@ -58,7 +58,7 @@
   },
   "billing": {
     "title": "Facturación y Stripe",
-    "editPayment": "EDITAR MÉTODO DE PAGO",
+    "editPayment": "Editar método de pago",
     "cardBrand": "Marca de Tarjeta",
     "fullCardNumber": "Número Completo de Tarjeta",
     "cardHint": "Ingresa el número completo de la tarjeta. Solo se guardarán los últimos 4 dígitos.",
@@ -72,27 +72,27 @@
     "issued": "Emitida"
   },
   "actions": {
-    "edit": "EDITAR",
-    "cancel": "CANCELAR",
-    "save": "GUARDAR",
-    "saving": "GUARDANDO...",
-    "logout": "CERRAR SESIÓN",
-    "close": "CERRAR"
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "logout": "Cerrar sesión",
+    "close": "Cerrar"
   },
   "help": {
     "title": "Ayuda y Soporte",
     "subtitle": "Chatea con nosotros, busca documentación o mira tutoriales rápidos.",
     "liveChat": "Chat en vivo",
     "liveChatDesc": "Nuestros ingenieros de soporte responden en pocos minutos durante horario comercial.",
-    "startChat": "INICIAR CHAT",
-    "bookCall": "RESERVAR LLAMADA",
+    "startChat": "Iniciar chat",
+    "bookCall": "Reservar llamada",
     "quickAnswers": "Respuestas rápidas",
     "tapToOpen": "Toca para abrir el artículo",
     "documentation": "Documentación",
     "tutorials": "Tutoriales",
     "leaveNote": "Déjanos un mensaje",
     "notePlaceholder": "¿Cómo podemos ayudarte? Comparte tu pregunta y te responderemos por correo.",
-    "sendMessage": "ENVIAR MENSAJE",
+    "sendMessage": "Enviar mensaje",
     "questions": {
       "card": "¿Cómo actualizo mi tarjeta de pago?",
       "invoices": "¿Dónde puedo ver todas las facturas?",

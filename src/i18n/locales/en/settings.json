@@ -11,7 +11,7 @@
   },
   "photo": {
     "title": "Profile Photo",
-    "change": "CHANGE PHOTO",
+    "change": "Change photo",
     "hint": "Click to upload a new profile photo"
   },
   "account": {
@@ -25,7 +25,7 @@
     "mismatch": "Passwords do not match",
     "requirements": "At least 8 characters, including uppercase, lowercase, number, and special character",
     "success": "Password changed successfully",
-    "changing": "CHANGING..."
+    "changing": "Changing..."
   },
   "subscription": {
     "title": "Subscription",
@@ -34,8 +34,8 @@
     "price": "Price:",
     "nextBilling": "Next billing:",
     "active": "Active",
-    "manage": "MANAGE",
-    "subscribe": "SUBSCRIBE",
+    "manage": "Manage",
+    "subscribe": "Subscribe",
     "choosePlan": "Choose Your Subscription Plan",
     "selectPlan": "Select a plan that best fits your needs",
     "selected": "Selected",
@@ -58,7 +58,7 @@
   },
   "billing": {
     "title": "Billing & Stripe",
-    "editPayment": "EDIT PAYMENT METHOD",
+    "editPayment": "Edit payment method",
     "cardBrand": "Card Brand",
     "fullCardNumber": "Full Card Number",
     "cardHint": "Enter the complete card number. Only last 4 digits will be saved.",
@@ -72,27 +72,27 @@
     "issued": "Issued"
   },
   "actions": {
-    "edit": "EDIT",
-    "cancel": "CANCEL",
-    "save": "SAVE",
-    "saving": "SAVING...",
-    "logout": "LOGOUT",
-    "close": "CLOSE"
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "logout": "Log out",
+    "close": "Close"
   },
   "help": {
     "title": "Help & Support",
     "subtitle": "Chat with us, search documentation, or watch quick walkthroughs.",
     "liveChat": "Live chat",
     "liveChatDesc": "Our support engineers respond within a few minutes during business hours.",
-    "startChat": "START CHAT",
-    "bookCall": "BOOK CALL",
+    "startChat": "Start chat",
+    "bookCall": "Book call",
     "quickAnswers": "Quick answers",
     "tapToOpen": "Tap to open the relevant article",
     "documentation": "Documentation",
     "tutorials": "Tutorials",
     "leaveNote": "Leave us a note",
     "notePlaceholder": "How can we help? Share your question and we'll reply by email.",
-    "sendMessage": "SEND MESSAGE",
+    "sendMessage": "Send message",
     "questions": {
       "card": "How do I update my card on file?",
       "invoices": "Where can I see all tenant invoices?",
