@@ -135,26 +135,26 @@ const normalizeContact = (entry = {}) => {
 
   // Fallbacks from flat API fields (DB columns) when nested objects are missing
   // Compute representative full name separately to avoid mixing `??` with `||` in one expression
-  const representativeName = [entry.representative_first_name, entry.representative_last_name]
+  const representativeName = [entry.representative_first_name ?? entry.representativeFirstName, entry.representative_last_name ?? entry.representativeLastName]
     .filter(Boolean)
     .join(' ');
   const fallbackContactName = contact.name
-    ?? entry.primary_contact
+    ?? entry.primary_contact ?? entry.primaryContact ?? entry.contact_name ?? entry.contactName
     ?? (representativeName || null);
   const fallbackContactEmail = contact.email
-    ?? entry.email_primary
-    ?? entry.representative_email
+    ?? entry.email_primary ?? entry.emailPrimary
+    ?? entry.representative_email ?? entry.representativeEmail
     ?? null;
 
   const fallbackBilling = {
-    company: billing.company ?? entry.billing_name ?? entry.name ?? null,
-    email: billing.email ?? entry.billing_email ?? entry.email_primary ?? null,
-    address: billing.address ?? entry.billing_address ?? null,
-    postal_code: billing.postal_code ?? entry.billing_postal_code ?? null,
-    city: billing.city ?? entry.billing_city ?? null,
-    county: billing.county ?? entry.billing_province ?? null,
-    country: billing.country ?? entry.billing_country ?? null,
-    tax_id: billing.tax_id ?? entry.billing_tax_id ?? null
+    company: billing.company ?? entry.billing_name ?? entry.billingName ?? entry.billing_company_name ?? entry.billingCompanyName ?? entry.name ?? null,
+    email: billing.email ?? entry.billing_email ?? entry.billingEmail ?? entry.email_primary ?? entry.emailPrimary ?? null,
+    address: billing.address ?? entry.billing_address ?? entry.billingAddress ?? null,
+    postal_code: billing.postal_code ?? entry.billing_postal_code ?? entry.billingPostalCode ?? null,
+    city: billing.city ?? entry.billing_city ?? entry.billingCity ?? null,
+    county: billing.county ?? entry.billing_province ?? entry.billingProvince ?? null,
+    country: billing.country ?? entry.billing_country ?? entry.billingCountry ?? null,
+    tax_id: billing.tax_id ?? entry.billing_tax_id ?? entry.billingTaxId ?? null
   };
 
   const usageValue = typeof entry.usage === 'number' && Number.isFinite(entry.usage)
@@ -167,7 +167,7 @@ const normalizeContact = (entry = {}) => {
       ? parsedSeats
       : 0;
 
-  const rawUserType = entry.user_type ?? '—';
+  const rawUserType = entry.user_type ?? entry.userType ?? entry.tenant_type ?? entry.tenantType ?? '—';
   const normalizedUserType = rawUserType === '—' ? rawUserType : normalizeUserTypeLabel(rawUserType);
 
   return {
@@ -182,8 +182,8 @@ const normalizeContact = (entry = {}) => {
     usage: usageValue,
     lastActive: entry.lastActive ?? '—',
     channel: entry.channel ?? '—',
-    created_at: entry.created_at ?? null,
-    phone_primary: entry.phone_primary ?? null,
+    created_at: entry.created_at ?? entry.createdAt ?? null,
+    phone_primary: entry.phone_primary ?? entry.phonePrimary ?? null,
     avatar: entry.avatar ?? null,
     contact: {
       name: fallbackContactName ?? '—',
