@@ -229,7 +229,6 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     };
 
     loadContactProfile();
-    loadPaymentMethods();
 
     // Load user's own BeWorking invoices
     if (user?.email) {
@@ -261,6 +260,12 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
       });
     }
   }, [user]);
+
+  // Load payment methods once subscriptions are available (need tenant from sub.cuenta)
+  useEffect(() => {
+    if (open && user) loadPaymentMethods();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscriptions, open, user]);
 
   // Sync billing form when contactProfile changes
   useEffect(() => {
