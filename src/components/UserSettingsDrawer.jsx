@@ -656,7 +656,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                         </Button>
                       )}
                       {!pm.isDefault && (
-                        <IconButton size="small" onClick={() => handleDetachPM(pm.id)} sx={{ color: 'error.main', '&:hover': { backgroundColor: 'error.light', color: 'error.contrastText' } }}>
+                        <IconButton size="small" onClick={() => handleDetachPM(pm.id)} sx={{ color: accentColor, '&:hover': { backgroundColor: alpha(accentColor, 0.08) } }}>
                           <DeleteOutlineRoundedIcon fontSize="small" />
                         </IconButton>
                       )}
