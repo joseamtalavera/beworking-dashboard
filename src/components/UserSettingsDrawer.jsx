@@ -867,20 +867,6 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
           >
             {t('actions.logout')}
           </Button>
-          <Button
-            variant="outlined" size="small"
-            sx={{
-              minWidth: 100, height: 36, textTransform: 'none', fontWeight: 600,
-              borderColor: accentColor, color: accentColor,
-              '&:hover': {
-                borderColor: theme.palette.brand.greenHover, color: theme.palette.brand.greenHover,
-                backgroundColor: alpha(theme.palette.brand.green, 0.08),
-              },
-            }}
-            onClick={onClose}
-          >
-            {t('actions.close')}
-          </Button>
         </Stack>
       </Box>
 
