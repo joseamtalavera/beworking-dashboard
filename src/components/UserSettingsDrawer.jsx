@@ -384,8 +384,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const handleSetDefault = async (paymentMethodId) => {
     const email = user?.email;
     if (!email) return;
+    const sub = subscriptions?.[0];
+    const tenant = (sub?.cuenta || 'beworking').toLowerCase();
     try {
-      await setDefaultPaymentMethod({ customerEmail: email, paymentMethodId });
+      await setDefaultPaymentMethod({ customerEmail: email, paymentMethodId, tenant });
       loadPaymentMethods();
     } catch (e) {
       console.error('Failed to set default payment method', e);
@@ -393,8 +395,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   };
 
   const handleDetachPM = async (paymentMethodId) => {
+    const sub = subscriptions?.[0];
+    const tenant = (sub?.cuenta || 'beworking').toLowerCase();
     try {
-      await detachPaymentMethod({ paymentMethodId });
+      await detachPaymentMethod({ paymentMethodId, tenant });
       loadPaymentMethods();
     } catch (e) {
       console.error('Failed to detach payment method', e);
