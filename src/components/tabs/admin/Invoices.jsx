@@ -638,31 +638,24 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   </TableCell>
                   {isAdmin && (
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => setCreditDialog({ open: true, invoice: inv })}
-                        sx={{
-                          minWidth: 60,
-                          height: 28,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          borderColor: 'secondary.main',
-                          color: 'secondary.main',
-                          '&:hover': {
-                            borderColor: 'secondary.main',
-                            color: 'secondary.main',
-                            backgroundColor: (theme) => `${theme.palette.secondary.main}14`,
-                            transform: 'translateY(-1px)',
-                            boxShadow: `0 4px 12px ${alpha(theme.palette.secondary.main, 0.2)}`
-                          },
-                          transition: 'all 0.2s ease-in-out'
-                        }}
-                      >
-                        {t('credit')}
-                      </Button>
-                    </Stack>
+                    <Chip
+                      label={t('credit')}
+                      size="small"
+                      variant="outlined"
+                      clickable
+                      onClick={() => setCreditDialog({ open: true, invoice: inv })}
+                      sx={{
+                        borderColor: 'secondary.main',
+                        color: 'secondary.main',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        height: 24,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: (theme) => alpha(theme.palette.secondary.main, 0.08),
+                        },
+                      }}
+                    />
                   </TableCell>
                   )}
                 </TableRow>
