@@ -12,7 +12,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import { fetchCustomerPaymentMethods, createSetupIntent, setDefaultPaymentMethod } from '../api/stripe.js';
+import { fetchCustomerPaymentMethods, createSetupIntent, setDefaultPaymentMethod, detachPaymentMethod } from '../api/stripe.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import Alert from '@mui/material/Alert';
@@ -35,6 +35,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
@@ -386,6 +387,15 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     }
   };
 
+  const handleDetachPM = async (paymentMethodId) => {
+    try {
+      await detachPaymentMethod({ paymentMethodId });
+      loadPaymentMethods();
+    } catch (e) {
+      console.error('Failed to detach payment method', e);
+    }
+  };
+
   const handlePhotoUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -639,11 +649,18 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                         <Chip label={t('paymentMethod.default')} size="small" color="success" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
                       )}
                     </Stack>
-                    {!pm.isDefault && (
-                      <Button size="small" sx={{ textTransform: 'none', fontSize: '0.75rem', py: 0 }} onClick={() => handleSetDefault(pm.id)}>
-                        {t('paymentMethod.setDefault')}
-                      </Button>
-                    )}
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      {!pm.isDefault && (
+                        <Button size="small" sx={{ textTransform: 'none', fontSize: '0.75rem', py: 0 }} onClick={() => handleSetDefault(pm.id)}>
+                          {t('paymentMethod.setDefault')}
+                        </Button>
+                      )}
+                      {!pm.isDefault && (
+                        <IconButton size="small" onClick={() => handleDetachPM(pm.id)} sx={{ color: 'error.main', '&:hover': { backgroundColor: 'error.light', color: 'error.contrastText' } }}>
+                          <DeleteOutlineRoundedIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Stack>
                   </Stack>
                 </Paper>
               ))}

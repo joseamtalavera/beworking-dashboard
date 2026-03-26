@@ -60,6 +60,12 @@ export const setDefaultPaymentMethod = ({ customerEmail, paymentMethodId }) =>
     body: { email: customerEmail, payment_method_id: paymentMethodId },
   });
 
+export const detachPaymentMethod = ({ paymentMethodId, tenant }) =>
+  stripeRequest('/api/customers/detach-payment-method', {
+    method: 'POST',
+    body: { payment_method_id: paymentMethodId, tenant: tenant || undefined },
+  });
+
 export const createStripeInvoice = ({ customerEmail, customerName, amount, currency, description, reference, dueDays, idempotencyKey }) =>
   stripeRequest('/api/invoices', {
     method: 'POST',
