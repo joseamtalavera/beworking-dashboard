@@ -157,7 +157,7 @@ const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
 };
 
 // Monthly Bar Chart
-const BarChart = ({ data, loading, title, total, color, theme, selectedYear }) => {
+const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) => {
   const [hoveredIdx, setHoveredIdx] = useState(null);
 
   if (loading) {
@@ -180,8 +180,37 @@ const BarChart = ({ data, loading, title, total, color, theme, selectedYear }) =
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
   const activeCount = selectedYear === currentYear ? currentMonth + 1 : data.length;
-  const chartHeight = 160;
-  const maxValue = Math.max(...data.slice(0, activeCount).map(d => d.value || 0), 100);
+  const chartHeight = 140;
+  const padding = { left: 50, right: 8, top: 12, bottom: 4 };
+  const activeData = data.slice(0, activeCount);
+  const maxValue = Math.max(...activeData.map(d => d.value || 0), 100);
+
+  // Y-axis ticks (4 ticks)
+  const tickCount = 4;
+  const ticks = Array.from({ length: tickCount + 1 }, (_, i) => Math.round((maxValue / tickCount) * i));
+
+  // Build SVG path
+  const chartW = 100; // percentage-based, will use viewBox
+  const svgW = 600;
+  const svgH = chartHeight;
+  const plotW = svgW - padding.left - padding.right;
+  const plotH = svgH - padding.top - padding.bottom;
+
+  const points = data.map((item, idx) => {
+    const x = padding.left + (idx / (data.length - 1)) * plotW;
+    const y = idx < activeCount && maxValue > 0
+      ? padding.top + plotH - ((item.value || 0) / maxValue) * plotH
+      : padding.top + plotH;
+    return { x, y, value: item.value || 0, active: idx < activeCount };
+  });
+
+  const activePts = points.filter(p => p.active && p.value > 0);
+  const linePath = activePts.length > 1
+    ? activePts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+    : '';
+  const areaPath = linePath && activePts.length > 1
+    ? `${linePath} L${activePts[activePts.length - 1].x},${padding.top + plotH} L${activePts[0].x},${padding.top + plotH} Z`
+    : '';
 
   return (
     <Box>
@@ -194,66 +223,61 @@ const BarChart = ({ data, loading, title, total, color, theme, selectedYear }) =
         </Typography>
       </Stack>
 
-      <Box sx={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: chartHeight }}>
-        {data.map((item, idx) => {
-          const isActive = idx < activeCount;
-          const barHeight = isActive && maxValue > 0
-            ? Math.max(2, (item.value / maxValue) * (chartHeight - 20))
-            : 2;
-          const isHovered = hoveredIdx === idx;
+      <Box sx={{ position: 'relative' }}>
+        <svg viewBox={`0 0 ${svgW} ${svgH}`} width="100%" height={chartHeight} style={{ overflow: 'visible' }}>
+          {/* Grid lines & Y-axis labels */}
+          {ticks.map((tick, i) => {
+            const y = padding.top + plotH - (tick / maxValue) * plotH;
+            return (
+              <g key={i}>
+                <line x1={padding.left} y1={y} x2={svgW - padding.right} y2={y} stroke={theme.palette.divider} strokeWidth={0.5} />
+                <text x={padding.left - 8} y={y + 3} textAnchor="end" fill={theme.palette.text.disabled} fontSize="10" fontFamily="inherit">
+                  {tick >= 1000 ? `€${(tick / 1000).toFixed(1)}k` : `€${tick}`}
+                </text>
+              </g>
+            );
+          })}
 
-          return (
-            <Box
-              key={idx}
-              sx={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                height: '100%',
-                position: 'relative',
-                cursor: isActive ? 'pointer' : 'default',
-              }}
-              onMouseEnter={() => isActive && setHoveredIdx(idx)}
-              onMouseLeave={() => setHoveredIdx(null)}
-            >
-              {/* Value label on hover */}
-              {isHovered && isActive && item.value > 0 && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontWeight: 700,
-                    color,
-                    fontSize: '0.65rem',
-                    mb: 0.5,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {formatCurrency(item.value)}
-                </Typography>
-              )}
-              {/* Bar */}
-              <Box
-                sx={{
-                  width: '100%',
-                  maxWidth: 48,
-                  height: barHeight,
-                  bgcolor: isActive ? `${color}30` : theme.palette.divider,
-                  border: `1.5px solid ${isActive ? `${color}80` : theme.palette.divider}`,
-                  borderBottom: 'none',
-                  opacity: isActive ? (isHovered ? 1 : 0.85) : 0.25,
-                  borderRadius: '4px 4px 0 0',
-                  transition: 'opacity 0.15s, height 0.3s',
-                }}
-              />
-            </Box>
-          );
-        })}
+          {/* Area fill */}
+          {areaPath && (
+            <path d={areaPath} fill={`${color}18`} />
+          )}
+
+          {/* Line */}
+          {linePath && (
+            <path d={linePath} fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+          )}
+
+          {/* Dots */}
+          {points.map((p, idx) => {
+            if (!p.active) return null;
+            const isHovered = hoveredIdx === idx;
+            return (
+              <g key={idx}>
+                <circle cx={p.x} cy={p.y} r={isHovered ? 6 : 4} fill={p.value > 0 ? color : 'transparent'} stroke={p.value > 0 ? '#fff' : 'transparent'} strokeWidth={2} style={{ transition: 'r 0.15s', cursor: 'pointer' }} />
+                {/* Invisible hover target */}
+                <rect x={p.x - 20} y={0} width={40} height={svgH} fill="transparent"
+                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                />
+              </g>
+            );
+          })}
+
+          {/* Tooltip */}
+          {hoveredIdx != null && points[hoveredIdx]?.active && points[hoveredIdx]?.value > 0 && (
+            <g>
+              <rect x={points[hoveredIdx].x - 30} y={points[hoveredIdx].y - 24} width={60} height={18} rx={4} fill={theme.palette.background.paper} stroke={theme.palette.divider} strokeWidth={0.5} />
+              <text x={points[hoveredIdx].x} y={points[hoveredIdx].y - 12} textAnchor="middle" fill={color} fontSize="10" fontWeight="700" fontFamily="inherit">
+                {formatCurrency(points[hoveredIdx].value)}
+              </text>
+            </g>
+          )}
+        </svg>
       </Box>
 
       {/* Month labels */}
-      <Box sx={{ display: 'flex', gap: '4px', mt: 0.75 }}>
+      <Box sx={{ display: 'flex', pl: `${(padding.left / svgW) * 100}%`, pr: `${(padding.right / svgW) * 100}%`, mt: 0.5 }}>
         {data.map((item, idx) => (
           <Typography
             key={idx}
@@ -1107,7 +1131,7 @@ const AdminOverview = () => {
         </Stack>
 
         <Box sx={{ display: 'grid', gap: 4, gridTemplateColumns: '1fr' }}>
-          <BarChart
+          <LineChart
             data={chartData.revenue}
             loading={loading}
             title={t('charts.revenue')}
@@ -1116,7 +1140,7 @@ const AdminOverview = () => {
             theme={theme}
             selectedYear={selectedYear}
           />
-          <BarChart
+          <LineChart
             data={chartData.pending}
             loading={loading}
             title={t('charts.pending')}

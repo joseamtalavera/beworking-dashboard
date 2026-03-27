@@ -46,7 +46,7 @@ export const DEPT_TABS = [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
   ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
-    { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon, soon: true },
+    { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
     { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
     { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },
     { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true },
