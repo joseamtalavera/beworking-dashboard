@@ -197,21 +197,26 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
   const plotW = svgW - padding.left - padding.right;
   const plotH = svgH - padding.top - padding.bottom;
 
-  const points = data.map((item, idx) => {
-    const x = padding.left + (idx / (data.length - 1)) * plotW;
+  // Points for SVG path (in viewBox coordinates, 0 to plotW)
+  const plotPoints = data.map((item, idx) => {
     const val = item.value || 0;
-    const y = chartMax > 0
+    const svgX = (idx / (data.length - 1)) * plotW;
+    const svgY = chartMax > 0
       ? padding.top + plotH - (val / chartMax) * plotH
       : padding.top + plotH;
-    return { x, y, value: val, active: true };
+    const pctX = (idx / (data.length - 1)) * 100;
+    const pctY = chartMax > 0
+      ? ((1 - val / chartMax) * plotH + padding.top) / svgH * 100
+      : (plotH + padding.top) / svgH * 100;
+    return { svgX, svgY, pctX, pctY, value: val };
   });
 
-  const activePts = points.filter(p => p.active);
-  const linePath = activePts.length > 1
-    ? activePts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+  const linePath2 = plotPoints.length > 1
+    ? plotPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.svgX},${p.svgY}`).join(' ')
     : '';
-  const areaPath = linePath && activePts.length > 1
-    ? `${linePath} L${activePts[activePts.length - 1].x},${padding.top + plotH} L${activePts[0].x},${padding.top + plotH} Z`
+  const baselineY = padding.top + plotH;
+  const areaPath2 = linePath2 && plotPoints.length > 1
+    ? `${linePath2} L${plotPoints[plotPoints.length - 1].svgX},${baselineY} L${plotPoints[0].svgX},${baselineY} Z`
     : '';
 
   return (
@@ -225,61 +230,92 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
         </Typography>
       </Stack>
 
-      <Box sx={{ position: 'relative' }}>
-        <svg viewBox={`0 0 ${svgW} ${svgH}`} width="100%" height={chartHeight} style={{ overflow: 'visible' }}>
-          {/* Grid lines & Y-axis labels */}
-          {ticks.map((tick, i) => {
-            const y = padding.top + plotH - (tick / chartMax) * plotH;
-            return (
-              <g key={i}>
-                <line x1={padding.left} y1={y} x2={svgW - padding.right} y2={y} stroke={theme.palette.divider} strokeWidth={0.5} />
-                <text x={padding.left - 8} y={y + 3} textAnchor="end" fill={theme.palette.text.disabled} fontSize="10" fontFamily="inherit">
-                  {tick >= 1000 ? `€${(tick / 1000).toFixed(1)}k` : `€${tick}`}
-                </text>
-              </g>
-            );
-          })}
+      <Box sx={{ display: 'flex' }}>
+        {/* Y-axis labels */}
+        <Box sx={{ width: 44, flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: chartHeight, py: `${padding.top}px` }}>
+          {[...ticks].reverse().map((tick, i) => (
+            <Typography key={i} variant="caption" sx={{ fontSize: '0.6rem', color: 'text.disabled', textAlign: 'right', pr: 0.5, lineHeight: 1 }}>
+              {tick >= 1000 ? `€${(tick / 1000).toFixed(1)}k` : `€${tick}`}
+            </Typography>
+          ))}
+        </Box>
 
-          {/* Area fill */}
-          {areaPath && (
-            <path d={areaPath} fill={`${color}18`} />
-          )}
+        {/* Chart area */}
+        <Box sx={{ flex: 1, position: 'relative' }}>
+          <svg viewBox={`0 0 ${plotW} ${svgH}`} width="100%" height={chartHeight} preserveAspectRatio="none" style={{ display: 'block' }}>
+            {/* Grid lines */}
+            {ticks.map((tick, i) => {
+              const y = padding.top + plotH - (tick / chartMax) * plotH;
+              return <line key={i} x1={0} y1={y} x2={plotW} y2={y} stroke={theme.palette.divider} strokeWidth={0.5} />;
+            })}
 
-          {/* Line */}
-          {linePath && (
-            <path d={linePath} fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-          )}
+            {/* Area fill */}
+            {areaPath2 && <path d={areaPath2} fill={`${color}15`} />}
 
-          {/* Dots */}
-          {points.map((p, idx) => {
-            if (!p.active) return null;
+            {/* Line */}
+            {linePath2 && <path d={linePath2} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />}
+          </svg>
+
+          {/* Dots overlay (absolute positioned to avoid SVG scaling issues) */}
+          {plotPoints.map((p, idx) => {
             const isHovered = hoveredIdx === idx;
+            const hasDot = p.value > 0;
             return (
-              <g key={idx}>
-                <circle cx={p.x} cy={p.y} r={isHovered ? 6 : (p.value > 0 ? 4 : 2)} fill={color} stroke="#fff" strokeWidth={p.value > 0 ? 2 : 1} opacity={p.value > 0 ? 1 : 0.3} style={{ transition: 'r 0.15s', cursor: 'pointer' }} />
-                {/* Invisible hover target */}
-                <rect x={p.x - 20} y={0} width={40} height={svgH} fill="transparent"
-                  onMouseEnter={() => setHoveredIdx(idx)}
-                  onMouseLeave={() => setHoveredIdx(null)}
-                />
-              </g>
+              <Box
+                key={idx}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                sx={{
+                  position: 'absolute',
+                  left: `${p.pctX}%`,
+                  top: `${p.pctY}%`,
+                  transform: 'translate(-50%, -50%)',
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                {hasDot && (
+                  <Box sx={{
+                    width: isHovered ? 12 : 8,
+                    height: isHovered ? 12 : 8,
+                    borderRadius: '50%',
+                    bgcolor: color,
+                    border: '2px solid #fff',
+                    boxShadow: isHovered ? `0 0 0 3px ${color}30` : 'none',
+                    transition: 'all 0.15s',
+                  }} />
+                )}
+                {/* Tooltip */}
+                {isHovered && p.value > 0 && (
+                  <Typography sx={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    mb: 0.5,
+                    fontSize: '0.65rem',
+                    fontWeight: 700,
+                    color,
+                    whiteSpace: 'nowrap',
+                    bgcolor: 'background.paper',
+                    px: 0.75,
+                    py: 0.25,
+                    borderRadius: 1,
+                    boxShadow: 1,
+                  }}>
+                    {formatCurrency(p.value)}
+                  </Typography>
+                )}
+              </Box>
             );
           })}
-
-          {/* Tooltip */}
-          {hoveredIdx != null && points[hoveredIdx]?.active && points[hoveredIdx]?.value > 0 && (
-            <g>
-              <rect x={points[hoveredIdx].x - 30} y={points[hoveredIdx].y - 24} width={60} height={18} rx={4} fill={theme.palette.background.paper} stroke={theme.palette.divider} strokeWidth={0.5} />
-              <text x={points[hoveredIdx].x} y={points[hoveredIdx].y - 12} textAnchor="middle" fill={color} fontSize="10" fontWeight="700" fontFamily="inherit">
-                {formatCurrency(points[hoveredIdx].value)}
-              </text>
-            </g>
-          )}
-        </svg>
+        </Box>
       </Box>
 
       {/* Month labels */}
-      <Box sx={{ display: 'flex', pl: `${(padding.left / svgW) * 100}%`, pr: `${(padding.right / svgW) * 100}%`, mt: 0.5 }}>
+      <Box sx={{ display: 'flex', pl: '44px', mt: 0.5 }}>
         {data.map((item, idx) => (
           <Typography
             key={idx}
