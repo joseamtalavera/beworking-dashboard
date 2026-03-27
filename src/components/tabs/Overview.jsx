@@ -198,13 +198,14 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
 
   const points = data.map((item, idx) => {
     const x = padding.left + (idx / (data.length - 1)) * plotW;
+    const val = item.value || 0;
     const y = idx < activeCount && maxValue > 0
-      ? padding.top + plotH - ((item.value || 0) / maxValue) * plotH
+      ? padding.top + plotH - (val / maxValue) * plotH
       : padding.top + plotH;
-    return { x, y, value: item.value || 0, active: idx < activeCount };
+    return { x, y, value: val, active: idx < activeCount };
   });
 
-  const activePts = points.filter(p => p.active && p.value > 0);
+  const activePts = points.filter(p => p.active);
   const linePath = activePts.length > 1
     ? activePts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
     : '';
@@ -254,7 +255,7 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
             const isHovered = hoveredIdx === idx;
             return (
               <g key={idx}>
-                <circle cx={p.x} cy={p.y} r={isHovered ? 6 : 4} fill={p.value > 0 ? color : 'transparent'} stroke={p.value > 0 ? '#fff' : 'transparent'} strokeWidth={2} style={{ transition: 'r 0.15s', cursor: 'pointer' }} />
+                <circle cx={p.x} cy={p.y} r={isHovered ? 6 : (p.value > 0 ? 4 : 2)} fill={color} stroke="#fff" strokeWidth={p.value > 0 ? 2 : 1} opacity={p.value > 0 ? 1 : 0.3} style={{ transition: 'r 0.15s', cursor: 'pointer' }} />
                 {/* Invisible hover target */}
                 <rect x={p.x - 20} y={0} width={40} height={svgH} fill="transparent"
                   onMouseEnter={() => setHoveredIdx(idx)}
