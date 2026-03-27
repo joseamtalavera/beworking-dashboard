@@ -240,7 +240,7 @@ function AdminPaymentOptions({ onCreated }) {
       let stripeInvoiceId = null;
       const hasExtra = selectedUninvoicedIds.length > 0;
 
-      // ── Step 1: Option-specific actions ──
+      // ── Step 1: Determine statuses and validate ──
       if (paymentOption === 'free') {
         bookingPayload.status = 'Free';
         bookingPayload.note = 'Reserva gratuita (admin)';
@@ -251,34 +251,10 @@ function AdminPaymentOptions({ onCreated }) {
           setSubmitting(false);
           return;
         }
-        const chargeAmount = hasExtra ? combinedAmountCents : amountCents;
-        const chargeResult = await chargeCustomer({
-          customerEmail: contactEmail,
-          paymentMethodId: selectedCard,
-          amount: chargeAmount,
-          currency: 'eur',
-          description,
-          reference: String(state.producto?.id || ''),
-        });
-        bookingPayload.stripePaymentIntentId = chargeResult.paymentIntentId;
-        bookingPayload.status = 'Paid';
+        bookingPayload.status = 'Confirmado';
         invoiceStatus = 'Pagado';
       } else if (paymentOption === 'invoice') {
-        const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
-        const idempotencyKey = `new-${state.producto?.id}-${state.contact?.id}-${state.dateFrom}-${state.startTime}-${state.endTime}-${amountCents}-${Date.now()}`;
-        const invoiceResult = await createStripeInvoice({
-          customerEmail: contactEmail,
-          customerName: contactName,
-          amount: invoiceAmount,
-          currency: 'eur',
-          description,
-          reference: String(state.producto?.id || ''),
-          dueDays: invoiceDueDays,
-          idempotencyKey,
-        });
-        stripeInvoiceId = invoiceResult.invoiceId;
-        bookingPayload.stripeInvoiceId = stripeInvoiceId;
-        bookingPayload.status = 'Invoiced';
+        bookingPayload.status = 'Confirmado';
         invoiceStatus = 'Pendiente';
       } else if (paymentOption === 'no_invoice') {
         bookingPayload.status = 'Facturado';
@@ -294,12 +270,40 @@ function AdminPaymentOptions({ onCreated }) {
         bookingPayload.status = 'Booked';
       }
 
-      // ── Step 2: Create the booking ──
+      // ── Step 2: Create the booking FIRST (before any payment) ──
       const bookingResponse = await createReserva(bookingPayload);
       const allBloqueoIds = (bookingResponse.bloqueos || []).map(b => b.id).filter(Boolean);
       const bloqueoId = allBloqueoIds[0];
 
-      // ── Step 3: Create the internal invoice (facturas record) ──
+      // ── Step 3: Process payment (Stripe charge or invoice) ──
+      if (paymentOption === 'charge') {
+        const chargeAmount = hasExtra ? combinedAmountCents : amountCents;
+        const chargeResult = await chargeCustomer({
+          customerEmail: contactEmail,
+          paymentMethodId: selectedCard,
+          amount: chargeAmount,
+          currency: 'eur',
+          description,
+          reference: String(state.producto?.id || ''),
+        });
+        bookingPayload.stripePaymentIntentId = chargeResult.paymentIntentId;
+      } else if (paymentOption === 'invoice') {
+        const invoiceAmount = hasExtra ? combinedAmountCents : amountCents;
+        const idempotencyKey = `new-${state.producto?.id}-${state.contact?.id}-${state.dateFrom}-${state.startTime}-${state.endTime}-${amountCents}-${Date.now()}`;
+        const invoiceResult = await createStripeInvoice({
+          customerEmail: contactEmail,
+          customerName: contactName,
+          amount: invoiceAmount,
+          currency: 'eur',
+          description,
+          reference: String(state.producto?.id || ''),
+          dueDays: invoiceDueDays,
+          idempotencyKey,
+        });
+        stripeInvoiceId = invoiceResult.invoiceId;
+      }
+
+      // ── Step 4: Create the internal invoice (facturas record) ──
       if (invoiceStatus) {
         if ((hasExtra || allBloqueoIds.length > 1) && allBloqueoIds.length > 0) {
           // Multi-bloqueo invoice: use createInvoice with bloqueoIds
@@ -321,6 +325,7 @@ function AdminPaymentOptions({ onCreated }) {
           await createManualInvoice(invoicePayload);
         }
       }
+
 
       // ── Step 4: Send booking confirmation email ──
       if (bloqueoId) {
