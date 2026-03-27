@@ -106,11 +106,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
         }}
       >
         {!collapsed && (
-          <img
-            src="/assets/beworking_logo_clean.svg"
-            alt="BeWorking Logo"
-            style={{ maxHeight: '36px', maxWidth: '140px', objectFit: 'contain' }}
-          />
+          <span style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, fontSize: '1.8rem', color: '#009624', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            bework<span style={{ position: 'relative' }}>i<span style={{ position: 'absolute', top: '0.12em', left: '50%', transform: 'translateX(-50%)', width: '0.26em', height: '0.26em', borderRadius: '50%', backgroundColor: '#fb923c', display: 'block' }} /></span>ng
+          </span>
         )}
         <IconButton
           onClick={onToggleCollapse}
