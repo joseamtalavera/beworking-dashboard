@@ -176,18 +176,19 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
     );
   }
 
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  const activeCount = selectedYear === currentYear ? currentMonth + 1 : data.length;
   const chartHeight = 140;
   const padding = { left: 50, right: 8, top: 12, bottom: 4 };
-  const activeData = data.slice(0, activeCount);
-  const maxValue = Math.max(...activeData.map(d => d.value || 0), 100);
+  const maxValue = Math.max(...data.map(d => d.value || 0), 100);
+  const activeCount = data.length;
 
-  // Y-axis ticks (4 ticks)
+  // Y-axis ticks (4 ticks) — round to nice numbers
   const tickCount = 4;
-  const ticks = Array.from({ length: tickCount + 1 }, (_, i) => Math.round((maxValue / tickCount) * i));
+  const rawStep = maxValue / tickCount;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
+  const niceStep = Math.ceil(rawStep / magnitude) * magnitude;
+  const niceMax = niceStep * tickCount;
+  const ticks = Array.from({ length: tickCount + 1 }, (_, i) => niceStep * i);
+  const chartMax = niceMax || maxValue;
 
   // Build SVG path
   const chartW = 100; // percentage-based, will use viewBox
@@ -199,10 +200,10 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
   const points = data.map((item, idx) => {
     const x = padding.left + (idx / (data.length - 1)) * plotW;
     const val = item.value || 0;
-    const y = idx < activeCount && maxValue > 0
-      ? padding.top + plotH - (val / maxValue) * plotH
+    const y = chartMax > 0
+      ? padding.top + plotH - (val / chartMax) * plotH
       : padding.top + plotH;
-    return { x, y, value: val, active: idx < activeCount };
+    return { x, y, value: val, active: true };
   });
 
   const activePts = points.filter(p => p.active);
@@ -228,7 +229,7 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
         <svg viewBox={`0 0 ${svgW} ${svgH}`} width="100%" height={chartHeight} style={{ overflow: 'visible' }}>
           {/* Grid lines & Y-axis labels */}
           {ticks.map((tick, i) => {
-            const y = padding.top + plotH - (tick / maxValue) * plotH;
+            const y = padding.top + plotH - (tick / chartMax) * plotH;
             return (
               <g key={i}>
                 <line x1={padding.left} y1={y} x2={svgW - padding.right} y2={y} stroke={theme.palette.divider} strokeWidth={0.5} />
