@@ -650,11 +650,13 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                     <Stack direction="row" alignItems="center" spacing={1}>
                       <CreditCardRoundedIcon fontSize="small" color="action" />
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {(pm.brand || 'card').toUpperCase()} •••• {pm.last4}
+                        {(pm.brand || pm.type || 'card').toUpperCase()} •••• {pm.last4}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {pm.expMonth}/{pm.expYear}
-                      </Typography>
+                      {pm.expMonth && pm.expYear && (
+                        <Typography variant="caption" color="text.secondary">
+                          {pm.expMonth}/{pm.expYear}
+                        </Typography>
+                      )}
                       {pm.isDefault && (
                         <Chip label={t('paymentMethod.default')} size="small" color="success" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
                       )}
