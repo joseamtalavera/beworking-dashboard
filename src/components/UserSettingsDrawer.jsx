@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile, changePassword } from '../api/auth.js';
 import { apiFetch } from '../api/client.js';
@@ -167,15 +167,20 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     taxId: cp?.billingTaxId || cp?.billing_tax_id || '',
   });
 
+  // Resolved tenant for Stripe operations — derived from subscription cuenta
+  const resolvedTenant = useMemo(() => {
+    const sub = subscriptions?.[0];
+    return (sub?.cuenta || 'beworking').toLowerCase();
+  }, [subscriptions]);
+
   // Load payment methods
   const loadPaymentMethods = () => {
     const email = user?.email;
     if (!email || !email.includes('@')) return;
     const sub = subscriptions?.[0];
     const stripeCustomerId = sub?.stripeCustomerId || sub?.stripe_customer_id;
-    const tenant = (sub?.cuenta || 'beworking').toLowerCase();
     setPmLoading(true);
-    fetchCustomerPaymentMethods(email, stripeCustomerId, tenant)
+    fetchCustomerPaymentMethods(email, stripeCustomerId, resolvedTenant)
       .then(data => setPaymentMethods(data?.paymentMethods || []))
       .catch(() => setPaymentMethods([]))
       .finally(() => setPmLoading(false));
@@ -384,10 +389,8 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const handleSetDefault = async (paymentMethodId) => {
     const email = user?.email;
     if (!email) return;
-    const sub = subscriptions?.[0];
-    const tenant = (sub?.cuenta || 'beworking').toLowerCase();
     try {
-      await setDefaultPaymentMethod({ customerEmail: email, paymentMethodId, tenant });
+      await setDefaultPaymentMethod({ customerEmail: email, paymentMethodId, tenant: resolvedTenant });
       loadPaymentMethods();
     } catch (e) {
       console.error('Failed to set default payment method', e);
@@ -395,10 +398,8 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   };
 
   const handleDetachPM = async (paymentMethodId) => {
-    const sub = subscriptions?.[0];
-    const tenant = (sub?.cuenta || 'beworking').toLowerCase();
     try {
-      await detachPaymentMethod({ paymentMethodId, tenant });
+      await detachPaymentMethod({ paymentMethodId, tenant: resolvedTenant });
       loadPaymentMethods();
     } catch (e) {
       console.error('Failed to detach payment method', e);
