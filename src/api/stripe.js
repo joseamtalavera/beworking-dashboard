@@ -54,10 +54,10 @@ export const createSetupIntent = ({ customerEmail, customerName, customerId, ten
     body: { customer_email: customerEmail, customer_name: customerName, customer_id: customerId || undefined, tenant: tenant || undefined },
   });
 
-export const setDefaultPaymentMethod = ({ customerEmail, paymentMethodId, tenant }) =>
+export const setDefaultPaymentMethod = ({ customerEmail, paymentMethodId, tenant, customerId }) =>
   stripeRequest('/api/customers/default-payment-method', {
     method: 'POST',
-    body: { email: customerEmail, payment_method_id: paymentMethodId, tenant: tenant || undefined },
+    body: { email: customerEmail, payment_method_id: paymentMethodId, tenant: tenant || undefined, customer_id: customerId || undefined },
   });
 
 export const detachPaymentMethod = ({ paymentMethodId, tenant }) =>

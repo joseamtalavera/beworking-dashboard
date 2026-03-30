@@ -395,8 +395,10 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const handleSetDefault = async (paymentMethodId) => {
     const email = user?.email;
     if (!email) return;
+    const sub = subscriptions?.[0];
+    const customerId = sub?.stripeCustomerId || sub?.stripe_customer_id;
     try {
-      await setDefaultPaymentMethod({ customerEmail: email, paymentMethodId, tenant: resolvedTenant });
+      await setDefaultPaymentMethod({ customerEmail: email, paymentMethodId, tenant: resolvedTenant, customerId });
       loadPaymentMethods();
     } catch (e) {
       console.error('Failed to set default payment method', e);
