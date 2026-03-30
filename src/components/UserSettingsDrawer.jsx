@@ -181,8 +181,14 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     const stripeCustomerId = sub?.stripeCustomerId || sub?.stripe_customer_id;
     setPmLoading(true);
     fetchCustomerPaymentMethods(email, stripeCustomerId, resolvedTenant)
-      .then(data => setPaymentMethods(data?.paymentMethods || []))
-      .catch(() => setPaymentMethods([]))
+      .then(data => {
+        console.log('[PM] Loaded payment methods:', resolvedTenant, data?.paymentMethods?.length || 0);
+        setPaymentMethods(data?.paymentMethods || []);
+      })
+      .catch((err) => {
+        console.error('[PM] Failed to load payment methods:', resolvedTenant, err);
+        setPaymentMethods([]);
+      })
       .finally(() => setPmLoading(false));
   };
 
