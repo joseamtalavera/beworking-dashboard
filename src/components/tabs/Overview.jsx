@@ -1235,110 +1235,111 @@ const AdminOverview = () => {
    RECONCILIATION CARD
    ═══════════════════════════════════════════ */
 const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
+  const [detailDialog, setDetailDialog] = useState(null);
+  const [breakdownCache, setBreakdownCache] = useState({});
+  const [bdLoading, setBdLoading] = useState(false);
+
+  const fetchBreakdown = async (account) => {
+    if (breakdownCache[account]) return breakdownCache[account];
+    setBdLoading(true);
+    try {
+      const result = await apiFetch(`/admin/reconciliation/breakdown/${account}`);
+      setBreakdownCache((prev) => ({ ...prev, [account]: result }));
+      return result;
+    } catch (e) {
+      console.error('Failed to fetch breakdown', e);
+      return null;
+    } finally {
+      setBdLoading(false);
+    }
+  };
+
+  const openDetail = async (account, type, title) => {
+    const bd = await fetchBreakdown(account);
+    if (!bd) return;
+    const rows = type === 'stripeActive' ? bd.stripeActive
+      : type === 'stripeScheduled' ? bd.stripeScheduled
+      : type === 'bankTransfer' ? bd.bankTransfer
+      : type === 'pastDue' ? bd.pastDueSubs
+      : [];
+    setDetailDialog({ account, type, title, rows: Array.isArray(rows) ? rows : [] });
+  };
+
   const getStatus = (row) => {
     if (row.missing_invoice_count > 0) return 'error';
     if (row.stripe_past_due > 0) return 'warning';
     return 'success';
   };
 
-  const statusColor = (status) =>
-    status === 'error' ? '#dc2626' : status === 'warning' ? '#f59e0b' : '#009624';
+  const statusColor = (s) => s === 'error' ? '#dc2626' : s === 'warning' ? '#f59e0b' : '#009624';
 
-  const runDate = data.length > 0 ? data[0].run_date : null;
-
-  const MetricBox = ({ label, value, color, sub }) => (
-    <Box sx={{ textAlign: 'center', px: 2, py: 1.5 }}>
-      <Typography variant="caption" sx={{ color: color || 'text.secondary', fontWeight: 500, textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.05em' }}>
+  const Metric = ({ label, value, color, sub, onClick }) => (
+    <Box onClick={onClick} sx={{ textAlign: 'center', px: 1, py: 1.5, cursor: onClick ? 'pointer' : 'default', borderRadius: 1, transition: 'background 0.15s', '&:hover': onClick ? { bgcolor: 'action.hover' } : {} }}>
+      <Typography sx={{ color: color || 'text.secondary', fontWeight: 500, textTransform: 'uppercase', fontSize: '0.6rem', letterSpacing: '0.05em', display: 'block' }}>
         {label}
       </Typography>
-      <Typography variant="h5" sx={{ fontWeight: 700, color: color || 'text.primary', mt: 0.5 }}>
+      <Typography sx={{ fontWeight: 700, color: color || 'text.primary', mt: 0.25, fontSize: '1.25rem' }}>
         {value}
       </Typography>
-      {sub && (
-        <Typography variant="caption" sx={{ color: color || 'text.secondary', fontSize: '0.7rem' }}>
-          {sub}
-        </Typography>
-      )}
+      {sub && <Typography sx={{ color: color || 'text.secondary', fontSize: '0.65rem' }}>{sub}</Typography>}
     </Box>
   );
 
+  const runDate = data.length > 0 ? data[0].run_date : null;
+
+  const metrics = (row) => {
+    const bd = breakdownCache[row.account];
+    if (bd) return { stripe: bd.stripeActiveCount, sched: bd.stripeScheduledCount, bank: bd.bankTransferCount, total: bd.totalActive, pastDue: row.stripe_past_due, pastAmt: row.past_due_amount };
+    return { stripe: row.stripe_active, sched: 0, bank: row.db_active - row.stripe_active, total: row.db_active, pastDue: row.stripe_past_due, pastAmt: row.past_due_amount };
+  };
+
   return (
+    <>
     <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('reconciliation.title')}</Typography>
         <Stack direction="row" spacing={2} alignItems="center">
-          {runDate && (
-            <Typography variant="caption" color="text.secondary">
-              {t('reconciliation.lastRun')}: {new Date(runDate).toLocaleDateString()}
-            </Typography>
-          )}
+          {runDate && <Typography variant="caption" color="text.secondary">{t('reconciliation.lastRun')}: {new Date(runDate).toLocaleDateString()}</Typography>}
           <Button size="small" variant="outlined" onClick={onRun} disabled={running} sx={{ textTransform: 'none', fontWeight: 600, minWidth: 90 }}>
-            {running ? <CircularProgress size={14} sx={{ mr: 1 }} /> : null}
-            {running ? 'Running...' : 'Run now'}
+            {running ? <CircularProgress size={14} sx={{ mr: 1 }} /> : null}{running ? 'Running...' : 'Run now'}
           </Button>
         </Stack>
       </Stack>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-          <CircularProgress size={24} />
-        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={24} /></Box>
       ) : data.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-          {t('reconciliation.noData')}
-        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>{t('reconciliation.noData')}</Typography>
       ) : (
         <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
           {data.map((row) => {
             const status = getStatus(row);
             const color = statusColor(status);
-            const mismatch = row.db_active - row.stripe_active;
+            const m = metrics(row);
             return (
               <Box key={row.account} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-                {/* Header */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5, bgcolor: alpha(color, 0.04), borderBottom: '1px solid', borderBottomColor: 'divider' }}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{row.account}</Typography>
+                    <Typography variant="caption" color="text.secondary">{m.total} total</Typography>
                   </Stack>
-                  <Chip
-                    label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)}
-                    size="small"
-                    sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }}
-                  />
+                  <Chip label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)} size="small" sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }} />
                 </Stack>
 
-                {/* Metrics row */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, py: 1.5, borderBottom: (row.missing_invoice_count > 0 || row.stripe_past_due > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
-                  <MetricBox label={t('reconciliation.dbActive')} value={row.db_active} />
-                  <MetricBox label={t('reconciliation.stripeActive')} value={row.stripe_active} />
-                  <MetricBox
-                    label={t('reconciliation.mismatch', { defaultValue: 'Mismatch' })}
-                    value={mismatch === 0 ? '0' : (mismatch > 0 ? `+${mismatch}` : `${mismatch}`)}
-                    color={mismatch !== 0 ? '#f59e0b' : '#009624'}
-                  />
-                  <MetricBox
-                    label={t('reconciliation.pastDue')}
-                    value={row.stripe_past_due}
-                    color={row.stripe_past_due > 0 ? '#dc2626' : undefined}
-                    sub={row.past_due_amount > 0 ? `${row.past_due_amount.toFixed(2)}` : undefined}
-                  />
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
+                  <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe Active`)} />
+                  <Metric label="Scheduled" value={m.sched} color={m.sched > 0 ? '#6366f1' : undefined} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
+                  <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
+                  <Metric label="Past Due" value={m.pastDue} color={m.pastDue > 0 ? '#dc2626' : undefined} sub={m.pastAmt > 0 ? `€${Number(m.pastAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Past Due`)} />
                 </Box>
 
-                {/* Alerts */}
-                {(row.missing_invoice_count > 0 || row.stripe_past_due > 0) && (
-                  <Stack spacing={0.5} sx={{ px: 2, py: 1.5 }}>
-                    {row.missing_invoice_count > 0 && (
-                      <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>
-                        {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
-                      </Typography>
-                    )}
-                    {row.stripe_past_due > 0 && (
-                      <Typography variant="body2" sx={{ color: '#f59e0b', fontWeight: 600, fontSize: '0.8rem' }}>
-                        {row.stripe_past_due} {t('reconciliation.pastDue').toLowerCase()} ({row.past_due_amount.toFixed(2)})
-                      </Typography>
-                    )}
-                  </Stack>
+                {row.missing_invoice_count > 0 && (
+                  <Box sx={{ px: 2, py: 1.5 }}>
+                    <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>
+                      {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
             );
@@ -1346,6 +1347,50 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
         </Box>
       )}
     </Paper>
+
+    <Dialog open={!!detailDialog} onClose={() => setDetailDialog(null)} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ fontWeight: 700 }}>
+        {detailDialog?.title}
+        <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>{detailDialog?.rows?.length || 0} subscriptions</Typography>
+      </DialogTitle>
+      <DialogContent>
+        {bdLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
+        ) : !detailDialog?.rows?.length ? (
+          <Typography color="text.secondary" sx={{ py: 2 }}>No subscriptions</Typography>
+        ) : (
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }} align="right">Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Interval</TableCell>
+                  {detailDialog?.type === 'pastDue'
+                    ? <TableCell sx={{ fontWeight: 700 }} align="right">Amount Due</TableCell>
+                    : <TableCell sx={{ fontWeight: 700 }}>Since</TableCell>}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(detailDialog?.rows || []).map((row, i) => (
+                  <TableRow key={i} hover>
+                    <TableCell>{row.name || row.customerName || '—'}</TableCell>
+                    <TableCell>{row.email_primary || row.emailPrimary || row.customerEmail || '—'}</TableCell>
+                    <TableCell align="right">€{Number(row.monthly_amount ?? row.monthlyAmount ?? row.amount ?? 0).toFixed(2)}</TableCell>
+                    <TableCell>{row.billing_interval || row.billingInterval || '—'}</TableCell>
+                    {detailDialog?.type === 'pastDue'
+                      ? <TableCell align="right" sx={{ color: '#dc2626', fontWeight: 600 }}>€{Number(row.amountDue ?? 0).toFixed(2)}</TableCell>
+                      : <TableCell>{row.start_date || row.startDate || '—'}</TableCell>}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
