@@ -1246,9 +1246,25 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
   const runDate = data.length > 0 ? data[0].run_date : null;
 
+  const MetricBox = ({ label, value, color, sub }) => (
+    <Box sx={{ textAlign: 'center', px: 2, py: 1.5 }}>
+      <Typography variant="caption" sx={{ color: color || 'text.secondary', fontWeight: 500, textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.05em' }}>
+        {label}
+      </Typography>
+      <Typography variant="h5" sx={{ fontWeight: 700, color: color || 'text.primary', mt: 0.5 }}>
+        {value}
+      </Typography>
+      {sub && (
+        <Typography variant="caption" sx={{ color: color || 'text.secondary', fontSize: '0.7rem' }}>
+          {sub}
+        </Typography>
+      )}
+    </Box>
+  );
+
   return (
     <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('reconciliation.title')}</Typography>
         <Stack direction="row" spacing={2} alignItems="center">
           {runDate && (
@@ -1258,7 +1274,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
           )}
           <Button size="small" variant="outlined" onClick={onRun} disabled={running} sx={{ textTransform: 'none', fontWeight: 600, minWidth: 90 }}>
             {running ? <CircularProgress size={14} sx={{ mr: 1 }} /> : null}
-            {running ? 'Running…' : 'Run now'}
+            {running ? 'Running...' : 'Run now'}
           </Button>
         </Stack>
       </Stack>
@@ -1272,46 +1288,58 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
           {t('reconciliation.noData')}
         </Typography>
       ) : (
-        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
           {data.map((row) => {
             const status = getStatus(row);
             const color = statusColor(status);
+            const mismatch = row.db_active - row.stripe_active;
             return (
-              <Box key={row.account} sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', position: 'relative', overflow: 'hidden' }}>
-                <Box sx={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, bgcolor: color }} />
-                <Stack spacing={1.5} sx={{ pl: 1 }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{row.account}</Typography>
-                    <Chip
-                      label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)}
-                      size="small"
-                      sx={{ fontWeight: 600, bgcolor: alpha(color, 0.1), color }}
-                    />
+              <Box key={row.account} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+                {/* Header */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5, bgcolor: alpha(color, 0.04), borderBottom: '1px solid', borderBottomColor: 'divider' }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{row.account}</Typography>
                   </Stack>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">{t('reconciliation.dbActive')}</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{row.db_active}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">{t('reconciliation.stripeActive')}</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{row.stripe_active}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: row.stripe_past_due > 0 ? '#f59e0b' : 'text.secondary' }}>
-                        {t('reconciliation.pastDue')}
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: row.stripe_past_due > 0 ? '#f59e0b' : 'inherit' }}>
-                        {row.stripe_past_due}{row.past_due_amount > 0 ? ` (€${row.past_due_amount})` : ''}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  {row.missing_invoice_count > 0 && (
-                    <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 600 }}>
-                      ⚠ {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
-                    </Typography>
-                  )}
+                  <Chip
+                    label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)}
+                    size="small"
+                    sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }}
+                  />
                 </Stack>
+
+                {/* Metrics row */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, py: 1.5, borderBottom: (row.missing_invoice_count > 0 || row.stripe_past_due > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
+                  <MetricBox label={t('reconciliation.dbActive')} value={row.db_active} />
+                  <MetricBox label={t('reconciliation.stripeActive')} value={row.stripe_active} />
+                  <MetricBox
+                    label={t('reconciliation.mismatch', { defaultValue: 'Mismatch' })}
+                    value={mismatch === 0 ? '0' : (mismatch > 0 ? `+${mismatch}` : `${mismatch}`)}
+                    color={mismatch !== 0 ? '#f59e0b' : '#009624'}
+                  />
+                  <MetricBox
+                    label={t('reconciliation.pastDue')}
+                    value={row.stripe_past_due}
+                    color={row.stripe_past_due > 0 ? '#dc2626' : undefined}
+                    sub={row.past_due_amount > 0 ? `${row.past_due_amount.toFixed(2)}` : undefined}
+                  />
+                </Box>
+
+                {/* Alerts */}
+                {(row.missing_invoice_count > 0 || row.stripe_past_due > 0) && (
+                  <Stack spacing={0.5} sx={{ px: 2, py: 1.5 }}>
+                    {row.missing_invoice_count > 0 && (
+                      <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>
+                        {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
+                      </Typography>
+                    )}
+                    {row.stripe_past_due > 0 && (
+                      <Typography variant="body2" sx={{ color: '#f59e0b', fontWeight: 600, fontSize: '0.8rem' }}>
+                        {row.stripe_past_due} {t('reconciliation.pastDue').toLowerCase()} ({row.past_due_amount.toFixed(2)})
+                      </Typography>
+                    )}
+                  </Stack>
+                )}
               </Box>
             );
           })}
