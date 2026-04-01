@@ -106,8 +106,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
         }}
       >
         {!collapsed && (
-          <span style={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, fontSize: '1.8rem', color: '#009624', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            bework<span style={{ position: 'relative' }}>i<span style={{ position: 'absolute', top: '0.12em', left: '50%', transform: 'translateX(-50%)', width: '0.26em', height: '0.26em', borderRadius: '50%', backgroundColor: '#fb923c', display: 'block' }} /></span>ng
+          <span style={{ fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '1.8rem', color: '#007a1d', letterSpacing: '-0.01em', lineHeight: 1 }}>
+            bework<span style={{ position: 'relative' }}><span style={{ color: '#007a1d' }}>i</span><span style={{ position: 'absolute', top: '0.18em', left: '50%', transform: 'translateX(-50%)', width: '0.26em', height: '0.26em', borderRadius: '50%', backgroundColor: '#d4a843', display: 'block' }} /></span>ng
           </span>
         )}
         <IconButton
