@@ -1431,7 +1431,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                         {initials.slice(0, 2)}
                       </Avatar>
                       <Box>
-                        <Typography fontWeight={600}>{tenant.name}</Typography>
+                        <Typography fontWeight={600} noWrap sx={{ maxWidth: { xs: 200, sm: 300, md: 400 } }}>{tenant.name}</Typography>
                         <Stack direction="row" spacing={0.5} alignItems="center" color="text.secondary">
                           <MailOutlinedIcon fontSize="inherit" />
                           <Typography variant="caption">{tenant.contact.email}</Typography>

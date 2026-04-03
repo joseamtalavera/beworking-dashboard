@@ -834,7 +834,7 @@ const BookingsTable = ({ bookings, onSelect }) => {
                   onClick={() => onSelect(booking)}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell>{booking.clientName || '—'}</TableCell>
+                  <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{booking.clientName || '—'}</TableCell>
                   <TableCell>{centerLabel}</TableCell>
                   <TableCell>{booking.clientTenantType || '—'}</TableCell>
                   <TableCell>{productLabel}</TableCell>
@@ -1060,7 +1060,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
                   maxWidth: 280
                 }}
               >
-                {bloqueo.cliente?.nombre || '—'}
+                <Typography noWrap sx={{ maxWidth: 300 }}>{bloqueo.cliente?.nombre || '—'}</Typography>
                   </TableCell>
               <TableCell align="right" sx={{ width: 120 }}>{bookingDate}</TableCell>
               <TableCell align="right" sx={{ width: 140 }}>{bloqueo.producto?.nombre || '—'}</TableCell>
