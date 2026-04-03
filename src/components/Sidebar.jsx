@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Chip from '@mui/material/Chip';
@@ -11,6 +11,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import Popover from '@mui/material/Popover';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -56,6 +57,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
   const currentWidth = collapsed ? collapsedDrawerWidth : drawerWidth;
 
   const [collapsedGroupIds, setCollapsedGroupIds] = useState(loadCollapsedGroups);
+  const [popoverDept, setPopoverDept] = useState(null);
+  const [popoverAnchor, setPopoverAnchor] = useState(null);
 
   const toggleGroup = useCallback((groupId) => {
     setCollapsedGroupIds(prev => {
@@ -136,9 +139,17 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
               <Box key={dept.id}>
                 {!isHero && <Divider sx={{ mx: collapsed ? 0 : 2 }} />}
                 {collapsed ? (
-                  <Tooltip title={t(`departments.${dept.id}.name`, { defaultValue: dept.label })} placement="right" arrow>
+                  <Tooltip title={!hasSubtabs || !canExpand ? t(`departments.${dept.id}.name`, { defaultValue: dept.label }) : ''} placement="right" arrow>
                     <ButtonBase
-                      onClick={() => isHero ? onOpenAgent?.() : handleTabClick(dept.id)}
+                      onClick={(e) => {
+                        if (isHero) { onOpenAgent?.(); return; }
+                        if (hasSubtabs && canExpand) {
+                          setPopoverAnchor(e.currentTarget);
+                          setPopoverDept(dept);
+                        } else {
+                          handleTabClick(dept.id);
+                        }
+                      }}
                       sx={{
                         display: 'flex',
                         justifyContent: 'center',
@@ -341,6 +352,44 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
       >
         {drawerContent}
       </Drawer>
+
+      {/* Subtab popover for collapsed sidebar */}
+      <Popover
+        open={!!popoverAnchor}
+        anchorEl={popoverAnchor}
+        onClose={() => { setPopoverAnchor(null); setPopoverDept(null); }}
+        anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'center', horizontal: 'left' }}
+        slotProps={{ paper: { sx: { borderRadius: 2, py: 0.5, px: 0.5, ml: 0.5 } } }}
+      >
+        {popoverDept && (
+          <Stack spacing={0.25}>
+            {getVisibleSubtabs(popoverDept).map((sub) => (
+              <Tooltip key={sub.id} title={t(`tabs.${sub.id}`, { defaultValue: sub.label })} placement="right" arrow>
+                <ButtonBase
+                  onClick={() => {
+                    handleTabClick(sub.id);
+                    setPopoverAnchor(null);
+                    setPopoverDept(null);
+                  }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 1.5,
+                    ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.primary.main, 0.1) }),
+                    '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.06) },
+                  }}
+                >
+                  <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.secondary' }} />
+                </ButtonBase>
+              </Tooltip>
+            ))}
+          </Stack>
+        )}
+      </Popover>
     </>
   );
 };
