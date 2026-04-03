@@ -772,10 +772,10 @@ const AdminOverview = () => {
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const status = (invoice.estado || '').toLowerCase();
 
-      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
+      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula') || status.includes('rectificad');
       const isOverdue = status.includes('venc') || status.includes('overdue');
       const isPending = status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice') || status.includes('created');
-      // Billed revenue = all non-cancelled invoices
+      // Billed revenue = all non-cancelled, non-rectified invoices
       const isBilled = !isCancelled;
 
       if (invoiceYear === currentYear) {
