@@ -38,7 +38,7 @@ const App = () => {
   }, [handleSessionExpired]);
 
   const handleLogin = () => {
-    const url = loginUrl || import.meta.env.VITE_LOGIN_URL || 'https://www.be-working.com/main/login';
+    const url = loginUrl || import.meta.env.VITE_LOGIN_URL || 'https://be-working.com/login';
     window.location.href = url;
   };
   
