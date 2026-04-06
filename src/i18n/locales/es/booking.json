@@ -27,7 +27,7 @@
     "allLocations": "Todas las ubicaciones",
     "allCentros": "Todos los Centros",
     "backToCalendar": "Volver",
-    "heroTitle": "BeSpaces",
+    "heroTitle": "Spaces",
     "heroSubtitle": "Salas de reuniones, coworking y oficinas virtuales — encuentra el espacio ideal para tu negocio.",
     "centro": "Centro",
     "numberOfUsers": "Número de usuarios",
@@ -439,7 +439,7 @@
   "userView": {
     "meetingRooms": "Salas de Reunión",
     "myBookings": "Mis Reservas",
-    "spacesTab": "BeSpaces",
+    "spacesTab": "Spaces",
     "bookingsTab": "Reservas",
     "location": "Ubicación",
     "centro": "Centro",

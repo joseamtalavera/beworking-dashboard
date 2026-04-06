@@ -27,7 +27,7 @@
     "allLocations": "All locations",
     "allCentros": "All Centers",
     "backToCalendar": "Back",
-    "heroTitle": "BeSpaces",
+    "heroTitle": "Spaces",
     "heroSubtitle": "Meeting rooms, coworking desks, and virtual offices — find the right workspace for your business.",
     "centro": "Center",
     "numberOfUsers": "Number of Users",
@@ -439,7 +439,7 @@
   "userView": {
     "meetingRooms": "Meeting Rooms",
     "myBookings": "My Bookings",
-    "spacesTab": "BeSpaces",
+    "spacesTab": "Spaces",
     "bookingsTab": "Bookings",
     "location": "Location",
     "centro": "Centro",
