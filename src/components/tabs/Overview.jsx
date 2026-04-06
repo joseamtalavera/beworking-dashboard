@@ -37,6 +37,7 @@ import { fetchBloqueos, fetchBookingProductos, fetchBookingStats, cancelBloqueo 
 import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
 import { fetchSubscriptions } from '../../api/subscriptions.js';
+import PlanUpgradeDialog from '../PlanUpgradeDialog.jsx';
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
   i18n.addResourceBundle('es', 'overview', esOverview);
@@ -399,6 +400,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
   const [mailDocuments, setMailDocuments] = useState([]);
   const [tenantType, setTenantType] = useState('');
   const [loading, setLoading] = useState({ bookings: true, stats: true, invoices: true, mail: true });
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState('');
@@ -617,7 +619,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
             <Button
               variant="contained"
               size="small"
-              onClick={() => { /* Settings button in sidebar handles this */ }}
+              onClick={() => setPlanDialogOpen(true)}
               sx={{ borderRadius: '999px', px: 3, py: 1, textTransform: 'none', fontWeight: 600, fontSize: '0.8125rem' }}
             >
               {t('user.proBanner.cta', { defaultValue: 'Ver planes en Ajustes' })}
@@ -654,41 +656,15 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
         </DialogActions>
       </Dialog>
 
-      {/* Row 4: Mailbox Preview (conditional) */}
-      {recentMail.length > 0 && (
-        <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('user.mailbox.title')}</Typography>
-            {setActiveTab && (
-              <Button size="small" onClick={() => setActiveTab('Business Address')} sx={{ textTransform: 'none', fontWeight: 600 }}>
-                {t('user.mailbox.viewAll')} →
-              </Button>
-            )}
-          </Stack>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('user.mailbox.document')}</TableCell>
-                  <TableCell>{t('user.mailbox.type')}</TableCell>
-                  <TableCell>{t('user.mailbox.received')}</TableCell>
-                  <TableCell>{t('user.mailbox.status')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {recentMail.map(doc => (
-                  <TableRow key={doc.id} hover>
-                    <TableCell>{doc.title || doc.originalFileName || '-'}</TableCell>
-                    <TableCell><Chip label={doc.type || 'mail'} size="small" variant="outlined" /></TableCell>
-                    <TableCell>{new Date(doc.receivedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</TableCell>
-                    <TableCell><Chip label={doc.status || '-'} size="small" color={doc.status === 'picked_up' ? 'success' : doc.status === 'scanned' ? 'warning' : 'default'} variant="outlined" /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
+      {/* Plan Upgrade Dialog */}
+      <PlanUpgradeDialog
+        open={planDialogOpen}
+        onClose={() => setPlanDialogOpen(false)}
+        currentPlan={tenantType?.toLowerCase().includes('free') ? 'free' : 'basic'}
+        onSelectPlan={(plan) => {
+          window.open(`https://be-working.com/malaga/oficina-virtual?plan=${plan.key}`, '_blank');
+        }}
+      />
     </Stack>
   );
 };

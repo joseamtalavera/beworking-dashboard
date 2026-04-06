@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { updateUserAvatar, updateUserProfile, changePassword } from '../api/auth.js';
+import PlanUpgradeDialog from './PlanUpgradeDialog.jsx';
 import { apiFetch } from '../api/client.js';
 import { fetchSubscriptions } from '../api/subscriptions.js';
 import { fetchInvoices, fetchInvoicePdfBlob, fetchInvoicePdfUrl } from '../api/invoices.js';
@@ -134,6 +135,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const [subscriptions, setSubscriptions] = useState([]);
   const [userInvoices, setUserInvoices] = useState([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
 
   // Billing edit state
   const [isEditingBilling, setIsEditingBilling] = useState(false);
@@ -739,6 +741,22 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               {t('subscription.noActive')}
             </Typography>
           )}
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setPlanDialogOpen(true)}
+            sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3, mt: 1, color: accentColor, borderColor: accentColor, '&:hover': { borderColor: accentColor, bgcolor: alpha(accentColor, 0.04) } }}
+          >
+            {i18n.language === 'es' ? 'Cambiar plan' : 'Change plan'}
+          </Button>
+          <PlanUpgradeDialog
+            open={planDialogOpen}
+            onClose={() => setPlanDialogOpen(false)}
+            currentPlan={subscriptions.length > 0 ? (subscriptions[0].description?.toLowerCase().includes('basic') ? 'basic' : subscriptions[0].description?.toLowerCase().includes('pro') ? 'pro' : subscriptions[0].description?.toLowerCase().includes('max') ? 'max' : 'basic') : 'free'}
+            onSelectPlan={(plan) => {
+              window.open(`https://be-working.com/malaga/oficina-virtual?plan=${plan.key}`, '_blank');
+            }}
+          />
         </Stack>
 
         <Divider sx={{ my: 3 }} />
