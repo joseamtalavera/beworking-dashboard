@@ -593,69 +593,43 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
         />
       </Box>
 
-      {/* Row 3: Upcoming Bookings */}
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('user.upcomingBookings.title')}</Typography>
-          {setActiveTab && (
-            <Button size="small" onClick={() => setActiveTab('Booking')} sx={{ textTransform: 'none', fontWeight: 600 }}>
-              {t('user.upcomingBookings.viewAll')} →
+      {/* Row 3: PRO Upgrade Banner */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          p: 0,
+          overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
+          background: 'linear-gradient(135deg, #f0faf4 0%, #e8f5e9 50%, #f5f5f5 100%)',
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center' }}>
+          <Box sx={{ flex: 1, p: { xs: 3, md: 4 } }}>
+            <Chip label="PRO" size="small" sx={{ fontWeight: 700, bgcolor: 'primary.main', color: '#fff', mb: 1.5, fontSize: '0.7rem' }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, lineHeight: 1.3 }}>
+              {t('user.proBanner.title', { defaultValue: 'Una web profesional para tu negocio' })}
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2.5, lineHeight: 1.7 }}>
+              {t('user.proBanner.body', { defaultValue: 'Con el plan Pro, obtén una web corporativa personalizada, atención de llamadas y más — desde 25€/mes.' })}
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => { /* Settings button in sidebar handles this */ }}
+              sx={{ borderRadius: '999px', px: 3, py: 1, textTransform: 'none', fontWeight: 600, fontSize: '0.8125rem' }}
+            >
+              {t('user.proBanner.cta', { defaultValue: 'Ver planes en Ajustes' })}
             </Button>
-          )}
-        </Stack>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('user.upcomingBookings.date')}</TableCell>
-                <TableCell>{t('user.upcomingBookings.time')}</TableCell>
-                <TableCell>{t('user.upcomingBookings.room')}</TableCell>
-                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('user.upcomingBookings.center')}</TableCell>
-                <TableCell>{t('user.upcomingBookings.status')}</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading.bookings ? (
-                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}><CircularProgress size={24} /></TableCell></TableRow>
-              ) : bookings.slice(0, 5).length === 0 ? (
-                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                  <Typography variant="body2" color="text.secondary">{t('user.upcomingBookings.noBookings')}</Typography>
-                </TableCell></TableRow>
-              ) : bookings.slice(0, 5).map(b => {
-                const start = new Date(b.fechaIni);
-                const end = new Date(b.fechaFin);
-                return (
-                  <TableRow key={b.id} hover>
-                    <TableCell>{start.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</TableCell>
-                    <TableCell>{start.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })} - {end.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                    <TableCell>{b.producto?.nombre || '-'}</TableCell>
-                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{b.centro?.nombre || '-'}</TableCell>
-                    <TableCell>
-                      {isFreeBooking(b)
-                        ? <Chip label={t('user.upcomingBookings.free')} size="small" sx={{ color: 'text.primary', borderColor: 'divider' }} variant="outlined" />
-                        : <Chip label={b.estado || '-'} size="small" color={statusChipColor(b.estado)} variant="outlined" />
-                      }
-                    </TableCell>
-                    <TableCell align="right">
-                      {isFreeBooking(b) && (
-                        <Button
-                          size="small"
-                          color="error"
-                          startIcon={<CancelOutlinedIcon />}
-                          onClick={() => setCancelTarget(b)}
-                          sx={{ textTransform: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}
-                        >
-                          {t('user.upcomingBookings.cancel')}
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+          </Box>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', pr: 4 }}>
+            <Box sx={{ width: 120, height: 120, borderRadius: '50%', background: 'linear-gradient(135deg, #009624 0%, #00c853 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+              <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '1.75rem', lineHeight: 1 }}>25€</Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: 600 }}>/mes</Typography>
+            </Box>
+          </Box>
+        </Box>
       </Paper>
 
       {/* Cancel booking confirm dialog */}
