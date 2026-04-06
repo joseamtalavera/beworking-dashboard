@@ -622,13 +622,24 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
               onClick={() => setPlanDialogOpen(true)}
               sx={{ borderRadius: '999px', px: 3, py: 1, textTransform: 'none', fontWeight: 600, fontSize: '0.8125rem' }}
             >
-              {t('user.proBanner.cta', { defaultValue: 'Ver planes en Ajustes' })}
+              {t('user.proBanner.cta', { defaultValue: 'Ver planes' })}
             </Button>
           </Box>
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', pr: 4 }}>
-            <Box sx={{ width: 120, height: 120, borderRadius: '50%', background: 'linear-gradient(135deg, #009624 0%, #00c853 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-              <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '1.75rem', lineHeight: 1 }}>25€</Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.7rem', fontWeight: 600 }}>/mes</Typography>
+          {/* Device mockups */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'flex-end', justifyContent: 'center', pr: 3, pb: 0, pt: 3, gap: 1.5, position: 'relative', minWidth: 300 }}>
+            {/* Laptop mockup */}
+            <Box sx={{ position: 'relative' }}>
+              <Box sx={{ width: 220, height: 145, borderRadius: '8px 8px 0 0', border: '3px solid #333', borderBottom: 'none', overflow: 'hidden', bgcolor: '#1a1a2e' }}>
+                <Box component="img" src="/assets/promo/web-desktop.png" alt="Web corporativa" sx={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+              </Box>
+              <Box sx={{ width: 250, height: 12, bgcolor: '#555', borderRadius: '0 0 6px 6px', mx: 'auto', ml: -1.9 }} />
+              <Box sx={{ width: 280, height: 4, bgcolor: '#888', borderRadius: '0 0 4px 4px', mx: 'auto', ml: -3.8 }} />
+            </Box>
+            {/* Phone mockup */}
+            <Box sx={{ position: 'relative', mb: 1.5 }}>
+              <Box sx={{ width: 65, height: 130, borderRadius: '10px', border: '3px solid #333', overflow: 'hidden', bgcolor: '#1a1a2e' }}>
+                <Box component="img" src="/assets/promo/web-mobile.png" alt="Web móvil" sx={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+              </Box>
             </Box>
           </Box>
         </Box>
