@@ -179,8 +179,8 @@ export default function WebsiteAdBanner({ onViewPlans }) {
       <div style={{ width: '380px', flexShrink: 0, position: 'relative', height: '340px', zIndex: 2 }}>
 
         {/* Laptop / Desktop */}
-        <div style={{ position: 'absolute', left: 0, top: 10, animation: 'bwFloat1 5s ease-in-out infinite', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.65))' }}>
-          <div style={{ background: '#222', borderRadius: '8px 8px 0 0', padding: '6px 6px 0', width: 280 }}>
+        <div style={{ position: 'absolute', left: 0, top: 10, animation: 'bwFloat1 5s ease-in-out infinite', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5)) drop-shadow(0 0 1px rgba(255,255,255,0.15))' }}>
+          <div style={{ background: '#e8e8e8', borderRadius: '8px 8px 0 0', padding: '6px 6px 0', width: 280 }}>
             <div style={{ display: 'flex', gap: 4, marginBottom: 5, paddingLeft: 4 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff5f57' }} />
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#febc2e' }} />
@@ -190,18 +190,18 @@ export default function WebsiteAdBanner({ onViewPlans }) {
               <img src="/assets/promo/web-desktop.png" alt="Web corporativa desktop" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top left', display: 'block', imageRendering: 'auto' }} />
             </div>
           </div>
-          <div style={{ width: 300, height: 8, background: 'linear-gradient(180deg, #333 0%, #222 100%)', borderRadius: '0 0 2px 2px', marginLeft: -10 }} />
-          <div style={{ width: 330, height: 4, background: '#2a2a2a', borderRadius: '0 0 6px 6px', marginLeft: -25 }} />
+          <div style={{ width: 300, height: 8, background: 'linear-gradient(180deg, #d0d0d0 0%, #bbb 100%)', borderRadius: '0 0 2px 2px', marginLeft: -10 }} />
+          <div style={{ width: 330, height: 4, background: '#aaa', borderRadius: '0 0 6px 6px', marginLeft: -25 }} />
         </div>
 
         {/* Phone */}
-        <div style={{ position: 'absolute', right: 10, bottom: 0, animation: 'bwFloat3 4s ease-in-out infinite', filter: 'drop-shadow(0 14px 30px rgba(0,0,0,0.7))' }}>
-          <div style={{ width: 90, background: '#1a1a1a', borderRadius: '16px', padding: '8px 5px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ width: 30, height: 6, borderRadius: '3px', background: '#000', marginBottom: 4 }} />
+        <div style={{ position: 'absolute', right: 10, bottom: 0, animation: 'bwFloat3 4s ease-in-out infinite', filter: 'drop-shadow(0 14px 30px rgba(0,0,0,0.5)) drop-shadow(0 0 1px rgba(255,255,255,0.15))' }}>
+          <div style={{ width: 90, background: '#e0e0e0', borderRadius: '16px', padding: '8px 5px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ width: 30, height: 6, borderRadius: '3px', background: '#bbb', marginBottom: 4 }} />
             <div style={{ width: '100%', height: 160, borderRadius: '8px', overflow: 'hidden' }}>
               <img src="/assets/promo/web-mobile.png" alt="Web corporativa móvil" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block', imageRendering: 'auto' }} />
             </div>
-            <div style={{ width: 30, height: 4, borderRadius: '2px', background: '#333', marginTop: 4 }} />
+            <div style={{ width: 30, height: 4, borderRadius: '2px', background: '#bbb', marginTop: 4 }} />
           </div>
         </div>
       </div>
