@@ -791,7 +791,7 @@ const AdminOverview = () => {
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const status = (invoice.estado || '').toLowerCase();
 
-      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
+      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula') || status.includes('rectificad');
       if (!isCancelled) {
         months[month].revenue += amount;
       }
