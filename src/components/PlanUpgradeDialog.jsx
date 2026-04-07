@@ -11,13 +11,22 @@ import { useTranslation } from 'react-i18next';
 
 const PLANS = [
   {
+    key: 'free',
+    name: 'Free',
+    price: 0,
+    features: {
+      es: ['Plataforma BeWorking', 'Reserva de espacios BeWorking', 'Panel de gestión', 'Facturación básica', 'Soporte por email'],
+      en: ['BeWorking Platform', 'BeWorking space booking', 'Management dashboard', 'Basic invoicing', 'Email support'],
+    },
+  },
+  {
     key: 'basic',
     name: 'Basic',
     price: 15,
     popular: true,
     features: {
-      es: ['Domicilio fiscal y legal', 'Recepción de correo', 'Buzón digital', 'Plataforma BeWorking completa', 'Reserva de espacios BeWorking'],
-      en: ['Legal & fiscal address', 'Mail reception', 'Digital mailbox', 'Full BeWorking Platform', 'BeWorking space booking'],
+      es: ['Todo en Free', 'Domicilio fiscal y legal', 'Recepción de correo', 'Buzón digital', 'Logo en recepción'],
+      en: ['Everything in Free', 'Legal & fiscal address', 'Mail reception', 'Digital mailbox', 'Logo at reception'],
     },
   },
   {
@@ -25,17 +34,8 @@ const PLANS = [
     name: 'Pro',
     price: 25,
     features: {
-      es: ['Todo en Basic', 'Atención de llamadas', 'Multi-usuario (3 usuarios)', 'Logo en recepción', 'Web corporativa'],
-      en: ['Everything in Basic', 'Call handling', 'Multi-user (3 users)', 'Logo at reception', 'Corporate website'],
-    },
-  },
-  {
-    key: 'max',
-    name: 'Max',
-    price: 90,
-    features: {
-      es: ['Todo en Pro', 'Gestor dedicado', 'Prioridad en soporte', 'Integraciones', 'Automatizaciones'],
-      en: ['Everything in Pro', 'Dedicated manager', 'Priority support', 'Integrations', 'Automations'],
+      es: ['Todo en Basic', 'Atención de llamadas', 'Multi-usuario (3 usuarios)', 'Gestor dedicado', 'Web corporativa'],
+      en: ['Everything in Basic', 'Call handling', 'Multi-user (3 users)', 'Dedicated manager', 'Corporate website'],
     },
   },
 ];
