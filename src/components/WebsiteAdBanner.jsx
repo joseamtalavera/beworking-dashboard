@@ -22,9 +22,10 @@ export default function WebsiteAdBanner({ onViewPlans }) {
       style={{
         background: 'linear-gradient(135deg, #1a5c30 0%, #288846 55%, #2ea84f 100%)',
         borderRadius: '18px',
-        padding: '24px',
+        padding: '32px',
         display: 'flex',
         alignItems: 'stretch',
+        minHeight: '320px',
         position: 'relative',
         overflow: 'hidden',
         boxShadow: '0 8px 32px rgba(40,136,70,0.28)',
@@ -94,21 +95,38 @@ export default function WebsiteAdBanner({ onViewPlans }) {
         </div>
       </div>
 
-      {/* Right: device mockups with real screenshots */}
-      <div style={{ width: '280px', flexShrink: 0, position: 'relative', height: '220px', zIndex: 2, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-        {/* Laptop mockup */}
-        <div style={{ position: 'absolute', left: 0, top: 10, animation: 'bwFloat1 4s ease-in-out infinite' }}>
-          <div style={{ width: 200, height: 132, borderRadius: '6px 6px 0 0', border: '3px solid #3a3a5c', borderBottom: 'none', overflow: 'hidden', background: '#1a1a2e' }}>
-            <img src="/assets/promo/web-desktop.png" alt="Web corporativa" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+      {/* Right: Apple-style device mockups */}
+      <div style={{ flex: '0 0 420px', position: 'relative', height: '300px', zIndex: 2, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+
+        {/* MacBook mockup */}
+        <div style={{ position: 'absolute', left: 0, top: 0, animation: 'bwFloat1 4s ease-in-out infinite', filter: 'drop-shadow(0 12px 32px rgba(0,0,0,0.35))' }}>
+          {/* Screen bezel */}
+          <div style={{ width: 320, background: '#e2e2e2', borderRadius: '12px 12px 0 0', padding: '8px 8px 0 8px' }}>
+            {/* Camera dot */}
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#555', margin: '0 auto 6px' }} />
+            {/* Screen */}
+            <div style={{ width: '100%', height: 195, borderRadius: '2px', overflow: 'hidden', background: '#0f172a' }}>
+              <img src="/assets/promo/web-desktop.png" alt="Web corporativa" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+            </div>
           </div>
-          <div style={{ width: 228, height: 10, background: '#2a2a4a', borderRadius: '0 0 4px 4px', marginLeft: -14 }} />
-          <div style={{ width: 256, height: 4, background: '#3a3a5c', borderRadius: '0 0 3px 3px', marginLeft: -28 }} />
+          {/* Hinge */}
+          <div style={{ width: 340, height: 8, background: 'linear-gradient(180deg, #d4d4d4 0%, #b0b0b0 100%)', borderRadius: '0 0 2px 2px', marginLeft: -10 }} />
+          {/* Base */}
+          <div style={{ width: 380, height: 5, background: 'linear-gradient(180deg, #c0c0c0 0%, #a8a8a8 100%)', borderRadius: '0 0 8px 8px', marginLeft: -30 }} />
         </div>
 
-        {/* Phone mockup */}
-        <div style={{ position: 'absolute', right: 0, bottom: 10, animation: 'bwFloat3 3.5s ease-in-out infinite' }}>
-          <div style={{ width: 62, height: 120, borderRadius: '10px', border: '3px solid #3a3a5c', overflow: 'hidden', background: '#1a1a2e' }}>
-            <img src="/assets/promo/web-mobile.png" alt="Web móvil" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+        {/* iPhone mockup */}
+        <div style={{ position: 'absolute', right: 10, bottom: 0, animation: 'bwFloat3 3.5s ease-in-out infinite', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.4))' }}>
+          {/* Phone body */}
+          <div style={{ width: 82, height: 168, borderRadius: '18px', background: '#1a1a1a', padding: '10px 4px 10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {/* Dynamic island */}
+            <div style={{ width: 28, height: 8, borderRadius: '4px', background: '#000', marginBottom: 4 }} />
+            {/* Screen */}
+            <div style={{ width: '100%', flex: 1, borderRadius: '10px', overflow: 'hidden', background: '#0f172a' }}>
+              <img src="/assets/promo/web-mobile.png" alt="Web móvil" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+            </div>
+            {/* Home indicator */}
+            <div style={{ width: 32, height: 4, borderRadius: '2px', background: '#333', marginTop: 4 }} />
           </div>
         </div>
       </div>
@@ -116,6 +134,9 @@ export default function WebsiteAdBanner({ onViewPlans }) {
       <style>{`
         @keyframes bwFloat1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes bwFloat3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @media (max-width: 900px) {
+          .bw-devices { display: none !important; }
+        }
       `}</style>
     </div>
   );
