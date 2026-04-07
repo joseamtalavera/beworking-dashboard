@@ -14,6 +14,7 @@ const PLANS = [
     key: 'free',
     name: 'Free',
     price: 0,
+    description: { es: 'Empieza gratis con tu cuenta.', en: 'Start free with your account.' },
     features: {
       es: ['Plataforma BeWorking', 'Reserva de espacios BeWorking', 'Panel de gestión', 'Facturación básica', 'Soporte por email'],
       en: ['BeWorking Platform', 'BeWorking space booking', 'Management dashboard', 'Basic invoicing', 'Email support'],
@@ -24,6 +25,7 @@ const PLANS = [
     name: 'Basic',
     price: 15,
     popular: true,
+    description: { es: 'Dirección empresarial registrada.', en: 'Registered business address.' },
     features: {
       es: ['Todo en Free', 'Domicilio fiscal y legal', 'Recepción de correo', 'Buzón digital', 'Logo en recepción'],
       en: ['Everything in Free', 'Legal & fiscal address', 'Mail reception', 'Digital mailbox', 'Logo at reception'],
@@ -33,6 +35,7 @@ const PLANS = [
     key: 'pro',
     name: 'Pro',
     price: 25,
+    description: { es: 'Todo en Basic más Web personalizada.', en: 'Everything in Basic plus custom website.' },
     features: {
       es: ['Todo en Basic', 'Atención de llamadas', 'Multi-usuario (3 usuarios)', 'Gestor dedicado', 'Web corporativa'],
       en: ['Everything in Basic', 'Call handling', 'Multi-user (3 users)', 'Dedicated manager', 'Corporate website'],
@@ -103,19 +106,22 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, onSelect
                     size="small"
                     sx={{
                       position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                      fontWeight: 700, fontSize: '0.65rem', bgcolor: 'primary.main', color: '#fff',
+                      fontWeight: 700, fontSize: '0.7rem', bgcolor: 'primary.main', color: '#fff',
+                      borderRadius: '999px', px: 1.5, height: 24,
                     }}
                   />
                 )}
 
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>{plan.name}</Typography>
 
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5, fontSize: '0.85rem', lineHeight: 1.5 }}>
+                  {plan.description[lang]}
+                </Typography>
+
                 <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 2 }}>
-                  <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: 'primary.main' }}>{plan.price}€</Typography>
+                  <Typography sx={{ fontSize: '2.25rem', fontWeight: 800, color: 'primary.main', lineHeight: 1 }}>{plan.price}€</Typography>
                   <Typography variant="body2" color="text.secondary">/mes</Typography>
                 </Stack>
-
-                <Divider sx={{ mb: 2 }} />
 
                 <Stack spacing={1.25} sx={{ flex: 1, mb: 2.5 }}>
                   {(plan.features[lang] || plan.features.en).map((f) => (
@@ -145,10 +151,8 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, onSelect
                   >
                     {loading === plan.key ? (
                       <CircularProgress size={20} color="inherit" />
-                    ) : isUpgrade ? (
-                      lang === 'es' ? 'Actualizar' : 'Upgrade'
                     ) : (
-                      lang === 'es' ? 'Cambiar' : 'Switch'
+                      lang === 'es' ? 'Elegir plan' : 'Choose plan'
                     )}
                   </Button>
                 )}
