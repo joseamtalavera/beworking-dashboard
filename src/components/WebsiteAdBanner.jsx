@@ -161,17 +161,24 @@ export default function WebsiteAdBanner({ onViewPlans }) {
           </div>
         </div>
 
-        {/* CTA */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', animation: 'bwFadeUp 0.6s 0.3s ease both', opacity: 0 }}>
-          <button
-            style={{ background: '#fff', color: '#0a1f10', border: 'none', borderRadius: '100px', padding: '13px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s, transform 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#F4C656'; e.currentTarget.style.transform = 'scale(1.03)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1)'; }}
-            onClick={() => onViewPlans?.()}
-          >
-            Activar ahora →
-          </button>
-          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>Sin permanencia</span>
+        {/* Price + CTA */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '18px', animation: 'bwFadeUp 0.6s 0.3s ease both', opacity: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+            <span style={{ fontSize: '40px', fontWeight: 800, color: '#F4C656', lineHeight: 1, letterSpacing: '-1px', textShadow: '0 0 30px rgba(244,198,86,0.4)' }}>25€</span>
+            <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(244,198,86,0.6)' }}>/mes</span>
+          </div>
+          <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.12)' }} />
+          <div>
+            <button
+              style={{ background: '#F4C656', color: '#0a1f10', border: 'none', borderRadius: '100px', padding: '13px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s, transform 0.2s, box-shadow 0.2s', boxShadow: '0 4px 20px rgba(244,198,86,0.35)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(244,198,86,0.5)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#F4C656'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(244,198,86,0.35)'; }}
+              onClick={() => onViewPlans?.()}
+            >
+              Activar ahora →
+            </button>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '6px', textAlign: 'center' }}>Sin permanencia · IVA no incluido</div>
+          </div>
         </div>
       </div>
 
