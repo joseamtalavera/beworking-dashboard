@@ -128,7 +128,7 @@ export default function WebsiteAdBanner({ onViewPlans }) {
         </div>
 
         <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', margin: '16px 0 20px', lineHeight: 1.65, fontWeight: 400, maxWidth: '400px', animation: 'bwFadeUp 0.6s 0.2s ease both', opacity: 0 }}>
-          Web corporativa, dominio propio y SSL incluidos.<br />Visible en todos los dispositivos. Por 25€/mes.
+          Tu negocio online con diseño profesional.<br />Responsiva, optimizada y lista para captar clientes.<br />4 páginas, hosting y SSL incluidos. 25€/mes.
         </p>
 
         {/* Domain pill */}
