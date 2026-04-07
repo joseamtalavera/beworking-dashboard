@@ -38,6 +38,7 @@ import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
 import { fetchSubscriptions } from '../../api/subscriptions.js';
 import PlanUpgradeDialog from '../PlanUpgradeDialog.jsx';
+import WebsiteAdBanner from '../WebsiteAdBanner.jsx';
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
   i18n.addResourceBundle('es', 'overview', esOverview);
@@ -555,95 +556,8 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
         <StatCard label={t('user.stats.pendingMail')} value={pendingMailCount} sublabel={t('user.stats.documentsWaiting')} loading={loading.mail} theme={theme} />
       </Box>
 
-      {/* Row 2: Financial Summary */}
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' } }}>
-        <MetricCard
-          label={t('user.financial.pendingInvoices')}
-          value={invoiceMetrics.pendingTotal}
-          change={invoiceMetrics.pendingCount > 0 ? t('user.financial.pendingCount', { count: invoiceMetrics.pendingCount }) : null}
-          trend="flat"
-          color={dataColors.pending}
-          loading={loading.invoices}
-          theme={theme}
-        />
-        <MetricCard
-          label={t('user.financial.spentThisMonth')}
-          value={invoiceMetrics.spentMonth}
-          change={null}
-          trend="flat"
-          color={dataColors.income}
-          loading={loading.invoices}
-          theme={theme}
-        />
-        <MetricCard
-          label={t('user.financial.spentYTD')}
-          value={invoiceMetrics.spentYTD}
-          change={null}
-          trend="flat"
-          color={dataColors.income}
-          loading={loading.invoices}
-          theme={theme}
-        />
-        <MetricCard
-          label={t('user.financial.overdue')}
-          value={invoiceMetrics.overdueTotal}
-          change={invoiceMetrics.overdueCount > 0 ? t('user.financial.overdueCount', { count: invoiceMetrics.overdueCount }) : null}
-          trend={invoiceMetrics.overdueCount > 0 ? 'up' : 'flat'}
-          color={dataColors.overdue}
-          loading={loading.invoices}
-          theme={theme}
-        />
-      </Box>
-
-      {/* Row 3: PRO Upgrade Banner */}
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 3,
-          p: 0,
-          overflow: 'hidden',
-          border: '1px solid',
-          borderColor: 'divider',
-          background: 'linear-gradient(135deg, #f0faf4 0%, #e8f5e9 50%, #f5f5f5 100%)',
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center' }}>
-          <Box sx={{ flex: 1, p: { xs: 3, md: 4 } }}>
-            <Chip label="PRO" size="small" sx={{ fontWeight: 700, bgcolor: 'primary.main', color: '#fff', mb: 1.5, fontSize: '0.7rem' }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, lineHeight: 1.3 }}>
-              {t('user.proBanner.title', { defaultValue: 'Una web profesional para tu negocio' })}
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2.5, lineHeight: 1.7 }}>
-              {t('user.proBanner.body', { defaultValue: 'Con el plan Pro, obtén una web corporativa personalizada, atención de llamadas y más — desde 25€/mes.' })}
-            </Typography>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => setPlanDialogOpen(true)}
-              sx={{ borderRadius: '999px', px: 3, py: 1, textTransform: 'none', fontWeight: 600, fontSize: '0.8125rem' }}
-            >
-              {t('user.proBanner.cta', { defaultValue: 'Ver planes' })}
-            </Button>
-          </Box>
-          {/* Device mockups */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'flex-end', justifyContent: 'center', pr: 3, pb: 0, pt: 3, gap: 1.5, position: 'relative', minWidth: 300 }}>
-            {/* Laptop mockup */}
-            <Box sx={{ position: 'relative' }}>
-              <Box sx={{ width: 220, height: 145, borderRadius: '8px 8px 0 0', border: '3px solid #333', borderBottom: 'none', overflow: 'hidden', bgcolor: '#1a1a2e' }}>
-                <Box component="img" src="/assets/promo/web-desktop.png" alt="Web corporativa" sx={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
-              </Box>
-              <Box sx={{ width: 250, height: 12, bgcolor: '#555', borderRadius: '0 0 6px 6px', mx: 'auto', ml: -1.9 }} />
-              <Box sx={{ width: 280, height: 4, bgcolor: '#888', borderRadius: '0 0 4px 4px', mx: 'auto', ml: -3.8 }} />
-            </Box>
-            {/* Phone mockup */}
-            <Box sx={{ position: 'relative', mb: 1.5 }}>
-              <Box sx={{ width: 65, height: 130, borderRadius: '10px', border: '3px solid #333', overflow: 'hidden', bgcolor: '#1a1a2e' }}>
-                <Box component="img" src="/assets/promo/web-mobile.png" alt="Web móvil" sx={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      </Paper>
+      {/* PRO Upgrade Banner with device mockups */}
+      <WebsiteAdBanner onViewPlans={() => setPlanDialogOpen(true)} />
 
       {/* Cancel booking confirm dialog */}
       <Dialog open={Boolean(cancelTarget)} onClose={() => !cancelling && setCancelTarget(null)} maxWidth="xs" fullWidth>
