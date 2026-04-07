@@ -752,9 +752,23 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
           <PlanUpgradeDialog
             open={planDialogOpen}
             onClose={() => setPlanDialogOpen(false)}
-            currentPlan={subscriptions.length > 0 ? (subscriptions[0].description?.toLowerCase().includes('basic') ? 'basic' : subscriptions[0].description?.toLowerCase().includes('pro') ? 'pro' : subscriptions[0].description?.toLowerCase().includes('max') ? 'max' : 'basic') : 'free'}
-            onSelectPlan={(plan) => {
-              window.open(`https://be-working.com/malaga/oficina-virtual?plan=${plan.key}`, '_blank');
+            currentPlan={
+              subscriptions.length === 0 ? 'free'
+              : Number(subscriptions[0].monthlyAmount) >= 25 ? 'pro'
+              : 'basic'
+            }
+            subscriptionId={subscriptions.length > 0 ? subscriptions[0].id : null}
+            onUpgraded={() => {
+              // Reload subscriptions
+              if (user?.email) {
+                apiFetch(`/contact-profiles/${user.tenantId || ''}`)
+                  .then(data => data?.id && fetchSubscriptions({ contactId: data.id }))
+                  .then(subs => {
+                    const list = Array.isArray(subs) ? subs : Array.isArray(subs?.content) ? subs.content : [];
+                    setSubscriptions(list.filter(s => s.active));
+                  })
+                  .catch(() => {});
+              }
             }}
           />
         </Stack>

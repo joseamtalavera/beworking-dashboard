@@ -400,6 +400,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
   const [invoices, setInvoices] = useState([]);
   const [mailDocuments, setMailDocuments] = useState([]);
   const [tenantType, setTenantType] = useState('');
+  const [userSubscription, setUserSubscription] = useState(null);
   const [loading, setLoading] = useState({ bookings: true, stats: true, invoices: true, mail: true });
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
@@ -432,7 +433,16 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
 
       // Fetch contact profile to get tenantType
       apiFetch(`/contact-profiles/${userProfile.tenantId}`)
-        .then(data => setTenantType((data?.tenantType || '').toLowerCase()))
+        .then(data => {
+          setTenantType((data?.tenantType || '').toLowerCase());
+          // Also fetch subscriptions for this contact
+          return fetchSubscriptions({ contactId: data?.id });
+        })
+        .then(subs => {
+          const list = Array.isArray(subs) ? subs : Array.isArray(subs?.content) ? subs.content : [];
+          const active = list.find(s => s.active);
+          if (active) setUserSubscription(active);
+        })
         .catch(() => {});
     } else {
       setLoading(prev => ({ ...prev, stats: false }));
@@ -585,10 +595,12 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
       <PlanUpgradeDialog
         open={planDialogOpen}
         onClose={() => setPlanDialogOpen(false)}
-        currentPlan={tenantType?.toLowerCase().includes('free') ? 'free' : 'basic'}
-        onSelectPlan={(plan) => {
-          window.open(`https://be-working.com/malaga/oficina-virtual?plan=${plan.key}`, '_blank');
-        }}
+        currentPlan={
+          !userSubscription ? 'free'
+          : userSubscription.monthlyAmount >= 25 ? 'pro'
+          : 'basic'
+        }
+        subscriptionId={userSubscription?.id}
       />
     </Stack>
   );

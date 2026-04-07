@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent,
-  Box, Button, Chip, Divider, Stack, Typography, CircularProgress, Alert,
+  Box, Button, Chip, Stack, Typography, CircularProgress, Alert,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import IconButton from '@mui/material/IconButton';
 import { useTranslation } from 'react-i18next';
+import { apiFetch } from '../api/client.js';
 
 const PLANS = [
   {
@@ -43,48 +44,65 @@ const PLANS = [
   },
 ];
 
-export default function PlanUpgradeDialog({ open, onClose, currentPlan, onSelectPlan }) {
-  const { t, i18n } = useTranslation();
+export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscriptionId, onUpgraded }) {
+  const { i18n } = useTranslation();
   const lang = i18n.language === 'es' ? 'es' : 'en';
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const currentKey = currentPlan?.toLowerCase() || 'free';
 
   const handleSelect = async (plan) => {
     setLoading(plan.key);
     setError('');
+    setSuccess('');
+
     try {
-      if (onSelectPlan) {
-        await onSelectPlan(plan);
+      if (currentKey === 'free' && plan.price > 0) {
+        // Free → paid: redirect to oficina-virtual to set up payment
+        window.open(`https://be-working.com/malaga/oficina-virtual?plan=${plan.key}`, '_blank');
+        setLoading(null);
+        return;
       }
-      onClose();
+
+      if (subscriptionId && plan.price > 0) {
+        // Existing subscription → upgrade via API
+        await apiFetch(`/subscriptions/${subscriptionId}/upgrade`, {
+          method: 'POST',
+          body: {
+            monthlyAmount: plan.price,
+            description: `Oficina Virtual ${plan.name}`,
+          },
+        });
+        setSuccess(lang === 'es'
+          ? `Plan actualizado a ${plan.name} (${plan.price}€/mes)`
+          : `Plan upgraded to ${plan.name} (€${plan.price}/month)`);
+        onUpgraded?.();
+        setTimeout(() => { onClose(); setSuccess(''); }, 2000);
+      }
     } catch (err) {
-      setError(err?.message || 'Error al cambiar de plan');
+      setError(err?.message || (lang === 'es' ? 'Error al cambiar de plan' : 'Error changing plan'));
     } finally {
       setLoading(null);
     }
   };
 
-  const currentKey = currentPlan?.toLowerCase() || 'free';
-
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          {t('plans.title', { defaultValue: lang === 'es' ? 'Elige tu plan' : 'Choose your plan' })}
+          {lang === 'es' ? 'Elige tu plan' : 'Choose your plan'}
         </Typography>
         <IconButton onClick={onClose} size="small"><CloseRoundedIcon /></IconButton>
       </DialogTitle>
       <DialogContent>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, py: 1 }}>
           {PLANS.map((plan) => {
             const isCurrent = currentKey === plan.key;
-            const isUpgrade = !isCurrent && (
-              (currentKey === 'free') ||
-              (currentKey === 'basic' && (plan.key === 'pro' || plan.key === 'max')) ||
-              (currentKey === 'pro' && plan.key === 'max')
-            );
 
             return (
               <Box
@@ -113,7 +131,6 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, onSelect
                 )}
 
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>{plan.name}</Typography>
-
                 <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5, fontSize: '0.85rem', lineHeight: 1.5 }}>
                   {plan.description[lang]}
                 </Typography>
@@ -143,7 +160,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, onSelect
                   </Button>
                 ) : (
                   <Button
-                    variant={isUpgrade ? 'contained' : 'outlined'}
+                    variant={plan.price > 0 ? 'contained' : 'outlined'}
                     fullWidth
                     onClick={() => handleSelect(plan)}
                     disabled={loading !== null}
