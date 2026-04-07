@@ -127,9 +127,29 @@ export default function WebsiteAdBanner({ onViewPlans }) {
           </div>
         </div>
 
-        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', margin: '16px 0 20px', lineHeight: 1.65, fontWeight: 400, maxWidth: '400px', animation: 'bwFadeUp 0.6s 0.2s ease both', opacity: 0 }}>
-          Tu negocio online con diseño profesional.<br />Responsiva, optimizada y lista para captar clientes.<br />4 páginas, hosting y SSL incluidos. 25€/mes.
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', margin: '16px 0 14px', lineHeight: 1.65, fontWeight: 400, maxWidth: '400px', animation: 'bwFadeUp 0.6s 0.2s ease both', opacity: 0 }}>
+          Tu negocio online con diseño profesional.<br />Responsiva, optimizada y lista para captar clientes.
         </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px', marginBottom: '20px', maxWidth: '420px', animation: 'bwFadeUp 0.6s 0.25s ease both', opacity: 0 }}>
+          {[
+            ['4 páginas', 'Hero, servicios, about, contacto'],
+            ['Hosting incluido', 'Sin costes adicionales'],
+            ['Certificado SSL', 'HTTPS seguro'],
+            ['Diseño responsivo', 'Optimizado para móvil'],
+            ['1 revisión/mes', 'Cambios de texto e imagen'],
+            ['Analytics', 'Google Analytics integrado'],
+          ].map(([title, sub]) => (
+            <div key={title} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginTop: 2, flexShrink: 0 }}>
+                <path d="M2 6l3 3 5-5" stroke="#F4C656" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', lineHeight: 1.3 }}>{title}</div>
+                <div style={{ fontSize: '10.5px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.3 }}>{sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* Domain pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', animation: 'bwFadeUp 0.6s 0.25s ease both', opacity: 0 }}>
