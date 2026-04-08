@@ -115,11 +115,11 @@ export default function WebsiteAdBanner({ onViewPlans }) {
 
       {/* Right: device mockups image — hidden on mobile */}
       {!isMobile && (
-        <div style={{ flex: 1, minWidth: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'stretch' }}>
+        <div style={{ flex: 1, minWidth: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'stretch', marginLeft: '-30px' }}>
           <img
             src="/laptopblanco.png"
             alt="BeWorking en iMac, MacBook y iPhone"
-            style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }}
+            style={{ width: '130%', maxWidth: 'none', height: 'auto', display: 'block', objectFit: 'contain' }}
           />
         </div>
       )}
