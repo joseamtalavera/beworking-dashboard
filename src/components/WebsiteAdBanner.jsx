@@ -96,6 +96,11 @@ export default function WebsiteAdBanner({ onViewPlans }) {
               <div style={{ fontSize: '10px', color: 'rgba(0,0,0,0.35)', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>valoración media</div>
             </div>
           </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+            <span style={{ fontSize: '32px', fontWeight: 800, color: '#009624', lineHeight: 1, letterSpacing: '-1px' }}>25€</span>
+            <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(0,0,0,0.4)' }}>/mes</span>
+          </div>
+          <div style={{ width: '1px', height: '32px', background: 'rgba(0,0,0,0.1)' }} />
           <button
             style={{ background: '#009624', color: '#fff', border: 'none', borderRadius: '100px', padding: '14px 30px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', letterSpacing: '-0.2px', transition: 'background 0.18s, transform 0.18s' }}
             onMouseEnter={(e) => { e.currentTarget.style.background = '#007a1d'; e.currentTarget.style.transform = 'scale(1.03)'; }}
@@ -110,11 +115,11 @@ export default function WebsiteAdBanner({ onViewPlans }) {
 
       {/* Right: device mockups image — hidden on mobile */}
       {!isMobile && (
-        <div style={{ flex: 1, minWidth: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' }}>
+        <div style={{ flex: 1, minWidth: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', marginLeft: '-40px' }}>
           <img
             src="/laptopblanco.png"
             alt="BeWorking en iMac, MacBook y iPhone"
-            style={{ width: '140%', maxWidth: 'none', height: 'auto', display: 'block', objectFit: 'contain' }}
+            style={{ width: '150%', maxWidth: 'none', height: 'auto', display: 'block', objectFit: 'contain' }}
           />
         </div>
       )}
