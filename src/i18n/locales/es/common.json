@@ -29,7 +29,11 @@
     "evening": "Buenas noches"
   },
   "header": {
-    "subtitle": "Aquí tienes lo último de tus Spaces.",
+    "subtitle": "Aquí tienes lo último de tu plataforma.",
+    "subtitle_Overview": "Aquí tienes un resumen de tu actividad.",
+    "subtitle_MyInvoices": "Consulta y descarga tus facturas.",
+    "subtitle_Booking": "Gestiona tus reservas de espacios.",
+    "subtitle_Business Address": "Tu domicilio fiscal y buzón digital.",
     "search": "Buscar…",
     "clearSearch": "Limpiar búsqueda",
     "openNav": "Abrir navegación",

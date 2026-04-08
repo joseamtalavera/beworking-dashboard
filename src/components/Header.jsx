@@ -197,7 +197,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
               </Stack>
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              {greeting}, {userProfile?.name || 'User'}. {t('header.subtitle')}
+              {greeting}, {userProfile?.name || 'User'}. {t('header.subtitle_' + activeTab, { defaultValue: t('header.subtitle') })}
             </Typography>
           </Stack>
 

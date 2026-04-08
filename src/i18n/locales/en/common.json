@@ -29,7 +29,11 @@
     "evening": "Good evening"
   },
   "header": {
-    "subtitle": "Here's the latest across your Spaces.",
+    "subtitle": "Here's the latest from your platform.",
+    "subtitle_Overview": "Here's a summary of your activity.",
+    "subtitle_MyInvoices": "View and download your invoices.",
+    "subtitle_Booking": "Manage your space bookings.",
+    "subtitle_Business Address": "Your fiscal address and digital mailbox.",
     "search": "Search…",
     "clearSearch": "Clear search",
     "openNav": "Open navigation",
