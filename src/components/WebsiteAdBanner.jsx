@@ -109,31 +109,44 @@ export default function WebsiteAdBanner({ onViewPlans }) {
         </div>
       </div>
 
-      {/* Right: devices — hidden on mobile */}
+      {/* Right: 3 devices — hidden on mobile */}
       {!isMobile && (
-        <div style={{ width: '380px', flexShrink: 0, position: 'relative', height: '340px', zIndex: 2 }}>
-          <div style={{ position: 'absolute', left: 0, top: 10, animation: 'bwFloat1 5s ease-in-out infinite', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5)) drop-shadow(0 0 1px rgba(255,255,255,0.15))' }}>
-            <div style={{ background: '#e8e8e8', borderRadius: '8px 8px 0 0', padding: '6px 6px 0', width: 280 }}>
-              <div style={{ display: 'flex', gap: 4, marginBottom: 5, paddingLeft: 4 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff5f57' }} />
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#febc2e' }} />
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#28c840' }} />
-              </div>
-              <div style={{ width: '100%', height: 170, borderRadius: '2px', overflow: 'hidden' }}>
+        <div style={{ width: '440px', flexShrink: 0, position: 'relative', height: '360px', zIndex: 2 }}>
+          {/* iMac desktop — back, largest */}
+          <div style={{ position: 'absolute', left: 0, top: 0, animation: 'bwFloat2 6s ease-in-out infinite', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.45)) drop-shadow(0 0 1px rgba(255,255,255,0.12))' }}>
+            <div style={{ background: '#e0e0e0', borderRadius: '10px 10px 0 0', padding: '4px', width: 260 }}>
+              <div style={{ width: '100%', height: 155, borderRadius: '6px', overflow: 'hidden' }}>
                 <img src="/assets/promo/web-desktop.png?v=2" alt="Web corporativa desktop" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top left', display: 'block' }} />
               </div>
             </div>
-            <div style={{ width: 300, height: 8, background: 'linear-gradient(180deg, #d0d0d0 0%, #bbb 100%)', borderRadius: '0 0 2px 2px', marginLeft: -10 }} />
-            <div style={{ width: 330, height: 4, background: '#aaa', borderRadius: '0 0 6px 6px', marginLeft: -25 }} />
+            <div style={{ width: 40, height: 40, background: 'linear-gradient(180deg, #c0c0c0, #aaa)', margin: '0 auto', clipPath: 'polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%)' }} />
+            <div style={{ width: 120, height: 5, background: '#aaa', borderRadius: '0 0 3px 3px', margin: '0 auto' }} />
           </div>
 
-          <div style={{ position: 'absolute', right: 10, bottom: 0, animation: 'bwFloat3 4s ease-in-out infinite', filter: 'drop-shadow(0 14px 30px rgba(0,0,0,0.5)) drop-shadow(0 0 1px rgba(255,255,255,0.15))' }}>
-            <div style={{ width: 90, background: '#e0e0e0', borderRadius: '16px', padding: '8px 5px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ width: 30, height: 6, borderRadius: '3px', background: '#bbb', marginBottom: 4 }} />
-              <div style={{ width: '100%', height: 160, borderRadius: '8px', overflow: 'hidden' }}>
+          {/* MacBook laptop — middle layer */}
+          <div style={{ position: 'absolute', right: 30, top: 60, animation: 'bwFloat1 5s ease-in-out infinite', filter: 'drop-shadow(0 18px 36px rgba(0,0,0,0.5)) drop-shadow(0 0 1px rgba(255,255,255,0.15))' }}>
+            <div style={{ background: '#e8e8e8', borderRadius: '6px 6px 0 0', padding: '5px 5px 0', width: 200 }}>
+              <div style={{ display: 'flex', gap: 3, marginBottom: 4, paddingLeft: 3 }}>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff5f57' }} />
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#febc2e' }} />
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#28c840' }} />
+              </div>
+              <div style={{ width: '100%', height: 120, borderRadius: '2px', overflow: 'hidden' }}>
+                <img src="/assets/promo/web-desktop.png?v=2" alt="Web corporativa laptop" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top left', display: 'block' }} />
+              </div>
+            </div>
+            <div style={{ width: 216, height: 6, background: 'linear-gradient(180deg, #d0d0d0 0%, #bbb 100%)', borderRadius: '0 0 2px 2px', marginLeft: -8 }} />
+            <div style={{ width: 236, height: 3, background: '#aaa', borderRadius: '0 0 4px 4px', marginLeft: -18 }} />
+          </div>
+
+          {/* Phone — front right */}
+          <div style={{ position: 'absolute', right: 0, bottom: 10, animation: 'bwFloat3 4s ease-in-out infinite', filter: 'drop-shadow(0 14px 30px rgba(0,0,0,0.5)) drop-shadow(0 0 1px rgba(255,255,255,0.15))' }}>
+            <div style={{ width: 80, background: '#e0e0e0', borderRadius: '14px', padding: '7px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ width: 26, height: 5, borderRadius: '3px', background: '#bbb', marginBottom: 3 }} />
+              <div style={{ width: '100%', height: 140, borderRadius: '7px', overflow: 'hidden' }}>
                 <img src="/assets/promo/web-mobile.png?v=2" alt="Web corporativa móvil" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
               </div>
-              <div style={{ width: 30, height: 4, borderRadius: '2px', background: '#bbb', marginTop: 4 }} />
+              <div style={{ width: 26, height: 3, borderRadius: '2px', background: '#bbb', marginTop: 3 }} />
             </div>
           </div>
         </div>
@@ -145,7 +158,8 @@ export default function WebsiteAdBanner({ onViewPlans }) {
         @keyframes bwFadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
         @keyframes bwPulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
         @keyframes bwShine { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
-        @keyframes bwFloat1 { 0%,100%{transform:translateY(0) rotate(-4deg)} 50%{transform:translateY(-8px) rotate(-4deg)} }
+        @keyframes bwFloat1 { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(-2deg)} }
+        @keyframes bwFloat2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes bwFloat3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
       `}</style>
     </div>
