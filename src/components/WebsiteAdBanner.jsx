@@ -33,7 +33,7 @@ export default function WebsiteAdBanner({ onViewPlans }) {
       border: '1px solid rgba(0,0,0,0.08)',
     }}>
       {/* Left: copy */}
-      <div style={{ flex: 1, zIndex: 2, paddingRight: isMobile ? '0' : '28px', minWidth: 0 }}>
+      <div style={{ flex: '0 0 auto', width: isMobile ? '100%' : '48%', zIndex: 2, paddingRight: isMobile ? '0' : '28px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', border: '1px solid rgba(0,150,36,0.25)', borderRadius: '20px', padding: '5px 16px', marginBottom: '20px', animation: 'bwFadeUp 0.6s ease both' }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#009624', animation: 'bwPulse 2.2s ease-in-out infinite' }} />
           <span style={{ fontSize: '12px', fontWeight: 600, color: '#009624', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Nuevo · Plan Pro</span>
@@ -115,11 +115,11 @@ export default function WebsiteAdBanner({ onViewPlans }) {
 
       {/* Right: device mockups image — hidden on mobile */}
       {!isMobile && (
-        <div style={{ flex: 1, minWidth: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', marginLeft: '-40px' }}>
+        <div style={{ flex: 1, minWidth: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'stretch' }}>
           <img
             src="/laptopblanco.png"
             alt="BeWorking en iMac, MacBook y iPhone"
-            style={{ width: '150%', maxWidth: 'none', height: 'auto', display: 'block', objectFit: 'contain' }}
+            style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }}
           />
         </div>
       )}
