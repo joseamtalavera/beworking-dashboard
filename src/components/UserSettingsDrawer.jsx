@@ -705,7 +705,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Subscriptions (real data) */}
+        {/* Subscriptions */}
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} alignItems="center">
             <AutorenewRoundedIcon fontSize="small" sx={{ color: accentColor }} />
@@ -713,42 +713,82 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               {t('subscription.title')}
             </Typography>
           </Stack>
-          {subscriptions.length > 0 ? (
-            subscriptions.map((sub) => (
-              <Paper key={sub.id} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-                <Stack spacing={1}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="body2" fontWeight="bold">{sub.description || 'Subscription'}</Typography>
-                    <Chip
-                      label={sub.billingMethod === 'stripe' ? 'Stripe' : 'Transferencia'}
-                      size="small"
-                      sx={{
-                        fontSize: '0.7rem', height: 20,
-                        bgcolor: sub.billingMethod === 'stripe' ? alpha('#635bff', 0.1) : alpha(accentColor, 0.1),
-                        color: sub.billingMethod === 'stripe' ? '#635bff' : accentColor,
-                      }}
-                    />
+
+          {/* Current plan badge */}
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor: subscriptions.length > 0 ? 'primary.main' : 'divider' }}>
+            <Stack spacing={1.5}>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Typography variant="body1" fontWeight={700}>
+                  {i18n.language === 'es' ? 'Plan ' : 'Plan '}
+                  {subscriptions.length === 0 ? 'Free'
+                    : Number(subscriptions[0]?.monthlyAmount) >= 25 ? 'Pro'
+                    : 'Basic'}
+                </Typography>
+                <Chip
+                  label={subscriptions.length > 0 ? (i18n.language === 'es' ? 'Activo' : 'Active') : 'Free'}
+                  size="small"
+                  sx={{
+                    fontSize: '0.7rem', height: 22, fontWeight: 600,
+                    bgcolor: subscriptions.length > 0 ? alpha(accentColor, 0.1) : alpha('#666', 0.1),
+                    color: subscriptions.length > 0 ? accentColor : '#666',
+                  }}
+                />
+              </Stack>
+
+              {subscriptions.length > 0 ? (
+                subscriptions.map((sub) => (
+                  <Stack key={sub.id} spacing={0.5}>
+                    <Typography variant="body2" color="text.secondary">
+                      {sub.description || 'Subscription'} · {'\u20AC'}{Number(sub.monthlyAmount).toFixed(2)}/{{ month: i18n.language === 'es' ? 'mes' : 'mo', quarter: i18n.language === 'es' ? 'trimestre' : 'quarter', year: i18n.language === 'es' ? 'año' : 'year' }[sub.billingInterval || 'month']}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {sub.billingMethod === 'stripe' ? 'Stripe' : 'Transferencia'}
+                      {sub.startDate && ` · ${i18n.language === 'es' ? 'Desde' : 'Since'} ${sub.startDate}`}
+                    </Typography>
                   </Stack>
-                  <Typography variant="body2" color="text.secondary">
-                    {sub.cuenta} · {'\u20AC'}{Number(sub.monthlyAmount).toFixed(2)}/{{ month: i18n.language === 'es' ? 'mes' : 'mo', quarter: i18n.language === 'es' ? 'trimestre' : 'quarter', year: i18n.language === 'es' ? 'año' : 'year' }[sub.billingInterval || 'month']}
-                    {sub.startDate && ` · ${i18n.language === 'es' ? 'desde' : 'since'} ${sub.startDate}`}
-                  </Typography>
-                </Stack>
-              </Paper>
-            ))
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              {t('subscription.noActive')}
-            </Typography>
-          )}
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => setPlanDialogOpen(true)}
-            sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3, mt: 1, color: accentColor, borderColor: accentColor, '&:hover': { borderColor: accentColor, bgcolor: alpha(accentColor, 0.04) } }}
-          >
-            {i18n.language === 'es' ? 'Cambiar plan' : 'Change plan'}
-          </Button>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  {i18n.language === 'es'
+                    ? 'Activa un plan para acceder a domicilio fiscal, buzón digital y más.'
+                    : 'Activate a plan to access fiscal address, digital mailbox and more.'}
+                </Typography>
+              )}
+            </Stack>
+          </Paper>
+
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setPlanDialogOpen(true)}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3, color: accentColor, borderColor: accentColor, '&:hover': { borderColor: accentColor, bgcolor: alpha(accentColor, 0.04) } }}
+            >
+              {subscriptions.length > 0
+                ? (i18n.language === 'es' ? 'Cambiar plan' : 'Change plan')
+                : (i18n.language === 'es' ? 'Activar plan' : 'Activate plan')}
+            </Button>
+            {subscriptions.length > 0 && (
+              <Button
+                size="small"
+                onClick={async () => {
+                  if (!window.confirm(i18n.language === 'es'
+                    ? '¿Seguro que quieres cancelar tu suscripción? Perderás acceso a los servicios del plan.'
+                    : 'Are you sure you want to cancel your subscription? You will lose access to plan services.')) return;
+                  try {
+                    const sub = subscriptions[0];
+                    await apiFetch(`/subscriptions/${sub.id}`, { method: 'DELETE' });
+                    setSubscriptions([]);
+                  } catch (err) {
+                    console.error('Failed to cancel subscription:', err);
+                  }
+                }}
+                sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3, color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: alpha('#f44336', 0.04) } }}
+              >
+                {i18n.language === 'es' ? 'Cancelar suscripción' : 'Cancel subscription'}
+              </Button>
+            )}
+          </Stack>
           <PlanUpgradeDialog
             open={planDialogOpen}
             onClose={() => setPlanDialogOpen(false)}
