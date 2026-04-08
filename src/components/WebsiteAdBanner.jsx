@@ -118,7 +118,7 @@ export default function WebsiteAdBanner({ onViewPlans }) {
       {!isMobile && (
         <div style={{ flex: 1, minWidth: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '-56px -48px -56px 0', alignSelf: 'stretch' }}>
           <img
-            src="/laptops.png"
+            src="/laptop3.png"
             alt="BeWorking en iMac, MacBook y iPhone"
             style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover', objectPosition: 'left center' }}
           />
