@@ -601,6 +601,15 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
           : 'basic'
         }
         subscriptionId={userSubscription?.id}
+        userProfile={userProfile}
+        onUpgraded={() => {
+          // Refresh subscription data after upgrade
+          if (userProfile?.tenantId) {
+            apiFetch(`/contact-profiles/${userProfile.tenantId}`)
+              .then(data => data?.id ? fetchSubscriptions({ contactId: data.id }) : null)
+              .then(subs => { if (subs?.length) setUserSubscription(subs.find(s => s.active) || null); });
+          }
+        }}
       />
     </Stack>
   );

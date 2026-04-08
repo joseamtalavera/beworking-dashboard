@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent,
   Box, Button, Chip, Stack, Typography, CircularProgress, Alert,
@@ -9,6 +9,12 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import IconButton from '@mui/material/IconButton';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../api/client.js';
+import { createSetupIntent } from '../api/stripe.js';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const PT_STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
+const stripePromise = PT_STRIPE_KEY ? loadStripe(PT_STRIPE_KEY) : null;
 
 const PLANS = [
   {
@@ -44,14 +50,72 @@ const PLANS = [
   },
 ];
 
-export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscriptionId, onUpgraded }) {
+/* ── Inline payment form for free → paid ── */
+function PaymentForm({ onSuccess, onCancel, loading: parentLoading, lang }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    setError(null);
+    const { error: stripeError, setupIntent } = await stripe.confirmSetup({
+      elements,
+      redirect: 'if_required',
+    });
+    if (stripeError) {
+      setError(stripeError.message);
+      setSubmitting(false);
+    } else {
+      onSuccess(setupIntent);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+        {lang === 'es' ? 'Datos de pago' : 'Payment details'}
+      </Typography>
+      <PaymentElement />
+      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
+        <Button onClick={onCancel} disabled={submitting || parentLoading}>
+          {lang === 'es' ? 'Cancelar' : 'Cancel'}
+        </Button>
+        <Button type="submit" variant="contained" disabled={submitting || !stripe || parentLoading}
+          sx={{ borderRadius: '999px', px: 4, fontWeight: 600 }}>
+          {submitting || parentLoading ? <CircularProgress size={20} color="inherit" /> : (lang === 'es' ? 'Confirmar y activar' : 'Confirm & activate')}
+        </Button>
+      </Stack>
+    </form>
+  );
+}
+
+export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscriptionId, userProfile, onUpgraded }) {
   const { i18n } = useTranslation();
   const lang = i18n.language === 'es' ? 'es' : 'en';
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Payment setup state (for free → paid)
+  const [paymentStep, setPaymentStep] = useState(null); // null = plan selection, { plan, clientSecret, customerId }
+  const [creatingSubscription, setCreatingSubscription] = useState(false);
 
   const currentKey = currentPlan?.toLowerCase() || 'free';
+
+  // Reset state when dialog opens/closes
+  useEffect(() => {
+    if (!open) {
+      setPaymentStep(null);
+      setError('');
+      setSuccess('');
+      setLoading(null);
+      setCreatingSubscription(false);
+    }
+  }, [open]);
 
   const handleSelect = async (plan) => {
     setLoading(plan.key);
@@ -60,8 +124,16 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
 
     try {
       if (currentKey === 'free' && plan.price > 0) {
-        // Free → paid: redirect to oficina-virtual to set up payment
-        window.open(`https://be-working.com/malaga/oficina-virtual?plan=${plan.key}`, '_blank');
+        // Free → paid: create SetupIntent and show payment form
+        const email = userProfile?.email;
+        const name = userProfile?.name || email;
+        if (!email) {
+          setError(lang === 'es' ? 'No se encontró tu email.' : 'Email not found.');
+          setLoading(null);
+          return;
+        }
+        const data = await createSetupIntent({ customerEmail: email, customerName: name, tenant: 'beworking' });
+        setPaymentStep({ plan, clientSecret: data.clientSecret, customerId: data.customerId });
         setLoading(null);
         return;
       }
@@ -88,6 +160,73 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
     }
   };
 
+  const handlePaymentSuccess = async (setupIntent) => {
+    // Card confirmed — now create the subscription
+    setCreatingSubscription(true);
+    setError('');
+    try {
+      // Get contact profile to find contactId
+      const contactProfile = await apiFetch(`/contact-profiles/${userProfile.tenantId}`);
+      if (!contactProfile?.id) throw new Error('Contact profile not found');
+
+      await apiFetch('/subscriptions', {
+        method: 'POST',
+        body: {
+          contactId: contactProfile.id,
+          monthlyAmount: paymentStep.plan.price,
+          description: `Oficina Virtual ${paymentStep.plan.name}`,
+          billingInterval: 'month',
+          billingMethod: 'stripe',
+          stripeCustomerId: paymentStep.customerId,
+          cuenta: 'PT',
+        },
+      });
+
+      setPaymentStep(null);
+      setSuccess(lang === 'es'
+        ? `Plan ${paymentStep.plan.name} activado (${paymentStep.plan.price}€/mes)`
+        : `${paymentStep.plan.name} plan activated (€${paymentStep.plan.price}/month)`);
+      onUpgraded?.();
+      setTimeout(() => { onClose(); setSuccess(''); }, 2500);
+    } catch (err) {
+      setError(err?.message || (lang === 'es' ? 'Error al crear la suscripción' : 'Error creating subscription'));
+    } finally {
+      setCreatingSubscription(false);
+    }
+  };
+
+  // Payment step: show Stripe form
+  if (paymentStep) {
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Stack>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {lang === 'es' ? `Activar plan ${paymentStep.plan.name}` : `Activate ${paymentStep.plan.name} plan`}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {paymentStep.plan.price}€/mes · {paymentStep.plan.description[lang]}
+            </Typography>
+          </Stack>
+          <IconButton onClick={onClose} size="small"><CloseRoundedIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+          <Elements stripe={stripePromise} options={{ clientSecret: paymentStep.clientSecret, appearance: { theme: 'stripe' } }}>
+            <PaymentForm
+              onSuccess={handlePaymentSuccess}
+              onCancel={() => setPaymentStep(null)}
+              loading={creatingSubscription}
+              lang={lang}
+            />
+          </Elements>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Plan selection step
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>

@@ -758,6 +758,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               : 'basic'
             }
             subscriptionId={subscriptions.length > 0 ? subscriptions[0].id : null}
+            userProfile={user}
             onUpgraded={() => {
               // Reload subscriptions
               if (user?.email) {
