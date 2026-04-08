@@ -78,7 +78,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
   // Filter subtabs based on admin status
   const getVisibleSubtabs = useCallback((dept) => {
     if (!dept.subtabs) return null;
-    const filtered = dept.subtabs.filter(s => !s.adminOnly || isAdmin);
+    const filtered = dept.subtabs.filter(s => (!s.adminOnly || isAdmin) && (!s.userOnly || !isAdmin));
     return filtered.length > 0 ? filtered : null;
   }, [isAdmin]);
 

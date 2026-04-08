@@ -36,7 +36,7 @@ export const DEPT_TABS = [
     { id: 'Overview', label: 'Overview', icon: OverviewIcon },
     { id: 'Business Address', label: 'Business Address', icon: MailboxIcon },
     { id: 'Booking', label: 'Spaces', icon: BookingIcon },
-    { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon },
+    { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
     { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, soon: true },
     { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true },
     { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, adminOnly: true },
