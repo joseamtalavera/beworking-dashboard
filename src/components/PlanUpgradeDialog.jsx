@@ -112,7 +112,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
                   border: '2px solid',
                   borderColor: plan.popular ? 'primary.main' : 'divider',
                   borderRadius: 3,
-                  p: 2.5,
+                  p: 3.5,
                   display: 'flex',
                   flexDirection: 'column',
                   ...(isCurrent && { bgcolor: alpha('#009624', 0.04) }),
@@ -154,17 +154,17 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
                     variant="outlined"
                     fullWidth
                     disabled
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1 }}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1.25 }}
                   >
                     {lang === 'es' ? 'Plan actual' : 'Current plan'}
                   </Button>
                 ) : (
                   <Button
-                    variant={plan.price > 0 ? 'contained' : 'outlined'}
+                    variant={plan.popular ? 'contained' : 'outlined'}
                     fullWidth
                     onClick={() => handleSelect(plan)}
                     disabled={loading !== null}
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1 }}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1.25 }}
                   >
                     {loading === plan.key ? (
                       <CircularProgress size={20} color="inherit" />
@@ -178,10 +178,13 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
           })}
         </Box>
 
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 2 }}>
+        <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary', mt: 3 }}>
           {lang === 'es'
-            ? 'Todos los precios + IVA. Sin permanencia. Cambia o cancela en cualquier momento.'
-            : 'All prices + VAT. No commitment. Change or cancel anytime.'}
+            ? 'Todos los planes incluyen la Plataforma BeWorking completa: panel de gestión, facturación y todas las herramientas. Cambia de plan en cualquier momento.'
+            : 'All plans include the full BeWorking Platform: management dashboard, invoicing and all tools. Change your plan at any time.'}
+        </Typography>
+        <Typography variant="body2" sx={{ textAlign: 'center', mt: 1.5, fontWeight: 600, color: 'primary.main' }}>
+          {lang === 'es' ? 'Todos los precios + IVA. Sin permanencia.' : 'All prices + VAT. No commitment.'}
         </Typography>
       </DialogContent>
     </Dialog>
