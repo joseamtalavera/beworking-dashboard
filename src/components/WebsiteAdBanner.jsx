@@ -114,7 +114,7 @@ export default function WebsiteAdBanner({ onViewPlans }) {
           <img
             src="/laptopblanco.png"
             alt="BeWorking en iMac, MacBook y iPhone"
-            style={{ width: '120%', maxWidth: 'none', height: 'auto', display: 'block', objectFit: 'contain' }}
+            style={{ width: '140%', maxWidth: 'none', height: 'auto', display: 'block', objectFit: 'contain' }}
           />
         </div>
       )}
