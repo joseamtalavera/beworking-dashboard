@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import useMediaQuery from '@mui/material/useMediaQuery';
+
 export default function WebsiteAdBanner({ onViewPlans }) {
   const [domainIdx, setDomainIdx] = useState(0);
   const [visible, setVisible] = useState(true);
