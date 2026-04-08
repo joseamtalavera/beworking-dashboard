@@ -73,6 +73,11 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'Invoices') {
       return <Invoices mode="admin" userProfile={userProfile} />;
     }
+    // Guard: user-only tabs should not render in admin — redirect to Overview
+    if (activeTab === 'MyInvoices') {
+      setActiveTab('Overview');
+      return null;
+    }
     const Component = TAB_COMPONENTS[activeTab] ?? Contacts;
     if (activeTab === 'Overview') {
       return <Component userType="admin" />;
