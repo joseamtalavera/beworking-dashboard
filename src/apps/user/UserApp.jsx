@@ -31,6 +31,7 @@ const TAB_COMPONENTS = {
   Overview,
   'Business Address': VirtualOffice,
   Booking,
+  MyInvoices: Invoices,
   Invoices,
   Expenses,
   Integrations,
@@ -63,6 +64,9 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
   const TabContent = useMemo(() => {
     if (activeTab === 'Booking') {
       return <Booking mode="user" userProfile={userProfile} />;
+    }
+    if (activeTab === 'MyInvoices') {
+      return <Invoices mode="user" userProfile={userProfile} />;
     }
     if (activeTab === 'Invoices') {
       return (
