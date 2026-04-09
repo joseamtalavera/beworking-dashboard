@@ -161,24 +161,15 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
   };
 
   const handlePaymentSuccess = async (setupIntent) => {
-    // Card confirmed — now create the subscription
+    // Card confirmed — now create the subscription via self-subscribe
     setCreatingSubscription(true);
     setError('');
     try {
-      // Get contact profile to find contactId
-      const contactProfile = await apiFetch(`/contact-profiles/${userProfile.tenantId}`);
-      if (!contactProfile?.id) throw new Error('Contact profile not found');
-
-      await apiFetch('/subscriptions', {
+      await apiFetch('/subscriptions/self-subscribe', {
         method: 'POST',
         body: {
-          contactId: contactProfile.id,
-          monthlyAmount: paymentStep.plan.price,
-          description: `Oficina Virtual ${paymentStep.plan.name}`,
-          billingInterval: 'month',
-          billingMethod: 'stripe',
+          plan: paymentStep.plan.key,
           stripeCustomerId: paymentStep.customerId,
-          cuenta: 'PT',
         },
       });
 
