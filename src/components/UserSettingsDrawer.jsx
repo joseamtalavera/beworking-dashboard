@@ -336,11 +336,11 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     setBillingLoading(true);
     try {
       const payload = {
-        billingName: billingForm.company || null,
+        billingCompany: billingForm.company || null,
         billingEmail: billingForm.email || null,
         billingAddress: billingForm.address || null,
         billingCountry: billingForm.country || null,
-        billingProvince: billingForm.province || null,
+        billingCounty: billingForm.province || null,
         billingCity: billingForm.city || null,
         billingPostalCode: billingForm.postalCode || null,
         billingTaxId: billingForm.taxId || null,
