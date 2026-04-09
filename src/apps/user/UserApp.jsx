@@ -65,6 +65,9 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'Booking') {
       return <Booking mode="user" userProfile={userProfile} />;
     }
+    if (activeTab === 'MyBookings') {
+      return <Booking mode="user" userProfile={userProfile} initialView="bookings" />;
+    }
     if (activeTab === 'MyInvoices') {
       return <Invoices mode="user" userProfile={userProfile} />;
     }

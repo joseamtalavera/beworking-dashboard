@@ -4,6 +4,7 @@
     "Contacts": "Contactos",
     "Business Address": "Domicilio Fiscal",
     "Booking": "Espacios",
+    "MyBookings": "Mis Reservas",
     "MyInvoices": "Mis Facturas",
     "Invoices": "Facturas",
     "Expenses": "Gastos",
@@ -31,6 +32,7 @@
   "header": {
     "subtitle": "Aquí tienes lo último de tu plataforma.",
     "subtitle_Overview": "Aquí tienes un resumen de tu actividad.",
+    "subtitle_MyBookings": "Consulta y gestiona tus reservas.",
     "subtitle_MyInvoices": "Consulta y descarga tus facturas.",
     "subtitle_Booking": "Gestiona tus reservas de espacios.",
     "subtitle_Business Address": "Tu domicilio fiscal y buzón digital.",

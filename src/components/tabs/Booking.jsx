@@ -3883,10 +3883,10 @@ const UserBookingDetailsDialog = ({ bloqueo, onClose }) => {
 };
 
 
-const UserBookingWrapper = ({ userProfile }) => {
+const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
   const theme = useTheme();
   const { t } = useTranslation('booking');
-  const [mainView, setMainView] = useState('spaces');
+  const [mainView, setMainView] = useState(initialView);
   const [userBloqueos, setUserBloqueos] = useState([]);
   const [bloqueosLoading, setBloqueosLoading] = useState(false);
   const [selectedBloqueo, setSelectedBloqueo] = useState(null);
@@ -3982,7 +3982,7 @@ const pillFieldSx = (hasValue) => ({
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
-const Booking = ({ mode = 'user', userProfile }) => {
+const Booking = ({ mode = 'user', userProfile, initialView }) => {
   const theme = useTheme();
   const { t } = useTranslation('booking');
   const statusStyles = getStatusStyles(theme);
@@ -4693,7 +4693,7 @@ const Booking = ({ mode = 'user', userProfile }) => {
 
   // User mode: new booking flow with Spaces/Bookings toggle
   if (!isAdmin) {
-    return <UserBookingWrapper userProfile={userProfile} />;
+    return <UserBookingWrapper userProfile={userProfile} initialView={initialView} />;
   }
 
   // Admin mode: Show booking flow or calendar/agenda view
@@ -5323,4 +5323,5 @@ const Booking = ({ mode = 'user', userProfile }) => {
     </Stack>
   );
 };
+export { UserBookingWrapper };
 export default Booking;

@@ -4,6 +4,7 @@
     "Contacts": "Contacts",
     "Business Address": "Business Address",
     "Booking": "Spaces",
+    "MyBookings": "My Bookings",
     "MyInvoices": "My Invoices",
     "Invoices": "Invoices",
     "Expenses": "Expenses",
@@ -31,6 +32,7 @@
   "header": {
     "subtitle": "Here's the latest from your platform.",
     "subtitle_Overview": "Here's a summary of your activity.",
+    "subtitle_MyBookings": "View and manage your bookings.",
     "subtitle_MyInvoices": "View and download your invoices.",
     "subtitle_Booking": "Manage your space bookings.",
     "subtitle_Business Address": "Your fiscal address and digital mailbox.",
