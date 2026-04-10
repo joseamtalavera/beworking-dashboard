@@ -3683,9 +3683,26 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
   const { t } = useTranslation('booking');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [sortDirection, setSortDirection] = useState('desc'); // 'asc' or 'desc'
+
+  // Sort bloqueos by date
+  const sortedBloqueos = useMemo(() => {
+    if (!Array.isArray(bloqueos)) return [];
+    return [...bloqueos].sort((a, b) => {
+      const dateA = a.fecha || a.date || '';
+      const dateB = b.fecha || b.date || '';
+      if (sortDirection === 'asc') return dateA.localeCompare(dateB);
+      return dateB.localeCompare(dateA);
+    });
+  }, [bloqueos, sortDirection]);
+
+  const handleSortClick = () => {
+    setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    setPage(0);
+  };
 
   // Reset page if bloqueos shrinks and current page is out of bounds
-  const maxPage = Math.max(0, Math.ceil((bloqueos?.length || 0) / rowsPerPage) - 1);
+  const maxPage = Math.max(0, Math.ceil((sortedBloqueos?.length || 0) / rowsPerPage) - 1);
   useEffect(() => {
     if (page > maxPage) setPage(maxPage);
   }, [page, maxPage]);
@@ -3755,7 +3772,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
     );
   }
 
-  const paginatedBloqueos = bloqueos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedBloqueos = sortedBloqueos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'visible' }}>
@@ -3764,7 +3781,12 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
           <TableHead>
             <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'background.default' }}>
               <TableCell sx={{ fontWeight: 600 }}>{t('userView.space')}</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>{t('userView.date')}</TableCell>
+              <TableCell sx={{ fontWeight: 600, cursor: 'pointer', userSelect: 'none' }} onClick={handleSortClick}>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>{t('userView.date')}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                </Stack>
+              </TableCell>
               <TableCell sx={{ fontWeight: 600 }}>{t('userView.time')}</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>{t('userView.location')}</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>{t('userView.status')}</TableCell>
@@ -3899,14 +3921,14 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
     const loadUserBloqueos = async () => {
       try {
         const today = new Date();
-        const threeMonthsAgo = new Date(today);
-        threeMonthsAgo.setMonth(today.getMonth() - 3);
-        const threeMonthsAhead = new Date(today);
-        threeMonthsAhead.setMonth(today.getMonth() + 3);
+        const oneYearAgo = new Date(today);
+        oneYearAgo.setFullYear(today.getFullYear() - 1);
+        const twoYearsAhead = new Date(today);
+        twoYearsAhead.setFullYear(today.getFullYear() + 2);
 
         const data = await fetchBloqueos({
-          from: threeMonthsAgo.toISOString().split('T')[0],
-          to: threeMonthsAhead.toISOString().split('T')[0]
+          from: oneYearAgo.toISOString().split('T')[0],
+          to: twoYearsAhead.toISOString().split('T')[0]
         });
         if (!active) return;
         setUserBloqueos(Array.isArray(data) ? data : []);
