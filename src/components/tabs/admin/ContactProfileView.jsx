@@ -58,6 +58,9 @@ import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import LinkRoundedIcon from '@mui/icons-material/LinkRounded';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
@@ -663,8 +666,8 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <Stack spacing={2} sx={{ width: '100%' }}>
               <InfoRow label={t('profile.tenantId')} value={contact.id} pill />
               <InfoRow label={t('profile.name')} value={contact.name} />
-              <InfoRow label={t('profile.email')} value={contact.contact?.email} />
-              <InfoRow label={t('profile.phone')} value={contact.phone_primary} />
+              <InfoRow label={t('profile.email')} value={contact.contact?.email} copyable />
+              <InfoRow label={t('profile.phone')} value={contact.phone_primary} copyable />
               <InfoRow label={t('profile.userType')} value={contact.user_type} />
               <InfoRow label={t('profile.status')} value={contact.status ? t('status.' + contact.status, { defaultValue: contact.status }) : undefined} />
               <InfoRow label={t('profile.center')} value={contact.center} />
@@ -1537,35 +1540,55 @@ InfoCard.propTypes = {
   children: PropTypes.node
 };
 
-const InfoRow = ({ label, value, pill }) => (
-  <Stack
-    spacing={0.5}
-    sx={{
-      '&:not(:first-of-type)': {
-        borderTop: '1px solid',
-        borderTopColor: 'grey.100',
-        mt: 1,
-        pt: 1
-      }
-    }}
-  >
-    <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
-      {label}
-    </Typography>
-    {pill ? (
-      <Chip label={value} size="small" sx={{ alignSelf: 'flex-start', borderRadius: 1.5 }} />
-    ) : (
-      <Typography variant="body2" fontWeight={600}>
-        {value || '—'}
+const InfoRow = ({ label, value, pill, copyable }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    if (!value) return;
+    navigator.clipboard.writeText(String(value));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <Stack
+      spacing={0.5}
+      sx={{
+        '&:not(:first-of-type)': {
+          borderTop: '1px solid',
+          borderTopColor: 'grey.100',
+          mt: 1,
+          pt: 1
+        }
+      }}
+    >
+      <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
+        {label}
       </Typography>
-    )}
-  </Stack>
-);
+      {pill ? (
+        <Chip label={value} size="small" sx={{ alignSelf: 'flex-start', borderRadius: 1.5 }} />
+      ) : (
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <Typography variant="body2" fontWeight={600} sx={{ flex: 1, wordBreak: 'break-word' }}>
+            {value || '—'}
+          </Typography>
+          {copyable && value && (
+            <Tooltip title={copied ? 'Copiado' : 'Copiar'} placement="top" arrow>
+              <IconButton size="small" onClick={handleCopy} sx={{ p: 0.5 }}>
+                {copied ? <CheckRoundedIcon sx={{ fontSize: 16, color: 'success.main' }} /> : <ContentCopyRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
+      )}
+    </Stack>
+  );
+};
 
 InfoRow.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  pill: PropTypes.bool
+  pill: PropTypes.bool,
+  copyable: PropTypes.bool
 };
 
 const HighlightCard = ({ label, value, trend }) => (
