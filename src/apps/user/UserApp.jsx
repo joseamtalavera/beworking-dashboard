@@ -55,7 +55,13 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const [bookingKey, setBookingKey] = useState(0);
+
   const handleTabChange = (tabId) => {
+    // Force remount of Booking when clicking the same tab to reset internal sub-flow state
+    if (tabId === activeTab && (tabId === 'Booking' || tabId === 'MyBookings')) {
+      setBookingKey((k) => k + 1);
+    }
     setActiveTab(tabId);
   };
 
@@ -63,10 +69,10 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
 
   const TabContent = useMemo(() => {
     if (activeTab === 'Booking') {
-      return <Booking mode="user" userProfile={userProfile} />;
+      return <Booking key={`booking-${bookingKey}`} mode="user" userProfile={userProfile} />;
     }
     if (activeTab === 'MyBookings') {
-      return <Booking mode="user" userProfile={userProfile} initialView="bookings" />;
+      return <Booking key={`mybookings-${bookingKey}`} mode="user" userProfile={userProfile} initialView="bookings" />;
     }
     if (activeTab === 'MyInvoices') {
       return <Invoices mode="user" userProfile={userProfile} />;
@@ -98,7 +104,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
       return <Component deptId={activeTab} />;
     }
     return <Component />;
-  }, [activeTab, userProfile, isSubscribed]);
+  }, [activeTab, userProfile, isSubscribed, bookingKey]);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
