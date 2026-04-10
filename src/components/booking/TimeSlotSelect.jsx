@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
+import TextField from '../common/ClearableTextField';
 import { useTranslation } from 'react-i18next';
 import { buildTimeSlots, timeStringToMinutes } from '../../utils/calendarUtils';
 

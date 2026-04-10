@@ -12,7 +12,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import { alpha } from '@mui/material/styles';
 import Switch from '@mui/material/Switch';
-import TextField from '@mui/material/TextField';
+import TextField from '../../common/ClearableTextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';

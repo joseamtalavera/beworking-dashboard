@@ -38,7 +38,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
+import TextField from '../../common/ClearableTextField';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';

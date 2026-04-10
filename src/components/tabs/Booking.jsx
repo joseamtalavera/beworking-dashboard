@@ -28,7 +28,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import Tabs from '@mui/material/Tabs';
-import TextField from '@mui/material/TextField';
+import TextField from '../common/ClearableTextField';
 import Tooltip from '@mui/material/Tooltip';
 import InputAdornment from '@mui/material/InputAdornment';
 import FormGroup from '@mui/material/FormGroup';

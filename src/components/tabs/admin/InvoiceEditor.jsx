@@ -9,7 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
+import TextField from '../../common/ClearableTextField';
 import IconButton from '@mui/material/IconButton';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';

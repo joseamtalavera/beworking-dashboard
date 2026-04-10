@@ -16,7 +16,7 @@ import Pagination from '@mui/material/Pagination';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import TextField from '../../common/ClearableTextField';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';

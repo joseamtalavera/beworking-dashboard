@@ -13,7 +13,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
+import TextField from './common/ClearableTextField';
 import Typography from '@mui/material/Typography';
 import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
 import ChatBubbleRoundedIcon from '@mui/icons-material/ChatBubbleRounded';

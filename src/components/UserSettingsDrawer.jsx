@@ -30,7 +30,7 @@ import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
+import TextField from './common/ClearableTextField';
 import Typography from '@mui/material/Typography';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';

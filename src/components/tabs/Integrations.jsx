@@ -15,7 +15,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
+import TextField from '../common/ClearableTextField';
 import Typography from '@mui/material/Typography';
 import Switch from '@mui/material/Switch';
 import Collapse from '@mui/material/Collapse';

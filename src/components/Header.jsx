@@ -17,7 +17,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
+import TextField from './common/ClearableTextField';
 import Typography from '@mui/material/Typography';
 
 // Add CSS animation for loading spinner

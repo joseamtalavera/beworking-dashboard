@@ -11,7 +11,7 @@ import Paper from '@mui/material/Paper';
 
 // Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
+import TextField from '../common/ClearableTextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';

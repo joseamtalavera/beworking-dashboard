@@ -35,7 +35,7 @@ import Dialog from '@mui/material/Dialog';
 import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
+import TextField from '../../common/ClearableTextField';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import MenuItem from '@mui/material/MenuItem';
@@ -64,7 +64,6 @@ import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
-import Tooltip from '@mui/material/Tooltip';
 import { apiFetch } from '../../../api/client';
 
 const VIRTUAL_USER_BILLING = {

@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import TextField from '@mui/material/TextField';
+import TextField from '../common/ClearableTextField';
 import Typography from '@mui/material/Typography';
 
 import Divider from '@mui/material/Divider';
