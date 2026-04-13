@@ -748,9 +748,18 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 setNewInvoiceOpen(false);
                 await refreshList();
                 try {
-                  const url = await fetchInvoicePdfUrl(created.id || created.idFactura);
-                  if (url) window.open(url, '_blank', 'noopener');
-                } catch {}
+                  // Generate PDF locally (works for invoices not in Holded)
+                  const blob = await fetchInvoicePdfBlob(created.id || created.idFactura);
+                  const objectUrl = URL.createObjectURL(blob);
+                  window.open(objectUrl, '_blank', 'noopener');
+                  setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+                } catch {
+                  // Fallback to remote URL (Holded) if local generation fails
+                  try {
+                    const url = await fetchInvoicePdfUrl(created.id || created.idFactura);
+                    if (url) window.open(url, '_blank', 'noopener');
+                  } catch {}
+                }
                 return created;
               } catch (e) {
                 setSnackbar({ open: true, message: e.message || t('invoiceCreateError'), severity: 'error' });
