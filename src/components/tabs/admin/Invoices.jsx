@@ -568,13 +568,11 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             key={inv.id}
             hover
             onClick={(e) => {
-              // Only trigger on mobile (sm breakpoint) where PDF column is hidden
-              if (window.innerWidth >= 600) return;
               // Avoid triggering when clicking interactive elements
-              if (e.target.closest('button, a, .MuiChip-clickable')) return;
+              if (e.target.closest('button, a, .MuiChip-root')) return;
               openPdf();
             }}
-            sx={{ cursor: { xs: 'pointer', sm: 'default' } }}
+            sx={{ cursor: 'pointer' }}
           >
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                   <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.clientName || '\u2014'}</TableCell>
