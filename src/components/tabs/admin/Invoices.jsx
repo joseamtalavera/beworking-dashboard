@@ -544,13 +544,38 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('table.total')}</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.issued')}</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.document')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', display: { xs: 'none', sm: 'table-cell' } }}>{t('table.document')}</TableCell>
                 {isAdmin && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.actions')}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedRows.map((inv) => (
-          <TableRow key={inv.id} hover>
+              {paginatedRows.map((inv) => {
+                const openPdf = async () => {
+                  try {
+                    const blob = await fetchInvoicePdfBlob(inv.id);
+                    const objectUrl = URL.createObjectURL(blob);
+                    window.open(objectUrl, '_blank', 'noopener');
+                    setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+                  } catch {
+                    try {
+                      const url = inv.holdedinvoicepdf || (await fetchInvoicePdfUrl(inv.id));
+                      if (url) window.open(url, '_blank', 'noopener');
+                    } catch {}
+                  }
+                };
+                return (
+          <TableRow
+            key={inv.id}
+            hover
+            onClick={(e) => {
+              // Only trigger on mobile (sm breakpoint) where PDF column is hidden
+              if (window.innerWidth >= 600) return;
+              // Avoid triggering when clicking interactive elements
+              if (e.target.closest('button, a, .MuiChip-clickable')) return;
+              openPdf();
+            }}
+            sx={{ cursor: { xs: 'pointer', sm: 'default' } }}
+          >
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.holdedInvoiceNum || inv.idFactura || inv.id}</TableCell>
                   <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.clientName || '\u2014'}</TableCell>
                   {isAdmin && <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.tenantType ? t(`userTypes.${inv.tenantType}`, inv.tenantType) : '\u2014'}</TableCell>}
@@ -591,40 +616,13 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                     })()}
                   </TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('es-ES') : '\u2014'}</TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                     <Chip
                       label="PDF"
                       size="small"
                       variant="outlined"
                       clickable
-                      onClick={async () => {
-                        try {
-                          const blob = await fetchInvoicePdfBlob(inv.id);
-                          const objectUrl = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = objectUrl;
-                          a.target = '_blank';
-                          a.rel = 'noopener';
-                          a.download = `invoice-${inv.id}.pdf`;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
-                        } catch {
-                          try {
-                            const url = inv.holdedinvoicepdf || (await fetchInvoicePdfUrl(inv.id));
-                            if (url) {
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.target = '_blank';
-                              a.rel = 'noopener';
-                              document.body.appendChild(a);
-                              a.click();
-                              document.body.removeChild(a);
-                            }
-                          } catch {}
-                        }
-                      }}
+                      onClick={openPdf}
                       sx={{
                         borderColor: 'primary.main',
                         color: 'primary.main',
@@ -661,7 +659,8 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   </TableCell>
                   )}
                 </TableRow>
-              ))}
+                );
+              })}
               {paginatedRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={isAdmin ? 9 : 7} align="center" sx={{ py: 6 }}>
