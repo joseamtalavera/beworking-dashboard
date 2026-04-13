@@ -551,16 +551,32 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             <TableBody>
               {paginatedRows.map((inv) => {
                 const openPdf = async () => {
+                  // Open window SYNCHRONOUSLY (during user gesture) to avoid mobile popup blocker
+                  const popup = window.open('', '_blank');
                   try {
                     const blob = await fetchInvoicePdfBlob(inv.id);
                     const objectUrl = URL.createObjectURL(blob);
-                    window.open(objectUrl, '_blank', 'noopener');
+                    if (popup && !popup.closed) {
+                      popup.location.href = objectUrl;
+                    } else {
+                      window.location.href = objectUrl;
+                    }
                     setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
                   } catch {
                     try {
                       const url = inv.holdedinvoicepdf || (await fetchInvoicePdfUrl(inv.id));
-                      if (url) window.open(url, '_blank', 'noopener');
-                    } catch {}
+                      if (url) {
+                        if (popup && !popup.closed) {
+                          popup.location.href = url;
+                        } else {
+                          window.location.href = url;
+                        }
+                      } else if (popup) {
+                        popup.close();
+                      }
+                    } catch {
+                      if (popup) popup.close();
+                    }
                   }
                 };
                 return (
