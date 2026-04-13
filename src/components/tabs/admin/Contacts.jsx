@@ -121,7 +121,6 @@ const ADD_USER_DEFAULT = {
   avatar: '',
   billingCompany: '',
   billingTaxId: '',
-  billingEmail: '',
   billingAddress: '',
   billingPostalCode: '',
   billingCity: '',
@@ -605,18 +604,6 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      label={t('addDialog.billingEmail')}
-                      value={form.billingEmail}
-                      onChange={handleFieldChange('billingEmail')}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      sx={contactFieldSx}
-                      InputProps={{ startAdornment: <InputAdornment position="start"><MailOutlinedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
-                    />
-              </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label={t('addDialog.billingAddress')}
@@ -1077,7 +1064,6 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         channel: values.channel,
         billingCompany: values.billingCompany,
         billingTaxId: values.billingTaxId,
-        billingEmail: values.billingEmail,
         billingAddress: values.billingAddress,
         billingPostalCode: values.billingPostalCode,
         billingCity: values.billingCity,
