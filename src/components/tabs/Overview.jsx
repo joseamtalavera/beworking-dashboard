@@ -1153,8 +1153,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const openDetail = async (account, type, title) => {
     const bd = await fetchBreakdown(account);
     if (!bd) return;
-    const rows = type === 'stripeActive' ? bd.stripeActive
-      : type === 'stripeScheduled' ? bd.stripeScheduled
+    // 'stripeActive' shows Stripe active + scheduled combined
+    const rows = type === 'stripeActive' ? [...(bd.stripeActive || []), ...(bd.stripeScheduled || [])]
       : type === 'bankTransfer' ? bd.bankTransfer
       : type === 'pastDue' ? bd.pastDueSubs
       : [];
@@ -1184,9 +1184,17 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const runDate = data.length > 0 ? data[0].run_date : null;
 
   const metrics = (row) => {
-    const bd = breakdownCache[row.account];
-    if (bd) return { stripe: bd.stripeActiveCount, sched: bd.stripeScheduledCount, bank: bd.bankTransferCount, total: bd.totalActive, pastDue: row.stripe_past_due, pastAmt: row.past_due_amount };
-    return { stripe: row.stripe_active, sched: 0, bank: row.db_active - row.stripe_active, total: row.db_active, pastDue: row.stripe_past_due, pastAmt: row.past_due_amount };
+    // Use DB counts by billing_method (source of truth)
+    const stripe = row.db_stripe != null ? row.db_stripe : row.stripe_active;
+    const bank = row.db_bank_transfer != null ? row.db_bank_transfer : Math.max(0, (row.db_active || 0) - (row.stripe_active || 0));
+    const total = stripe + bank;
+    return {
+      stripe,
+      bank,
+      total,
+      pastDue: row.stripe_past_due,
+      pastAmt: row.past_due_amount,
+    };
   };
 
   return (
@@ -1223,9 +1231,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                   <Chip label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)} size="small" sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }} />
                 </Stack>
 
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
-                  <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe Active`)} />
-                  <Metric label="Scheduled" value={m.sched} color={m.sched > 0 ? '#6366f1' : undefined} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
+                  <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
                   <Metric label="Past Due" value={m.pastDue} color={m.pastDue > 0 ? '#dc2626' : undefined} sub={m.pastAmt > 0 ? `€${Number(m.pastAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Past Due`)} />
                 </Box>
