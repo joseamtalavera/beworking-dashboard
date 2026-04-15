@@ -664,7 +664,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
           <InfoCard title={t('profile.basicData')} icon={PersonOutlineRoundedIcon}>
             <Stack spacing={2} sx={{ width: '100%' }}>
               <InfoRow label={t('profile.tenantId')} value={contact.id} pill />
-              <InfoRow label={t('profile.name')} value={contact.name} />
+              <InfoRow label={t('profile.name')} value={contact.name} copyable />
               <InfoRow label={t('profile.email')} value={contact.contact?.email} copyable />
               <InfoRow label={t('profile.phone')} value={contact.phone_primary} copyable />
               <InfoRow label={t('profile.userType')} value={contact.user_type} />
@@ -685,13 +685,16 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <SectionList
               description={t('profile.primaryBillingProfile')}
               items={[
-                { label: t('profile.billingCompany'), value: contact.billing?.company || contact.name },
+                { label: t('profile.billingCompany'), value: contact.billing?.company || contact.name, copyable: true, copyValue: contact.billing?.company || contact.name },
                 { label: t('profile.billingAddress'), value: contact.billing?.address || '—' },
                 { label: t('profile.billingCountry'), value: contact.billing?.country || '—' },
                 { label: t('profile.billingCounty'), value: contact.billing?.county || '—' },
                 { label: t('profile.billingCity'), value: contact.billing?.city || '—' },
                 { label: t('profile.billingPostalCode'), value: contact.billing?.postal_code || '—' },
-                { label: t('profile.billingTaxId'), value: contact.billing?.tax_id
+                { label: t('profile.billingTaxId'),
+                  copyable: !!contact.billing?.tax_id,
+                  copyValue: contact.billing?.tax_id,
+                  value: contact.billing?.tax_id
                   ? <>{vatStatus === 'loading' && <CircularProgress size={14} sx={{ mr: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{contact.billing.tax_id}</>
                   : '—' }
               ]}
@@ -1666,6 +1669,28 @@ SectionCard.propTypes = {
   children: PropTypes.node
 };
 
+const CopyableValue = ({ value, copyValue }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    const raw = copyValue != null ? String(copyValue) : (typeof value === 'string' ? value : '');
+    if (!raw || raw === '—') return;
+    navigator.clipboard.writeText(raw);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <Stack direction="row" alignItems="center" spacing={0.5}>
+      <Typography variant="body2" fontWeight={600}>{value}</Typography>
+      <Tooltip title={copied ? 'Copiado' : 'Copiar'} placement="top" arrow>
+        <IconButton size="small" onClick={handleCopy} sx={{ p: 0.5 }}>
+          {copied ? <CheckRoundedIcon sx={{ fontSize: 16, color: 'success.main' }} /> : <ContentCopyRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />}
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  );
+};
+
 const SectionList = ({ description, items }) => (
   <Stack spacing={1.5} sx={{ flexGrow: 1 }}>
     <Typography variant="body2" color="text.secondary">
@@ -1687,9 +1712,13 @@ const SectionList = ({ description, items }) => (
           <Typography variant="body2" color="text.secondary">
             {item.label}
           </Typography>
-          <Typography variant="body2" fontWeight={600}>
-            {item.value}
-          </Typography>
+          {item.copyable ? (
+            <CopyableValue value={item.value} copyValue={item.copyValue} />
+          ) : (
+            <Typography variant="body2" fontWeight={600}>
+              {item.value}
+            </Typography>
+          )}
         </Stack>
       ))}
     </Stack>
