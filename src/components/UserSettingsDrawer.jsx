@@ -42,6 +42,10 @@ import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
+import InputAdornment from '@mui/material/InputAdornment';
+import Tooltip from '@mui/material/Tooltip';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n/i18n.js';
 import esSettings from '../i18n/locales/es/settings.json';
@@ -143,6 +147,8 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const [billingForm, setBillingForm] = useState({
     company: '', email: '', address: '', country: '', province: '', city: '', postalCode: '', taxId: ''
   });
+  const [vatStatus, setVatStatus] = useState('idle'); // idle | loading | valid | invalid | error
+  const [vatTooltip, setVatTooltip] = useState('');
 
   // Payment methods state
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -330,6 +336,60 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
     });
     setIsEditing(false);
   };
+
+  // VIES VAT validation
+  const EU_VAT_RE = /^[A-Z]{2}\s*[A-Z0-9]+$/i;
+  const EU_COUNTRY_CODES = {
+    'España': 'ES', 'Spain': 'ES', 'Alemania': 'DE', 'Germany': 'DE',
+    'Francia': 'FR', 'France': 'FR', 'Italia': 'IT', 'Italy': 'IT',
+    'Portugal': 'PT', 'Países Bajos': 'NL', 'Netherlands': 'NL',
+    'Bélgica': 'BE', 'Belgium': 'BE', 'Austria': 'AT', 'Bulgaria': 'BG',
+    'Chipre': 'CY', 'Cyprus': 'CY', 'República Checa': 'CZ', 'Czech Republic': 'CZ',
+    'Dinamarca': 'DK', 'Denmark': 'DK', 'Estonia': 'EE', 'Finlandia': 'FI', 'Finland': 'FI',
+    'Grecia': 'EL', 'Greece': 'EL', 'Croacia': 'HR', 'Croatia': 'HR',
+    'Hungría': 'HU', 'Hungary': 'HU', 'Irlanda': 'IE', 'Ireland': 'IE',
+    'Lituania': 'LT', 'Lithuania': 'LT', 'Luxemburgo': 'LU', 'Luxembourg': 'LU',
+    'Letonia': 'LV', 'Latvia': 'LV', 'Malta': 'MT', 'Polonia': 'PL', 'Poland': 'PL',
+    'Rumanía': 'RO', 'Romania': 'RO', 'Suecia': 'SE', 'Sweden': 'SE',
+    'Eslovenia': 'SI', 'Slovenia': 'SI', 'Eslovaquia': 'SK', 'Slovakia': 'SK',
+  };
+
+  const validateVat = async (taxId, country) => {
+    if (!taxId || taxId.trim().length < 3) {
+      setVatStatus('idle');
+      setVatTooltip('');
+      return;
+    }
+    const hasPrefix = EU_VAT_RE.test(taxId.trim());
+    const countryHint = EU_COUNTRY_CODES[country] ?? null;
+    if (!hasPrefix && !countryHint) {
+      setVatStatus('idle');
+      setVatTooltip('');
+      return;
+    }
+    setVatStatus('loading');
+    try {
+      const params = new URLSearchParams({ vatNumber: taxId.trim() });
+      if (countryHint) params.set('countryHint', countryHint);
+      const result = await apiFetch(`/contact-profiles/vat/validate?${params}`);
+      if (result.valid) {
+        setVatStatus('valid');
+        setVatTooltip(result.name && result.name !== '---' ? result.name : 'VAT válido');
+      } else {
+        setVatStatus('invalid');
+        setVatTooltip(result.error || 'VAT no válido');
+      }
+    } catch {
+      setVatStatus('error');
+      setVatTooltip('No se pudo verificar el VAT');
+    }
+  };
+
+  // Auto-validate VAT when billing data changes (read-only) and when editor opens
+  useEffect(() => {
+    validateVat(billingForm.taxId, billingForm.country);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billingForm.taxId, billingForm.country]);
 
   const handleSaveBilling = async () => {
     if (!contactProfile?.id) return;
@@ -631,7 +691,34 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               <TextField label={t('billingDetails.city')} value={billingForm.city} onChange={(e) => handleBillingFormChange('city', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
               <TextField label={t('billingDetails.postalCode')} value={billingForm.postalCode} onChange={(e) => handleBillingFormChange('postalCode', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
             </Stack>
-            <TextField label={t('billingDetails.taxId')} value={billingForm.taxId} onChange={(e) => handleBillingFormChange('taxId', e.target.value)} disabled={!isEditingBilling} fullWidth size="small" sx={fieldSx} />
+            <TextField
+              label={t('billingDetails.taxId')}
+              value={billingForm.taxId}
+              onChange={(e) => handleBillingFormChange('taxId', e.target.value)}
+              disabled={!isEditingBilling}
+              fullWidth
+              size="small"
+              sx={fieldSx}
+              helperText={i18n.language === 'es'
+                ? 'Validamos automáticamente tu NIF/CIF con VIES. Si es un NIF europeo registrado y no español, no se aplicará IVA (inversión del sujeto pasivo).'
+                : 'We automatically validate your VAT with VIES. If it is a registered non-Spanish EU VAT, no IVA will be applied (reverse charge).'}
+              InputProps={{
+                endAdornment: vatStatus !== 'idle' && billingForm.taxId ? (
+                  <InputAdornment position="end">
+                    {vatStatus === 'loading' && <CircularProgress size={18} />}
+                    {vatStatus === 'valid' && (
+                      <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 20 }} /></Tooltip>
+                    )}
+                    {vatStatus === 'invalid' && (
+                      <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 20 }} /></Tooltip>
+                    )}
+                    {vatStatus === 'error' && (
+                      <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'warning.main', fontSize: 20 }} /></Tooltip>
+                    )}
+                  </InputAdornment>
+                ) : null,
+              }}
+            />
           </Stack>
         </Stack>
 
