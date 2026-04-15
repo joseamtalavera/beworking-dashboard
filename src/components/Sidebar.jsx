@@ -92,7 +92,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
     return collapsedGroupIds.includes(deptId);
   }, [collapsedGroupIds]);
 
-  const allTabs = DEPT_TABS;
+  // For users: only show Platform-related tabs (hide CRM, Accounts, HR, Projects, etc.)
+  const USER_VISIBLE_TABS = new Set(['MariaAI', 'Platform']);
+  const allTabs = isAdmin ? DEPT_TABS : DEPT_TABS.filter(d => USER_VISIBLE_TABS.has(d.id));
 
   const drawerContent = (
     <>
