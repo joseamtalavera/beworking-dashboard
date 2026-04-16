@@ -167,7 +167,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
           <Stack spacing={0.75} sx={{ width: { xs: '100%', md: 'auto' } }}>
             <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
-              <Stack direction="row" spacing={1.5} alignItems="center">
+              <Stack direction="row" spacing={{ xs: 1.5, md: 0 }} alignItems="center">
                 {/* Hamburger menu — mobile only */}
                 <IconButton
                   onClick={onMenuToggle}
