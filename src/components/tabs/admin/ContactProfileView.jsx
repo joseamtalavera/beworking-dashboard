@@ -52,6 +52,7 @@ import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, fil
 import { fetchBookingStats, fetchBookingProductos } from '../../../api/bookings';
 import { fetchSubscriptions, createSubscription, updateSubscription, linkStripeSubscription } from '../../../api/subscriptions';
 import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
+import { fetchInvoices } from '../../../api/invoices';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
@@ -254,7 +255,30 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       .catch(() => setBookingStats(null));
   }, [contact?.id]);
 
-  // Subscriptions
+  // Invoice stats
+  const [invoiceStats, setInvoiceStats] = useState(null);
+  useEffect(() => {
+    const email = contact?.contact?.email;
+    if (!email || mode === 'user') return;
+    const year = new Date().getFullYear();
+    fetchInvoices({ email, size: 200, from: `${year}-01-01`, to: `${year}-12-31` })
+      .then((res) => {
+        const invoices = res.content || [];
+        const exclude = /cancel|anula|void|rectificad/i;
+        const valid = invoices.filter(inv => !exclude.test(inv.estado || ''));
+        const outstanding = valid
+          .filter(inv => (inv.estado || '').toLowerCase() !== 'pagado')
+          .reduce((sum, inv) => sum + (inv.total || 0), 0);
+        const totalBilled = valid.reduce((sum, inv) => sum + (inv.total || 0), 0);
+        const paid = valid
+          .filter(inv => (inv.estado || '').toLowerCase() === 'pagado')
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const lastPaid = paid[0];
+        setInvoiceStats({ outstanding, totalBilled, lastPaid });
+      })
+      .catch(() => setInvoiceStats(null));
+  }, [contact?.contact?.email, mode]);
+
   // Subscriptions
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
@@ -797,9 +821,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <SectionList
               description={t('profile.recentBillingOverview')}
               items={[
-                { label: t('profile.outstanding'), value: '$0.00' },
-                { label: t('profile.totalBilledYTD'), value: '$24,890' },
-                { label: t('profile.lastPayment'), value: 'Oct 03 · $500.00 (card)' }
+                { label: t('profile.outstanding'), value: invoiceStats ? `€${invoiceStats.outstanding.toFixed(2)}` : '—' },
+                { label: t('profile.totalBilledYTD'), value: invoiceStats ? `€${invoiceStats.totalBilled.toFixed(2)}` : '—' },
+                { label: t('profile.lastPayment'), value: invoiceStats?.lastPaid
+                  ? `${new Date(invoiceStats.lastPaid.createdAt).toLocaleDateString('es-ES', { month: 'short', day: '2-digit' })} · €${invoiceStats.lastPaid.total.toFixed(2)}`
+                  : '—' }
               ]}
             />
           </SectionCard>
