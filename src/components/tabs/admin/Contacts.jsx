@@ -107,7 +107,8 @@ const VIRTUAL_USER_BILLING = {
   billingCountry: 'España',
   billingCounty: 'Málaga',
   billingCity: 'Málaga',
-  billingPostalCode: '29004'
+  billingPostalCode: '29004',
+  center: 'MA1 MALAGA DUMAS'
 };
 
 const ADD_USER_DEFAULT = {
