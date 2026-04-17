@@ -56,7 +56,14 @@ const isPaid = (estado) => {
 
 const isRectificado = (estado) => {
   const key = (estado || '').toLowerCase();
+  // "Rectificado" = the original invoice that was cancelled by a credit note.
+  // "Rectificativa" is the credit note itself — handled separately.
   return key.includes('rectificad');
+};
+
+const isRectificativa = (estado) => {
+  const key = (estado || '').toLowerCase();
+  return key.includes('rectificativ');
 };
 
 const isCreditNote = (inv) => {
@@ -64,11 +71,11 @@ const isCreditNote = (inv) => {
 };
 
 const getStatusInfo = (inv, t) => {
+  if (isRectificativa(inv.estado) || (isCreditNote(inv) && !isRectificado(inv.estado))) {
+    return { label: t('rectificativa'), color: 'warning' };
+  }
   if (isRectificado(inv.estado)) {
     return { label: t('rectificado'), color: 'warning' };
-  }
-  if (isCreditNote(inv)) {
-    return { label: t('credited'), color: 'warning' };
   }
   if (isPaid(inv.estado)) {
     return { label: t('paid'), color: 'success' };
