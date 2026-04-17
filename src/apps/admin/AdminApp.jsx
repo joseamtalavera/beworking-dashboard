@@ -49,7 +49,9 @@ const TAB_COMPONENTS = {
 
 const AdminApp = ({ userProfile, refreshProfile, logout }) => {
   const theme = useTheme();
-  const [activeTab, setActiveTab] = useState('Overview');
+  const role = (userProfile?.role || '').toUpperCase();
+  const isAccountant = role === 'ACCOUNTANT';
+  const [activeTab, setActiveTab] = useState(isAccountant ? 'Invoices' : 'Overview');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -102,6 +104,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
         isAdmin
+        viewRole={role}
       />
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'auto' }}>
         <Header

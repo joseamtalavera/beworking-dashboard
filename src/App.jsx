@@ -84,7 +84,9 @@ const App = () => {
 
   const path = window.location.pathname;
   const isAdminRoute = path.startsWith('/admin');
-  const mainApp = isAdminRoute
+  const role = (profile?.role || '').toUpperCase();
+  const isStaff = role === 'ADMIN' || role === 'ACCOUNTANT';
+  const mainApp = (isAdminRoute || isStaff)
     ? <AdminApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />
     : <UserApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />;
 

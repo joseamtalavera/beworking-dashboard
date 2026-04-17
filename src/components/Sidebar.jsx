@@ -47,7 +47,7 @@ function saveCollapsedGroups(groups) {
 export const drawerWidth = 260;
 export const collapsedDrawerWidth = 72;
 
-const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse, isAdmin }) => {
+const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse, isAdmin, viewRole }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -94,7 +94,14 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
 
   // For users: only show Platform-related tabs (hide CRM, Accounts, HR, Projects, etc.)
   const USER_VISIBLE_TABS = new Set(['MariaAI', 'Platform']);
-  const allTabs = isAdmin ? DEPT_TABS : DEPT_TABS.filter(d => USER_VISIBLE_TABS.has(d.id));
+  // For accountants: only show the Accounts dept (Invoices + future Expenses/Banks/Crypto)
+  const ACCOUNTANT_VISIBLE_TABS = new Set(['AccountsAI']);
+  const isAccountant = (viewRole || '').toUpperCase() === 'ACCOUNTANT';
+  const allTabs = isAccountant
+    ? DEPT_TABS.filter(d => ACCOUNTANT_VISIBLE_TABS.has(d.id))
+    : isAdmin
+      ? DEPT_TABS
+      : DEPT_TABS.filter(d => USER_VISIBLE_TABS.has(d.id));
 
   const drawerContent = (
     <>
