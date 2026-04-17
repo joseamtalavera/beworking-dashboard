@@ -1258,8 +1258,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
                   <Metric label="Stripe Deviation" value={m.deviation} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Scheduled" value={m.scheduled} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
-                  <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? '#dc2626' : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
+                  <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? '#dc2626' : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                 </Box>
 
                 {row.missing_invoice_count > 0 && (
@@ -1281,12 +1281,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
     {(() => {
       const type = detailDialog?.type;
-      const accent = type === 'pastDue' ? '#dc2626'
-        : type === 'missingInvoices' ? '#dc2626'
-        : type === 'stripeDeviation' ? '#f59e0b'
-        : type === 'stripeScheduled' ? '#7c3aed'
-        : type === 'bankTransfer' ? '#1976d2'
-        : '#009624';
+      const accent = '#009624';
       const label = type === 'pastDue' ? 'Overdue'
         : type === 'missingInvoices' ? 'Stripe paid, not in our DB'
         : type === 'stripeDeviation' ? 'Ghost subs (DB active, Stripe cancelled)'
