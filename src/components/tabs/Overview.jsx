@@ -1197,17 +1197,18 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const runDate = data.length > 0 ? data[0].run_date : null;
 
   const metrics = (row) => {
-    // STRIPE = healthy paying subs (Stripe status=active only)
-    // OVERDUE = past_due (Stripe live but failing to pay)
-    // SCHEDULED = sub_sched_* rows (legit future subs not yet active)
-    // DEVIATION = leftover = ghost subs cancelled in Stripe but still active in DB
-    const stripe = row.stripe_active || 0;
+    // STRIPE = all live Stripe subs (active + past_due — past_due are still live)
+    // SCHEDULED = sub_sched_* rows (future subs not yet active)
+    // DEVIATION = ghost subs cancelled in Stripe but still active in DB
+    // BANK = manual bank transfer
+    // OVERDUE = subset of STRIPE (warning flag, not additive)
     const overdue = row.stripe_past_due || 0;
+    const stripe = (row.stripe_active || 0) + overdue;
     const scheduled = row.db_scheduled || 0;
     const bank = row.db_bank_transfer != null ? row.db_bank_transfer : 0;
     const dbActive = row.db_active || 0;
-    const deviation = Math.max(0, dbActive - stripe - overdue - scheduled - bank);
-    const total = stripe + overdue + scheduled + deviation + bank; // = dbActive
+    const deviation = Math.max(0, dbActive - stripe - scheduled - bank);
+    const total = stripe + scheduled + deviation + bank; // = dbActive (overdue is inside stripe)
     return {
       stripe,
       scheduled,
@@ -1255,8 +1256,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
-                  <Metric label="Scheduled" value={m.scheduled} color={m.scheduled > 0 ? '#7c3aed' : undefined} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
-                  <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? '#f59e0b' : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
+                  <Metric label="Scheduled" value={m.scheduled} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
+                  <Metric label="Stripe Deviation" value={m.deviation} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
                   <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? '#dc2626' : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                 </Box>
