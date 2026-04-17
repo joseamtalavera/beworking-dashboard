@@ -1243,7 +1243,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
-                  <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? '#009624' : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
+                  <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? '#f59e0b' : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
                   <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? '#dc2626' : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                 </Box>
@@ -1262,40 +1262,61 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
       )}
     </Paper>
 
-    <Dialog open={!!detailDialog} onClose={() => setDetailDialog(null)} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>
-        {detailDialog?.title}
-        <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>{detailDialog?.rows?.length || 0} subscriptions</Typography>
-      </DialogTitle>
-      <DialogContent>
+    {(() => {
+      const type = detailDialog?.type;
+      const accent = type === 'pastDue' ? '#dc2626'
+        : type === 'stripeDeviation' ? '#f59e0b'
+        : type === 'bankTransfer' ? '#1976d2'
+        : '#009624';
+      const label = type === 'pastDue' ? 'Overdue'
+        : type === 'stripeDeviation' ? 'Ghost subs (DB active, Stripe cancelled)'
+        : type === 'bankTransfer' ? 'Bank transfer'
+        : 'Stripe live';
+      return (
+    <Dialog open={!!detailDialog} onClose={() => setDetailDialog(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden' } }}>
+      <Box sx={{ bgcolor: alpha(accent, 0.08), borderBottom: '3px solid', borderBottomColor: accent, px: 3, py: 2 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: accent }} />
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: accent }}>{detailDialog?.title}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{label}</Typography>
+            </Box>
+          </Stack>
+          <Chip label={`${detailDialog?.rows?.length || 0} subs`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.15), color: accent }} />
+        </Stack>
+      </Box>
+      <DialogContent sx={{ p: 0 }}>
         {bdLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress sx={{ color: accent }} /></Box>
         ) : !detailDialog?.rows?.length ? (
-          <Typography color="text.secondary" sx={{ py: 2 }}>No subscriptions</Typography>
+          <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>No subscriptions</Typography>
         ) : (
           <TableContainer>
-            <Table size="small">
+            <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="right">Amount</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Interval</TableCell>
-                  {detailDialog?.type === 'pastDue'
-                    ? <TableCell sx={{ fontWeight: 700 }} align="right">Amount Due</TableCell>
-                    : <TableCell sx={{ fontWeight: 700 }}>Since</TableCell>}
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Interval</TableCell>
+                  {type === 'pastDue' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Amount Due</TableCell>}
+                  {type === 'stripeDeviation' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Stripe Sub ID</TableCell>}
+                  {type === 'bankTransfer' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Last invoiced</TableCell>}
+                  {(type === 'stripeActive') && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Since</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {(detailDialog?.rows || []).map((row, i) => (
                   <TableRow key={i} hover>
-                    <TableCell>{row.name || row.customerName || '—'}</TableCell>
-                    <TableCell>{row.email_primary || row.emailPrimary || row.customerEmail || '—'}</TableCell>
-                    <TableCell align="right">€{Number(row.monthly_amount ?? row.monthlyAmount ?? row.amount ?? 0).toFixed(2)}</TableCell>
-                    <TableCell>{row.billing_interval || row.billingInterval || '—'}</TableCell>
-                    {detailDialog?.type === 'pastDue'
-                      ? <TableCell align="right" sx={{ color: '#dc2626', fontWeight: 600 }}>€{Number(row.amountDue ?? 0).toFixed(2)}</TableCell>
-                      : <TableCell>{row.start_date || row.startDate || '—'}</TableCell>}
+                    <TableCell sx={{ fontWeight: 500 }}>{row.name || row.customerName || '—'}</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{row.email_primary || row.emailPrimary || row.customerEmail || '—'}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>€{Number(row.monthly_amount ?? row.monthlyAmount ?? row.amount ?? 0).toFixed(2)}</TableCell>
+                    <TableCell sx={{ textTransform: 'capitalize', color: 'text.secondary' }}>{row.billing_interval || row.billingInterval || '—'}</TableCell>
+                    {type === 'pastDue' && <TableCell align="right" sx={{ color: accent, fontWeight: 700 }}>€{Number(row.amountDue ?? 0).toFixed(2)}</TableCell>}
+                    {type === 'stripeDeviation' && <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>{row.stripe_subscription_id || '—'}</TableCell>}
+                    {type === 'bankTransfer' && <TableCell sx={{ color: 'text.secondary' }}>{row.last_invoiced_month || '—'}</TableCell>}
+                    {type === 'stripeActive' && <TableCell sx={{ color: 'text.secondary' }}>{row.start_date || row.startDate || '—'}</TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
@@ -1304,6 +1325,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
         )}
       </DialogContent>
     </Dialog>
+      );
+    })()}
     </>
   );
 };
