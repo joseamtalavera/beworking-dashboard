@@ -1347,6 +1347,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                   <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Amount</TableCell>
                   <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Interval</TableCell>
                   {type === 'pastDue' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Amount Due</TableCell>}
+                  {type === 'stripeDeviation' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Cancelled</TableCell>}
                   {type === 'stripeDeviation' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Stripe Sub ID</TableCell>}
                   {type === 'bankTransfer' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Last invoiced</TableCell>}
                   {type === 'stripeActive' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Since</TableCell>}
@@ -1361,6 +1362,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                     <TableCell align="right" sx={{ fontWeight: 600 }}>€{Number(row.monthly_amount ?? row.monthlyAmount ?? row.amount ?? 0).toFixed(2)}</TableCell>
                     <TableCell sx={{ textTransform: 'capitalize', color: 'text.secondary' }}>{row.billing_interval || row.billingInterval || '—'}</TableCell>
                     {type === 'pastDue' && <TableCell align="right" sx={{ color: accent, fontWeight: 700 }}>€{Number(row.amountDue ?? 0).toFixed(2)}</TableCell>}
+                    {type === 'stripeDeviation' && <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{row.cancelled_at || '—'}</TableCell>}
                     {type === 'stripeDeviation' && <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>{row.stripe_subscription_id || '—'}</TableCell>}
                     {type === 'bankTransfer' && <TableCell sx={{ color: 'text.secondary' }}>{row.last_invoiced_month || '—'}</TableCell>}
                     {type === 'stripeActive' && <TableCell sx={{ color: 'text.secondary' }}>{row.start_date || row.startDate || '—'}</TableCell>}
