@@ -190,7 +190,13 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
     const toDate = (ts) => {
       if (!ts) return '';
       const d = new Date(ts);
-      return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+      if (Number.isNaN(d.getTime())) return '';
+      // Use LOCAL time to avoid timezone shifts (UTC conversion would turn
+      // "2026-01-01 00:00 local" into "2025-12-31 23:00 UTC").
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
     };
     return {
       number: inv.holdedInvoiceNum || inv.holdedinvoicenum || '',
