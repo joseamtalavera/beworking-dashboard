@@ -1241,7 +1241,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
-                  <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? '#f59e0b' : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
+                  <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? '#009624' : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
                   <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? '#dc2626' : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                 </Box>
