@@ -1154,8 +1154,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const openDetail = async (account, type, title) => {
     const bd = await fetchBreakdown(account);
     if (!bd) return;
-    // 'stripeActive' shows Stripe active + scheduled combined
-    const rows = type === 'stripeActive' ? [...(bd.stripeActive || []), ...(bd.stripeScheduled || [])]
+    const rows = type === 'stripeActive' ? bd.stripeActive
+      : type === 'stripeScheduled' ? bd.stripeScheduled
       : type === 'bankTransfer' ? bd.bankTransfer
       : type === 'pastDue' ? bd.pastDueSubs
       : type === 'stripeDeviation' ? bd.stripeDeviation
@@ -1188,17 +1188,19 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
   const metrics = (row) => {
     // STRIPE = healthy paying subs (Stripe status=active only)
-    // OVERDUE = past_due (shown as its own bucket, not inside Stripe)
+    // OVERDUE = past_due (Stripe live but failing to pay)
+    // SCHEDULED = sub_sched_* rows (legit future subs not yet active)
+    // DEVIATION = leftover = ghost subs cancelled in Stripe but still active in DB
     const stripe = row.stripe_active || 0;
     const overdue = row.stripe_past_due || 0;
+    const scheduled = row.db_scheduled || 0;
     const bank = row.db_bank_transfer != null ? row.db_bank_transfer : 0;
     const dbActive = row.db_active || 0;
-    // DEVIATION = DB-active subs unaccounted for by Stripe live or bank
-    // (ghost subs cancelled in Stripe, scheduled-only rows, etc.)
-    const deviation = Math.max(0, dbActive - stripe - overdue - bank);
-    const total = stripe + overdue + deviation + bank; // = dbActive
+    const deviation = Math.max(0, dbActive - stripe - overdue - scheduled - bank);
+    const total = stripe + overdue + scheduled + deviation + bank; // = dbActive
     return {
       stripe,
+      scheduled,
       deviation,
       bank,
       total,
@@ -1241,8 +1243,9 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                   <Chip label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)} size="small" sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }} />
                 </Stack>
 
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
+                  <Metric label="Scheduled" value={m.scheduled} color={m.scheduled > 0 ? '#7c3aed' : undefined} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
                   <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? '#f59e0b' : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
                   <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? '#dc2626' : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
@@ -1266,10 +1269,12 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
       const type = detailDialog?.type;
       const accent = type === 'pastDue' ? '#dc2626'
         : type === 'stripeDeviation' ? '#f59e0b'
+        : type === 'stripeScheduled' ? '#7c3aed'
         : type === 'bankTransfer' ? '#1976d2'
         : '#009624';
       const label = type === 'pastDue' ? 'Overdue'
         : type === 'stripeDeviation' ? 'Ghost subs (DB active, Stripe cancelled)'
+        : type === 'stripeScheduled' ? 'Scheduled future subs (sub_sched_*)'
         : type === 'bankTransfer' ? 'Bank transfer'
         : 'Stripe live';
       return (
@@ -1303,7 +1308,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                   {type === 'pastDue' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Amount Due</TableCell>}
                   {type === 'stripeDeviation' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Stripe Sub ID</TableCell>}
                   {type === 'bankTransfer' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Last invoiced</TableCell>}
-                  {(type === 'stripeActive') && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Since</TableCell>}
+                  {type === 'stripeActive' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Since</TableCell>}
+                  {type === 'stripeScheduled' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Starts</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -1317,6 +1323,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                     {type === 'stripeDeviation' && <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>{row.stripe_subscription_id || '—'}</TableCell>}
                     {type === 'bankTransfer' && <TableCell sx={{ color: 'text.secondary' }}>{row.last_invoiced_month || '—'}</TableCell>}
                     {type === 'stripeActive' && <TableCell sx={{ color: 'text.secondary' }}>{row.start_date || row.startDate || '—'}</TableCell>}
+                    {type === 'stripeScheduled' && <TableCell sx={{ color: accent, fontWeight: 600 }}>{row.start_date || row.startDate || '—'}</TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
