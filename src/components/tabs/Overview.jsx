@@ -199,14 +199,15 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
   const plotW = svgW - padding.left - padding.right;
   const plotH = svgH - padding.top - padding.bottom;
 
-  // Points for SVG path (in viewBox coordinates, 0 to plotW)
+  // Points centered in each month slot so dots align with month labels below
   const plotPoints = data.map((item, idx) => {
     const val = item.value || 0;
-    const svgX = (idx / (data.length - 1)) * plotW;
+    const centerFrac = (idx + 0.5) / data.length;
+    const svgX = centerFrac * plotW;
     const svgY = chartMax > 0
       ? padding.top + plotH - (val / chartMax) * plotH
       : padding.top + plotH;
-    const pctX = (idx / (data.length - 1)) * 100;
+    const pctX = centerFrac * 100;
     const pctY = chartMax > 0
       ? ((1 - val / chartMax) * plotH + padding.top) / svgH * 100
       : (plotH + padding.top) / svgH * 100;
