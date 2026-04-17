@@ -187,7 +187,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const paginatedRows = rows;
 
   const EXPORT_HEADERS = [
-    'Invoice Number', 'Issue Date', 'Client', 'Client Email', 'User Type',
+    'Invoice Number', 'Issue Date', 'Client', 'CIF/NIF', 'Client Email', 'User Type',
     'Base (EUR)', 'VAT %', 'VAT (EUR)', 'Total (EUR)', 'Status', 'Description',
   ];
 
@@ -210,6 +210,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       number: inv.holdedInvoiceNum || inv.holdedinvoicenum || '',
       date: toDate(inv.createdAt || inv.creacionfecha),
       client: inv.clientName || '',
+      taxId: inv.clientTaxId || '',
       email: inv.clientEmail || '',
       userType: inv.tenantType || '',
       base: Number(base.toFixed(2)),
@@ -259,7 +260,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       const toCsvNum = (n) => (n === '' || n == null ? '' : String(n).replace('.', ','));
       const headerLine = EXPORT_HEADERS.join(';');
       const rowLines = rows.map((r) => [
-        r.number, r.date, r.client, r.email, r.userType,
+        r.number, r.date, r.client, r.taxId, r.email, r.userType,
         toCsvNum(r.base), r.vatRate, toCsvNum(r.vat), toCsvNum(r.total),
         r.status, r.description,
       ].map(csvEscape).join(';'));
@@ -290,6 +291,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
         'Invoice Number': r.number,
         'Issue Date': r.date,
         'Client': r.client,
+        'CIF/NIF': r.taxId,
         'Client Email': r.email,
         'User Type': r.userType,
         'Base (EUR)': r.base,
@@ -301,7 +303,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       }));
       const ws = XLSX.utils.json_to_sheet(data, { header: EXPORT_HEADERS });
       ws['!cols'] = [
-        { wch: 14 }, { wch: 11 }, { wch: 28 }, { wch: 28 }, { wch: 14 },
+        { wch: 14 }, { wch: 11 }, { wch: 28 }, { wch: 14 }, { wch: 28 }, { wch: 14 },
         { wch: 12 }, { wch: 6 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 40 },
       ];
       const wb = XLSX.utils.book_new();
