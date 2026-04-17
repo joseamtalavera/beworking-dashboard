@@ -1187,16 +1187,16 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const runDate = data.length > 0 ? data[0].run_date : null;
 
   const metrics = (row) => {
-    // Source of truth for STRIPE = Stripe API (live subs: active + past_due)
-    const stripeActive = row.stripe_active || 0;
+    // STRIPE = healthy paying subs (Stripe status=active only)
+    // OVERDUE = past_due (shown as its own bucket, not inside Stripe)
+    const stripe = row.stripe_active || 0;
     const overdue = row.stripe_past_due || 0;
-    const stripe = stripeActive + overdue;
     const bank = row.db_bank_transfer != null ? row.db_bank_transfer : 0;
     const dbActive = row.db_active || 0;
-    // DEVIATION = DB-active subs that don't map to live Stripe or bank transfer
-    // (includes ghost subs, scheduled subs, mismatches — anything unaccounted for)
-    const deviation = Math.max(0, dbActive - stripe - bank);
-    const total = stripe + deviation + bank; // = dbActive
+    // DEVIATION = DB-active subs unaccounted for by Stripe live or bank
+    // (ghost subs cancelled in Stripe, scheduled-only rows, etc.)
+    const deviation = Math.max(0, dbActive - stripe - overdue - bank);
+    const total = stripe + overdue + deviation + bank; // = dbActive
     return {
       stripe,
       deviation,
