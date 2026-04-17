@@ -13,6 +13,7 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Pagination from '@mui/material/Pagination';
+import TableSortLabel from '@mui/material/TableSortLabel';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
@@ -113,6 +114,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const [queryFilters, setQueryFilters] = useState(filters);
   const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [sortDir, setSortDir] = useState('desc');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null });
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -158,7 +160,8 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           startDate: effectiveFilters.startDate,
           endDate: effectiveFilters.endDate,
           from: effectiveFilters.startDate,
-          to: effectiveFilters.endDate
+          to: effectiveFilters.endDate,
+          sortDir
         });
 
         setData({
@@ -175,7 +178,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
     };
 
     fetchInitialInvoices();
-  }, [effectiveFilters]);
+  }, [effectiveFilters, sortDir]);
 
   // Client-side filtering (disabled since backend now handles date filtering)
   const rows = useMemo(() => {
@@ -334,7 +337,8 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       startDate: effectiveFilters.startDate,
       endDate: effectiveFilters.endDate,
       from: effectiveFilters.startDate,
-      to: effectiveFilters.endDate
+      to: effectiveFilters.endDate,
+      sortDir
     })
       .then((res) => {
         setData({
@@ -723,7 +727,15 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                 {isAdmin && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.userType')}</TableCell>}
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('table.total')}</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.issued')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }} sortDirection={sortDir}>
+                  <TableSortLabel
+                    active
+                    direction={sortDir}
+                    onClick={() => { setSortDir(prev => prev === 'asc' ? 'desc' : 'asc'); setPage(0); }}
+                  >
+                    {t('table.issued')}
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', display: { xs: 'none', sm: 'table-cell' } }}>{t('table.document')}</TableCell>
                 {isAdmin && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.actions')}</TableCell>}
               </TableRow>
