@@ -1187,23 +1187,23 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const runDate = data.length > 0 ? data[0].run_date : null;
 
   const metrics = (row) => {
-    // Deviation = DB rows marked Stripe-billing whose sub_id is NOT found in Stripe
-    // (cancelled in Stripe but still active=true in our DB — ghost subs)
-    const dbOnlyList = Array.isArray(row.db_only_subs) ? row.db_only_subs : [];
-    const deviation = dbOnlyList.length;
-    const dbStripe = row.db_stripe != null ? row.db_stripe : row.stripe_active;
-    // "Stripe" KPI = DB rows marked Stripe that actually match Stripe (live + scheduled)
-    const stripe = Math.max(0, dbStripe - deviation);
-    const bank = row.db_bank_transfer != null ? row.db_bank_transfer : Math.max(0, (row.db_active || 0) - dbStripe);
-    const total = stripe + deviation + bank; // = row.db_active
+    // Source of truth for STRIPE = Stripe API (live subs: active + past_due)
+    const stripeActive = row.stripe_active || 0;
+    const overdue = row.stripe_past_due || 0;
+    const stripe = stripeActive + overdue;
+    const bank = row.db_bank_transfer != null ? row.db_bank_transfer : 0;
+    const dbActive = row.db_active || 0;
+    // DEVIATION = DB-active subs that don't map to live Stripe or bank transfer
+    // (includes ghost subs, scheduled subs, mismatches — anything unaccounted for)
+    const deviation = Math.max(0, dbActive - stripe - bank);
+    const total = stripe + deviation + bank; // = dbActive
     return {
       stripe,
       deviation,
       bank,
       total,
-      overdue: row.stripe_past_due,
+      overdue,
       overdueAmt: row.past_due_amount,
-      dbOnlyList,
     };
   };
 
