@@ -1151,7 +1151,17 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
     }
   };
 
-  const openDetail = async (account, type, title) => {
+  const parseMaybeJson = (v) => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === 'string') { try { return JSON.parse(v); } catch { return []; } }
+    return [];
+  };
+
+  const openDetail = async (account, type, title, preloadedRows = null) => {
+    if (preloadedRows != null) {
+      setDetailDialog({ account, type, title, rows: Array.isArray(preloadedRows) ? preloadedRows : [] });
+      return;
+    }
     const bd = await fetchBreakdown(account);
     if (!bd) return;
     const rows = type === 'stripeActive' ? bd.stripeActive
@@ -1252,7 +1262,10 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                 </Box>
 
                 {row.missing_invoice_count > 0 && (
-                  <Box sx={{ px: 2, py: 1.5 }}>
+                  <Box
+                    onClick={() => openDetail(row.account, 'missingInvoices', `${row.account} — Facturas sin registrar`, parseMaybeJson(row.missing_invoices))}
+                    sx={{ px: 2, py: 1.5, cursor: 'pointer', transition: 'background 0.15s', '&:hover': { bgcolor: alpha('#dc2626', 0.04) } }}
+                  >
                     <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>
                       {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
                     </Typography>
@@ -1268,11 +1281,13 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
     {(() => {
       const type = detailDialog?.type;
       const accent = type === 'pastDue' ? '#dc2626'
+        : type === 'missingInvoices' ? '#dc2626'
         : type === 'stripeDeviation' ? '#f59e0b'
         : type === 'stripeScheduled' ? '#7c3aed'
         : type === 'bankTransfer' ? '#1976d2'
         : '#009624';
       const label = type === 'pastDue' ? 'Overdue'
+        : type === 'missingInvoices' ? 'Stripe paid, not in our DB'
         : type === 'stripeDeviation' ? 'Ghost subs (DB active, Stripe cancelled)'
         : type === 'stripeScheduled' ? 'Scheduled future subs (sub_sched_*)'
         : type === 'bankTransfer' ? 'Bank transfer'
@@ -1288,7 +1303,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{label}</Typography>
             </Box>
           </Stack>
-          <Chip label={`${detailDialog?.rows?.length || 0} subs`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.15), color: accent }} />
+          <Chip label={`${detailDialog?.rows?.length || 0} ${type === 'missingInvoices' ? 'facturas' : 'subs'}`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.15), color: accent }} />
         </Stack>
       </Box>
       <DialogContent sx={{ p: 0 }}>
@@ -1296,6 +1311,36 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress sx={{ color: accent }} /></Box>
         ) : !detailDialog?.rows?.length ? (
           <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>No subscriptions</Typography>
+        ) : type === 'missingInvoices' ? (
+          <TableContainer>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04), width: 50 }}>#</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Stripe Invoice ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Ver</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(detailDialog?.rows || []).map((mi, i) => {
+                  const id = typeof mi === 'string' ? mi : (mi?.stripeInvoiceId || mi?.stripe_invoice_id || '');
+                  return (
+                    <TableRow key={i} hover>
+                      <TableCell sx={{ color: 'text.secondary' }}>{i + 1}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{id || '—'}</TableCell>
+                      <TableCell align="right">
+                        {id && (
+                          <Button size="small" variant="outlined" component="a" href={`https://dashboard.stripe.com/invoices/${id}`} target="_blank" rel="noopener" sx={{ textTransform: 'none', borderColor: accent, color: accent }}>
+                            Abrir en Stripe
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
         ) : (
           <TableContainer>
             <Table size="small" stickyHeader>

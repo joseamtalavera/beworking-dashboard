@@ -39,7 +39,7 @@
     "dbActive": "Activos en BD",
     "stripeActive": "Activos en Stripe",
     "pastDue": "Vencidos",
-    "missingInvoices": "{{count}} factura(s) pendiente(s)",
+    "missingInvoices": "{{count}} factura(s) sin registrar",
     "ok": "OK",
     "warning": "Aviso",
     "alert": "Alerta"
