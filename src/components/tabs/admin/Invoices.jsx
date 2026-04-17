@@ -94,6 +94,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const theme = useTheme();
   const { t } = useTranslation('invoices');
   const isAdmin = mode === 'admin';
+  const isAccountant = (userProfile?.role || '').toUpperCase() === 'ACCOUNTANT';
   const [page, setPage] = useState(0); // Backend uses 0-based pagination
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -105,7 +106,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
     idFactura: '',
     status: '',
     tenantType: '',
-    cuenta: '',
+    cuenta: isAccountant ? 'PT' : '',
     startDate: `${new Date().getFullYear()}-01-01`,
     endDate: ''
   });
@@ -682,16 +683,17 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               </Typography>
               <Select
                 variant="standard"
-                value={filters.cuenta}
+                value={isAccountant ? 'PT' : filters.cuenta}
                 onChange={handleFilterChange('cuenta')}
                 displayEmpty
                 fullWidth
                 disableUnderline
-                sx={{ fontSize: '0.875rem', color: filters.cuenta ? 'text.primary' : 'text.secondary' }}
+                disabled={isAccountant}
+                sx={{ fontSize: '0.875rem', color: (isAccountant || filters.cuenta) ? 'text.primary' : 'text.secondary' }}
               >
-                <MenuItem value="">{t('all')}</MenuItem>
+                {!isAccountant && <MenuItem value="">{t('all')}</MenuItem>}
                 <MenuItem value="PT">Beworking</MenuItem>
-                <MenuItem value="GT">Globaltechno</MenuItem>
+                {!isAccountant && <MenuItem value="GT">Globaltechno</MenuItem>}
               </Select>
             </Box>
           </Paper>
