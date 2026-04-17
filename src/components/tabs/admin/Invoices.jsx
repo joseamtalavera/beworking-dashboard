@@ -28,6 +28,7 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded';
 
+import * as XLSX from 'xlsx';
 import { fetchInvoices, fetchInvoicePdfUrl, fetchInvoicePdfBlob, createInvoice, createManualInvoice, updateInvoiceStatus, creditInvoice } from '../../../api/invoices.js';
 import InvoiceEditor from './InvoiceEditor.jsx';
 import Dialog from '@mui/material/Dialog';
@@ -177,72 +178,83 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const totalPages = Math.ceil((data.totalElements || 0) / PAGE_SIZE);
   const paginatedRows = rows;
 
+  const EXPORT_HEADERS = [
+    'Invoice Number', 'Issue Date', 'Client', 'Client Email', 'User Type',
+    'Base (EUR)', 'VAT %', 'VAT (EUR)', 'Total (EUR)', 'Status', 'Description',
+  ];
+
+  const buildExportRows = (items) => items.map((inv) => {
+    const total = Number(inv.total || 0);
+    const vat = Number(inv.totalIva ?? inv.totaliva ?? 0);
+    const base = total - vat;
+    const toDate = (ts) => {
+      if (!ts) return '';
+      const d = new Date(ts);
+      return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+    };
+    return {
+      number: inv.holdedInvoiceNum || inv.holdedinvoicenum || '',
+      date: toDate(inv.createdAt || inv.creacionfecha),
+      client: inv.clientName || '',
+      email: inv.clientEmail || '',
+      userType: inv.tenantType || '',
+      base: Number(base.toFixed(2)),
+      vatRate: inv.iva == null ? '' : Number(inv.iva),
+      vat: Number(vat.toFixed(2)),
+      total: Number(total.toFixed(2)),
+      status: inv.estado || '',
+      description: (inv.descripcion || '').replace(/[\r\n]+/g, ' '),
+    };
+  });
+
+  const fetchAllForExport = async () => {
+    const response = await fetchInvoices({
+      page: 0,
+      size: 10000,
+      name: effectiveFilters.name,
+      email: effectiveFilters.email,
+      idFactura: effectiveFilters.idFactura,
+      status: effectiveFilters.status,
+      tenantType: effectiveFilters.tenantType,
+      product: effectiveFilters.product,
+      cuenta: effectiveFilters.cuenta,
+      startDate: effectiveFilters.startDate,
+      endDate: effectiveFilters.endDate,
+      from: effectiveFilters.startDate,
+      to: effectiveFilters.endDate,
+    });
+    return response.content || [];
+  };
+
+  const exportFileSuffix = () => [
+    effectiveFilters.cuenta || 'all',
+    effectiveFilters.startDate || 'start',
+    effectiveFilters.endDate || 'end',
+  ].join('_');
+
   const handleExportCsv = async () => {
     setExporting(true);
     try {
-      const response = await fetchInvoices({
-        page: 0,
-        size: 10000,
-        name: effectiveFilters.name,
-        email: effectiveFilters.email,
-        idFactura: effectiveFilters.idFactura,
-        status: effectiveFilters.status,
-        tenantType: effectiveFilters.tenantType,
-        product: effectiveFilters.product,
-        cuenta: effectiveFilters.cuenta,
-        startDate: effectiveFilters.startDate,
-        endDate: effectiveFilters.endDate,
-        from: effectiveFilters.startDate,
-        to: effectiveFilters.endDate,
-      });
-      const items = response.content || [];
-
-      const headers = [
-        'Invoice Number', 'Issue Date', 'Client', 'Client Email', 'User Type',
-        'Base (EUR)', 'VAT %', 'VAT (EUR)', 'Total (EUR)', 'Status', 'Description',
-      ];
+      const items = await fetchAllForExport();
+      const rows = buildExportRows(items);
       const csvEscape = (v) => {
         if (v == null) return '';
         const s = String(v);
         return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
       };
-      const toNum = (n) => (n == null ? '' : Number(n).toFixed(2).replace('.', ','));
-      const toDate = (ts) => {
-        if (!ts) return '';
-        const d = new Date(ts);
-        return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-      };
-
-      const rowsCsv = items.map((inv) => {
-        const total = Number(inv.total || 0);
-        const vat = Number(inv.totalIva ?? inv.totaliva ?? 0);
-        const base = total - vat;
-        return [
-          inv.holdedInvoiceNum || inv.holdedinvoicenum || '',
-          toDate(inv.createdAt || inv.creacionfecha),
-          inv.clientName || '',
-          inv.clientEmail || '',
-          inv.tenantType || '',
-          toNum(base),
-          inv.iva == null ? '' : inv.iva,
-          toNum(vat),
-          toNum(total),
-          inv.estado || '',
-          (inv.descripcion || '').replace(/[\r\n]+/g, ' '),
-        ].map(csvEscape).join(';');
-      });
-
-      const csv = '\uFEFF' + [headers.join(';'), ...rowsCsv].join('\n');
+      const toCsvNum = (n) => (n === '' || n == null ? '' : String(n).replace('.', ','));
+      const headerLine = EXPORT_HEADERS.join(';');
+      const rowLines = rows.map((r) => [
+        r.number, r.date, r.client, r.email, r.userType,
+        toCsvNum(r.base), r.vatRate, toCsvNum(r.vat), toCsvNum(r.total),
+        r.status, r.description,
+      ].map(csvEscape).join(';'));
+      const csv = '\uFEFF' + [headerLine, ...rowLines].join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const suffix = [
-        effectiveFilters.cuenta || 'all',
-        effectiveFilters.startDate || 'start',
-        effectiveFilters.endDate || 'end',
-      ].join('_');
       a.href = url;
-      a.download = `invoices_${suffix}.csv`;
+      a.download = `invoices_${exportFileSuffix()}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -250,6 +262,40 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
     } catch (e) {
       console.error('CSV export failed:', e);
       setError(e.message || 'CSV export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      const items = await fetchAllForExport();
+      const rows = buildExportRows(items);
+      const data = rows.map((r) => ({
+        'Invoice Number': r.number,
+        'Issue Date': r.date,
+        'Client': r.client,
+        'Client Email': r.email,
+        'User Type': r.userType,
+        'Base (EUR)': r.base,
+        'VAT %': r.vatRate,
+        'VAT (EUR)': r.vat,
+        'Total (EUR)': r.total,
+        'Status': r.status,
+        'Description': r.description,
+      }));
+      const ws = XLSX.utils.json_to_sheet(data, { header: EXPORT_HEADERS });
+      ws['!cols'] = [
+        { wch: 14 }, { wch: 11 }, { wch: 28 }, { wch: 28 }, { wch: 14 },
+        { wch: 12 }, { wch: 6 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 40 },
+      ];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Invoices');
+      XLSX.writeFile(wb, `invoices_${exportFileSuffix()}.xlsx`);
+    } catch (e) {
+      console.error('Excel export failed:', e);
+      setError(e.message || 'Excel export failed');
     } finally {
       setExporting(false);
     }
@@ -522,6 +568,25 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             }}
           >
             {exporting ? t('exporting') : t('exportCsv')}
+          </Button>
+        )}
+        {isAdmin && (
+          <Button
+            onClick={handleExportExcel}
+            disabled={exporting}
+            variant="outlined"
+            size="small"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: 999,
+              px: 2,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': { borderColor: 'primary.dark', color: 'primary.dark' },
+            }}
+          >
+            {exporting ? t('exporting') : t('exportExcel')}
           </Button>
         )}
         <Box sx={{ flex: 1 }} />

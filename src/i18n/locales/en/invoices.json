@@ -24,6 +24,7 @@
   "reset": "Reset",
   "newInvoice": "New invoice",
   "exportCsv": "Export CSV",
+  "exportExcel": "Export Excel",
   "exporting": "Exporting...",
   "showingInvoices": "Showing {{count}} invoices",
   "totalRevenue": "Total Revenue: {{amount}}",

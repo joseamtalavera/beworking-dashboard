@@ -24,6 +24,7 @@
   "reset": "Restablecer",
   "newInvoice": "Nueva factura",
   "exportCsv": "Exportar CSV",
+  "exportExcel": "Exportar Excel",
   "exporting": "Exportando...",
   "showingInvoices": "Mostrando {{count}} facturas",
   "totalRevenue": "Ingresos totales: {{amount}}",
