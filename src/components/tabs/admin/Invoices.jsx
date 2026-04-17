@@ -96,6 +96,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const { t } = useTranslation('invoices');
   const isAdmin = mode === 'admin';
   const isAccountant = (userProfile?.role || '').toUpperCase() === 'ACCOUNTANT';
+  const canEdit = isAdmin && !isAccountant;
   const [page, setPage] = useState(0); // Backend uses 0-based pagination
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -553,7 +554,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
         >
           {t('reset')}
         </Button>
-        {isAdmin && (
+        {canEdit && (
           <Button
             onClick={() => setNewInvoiceOpen(true)}
             variant="contained"
@@ -737,7 +738,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', display: { xs: 'none', sm: 'table-cell' } }}>{t('table.document')}</TableCell>
-                {isAdmin && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.actions')}</TableCell>}
+                {canEdit && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.actions')}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -793,7 +794,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   <TableCell align="center">
                     {(() => {
                       const si = getStatusInfo(inv, t);
-                      const isClickable = isAdmin && !isRectificado(inv.estado) && !isCreditNote(inv);
+                      const isClickable = canEdit && !isRectificado(inv.estado) && !isCreditNote(inv);
                       return (
                         <Chip
                           label={si.label}
@@ -842,7 +843,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       }}
                     />
                   </TableCell>
-                  {isAdmin && (
+                  {canEdit && (
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                     <Chip
                       label={t('credit')}
@@ -869,7 +870,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               })}
               {paginatedRows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 9 : 7} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={isAdmin ? (canEdit ? 9 : 8) : 7} align="center" sx={{ py: 6 }}>
                     <Typography variant="body2" color="text.secondary">{t('noInvoices')}</Typography>
                   </TableCell>
                 </TableRow>
@@ -930,7 +931,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
         </>
       )}
 
-      {isAdmin && (
+      {canEdit && (
         <InvoiceEditor
           open={newInvoiceOpen}
           onClose={() => setNewInvoiceOpen(false)}
