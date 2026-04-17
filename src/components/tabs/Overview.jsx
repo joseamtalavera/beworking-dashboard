@@ -1168,7 +1168,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
     return 'success';
   };
 
-  const statusColor = (s) => s === 'error' ? '#dc2626' : s === 'warning' ? '#f59e0b' : '#009624';
+  // Header bar always uses brand green — per-KPI colors below surface any issues
+  const statusColor = () => '#009624';
 
   const Metric = ({ label, value, color, sub, onClick }) => (
     <Box onClick={onClick} sx={{ textAlign: 'center', px: 1, py: 1.5, cursor: onClick ? 'pointer' : 'default', borderRadius: 1, transition: 'background 0.15s', '&:hover': onClick ? { bgcolor: 'action.hover' } : {} }}>
