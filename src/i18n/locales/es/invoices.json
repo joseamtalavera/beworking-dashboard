@@ -23,6 +23,8 @@
   "endDate": "Fecha fin",
   "reset": "Restablecer",
   "newInvoice": "Nueva factura",
+  "exportCsv": "Exportar CSV",
+  "exporting": "Exportando...",
   "showingInvoices": "Mostrando {{count}} facturas",
   "totalRevenue": "Ingresos totales: {{amount}}",
   "noInvoices": "No se encontraron facturas.",

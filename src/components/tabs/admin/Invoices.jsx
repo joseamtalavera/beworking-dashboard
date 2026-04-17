@@ -103,6 +103,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   });
   const [queryFilters, setQueryFilters] = useState(filters);
   const [newInvoiceOpen, setNewInvoiceOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null });
   const [showMoreFilters, setShowMoreFilters] = useState(false);
@@ -175,6 +176,84 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   // Server-side pagination
   const totalPages = Math.ceil((data.totalElements || 0) / PAGE_SIZE);
   const paginatedRows = rows;
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const response = await fetchInvoices({
+        page: 0,
+        size: 10000,
+        name: effectiveFilters.name,
+        email: effectiveFilters.email,
+        idFactura: effectiveFilters.idFactura,
+        status: effectiveFilters.status,
+        tenantType: effectiveFilters.tenantType,
+        product: effectiveFilters.product,
+        cuenta: effectiveFilters.cuenta,
+        startDate: effectiveFilters.startDate,
+        endDate: effectiveFilters.endDate,
+        from: effectiveFilters.startDate,
+        to: effectiveFilters.endDate,
+      });
+      const items = response.content || [];
+
+      const headers = [
+        'Invoice Number', 'Issue Date', 'Client', 'Client Email', 'User Type',
+        'Base (EUR)', 'VAT %', 'VAT (EUR)', 'Total (EUR)', 'Status', 'Description',
+      ];
+      const csvEscape = (v) => {
+        if (v == null) return '';
+        const s = String(v);
+        return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const toNum = (n) => (n == null ? '' : Number(n).toFixed(2).replace('.', ','));
+      const toDate = (ts) => {
+        if (!ts) return '';
+        const d = new Date(ts);
+        return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+      };
+
+      const rowsCsv = items.map((inv) => {
+        const total = Number(inv.total || 0);
+        const vat = Number(inv.totalIva ?? inv.totaliva ?? 0);
+        const base = total - vat;
+        return [
+          inv.holdedInvoiceNum || inv.holdedinvoicenum || '',
+          toDate(inv.createdAt || inv.creacionfecha),
+          inv.clientName || '',
+          inv.clientEmail || '',
+          inv.tenantType || '',
+          toNum(base),
+          inv.iva == null ? '' : inv.iva,
+          toNum(vat),
+          toNum(total),
+          inv.estado || '',
+          (inv.descripcion || '').replace(/[\r\n]+/g, ' '),
+        ].map(csvEscape).join(';');
+      });
+
+      const csv = '\uFEFF' + [headers.join(';'), ...rowsCsv].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const suffix = [
+        effectiveFilters.cuenta || 'all',
+        effectiveFilters.startDate || 'start',
+        effectiveFilters.endDate || 'end',
+      ].join('_');
+      a.href = url;
+      a.download = `invoices_${suffix}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('CSV export failed:', e);
+      setError(e.message || 'CSV export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleChangePage = (_e, newPage) => {
     setPage(newPage - 1);
@@ -424,6 +503,25 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             }}
           >
             {t('newInvoice')}
+          </Button>
+        )}
+        {isAdmin && (
+          <Button
+            onClick={handleExportCsv}
+            disabled={exporting}
+            variant="outlined"
+            size="small"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: 999,
+              px: 2,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': { borderColor: 'primary.dark', color: 'primary.dark' },
+            }}
+          >
+            {exporting ? t('exporting') : t('exportCsv')}
           </Button>
         )}
         <Box sx={{ flex: 1 }} />

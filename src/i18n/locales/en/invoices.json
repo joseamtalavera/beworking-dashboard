@@ -23,6 +23,8 @@
   "endDate": "End Date",
   "reset": "Reset",
   "newInvoice": "New invoice",
+  "exportCsv": "Export CSV",
+  "exporting": "Exporting...",
   "showingInvoices": "Showing {{count}} invoices",
   "totalRevenue": "Total Revenue: {{amount}}",
   "noInvoices": "No invoices found.",
