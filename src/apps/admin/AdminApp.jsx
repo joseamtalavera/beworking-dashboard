@@ -124,6 +124,11 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
             </Box>
           </React.Suspense>
         </Box>
+        <Box component="footer" sx={{ py: 1.5, px: 2, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+            BeWorking — A Globaltechno Product. · Málaga · Tallinn
+          </Typography>
+        </Box>
       </Box>
       <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} onLogout={logout} />
       <HelpSupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />

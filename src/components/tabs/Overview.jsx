@@ -17,6 +17,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -27,7 +28,9 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import IconButton from '@mui/material/IconButton';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CloseIcon from '@mui/icons-material/Close';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
@@ -1135,6 +1138,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   const [detailDialog, setDetailDialog] = useState(null);
   const [breakdownCache, setBreakdownCache] = useState({});
   const [bdLoading, setBdLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const fetchBreakdown = async (account) => {
     if (breakdownCache[account]) return breakdownCache[account];
@@ -1145,6 +1149,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
       return result;
     } catch (e) {
       console.error('Failed to fetch breakdown', e);
+      setErrorMsg(t('reconciliation.loadError', { defaultValue: e?.message || 'Failed to load breakdown' }));
       return null;
     } finally {
       setBdLoading(false);
@@ -1299,7 +1304,12 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>{label}</Typography>
             </Box>
           </Stack>
-          <Chip label={`${detailDialog?.rows?.length || 0} ${type === 'missingInvoices' ? 'facturas' : 'subs'}`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.15), color: accent }} />
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Chip label={`${detailDialog?.rows?.length || 0} ${type === 'missingInvoices' ? 'facturas' : 'subs'}`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.15), color: accent }} />
+            <IconButton size="small" aria-label="close" onClick={() => setDetailDialog(null)} sx={{ color: accent }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
         </Stack>
       </Box>
       <DialogContent sx={{ p: 0 }}>
@@ -1377,6 +1387,16 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
     </Dialog>
       );
     })()}
+    <Snackbar
+      open={!!errorMsg}
+      autoHideDuration={5000}
+      onClose={() => setErrorMsg(null)}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert severity="error" variant="filled" onClose={() => setErrorMsg(null)} sx={{ width: '100%' }}>
+        {errorMsg}
+      </Alert>
+    </Snackbar>
     </>
   );
 };

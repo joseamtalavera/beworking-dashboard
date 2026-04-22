@@ -42,7 +42,8 @@
     "missingInvoices": "{{count}} factura(s) sin registrar",
     "ok": "OK",
     "warning": "Aviso",
-    "alert": "Alerta"
+    "alert": "Alerta",
+    "loadError": "No se pudo cargar el detalle"
   },
   "user": {
     "stats": {

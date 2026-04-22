@@ -42,7 +42,8 @@
     "missingInvoices": "{{count}} missing invoice(s)",
     "ok": "OK",
     "warning": "Warning",
-    "alert": "Alert"
+    "alert": "Alert",
+    "loadError": "Failed to load breakdown"
   },
   "user": {
     "stats": {
