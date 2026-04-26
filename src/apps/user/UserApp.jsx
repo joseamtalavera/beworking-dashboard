@@ -35,8 +35,6 @@ const TAB_COMPONENTS = {
   MyInvoices: Invoices,
   Invoices,
   Expenses,
-  Integrations,
-  Automation,
   Community,
   Events,
   Storage,
@@ -45,6 +43,8 @@ const TAB_COMPONENTS = {
   Marketplace,
   ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
   DomicilioFiscal,
+  Integrations,
+  Automation,
 };
 
 const UserApp = ({ userProfile, refreshProfile, logout }) => {

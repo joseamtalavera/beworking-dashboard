@@ -93,7 +93,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
   }, [collapsedGroupIds]);
 
   // For users: only show Platform-related tabs (hide CRM, Accounts, HR, Projects, etc.)
-  const USER_VISIBLE_TABS = new Set(['MariaAI', 'Platform', 'DomicilioFiscal']);
+  const USER_VISIBLE_TABS = new Set(['MariaAI', 'Platform', 'DomicilioFiscal', 'Integrations', 'Automation']);
   // For accountants: only show the Accounts dept (Invoices + future Expenses/Banks/Crypto)
   const ACCOUNTANT_VISIBLE_TABS = new Set(['AccountsAI']);
   const isAccountant = (viewRole || '').toUpperCase() === 'ACCOUNTANT';
