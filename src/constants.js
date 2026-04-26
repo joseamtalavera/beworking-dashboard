@@ -35,7 +35,6 @@ export const DEPT_TABS = [
   { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon, hero: true },
   { id: 'Platform', label: 'Platform', icon: OverviewIcon, subtabs: [
     { id: 'Overview', label: 'Overview', icon: OverviewIcon },
-    { id: 'Business Address', label: 'Business Address', icon: MailboxIcon },
     { id: 'Booking', label: 'Spaces', icon: BookingIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
