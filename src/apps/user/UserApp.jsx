@@ -42,9 +42,9 @@ const TAB_COMPONENTS = {
   Storage,
   Tickets,
   Reports,
-  DomicilioFiscal,
   Marketplace,
   ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
+  DomicilioFiscal,
 };
 
 const UserApp = ({ userProfile, refreshProfile, logout }) => {

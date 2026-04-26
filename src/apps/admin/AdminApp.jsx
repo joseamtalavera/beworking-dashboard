@@ -44,9 +44,9 @@ const TAB_COMPONENTS = {
   Tickets,
   Reports,
   SpaceCatalog,
-  DomicilioFiscal,
   Marketplace,
   ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
+  DomicilioFiscal,
 };
 
 const AdminApp = ({ userProfile, refreshProfile, logout }) => {

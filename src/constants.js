@@ -39,12 +39,12 @@ export const DEPT_TABS = [
     { id: 'Booking', label: 'Spaces', icon: BookingIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
-    { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
     { id: 'Integrations', label: 'Integrations', icon: IntegrationsIcon, soon: true },
     { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true },
     { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
   ]},
+  { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
   { id: 'SupportAI', label: 'Support', icon: SupportAIIcon },
   { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
