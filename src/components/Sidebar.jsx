@@ -93,14 +93,16 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
   }, [collapsedGroupIds]);
 
   // For users: only show Platform-related tabs (hide CRM, Accounts, HR, Projects, etc.)
-  const USER_VISIBLE_TABS = new Set(['MariaAI', 'Platform', 'DomicilioFiscal', 'Integrations', 'Automation']);
+  const USER_VISIBLE_TABS = new Set(['MariaAI', 'Platform', 'DomicilioFiscal']);
   // For accountants: only show the Accounts dept (Invoices + future Expenses/Banks/Crypto)
   const ACCOUNTANT_VISIBLE_TABS = new Set(['AccountsAI']);
+  // Hidden from admin sidebar (still routable if invoked directly)
+  const ADMIN_HIDDEN_TABS = new Set(['Integrations']);
   const isAccountant = (viewRole || '').toUpperCase() === 'ACCOUNTANT';
   const allTabs = isAccountant
     ? DEPT_TABS.filter(d => ACCOUNTANT_VISIBLE_TABS.has(d.id))
     : isAdmin
-      ? DEPT_TABS
+      ? DEPT_TABS.filter(d => !ADMIN_HIDDEN_TABS.has(d.id))
       : DEPT_TABS.filter(d => USER_VISIBLE_TABS.has(d.id));
 
   const drawerContent = (
