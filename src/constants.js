@@ -38,7 +38,6 @@ export const DEPT_TABS = [
     { id: 'Booking', label: 'Spaces', icon: BookingIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
-    { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
   ]},
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
@@ -58,7 +57,8 @@ export const DEPT_TABS = [
   { id: 'ProjectsAI', label: 'Projects', icon: ProjectsAIIcon },
   { id: 'MarketingAI', label: 'Marketing', icon: MarketingAIIcon },
   { id: 'WebAI', label: 'Web', icon: CodeAIIcon, subtabs: [
-    { id: 'WebGen', label: 'Web Generation', icon: WebGenIcon, soon: true },
+    { id: 'WebGen', label: 'Site', icon: WebGenIcon, soon: true },
+    { id: 'SpaceCatalog', label: 'Space Catalog', icon: SpaceCatalogIcon, adminOnly: true },
     { id: 'QA', label: 'QA', icon: QAIcon, soon: true },
   ]},
   { id: 'CommunityAI', label: 'Community', icon: CommunityAIIcon, subtabs: [
