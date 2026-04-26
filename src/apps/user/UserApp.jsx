@@ -24,6 +24,7 @@ const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.j
 const Expenses = React.lazy(() => import('../../components/tabs/Expenses.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
 const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
+const DomicilioFiscal = React.lazy(() => import('../../components/tabs/DomicilioFiscal.jsx'));
 import Marketplace from '../../components/tabs/Marketplace.jsx';
 const DeptComingSoon = React.lazy(() => import('../../components/tabs/DeptComingSoon.jsx'));
 
@@ -41,6 +42,7 @@ const TAB_COMPONENTS = {
   Storage,
   Tickets,
   Reports,
+  DomicilioFiscal,
   Marketplace,
   ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
 };
@@ -99,6 +101,9 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
     }
     if (activeTab === 'Business Address') {
       return <Component userType="user" userProfile={userProfile} hasActiveSubscription={isSubscribed} />;
+    }
+    if (activeTab === 'DomicilioFiscal') {
+      return <Component userProfile={userProfile} />;
     }
     if (DEPT_TABS.some(d => d.id === activeTab)) {
       return <Component deptId={activeTab} />;

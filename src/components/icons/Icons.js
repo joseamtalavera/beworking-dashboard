@@ -22,6 +22,7 @@ import CryptWalletIcon from '@mui/icons-material/CurrencyBitcoinOutlined';
 import PasswordManagementIcon from '@mui/icons-material/LockOutlined';
 import DigitalSignatureIcon from '@mui/icons-material/EditOutlined';
 import SpaceCatalogIcon from '@mui/icons-material/WorkspacesOutlined';
+import DomicilioFiscalIcon from '@mui/icons-material/BusinessOutlined';
 
 // Department icons
 import MariaAIIcon from '@mui/icons-material/AutoAwesomeOutlined';
@@ -61,6 +62,7 @@ export {
   PasswordManagementIcon,
   DigitalSignatureIcon,
   SpaceCatalogIcon,
+  DomicilioFiscalIcon,
   MariaAIIcon,
   AccountsAIIcon,
   SupportAIIcon,
