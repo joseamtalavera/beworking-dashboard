@@ -15,7 +15,7 @@ const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
 const VirtualOffice = React.lazy(() => import('../../components/tabs/VirtualOffice.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
 const BookingFlow = React.lazy(() => import('../../components/BookingFlow.jsx'));
-const Agent = React.lazy(() => import('../../components/tabs/Agent.jsx'));
+const MariaAI = React.lazy(() => import('../../components/tabs/MariaAI.jsx'));
 const Integrations = React.lazy(() => import('../../components/tabs/Integrations.jsx'));
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));
 const Community = React.lazy(() => import('../../components/tabs/Community.jsx'));
@@ -39,6 +39,7 @@ const TAB_COMPONENTS = {
   Tickets,
   Reports,
   Marketplace,
+  MariaAI,
   ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
   DomicilioFiscal: VirtualOffice,
   Integrations,
@@ -51,7 +52,6 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [agentOpen, setAgentOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -100,6 +100,9 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'DomicilioFiscal') {
       return <Component userType="user" userProfile={userProfile} hasActiveSubscription={isSubscribed} />;
     }
+    if (activeTab === 'MariaAI') {
+      return <Component userProfile={userProfile} />;
+    }
     if (DEPT_TABS.some(d => d.id === activeTab)) {
       return <Component deptId={activeTab} />;
     }
@@ -112,7 +115,6 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         onOpenSettings={() => setSettingsOpen(true)}
-        onOpenAgent={() => setAgentOpen(true)}
         onLogout={logout}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
@@ -147,26 +149,6 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
       <UserSettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} user={userProfile} refreshProfile={refreshProfile} onLogout={logout} />
       <HelpSupportDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
       <ChatSupportDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
-      {agentOpen && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: { xs: '100%', sm: '80%', md: '33.333%' },
-            minWidth: { md: '400px' },
-            bgcolor: theme.palette.background.paper,
-            borderLeft: `1px solid ${theme.palette.divider}`,
-            zIndex: 1300,
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: theme.shadows[6]
-          }}
-        >
-          <Agent onClose={() => setAgentOpen(false)} />
-        </Box>
-      )}
     </Box>
   );
 };

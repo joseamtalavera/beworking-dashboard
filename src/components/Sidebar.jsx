@@ -20,7 +20,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import { SettingsIcon, HelpIcon, AgentIcon } from './icons/Icons.js';
+import { SettingsIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { DEPT_TABS } from '../constants.js';
 
@@ -47,7 +47,7 @@ function saveCollapsedGroups(groups) {
 export const drawerWidth = 260;
 export const collapsedDrawerWidth = 72;
 
-const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse, isAdmin, viewRole }) => {
+const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobileOpen, onMobileClose, collapsed, onToggleCollapse, isAdmin, viewRole }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -93,7 +93,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
   }, [collapsedGroupIds]);
 
   // For users: only show Platform-related tabs (hide CRM, Accounts, HR, Projects, etc.)
-  const USER_VISIBLE_TABS = new Set(['MariaAI', 'Platform', 'DomicilioFiscal']);
+  const USER_VISIBLE_TABS = new Set(['Platform', 'DomicilioFiscal']);
   // For accountants: only show the Accounts dept (Invoices + future Expenses/Banks/Crypto)
   const ACCOUNTANT_VISIBLE_TABS = new Set(['AccountsAI']);
   // Hidden from admin sidebar (still routable if invoked directly)
@@ -151,15 +151,13 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
             const canExpand = isAdmin || dept.id === 'Platform';
             const expanded = hasSubtabs && canExpand && !isItemCollapsed(dept.id);
 
-            const isHero = dept.hero;
             return (
               <Box key={dept.id}>
-                {!isHero && <Divider sx={{ mx: collapsed ? 0 : 2 }} />}
+                <Divider sx={{ mx: collapsed ? 0 : 2 }} />
                 {collapsed ? (
                   <Tooltip title={!hasSubtabs || !canExpand ? t(`departments.${dept.id}.name`, { defaultValue: dept.label }) : ''} placement="right" arrow>
                     <ButtonBase
                       onClick={(e) => {
-                        if (isHero) { onOpenAgent?.(); return; }
                         if (hasSubtabs && canExpand) {
                           setPopoverAnchor(e.currentTarget);
                           setPopoverDept(dept);
@@ -172,26 +170,19 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                         justifyContent: 'center',
                         width: '100%',
                         py: 1.5,
-                        ...(isHero && {
-                          backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                          mb: 0.5,
-                          borderRadius: 2,
-                        }),
-                        ...(active && { backgroundColor: alpha(theme.palette.primary.main, isHero ? 0.16 : 0.06) }),
-                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, isHero ? 0.16 : 0.04) },
+                        ...(active && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
+                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
                       }}
                     >
-                      <dept.icon sx={{ fontSize: 20, color: isHero ? theme.palette.primary.main : (active ? activeColor : 'text.secondary') }} />
+                      <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
                     </ButtonBase>
                   </Tooltip>
                 ) : (
                   <ButtonBase
                     onClick={() => {
-                      if (isHero) {
-                        onOpenAgent?.();
-                      } else if (hasSubtabs && canExpand) {
+                      if (hasSubtabs && canExpand) {
                         toggleGroup(dept.id);
-                      } else if (!hasSubtabs || !canExpand) {
+                      } else {
                         handleTabClick(dept.id);
                       }
                     }}
@@ -202,24 +193,16 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onOpenAgent, o
                       width: '100%',
                       px: 3,
                       py: 1.5,
-                      ...(isHero && {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                        mx: 2,
-                        width: 'calc(100% - 32px)',
-                        borderRadius: 2,
-                        mb: 0.5,
-                      }),
-                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, isHero ? 0.16 : 0.04) },
-                      ...(activeTab === dept.id && !isHero && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
-                      ...(activeTab === dept.id && isHero && { backgroundColor: alpha(theme.palette.primary.main, 0.16) }),
+                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+                      ...(activeTab === dept.id && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <dept.icon sx={{ fontSize: 20, color: isHero ? theme.palette.primary.main : (active ? activeColor : 'text.secondary') }} />
+                      <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
                       <Typography sx={{
                         fontSize: '0.9rem',
-                        fontWeight: isHero ? 700 : (active ? 700 : 600),
-                        color: isHero ? theme.palette.primary.main : (active ? activeColor : 'text.primary'),
+                        fontWeight: active ? 700 : 600,
+                        color: active ? activeColor : 'text.primary',
                       }}>
                         {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
                       </Typography>

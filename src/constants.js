@@ -32,8 +32,8 @@ import {
 } from './components/icons/Icons.js';
 
 export const DEPT_TABS = [
-  { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon, hero: true },
   { id: 'Platform', label: 'Platform', icon: OverviewIcon, subtabs: [
+    { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon },
     { id: 'Overview', label: 'Overview', icon: OverviewIcon },
     { id: 'Booking', label: 'Spaces', icon: BookingIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
