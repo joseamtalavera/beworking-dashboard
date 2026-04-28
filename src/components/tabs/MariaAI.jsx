@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -8,6 +9,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { alpha, useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
@@ -19,11 +21,11 @@ import LocalCafeOutlinedIcon from '@mui/icons-material/LocalCafeOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 
 const SUGGESTIONS = [
-  { id: 'write', label: 'Write', icon: EditOutlinedIcon },
-  { id: 'learn', label: 'Learn', icon: SchoolOutlinedIcon },
-  { id: 'code', label: 'Code', icon: CodeRoundedIcon },
-  { id: 'life', label: 'Life stuff', icon: LocalCafeOutlinedIcon },
-  { id: 'gmail', label: 'From Gmail', icon: EmailOutlinedIcon },
+  { id: 'write', labelKey: 'maria.suggestions.write', fallback: 'Escribir', icon: EditOutlinedIcon },
+  { id: 'learn', labelKey: 'maria.suggestions.learn', fallback: 'Aprender', icon: SchoolOutlinedIcon },
+  { id: 'code', labelKey: 'maria.suggestions.code', fallback: 'Código', icon: CodeRoundedIcon },
+  { id: 'life', labelKey: 'maria.suggestions.life', fallback: 'Día a día', icon: LocalCafeOutlinedIcon },
+  { id: 'gmail', labelKey: 'maria.suggestions.gmail', fallback: 'Desde Gmail', icon: EmailOutlinedIcon },
 ];
 
 const MODELS = [
@@ -35,8 +37,9 @@ const MODELS = [
 
 const MariaAI = ({ userProfile }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const accent = theme.palette.primary.main;
-  const firstName = (userProfile?.name || 'there').trim().split(/\s+/)[0];
+  const firstName = (userProfile?.name || '').trim().split(/\s+/)[0];
 
   const [message, setMessage] = useState('');
   const [model, setModel] = useState(MODELS[0]);
@@ -55,6 +58,10 @@ const MariaAI = ({ userProfile }) => {
     }
   };
 
+  const greeting = firstName
+    ? t('maria.greeting', { defaultValue: 'Hola, {{name}}', name: firstName })
+    : t('maria.greetingFallback', { defaultValue: 'Hola' });
+
   return (
     <Box
       sx={{
@@ -66,31 +73,45 @@ const MariaAI = ({ userProfile }) => {
       }}
     >
       <Box sx={{ width: '100%', maxWidth: 720 }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center" sx={{ mb: 5 }}>
-          <AutoAwesomeRoundedIcon sx={{ fontSize: 36, color: '#d97757' }} />
+        <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center" sx={{ mb: 4 }}>
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              backgroundColor: alpha(accent, 0.1),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <AutoAwesomeRoundedIcon sx={{ fontSize: 24, color: accent }} />
+          </Box>
           <Typography
             sx={{
-              fontFamily: '"Tiempos Headline", "Source Serif Pro", "Georgia", serif',
-              fontWeight: 400,
-              fontSize: { xs: '2rem', sm: '2.5rem' },
+              fontFamily: '"Poppins", sans-serif',
+              fontWeight: 600,
+              fontSize: { xs: '1.75rem', sm: '2.25rem' },
               color: 'text.primary',
               letterSpacing: '-0.01em',
             }}
           >
-            Hey there, {firstName}
+            {greeting}
           </Typography>
         </Stack>
 
-        <Box
+        <Paper
+          elevation={0}
           sx={{
-            borderRadius: 4,
-            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
             backgroundColor: theme.palette.background.paper,
-            boxShadow: '0 1px 2px rgba(15,23,42,0.04), 0 4px 24px rgba(15,23,42,0.06)',
+            overflow: 'hidden',
             transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
             '&:focus-within': {
               borderColor: alpha(accent, 0.5),
-              boxShadow: `0 0 0 4px ${alpha(accent, 0.08)}, 0 4px 24px rgba(15,23,42,0.06)`,
+              boxShadow: `0 0 0 4px ${alpha(accent, 0.08)}`,
             },
           }}
         >
@@ -98,7 +119,7 @@ const MariaAI = ({ userProfile }) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="How can I help you today?"
+            placeholder={t('maria.placeholder', { defaultValue: '¿En qué te puedo ayudar hoy?' })}
             multiline
             minRows={3}
             maxRows={10}
@@ -107,13 +128,17 @@ const MariaAI = ({ userProfile }) => {
               px: 3,
               pt: 2.5,
               pb: 1,
-              fontSize: '1rem',
+              fontSize: '0.95rem',
               color: 'text.primary',
               '& textarea::placeholder': { color: 'text.secondary', opacity: 1 },
             }}
           />
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.5, py: 1 }}>
-            <IconButton size="small" sx={{ color: 'text.secondary' }} aria-label="Attach">
+            <IconButton
+              size="small"
+              sx={{ color: 'text.secondary', '&:hover': { color: accent, backgroundColor: alpha(accent, 0.08) } }}
+              aria-label={t('maria.attach', { defaultValue: 'Adjuntar' })}
+            >
               <AddRoundedIcon fontSize="small" />
             </IconButton>
             <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -123,12 +148,10 @@ const MariaAI = ({ userProfile }) => {
                   px: 1.25,
                   py: 0.5,
                   borderRadius: 1.5,
-                  fontSize: '0.8125rem',
-                  color: 'text.secondary',
-                  '&:hover': { backgroundColor: alpha('#000', 0.04) },
+                  '&:hover': { backgroundColor: alpha(accent, 0.06) },
                 }}
               >
-                <Typography component="span" sx={{ fontSize: '0.8125rem', color: 'text.primary', fontWeight: 500, mr: 0.75 }}>
+                <Typography component="span" sx={{ fontSize: '0.8125rem', color: 'text.primary', fontWeight: 600, mr: 0.75 }}>
                   {model.label}
                 </Typography>
                 <Typography component="span" sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
@@ -136,12 +159,16 @@ const MariaAI = ({ userProfile }) => {
                 </Typography>
                 <ArrowDropDownRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
               </ButtonBase>
-              <IconButton size="small" sx={{ color: 'text.secondary' }} aria-label="Voice">
+              <IconButton
+                size="small"
+                sx={{ color: 'text.secondary', '&:hover': { color: accent, backgroundColor: alpha(accent, 0.08) } }}
+                aria-label={t('maria.voice', { defaultValue: 'Voz' })}
+              >
                 <GraphicEqRoundedIcon fontSize="small" />
               </IconButton>
             </Stack>
           </Stack>
-        </Box>
+        </Paper>
 
         <Menu
           anchorEl={modelAnchor}
@@ -149,23 +176,24 @@ const MariaAI = ({ userProfile }) => {
           onClose={() => setModelAnchor(null)}
           anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
           transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          slotProps={{ paper: { sx: { borderRadius: 2, mt: -0.5, minWidth: 180 } } }}
         >
           {MODELS.map((m) => (
             <MenuItem
               key={m.id}
               selected={m.id === model.id}
               onClick={() => { setModel(m); setModelAnchor(null); }}
-              sx={{ fontSize: '0.875rem' }}
+              sx={{ fontSize: '0.875rem', py: 1 }}
             >
-              <Typography component="span" sx={{ fontWeight: 500, mr: 1 }}>{m.label}</Typography>
-              <Typography component="span" sx={{ color: 'text.secondary' }}>{m.mode}</Typography>
+              <Typography component="span" sx={{ fontWeight: 600, mr: 1 }}>{m.label}</Typography>
+              <Typography component="span" sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>{m.mode}</Typography>
             </MenuItem>
           ))}
         </Menu>
 
         <Stack
           direction="row"
-          spacing={1.25}
+          spacing={1}
           justifyContent="center"
           flexWrap="wrap"
           useFlexGap
@@ -173,31 +201,31 @@ const MariaAI = ({ userProfile }) => {
         >
           {SUGGESTIONS.map((s) => {
             const Icon = s.icon;
+            const label = t(s.labelKey, { defaultValue: s.fallback });
             return (
               <ButtonBase
                 key={s.id}
-                onClick={() => setMessage((prev) => (prev ? prev : `${s.label}: `))}
+                onClick={() => setMessage((prev) => (prev ? prev : `${label}: `))}
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 0.75,
                   px: 1.75,
                   py: 0.875,
-                  borderRadius: 999,
-                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
                   backgroundColor: theme.palette.background.paper,
-                  fontSize: '0.8125rem',
-                  color: 'text.primary',
-                  transition: 'background-color 0.12s ease, border-color 0.12s ease',
+                  transition: 'background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease',
                   '&:hover': {
-                    backgroundColor: alpha('#000', 0.03),
-                    borderColor: alpha('#000', 0.16),
+                    backgroundColor: alpha(accent, 0.04),
+                    borderColor: alpha(accent, 0.4),
                   },
                 }}
               >
                 <Icon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                <Typography component="span" sx={{ fontSize: '0.8125rem', color: 'text.primary' }}>
-                  {s.label}
+                <Typography component="span" sx={{ fontSize: '0.8125rem', color: 'text.primary', fontWeight: 500 }}>
+                  {label}
                 </Typography>
               </ButtonBase>
             );
