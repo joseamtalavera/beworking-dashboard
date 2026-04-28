@@ -15,6 +15,7 @@ const Storage = React.lazy(() => import('../../components/tabs/Storage.jsx'));
 const VirtualOffice = React.lazy(() => import('../../components/tabs/VirtualOffice.jsx'));
 const Booking = React.lazy(() => import('../../components/tabs/Booking.jsx'));
 const MariaAI = React.lazy(() => import('../../components/tabs/MariaAI.jsx'));
+const Services = React.lazy(() => import('../../components/tabs/Services.jsx'));
 const Integrations = React.lazy(() => import('../../components/tabs/Integrations.jsx'));
 const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx'));
 const Community = React.lazy(() => import('../../components/tabs/Community.jsx'));
@@ -46,7 +47,7 @@ const TAB_COMPONENTS = {
   DomicilioFiscal: VirtualOffice,
   Integrations,
   Automation,
-  Services: DeptComingSoon,
+  Services,
 };
 
 const AdminApp = ({ userProfile, refreshProfile, logout }) => {

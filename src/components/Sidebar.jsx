@@ -23,6 +23,7 @@ import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { SettingsIcon } from './icons/Icons.js';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { DEPT_TABS } from '../constants.js';
+import { ALWAYS_VISIBLE_ADMIN, useActivatedServices } from '../utils/serviceActivations.js';
 
 const STORAGE_KEY = 'bw_sidebar_collapsed_groups';
 
@@ -59,6 +60,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
   const [collapsedGroupIds, setCollapsedGroupIds] = useState(loadCollapsedGroups);
   const [popoverDept, setPopoverDept] = useState(null);
   const [popoverAnchor, setPopoverAnchor] = useState(null);
+  const activatedServices = useActivatedServices();
 
   const toggleGroup = useCallback((groupId) => {
     setCollapsedGroupIds(prev => {
@@ -99,10 +101,15 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
   // Hidden from admin sidebar (still routable if invoked directly)
   const ADMIN_HIDDEN_TABS = new Set();
   const isAccountant = (viewRole || '').toUpperCase() === 'ACCOUNTANT';
+  const isAdminTabVisible = (d) => {
+    if (ADMIN_HIDDEN_TABS.has(d.id)) return false;
+    if (ALWAYS_VISIBLE_ADMIN.has(d.id)) return true;
+    return activatedServices.has(d.id);
+  };
   const allTabs = isAccountant
     ? DEPT_TABS.filter(d => ACCOUNTANT_VISIBLE_TABS.has(d.id))
     : isAdmin
-      ? DEPT_TABS.filter(d => !ADMIN_HIDDEN_TABS.has(d.id))
+      ? DEPT_TABS.filter(isAdminTabVisible)
       : DEPT_TABS.filter(d => USER_VISIBLE_TABS.has(d.id));
 
   const drawerContent = (
