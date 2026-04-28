@@ -93,11 +93,11 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
   }, [collapsedGroupIds]);
 
   // For users: only show Platform-related tabs (hide CRM, Accounts, HR, Projects, etc.)
-  const USER_VISIBLE_TABS = new Set(['Platform', 'DomicilioFiscal']);
+  const USER_VISIBLE_TABS = new Set(['Platform', 'DomicilioFiscal', 'Legal']);
   // For accountants: only show the Accounts dept (Invoices + future Expenses/Banks/Crypto)
   const ACCOUNTANT_VISIBLE_TABS = new Set(['AccountsAI']);
   // Hidden from admin sidebar (still routable if invoked directly)
-  const ADMIN_HIDDEN_TABS = new Set(['Integrations']);
+  const ADMIN_HIDDEN_TABS = new Set();
   const isAccountant = (viewRole || '').toUpperCase() === 'ACCOUNTANT';
   const allTabs = isAccountant
     ? DEPT_TABS.filter(d => ACCOUNTANT_VISIBLE_TABS.has(d.id))

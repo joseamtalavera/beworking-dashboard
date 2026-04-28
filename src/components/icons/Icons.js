@@ -23,6 +23,8 @@ import PasswordManagementIcon from '@mui/icons-material/LockOutlined';
 import DigitalSignatureIcon from '@mui/icons-material/EditOutlined';
 import SpaceCatalogIcon from '@mui/icons-material/WorkspacesOutlined';
 import DomicilioFiscalIcon from '@mui/icons-material/BusinessOutlined';
+import ServicesIcon from '@mui/icons-material/MiscellaneousServicesOutlined';
+import LegalIcon from '@mui/icons-material/GavelOutlined';
 
 // Department icons
 import MariaAIIcon from '@mui/icons-material/AutoAwesomeOutlined';
@@ -63,6 +65,8 @@ export {
   DigitalSignatureIcon,
   SpaceCatalogIcon,
   DomicilioFiscalIcon,
+  ServicesIcon,
+  LegalIcon,
   MariaAIIcon,
   AccountsAIIcon,
   SupportAIIcon,

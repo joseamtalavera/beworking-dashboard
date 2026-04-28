@@ -46,6 +46,7 @@ const TAB_COMPONENTS = {
   DomicilioFiscal: VirtualOffice,
   Integrations,
   Automation,
+  Services: DeptComingSoon,
 };
 
 const AdminApp = ({ userProfile, refreshProfile, logout }) => {
@@ -88,10 +89,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'MariaAI') {
       return <Component userProfile={userProfile} />;
     }
-    if (DEPT_TABS.some(d => d.id === activeTab)) {
-      return <Component deptId={activeTab} />;
-    }
-    return <Component />;
+    return <Component deptId={activeTab} />;
   }, [activeTab, contactsKey]);
 
   return (

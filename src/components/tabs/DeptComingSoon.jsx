@@ -8,7 +8,8 @@ import { DEPT_TABS } from '../../constants.js';
 const DeptComingSoon = ({ deptId }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const dept = DEPT_TABS.find(d => d.id === deptId);
+  const dept = DEPT_TABS.find(d => d.id === deptId)
+    || DEPT_TABS.flatMap(d => d.subtabs || []).find(s => s.id === deptId);
   const Icon = dept?.icon;
 
   return (
