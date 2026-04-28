@@ -17,12 +17,12 @@ export function getActivatableServiceIds() {
 function readSet() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return new Set(getActivatableServiceIds());
+    if (raw === null) return new Set();
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return new Set(getActivatableServiceIds());
+    if (!Array.isArray(parsed)) return new Set();
     return new Set(parsed);
   } catch {
-    return new Set(getActivatableServiceIds());
+    return new Set();
   }
 }
 

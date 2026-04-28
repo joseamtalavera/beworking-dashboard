@@ -35,13 +35,13 @@ import {
 
 export const DEPT_TABS = [
   { id: 'Platform', label: 'Platform', icon: OverviewIcon, subtabs: [
-    { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon },
+    { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon, adminOnly: true },
     { id: 'Overview', label: 'Overview', icon: OverviewIcon },
     { id: 'Booking', label: 'Spaces', icon: BookingIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
     { id: 'Services', label: 'Services', icon: ServicesIcon, adminOnly: true },
-    { id: 'Integrations', label: 'Integration', icon: IntegrationsIcon, soon: true },
+    { id: 'Integrations', label: 'Integration', icon: IntegrationsIcon, soon: true, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
   ]},
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
