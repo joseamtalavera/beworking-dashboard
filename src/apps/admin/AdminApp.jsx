@@ -54,7 +54,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
   const theme = useTheme();
   const role = (userProfile?.role || '').toUpperCase();
   const isAccountant = role === 'ACCOUNTANT';
-  const [activeTab, setActiveTab] = useState(isAccountant ? 'Invoices' : 'Overview');
+  const [activeTab, setActiveTab] = useState(isAccountant ? 'Invoices' : 'MariaAI');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
