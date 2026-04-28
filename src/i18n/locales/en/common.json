@@ -22,7 +22,9 @@
     "Marketplace": "Marketplace",
     "SpaceCatalog": "Products",
     "WebGen": "Site",
-    "QA": "QA"
+    "QA": "QA",
+    "MariaAI": "MariaAI",
+    "Services": "Services"
   },
   "greeting": {
     "morning": "Good morning",
@@ -311,6 +313,26 @@
     "Tools": {
       "name": "Tools",
       "description": "Storage, digital signature, passwords, and tickets."
+    },
+    "DomicilioFiscal": {
+      "name": "Business Address",
+      "description": "Your virtual tax address and postal mail handling."
+    },
+    "Legal": {
+      "name": "Legal",
+      "description": "Documents, contracts, and regulatory compliance."
+    },
+    "Automation": {
+      "name": "Automation",
+      "description": "Automated workflows and business rules for your platform."
+    },
+    "Integrations": {
+      "name": "Integrations",
+      "description": "Connect external services like Stripe, Gmail, and more."
     }
+  },
+  "services": {
+    "title": "Services",
+    "subtitle": "Activate the services you want to see in the side menu."
   }
 }

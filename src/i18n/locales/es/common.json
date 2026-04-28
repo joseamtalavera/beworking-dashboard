@@ -22,7 +22,9 @@
     "Marketplace": "Marketplace",
     "SpaceCatalog": "Productos",
     "WebGen": "Sitio",
-    "QA": "QA"
+    "QA": "QA",
+    "MariaAI": "MariaAI",
+    "Services": "Servicios"
   },
   "greeting": {
     "morning": "Buenos días",
@@ -311,6 +313,26 @@
     "Tools": {
       "name": "Herramientas",
       "description": "Almacenamiento, firma digital, contraseñas y tickets."
+    },
+    "DomicilioFiscal": {
+      "name": "Domicilio Fiscal",
+      "description": "Tu dirección fiscal virtual y recepción de correo postal."
+    },
+    "Legal": {
+      "name": "Legal",
+      "description": "Documentos, contratos y cumplimiento normativo."
+    },
+    "Automation": {
+      "name": "Automatización",
+      "description": "Flujos automáticos y reglas de negocio para tu plataforma."
+    },
+    "Integrations": {
+      "name": "Integraciones",
+      "description": "Conecta servicios externos como Stripe, Gmail y más."
     }
+  },
+  "services": {
+    "title": "Servicios",
+    "subtitle": "Activa los servicios que quieres ver en el menú lateral."
   }
 }
