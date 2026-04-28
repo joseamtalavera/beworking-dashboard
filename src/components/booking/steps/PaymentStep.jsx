@@ -165,7 +165,7 @@ function AdminPaymentOptions({ onCreated }) {
   }, [contactEmail]);
 
   // Build the manual invoice payload from booking state + pricing
-  const buildInvoicePayload = (invoiceStatus, isFree = false) => {
+  const buildInvoicePayload = (invoiceStatus, isFree = false, bloqueoId = null) => {
     const description = `${productName} · ${state.dateFrom} ${state.startTime}-${state.endTime}`;
     const startMin = timeStringToMinutes(state.startTime);
     const endMin = timeStringToMinutes(state.endTime);
@@ -181,6 +181,7 @@ function AdminPaymentOptions({ onCreated }) {
       quantity: isFree ? 1 : hours,
       price: isFree ? 0 : hourlyRate,
       vatPercent: vatPct,
+      bloqueoId,
     };
     const extraItems = (extraLines || [])
       .filter((l) => l.description?.trim())
@@ -314,8 +315,10 @@ function AdminPaymentOptions({ onCreated }) {
           if (paymentOption === 'no_invoice') invoiceReq.skipStripe = true;
           await createInvoice(invoiceReq);
         } else {
-          // Single booking: use manual invoice
-          const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free');
+          // Single booking: use manual invoice. Pass the bloqueoId so the backend
+          // links the line to the bloqueo (idbloqueovinculado) and marks it 'Invoiced'.
+          // Without this, the monthly scheduler re-bills the same booking.
+          const invoicePayload = buildInvoicePayload(invoiceStatus, paymentOption === 'free', bloqueoId || null);
           if (stripeInvoiceId) {
             invoicePayload.stripeInvoiceId = stripeInvoiceId;
           }
