@@ -67,6 +67,11 @@ const isRectificativa = (estado) => {
   return key.includes('rectificativ');
 };
 
+const isAnulado = (estado) => {
+  const key = (estado || '').toLowerCase();
+  return key.includes('anul') || key.includes('void') || key.includes('cancel');
+};
+
 const isCreditNote = (inv) => {
   return inv.total != null && Number(inv.total) < 0;
 };
@@ -77,6 +82,9 @@ const getStatusInfo = (inv, t) => {
   }
   if (isRectificado(inv.estado)) {
     return { label: t('rectificado'), color: 'warning' };
+  }
+  if (isAnulado(inv.estado)) {
+    return { label: t('anulado'), color: 'default' };
   }
   if (isPaid(inv.estado)) {
     return { label: t('paid'), color: 'success' };
