@@ -39,6 +39,8 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
 import esInvoices from '../../../i18n/locales/es/invoices.json';
@@ -125,7 +127,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const [exporting, setExporting] = useState(false);
   const [sortDir, setSortDir] = useState('desc');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null });
+  const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null, deleteBookings: false });
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   // In user mode, always filter by the logged-in user's email
@@ -858,7 +860,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       size="small"
                       variant="outlined"
                       clickable
-                      onClick={() => setCreditDialog({ open: true, invoice: inv })}
+                      onClick={() => setCreditDialog({ open: true, invoice: inv, deleteBookings: false })}
                       sx={{
                         borderColor: 'secondary.main',
                         color: 'secondary.main',
@@ -986,17 +988,31 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       )}
       <Dialog
         open={creditDialog.open}
-        onClose={() => setCreditDialog({ open: false, invoice: null })}
-        PaperProps={{ sx: { borderRadius: 3, px: 1 } }}
+        onClose={() => setCreditDialog({ open: false, invoice: null, deleteBookings: false })}
+        PaperProps={{ sx: { borderRadius: 3, px: 1, minWidth: 420 } }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>{t('credit')}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ mb: 2 }}>
             {t('creditConfirm', { invoiceNum: creditDialog.invoice?.holdedInvoiceNum || creditDialog.invoice?.idFactura || creditDialog.invoice?.id })}
           </DialogContentText>
+          {isPaid(creditDialog.invoice?.estado) ? (
+            <Alert severity="warning" sx={{ mb: 2 }}>{t('creditRefundNotice')}</Alert>
+          ) : (
+            <Alert severity="info" sx={{ mb: 2 }}>{t('creditNoRefundNotice')}</Alert>
+          )}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={!!creditDialog.deleteBookings}
+                onChange={(e) => setCreditDialog((c) => ({ ...c, deleteBookings: e.target.checked }))}
+              />
+            }
+            label={t('creditDeleteBookings')}
+          />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setCreditDialog({ open: false, invoice: null })} color="inherit">
+          <Button onClick={() => setCreditDialog({ open: false, invoice: null, deleteBookings: false })} color="inherit">
             {t('editor.close')}
           </Button>
           <Button
@@ -1004,9 +1020,10 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             color="success"
             onClick={async () => {
               const inv = creditDialog.invoice;
-              setCreditDialog({ open: false, invoice: null });
+              const deleteLinkedBookings = !!creditDialog.deleteBookings;
+              setCreditDialog({ open: false, invoice: null, deleteBookings: false });
               try {
-                const result = await creditInvoice(inv.id, {});
+                const result = await creditInvoice(inv.id, { deleteLinkedBookings });
                 const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
                 setSnackbar({ open: true, message: t('refundCreated', { refundId }), severity: 'success' });
                 await refreshList();
