@@ -42,7 +42,7 @@ export const DEPT_TABS = [
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
     { id: 'Services', label: 'Services', icon: ServicesIcon, adminOnly: true },
     { id: 'Integrations', label: 'Integration', icon: IntegrationsIcon, soon: true, adminOnly: true },
-    { id: 'Reports', label: 'Reports', icon: ReportsIcon, soon: true },
+    { id: 'Reports', label: 'Reports', icon: ReportsIcon, adminOnly: true },
   ]},
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
   { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
