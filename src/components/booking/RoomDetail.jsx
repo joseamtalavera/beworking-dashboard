@@ -406,12 +406,14 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 bottom: 16,
                 right: 16,
                 borderRadius: 999,
-                backgroundColor: 'background.paper',
+                backgroundColor: '#fff',
+                color: '#1a1a1a',
                 textTransform: 'none',
                 fontWeight: 600,
                 px: 2.5,
-                boxShadow: (theme) => theme.shadows[6],
-                '&:hover': { backgroundColor: 'background.default' },
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                '& .MuiButton-startIcon': { color: '#1a1a1a' },
+                '&:hover': { backgroundColor: '#f5f5f7' },
               }}
             >
               {t('detail.photos', { count: galleryImages.length })}
