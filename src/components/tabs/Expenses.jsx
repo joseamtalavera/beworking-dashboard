@@ -33,7 +33,7 @@ const Expenses = () => {
               height: 80,
               borderRadius: '50%',
               bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
-              color: 'primary.main'
+              color: 'brand.green'
             }}
           >
             <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 40 }} />

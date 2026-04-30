@@ -587,7 +587,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         )}
         <Button
           variant="outlined"
-          startIcon={<EditRoundedIcon sx={{ color: 'primary.main' }} />}
+          startIcon={<EditRoundedIcon sx={{ color: 'brand.green' }} />}
           onClick={() => setEditorOpen(true)}
           sx={{
             minWidth: 120,
@@ -595,7 +595,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             textTransform: 'none',
             fontWeight: 600,
             borderColor: 'primary.main',
-            color: 'primary.main',
+            color: 'brand.green',
             '&:hover': {
               borderColor: 'primary.dark',
               color: 'primary.dark',
@@ -1269,7 +1269,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               textTransform: 'none',
               fontWeight: 600,
               borderColor: 'primary.main',
-              color: 'primary.main',
+              color: 'brand.green',
               '&:hover': {
                 borderColor: 'primary.dark',
                 color: 'primary.dark',
@@ -1292,7 +1292,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              backgroundColor: 'primary.main',
+              backgroundColor: 'brand.green',
               color: 'primary.contrastText',
               '&:hover': {
                 backgroundColor: 'primary.dark'
@@ -1679,7 +1679,7 @@ const SectionCard = ({ icon: Icon, title, children }) => (
           justifyContent: 'center'
         }}
       >
-        <Icon fontSize="small" sx={{ color: 'primary.main' }} />
+        <Icon fontSize="small" sx={{ color: 'brand.green' }} />
       </Box>
       <Typography variant="subtitle2" fontWeight={600}>
         {title}

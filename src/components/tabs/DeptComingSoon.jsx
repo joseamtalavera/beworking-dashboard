@@ -39,7 +39,7 @@ const DeptComingSoon = ({ deptId }) => {
               mb: 3,
             }}
           >
-            <Icon sx={{ fontSize: 32, color: 'primary.main' }} />
+            <Icon sx={{ fontSize: 32, color: 'brand.green' }} />
           </Box>
         )}
         <Typography variant="h5" fontWeight="bold" color="text.primary" sx={{ mb: 1 }}>

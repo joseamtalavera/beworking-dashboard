@@ -961,7 +961,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             variant="outlined" size="small" startIcon={<LogoutRoundedIcon />}
             sx={{
               minWidth: 120, height: 36, textTransform: 'none', fontWeight: 600,
-              borderColor: 'primary.main', color: 'primary.main',
+              borderColor: 'primary.main', color: 'brand.green',
               '&:hover': {
                 borderColor: 'primary.dark', color: 'primary.dark',
                 backgroundColor: theme.palette.brand.greenSoft,

@@ -943,7 +943,7 @@ const MailboxAdmin = () => {
             <IconButton
               aria-label="search"
               sx={{
-                bgcolor: 'primary.main',
+                bgcolor: 'brand.green',
                 color: 'common.white',
                 width: 44,
                 height: 44,
@@ -968,7 +968,7 @@ const MailboxAdmin = () => {
               color: 'text.secondary',
               borderRadius: 999,
               px: 2,
-              '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+              '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
             }}
           >
             {t('admin.clearFilters')}
@@ -1109,7 +1109,7 @@ const MailboxAdmin = () => {
                                     color: (doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up')
                                       ? 'primary.main' : 'secondary.main',
                                     '&.Mui-disabled': (doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up')
-                                      ? { color: 'primary.main' } : {}
+                                      ? { color: 'brand.green' } : {}
                                   }}
                                 >
                                   <MailOutlineIcon fontSize="small" />
@@ -1125,7 +1125,7 @@ const MailboxAdmin = () => {
                                     disabled={!doc.id || doc.status === 'picked_up'}
                                     sx={{
                                       color: doc.status === 'picked_up' ? 'primary.main' : '#f97316',
-                                      '&.Mui-disabled': doc.status === 'picked_up' ? { color: 'primary.main' } : {}
+                                      '&.Mui-disabled': doc.status === 'picked_up' ? { color: 'brand.green' } : {}
                                     }}
                                   >
                                     <InventoryOutlinedIcon fontSize="small" />
@@ -1141,7 +1141,7 @@ const MailboxAdmin = () => {
                                     disabled={!doc.id || doc.status === 'viewed'}
                                     sx={{
                                       color: doc.status === 'viewed' ? 'primary.main' : 'secondary.main',
-                                      '&.Mui-disabled': doc.status === 'viewed' ? { color: 'primary.main' } : {}
+                                      '&.Mui-disabled': doc.status === 'viewed' ? { color: 'brand.green' } : {}
                                     }}
                                   >
                                     <CheckCircleOutlineOutlinedIcon fontSize="small" />

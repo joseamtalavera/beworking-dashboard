@@ -329,9 +329,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
               '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
             }}
           >
-            <LogoutRoundedIcon sx={{ fontSize: 20, color: 'primary.main', mr: collapsed ? 0 : 1.5 }} />
+            <LogoutRoundedIcon sx={{ fontSize: 20, color: 'brand.green', mr: collapsed ? 0 : 1.5 }} />
             {!collapsed && (
-              <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'primary.main' }}>
+              <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: 'brand.green' }}>
                 {t('sidebar.logout')}
               </Typography>
             )}

@@ -77,7 +77,7 @@ function StepperDialogInner({ open, onClose, onCreated, defaultDate, mode }) {
       maxWidth="lg"
       PaperProps={{
         sx: {
-          borderRadius: '14px',
+          borderRadius: '22px',
           boxShadow: theme.shadows[6],
           maxWidth: 920,
         },
@@ -93,7 +93,7 @@ function StepperDialogInner({ open, onClose, onCreated, defaultDate, mode }) {
       >
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
           <Stack>
-            <Typography variant="h5" fontWeight={700} color="text.primary">
+            <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', color: 'brand.green' }}>
               {t('dialog.createReserva')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -107,7 +107,20 @@ function StepperDialogInner({ open, onClose, onCreated, defaultDate, mode }) {
       </DialogTitle>
 
       <DialogContent dividers sx={{ p: 0 }}>
-        <Box sx={{ px: 3, pt: 2.5, pb: 1 }}>
+        <Box
+          sx={{
+            px: 3,
+            pt: 2.5,
+            pb: 1,
+            '& .MuiStepIcon-root': { color: 'divider' },
+            '& .MuiStepIcon-root.Mui-active': { color: 'brand.green' },
+            '& .MuiStepIcon-root.Mui-completed': { color: 'brand.green' },
+            '& .MuiStepLabel-label': { color: 'text.secondary', fontSize: '0.85rem' },
+            '& .MuiStepLabel-label.Mui-active': { color: 'text.primary', fontWeight: 600 },
+            '& .MuiStepLabel-label.Mui-completed': { color: 'text.secondary' },
+            '& .MuiStepConnector-line': { borderColor: 'divider' },
+          }}
+        >
           <Stepper activeStep={state.activeStep} alternativeLabel>
             {STEP_LABELS.map((label) => (
               <Step key={label}>

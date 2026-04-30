@@ -238,7 +238,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                         onClick={handleClearSearch}
                         sx={{
                           color: 'text.disabled',
-                          '&:hover': { color: 'primary.main', backgroundColor: 'action.hover' }
+                          '&:hover': { color: 'brand.green', backgroundColor: 'action.hover' }
                         }}
                       >
                         <CloseRoundedIcon fontSize="small" />

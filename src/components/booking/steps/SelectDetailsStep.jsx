@@ -39,7 +39,7 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
 }
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -735,7 +735,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             }
             label={
               <Stack direction="row" spacing={1} alignItems="center">
-                <EventRepeatRoundedIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+                <EventRepeatRoundedIcon sx={{ fontSize: 20, color: 'brand.green' }} />
                 <Typography variant="body2" fontWeight={600}>
                   {t('steps.recurringBooking')}
                 </Typography>
@@ -762,15 +762,20 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                       key={day}
                       value={day}
                       sx={{
-                        px: 1.5,
+                        px: 1.75,
                         py: 0.5,
-                        borderRadius: '8px !important',
+                        borderRadius: '999px !important',
                         border: '1px solid',
                         borderColor: 'divider',
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        transition: (theme) => theme.transitions.create(['border-color', 'background-color', 'color']),
+                        '&:hover': { borderColor: 'brand.green' },
                         '&.Mui-selected': {
-                          bgcolor: 'primary.main',
-                          color: 'primary.contrastText',
-                          '&:hover': { bgcolor: 'primary.dark' },
+                          bgcolor: 'brand.green',
+                          color: 'common.white',
+                          borderColor: 'brand.green',
+                          '&:hover': { bgcolor: 'brand.greenHover', borderColor: 'brand.greenHover' },
                         },
                       }}
                     >
@@ -784,9 +789,14 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                 <Chip
                   icon={<EventRepeatRoundedIcon />}
                   label={t('steps.bookingsWillBeCreated', { count: bookingCount })}
-                  color="primary"
-                  variant="outlined"
-                  sx={{ alignSelf: 'flex-start' }}
+                  sx={{
+                    alignSelf: 'flex-start',
+                    bgcolor: 'brand.accentSoft',
+                    color: 'brand.greenHover',
+                    border: '1px solid',
+                    borderColor: 'brand.green',
+                    '& .MuiChip-icon': { color: 'brand.greenHover' },
+                  }}
                 />
               )}
             </>

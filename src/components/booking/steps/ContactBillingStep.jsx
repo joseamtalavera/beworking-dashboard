@@ -60,7 +60,7 @@ const splitName = (fullName) => {
 };
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -233,7 +233,7 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
         ) : (
           /* User: show profile as confirmed contact (same compact style as admin) */
           <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 2, borderRadius: 2, bgcolor: 'action.hover' }}>
-            <Avatar sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontWeight: 700, fontSize: '1rem' }}>
+            <Avatar sx={{ width: 44, height: 44, bgcolor: 'brand.green', fontWeight: 700, fontSize: '1rem' }}>
               {initials || <PersonOutlineRoundedIcon />}
             </Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>

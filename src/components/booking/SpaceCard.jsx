@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n.js';
 import esBooking from '../../i18n/locales/es/booking.json';
 import enBooking from '../../i18n/locales/en/booking.json';
+import { tokens } from '../../theme/tokens.js';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('es', 'booking', esBooking);
@@ -45,10 +46,12 @@ const SpaceCard = ({ space, onBookNow }) => {
     >
       <Card
         sx={{
-          borderRadius: '14px',
+          borderRadius: `${tokens.radius.lg}px`,
           overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
           boxShadow: (theme) => `0 4px 6px -1px ${alpha(theme.palette.common.black, 0.1)}`,
-          transition: 'transform 0.2s, box-shadow 0.2s',
+          transition: `transform ${tokens.motion.duration} ${tokens.motion.ease}, box-shadow ${tokens.motion.duration} ${tokens.motion.ease}, border-color ${tokens.motion.duration} ${tokens.motion.ease}`,
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -57,6 +60,7 @@ const SpaceCard = ({ space, onBookNow }) => {
           maxWidth: '100%',
           '&:hover': {
             transform: 'translateY(-2px)',
+            borderColor: 'brand.green',
             boxShadow: (theme) => `0 10px 25px -3px ${alpha(theme.palette.common.black, 0.1)}`
           }
         }}
@@ -216,7 +220,7 @@ const SpaceCard = ({ space, onBookNow }) => {
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
-                backgroundColor: 'primary.main',
+                backgroundColor: 'brand.green',
                 flexShrink: 0,
                 '&:hover': {
                   backgroundColor: 'primary.dark'

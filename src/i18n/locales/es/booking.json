@@ -188,6 +188,8 @@
     "freeBookingSuccess": "Reserva gratuita ({{used}} de {{limit}}) — no se requiere pago.",
     "confirmFreeBooking": "Confirmar reserva gratuita",
     "securePaymentStripe": "Pago seguro con Stripe",
+    "verificationNoteTitle": "¿Por qué verás un cargo de 0,01 €?",
+    "verificationNote": "Si eliges iDEAL u otro método bancario, tu banco mostrará un cargo de 0,01 € para verificar tu cuenta. Se reembolsa automáticamente en 1-2 días. No es un cargo real — solo confirma que la cuenta es tuya.",
     "payAmount": "Pagar €{{amount}}",
     "checkingEligibility": "Verificando elegibilidad de reserva...",
     "preparingPayment": "Preparando pago seguro...",

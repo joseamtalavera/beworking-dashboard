@@ -1766,7 +1766,7 @@ const ReservaDialog = ({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: 'primary.main'
+                      backgroundColor: 'brand.green'
                     }}
                   />
                   <Typography variant="subtitle1" fontWeight={600} color="text.primary">
@@ -2281,7 +2281,7 @@ const ReservaDialog = ({
               textTransform: 'none',
               fontWeight: 600,
               borderColor: 'primary.main',
-              color: 'primary.main',
+              color: 'brand.green',
               '&:hover': {
                 borderColor: 'primary.dark',
                 color: 'primary.dark',
@@ -2303,7 +2303,7 @@ const ReservaDialog = ({
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              backgroundColor: 'primary.main',
+              backgroundColor: 'brand.green',
               color: 'primary.contrastText',
               '&:hover': {
                 backgroundColor: 'primary.dark'
@@ -3193,7 +3193,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                       borderBottomColor: 'divider'
                     }}>
                       <Stack direction="row" alignItems="center" spacing={2}>
-                        <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                        <Avatar sx={{ bgcolor: 'brand.green', width: 36, height: 36 }}>
                           <AccessTimeRoundedIcon />
                         </Avatar>
                         <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -3253,7 +3253,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                         borderBottomColor: 'divider'
                       }}>
                         <Stack direction="row" alignItems="center" spacing={2}>
-                          <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                          <Avatar sx={{ bgcolor: 'brand.green', width: 36, height: 36 }}>
                             <EuroRoundedIcon />
                           </Avatar>
                           <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -3806,7 +3806,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
                 <TableRow key={bloqueo.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                   <TableCell>
                     <Stack direction="row" spacing={2} alignItems="center">
-                      <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 40, height: 40 }}>
+                      <Avatar sx={{ bgcolor: 'primary.light', color: 'brand.green', width: 40, height: 40 }}>
                         <MeetingRoomRoundedIcon fontSize="small" />
                       </Avatar>
                       <Box>
@@ -4000,7 +4000,7 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
 };
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -4775,7 +4775,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
               fontWeight: 600,
               fontSize: '0.875rem',
               px: 2.5,
-              backgroundColor: 'primary.main',
+              backgroundColor: 'brand.green',
               color: 'primary.contrastText',
               '&:hover': {
                 backgroundColor: 'primary.dark'
@@ -5114,7 +5114,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
               <IconButton
                 aria-label="search"
                 sx={{
-                  bgcolor: 'primary.main',
+                  bgcolor: 'brand.green',
                   color: 'common.white',
                   width: 44,
                   height: 44,
@@ -5147,7 +5147,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                 color: 'text.secondary',
                 borderRadius: 999,
                 px: 2,
-                '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+                '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
               }}
             >
               {t('admin.reset')}

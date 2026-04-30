@@ -64,7 +64,7 @@ const SubscriptionGate = ({ open, onClose }) => {
             mb: 3,
           }}
         >
-          <LockOutlinedIcon sx={{ fontSize: 36, color: 'primary.main' }} />
+          <LockOutlinedIcon sx={{ fontSize: 36, color: 'brand.green' }} />
         </Box>
 
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
@@ -77,7 +77,7 @@ const SubscriptionGate = ({ open, onClose }) => {
           })}
         </Typography>
 
-        <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main', mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'brand.green', mb: 3 }}>
           {t('subscription.gatePrice', {
             defaultValue: 'Activa tu Plan Basic desde 15€/mes',
           })}

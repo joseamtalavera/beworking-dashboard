@@ -64,7 +64,7 @@ const Services = () => {
                         flexShrink: 0,
                       }}
                     >
-                      <Icon sx={{ fontSize: 22, color: 'primary.main' }} />
+                      <Icon sx={{ fontSize: 22, color: 'brand.green' }} />
                     </Box>
                     <Stack spacing={0.25} sx={{ minWidth: 0 }}>
                       <Stack direction="row" spacing={0.75} alignItems="center">

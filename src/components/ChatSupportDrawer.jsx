@@ -111,7 +111,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <AutoAwesomeOutlinedIcon sx={{ color: 'primary.main', fontSize: 24 }} />
+          <AutoAwesomeOutlinedIcon sx={{ color: 'brand.green', fontSize: 24 }} />
           <Box>
             <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem' }}>MariaAI</Typography>
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>Asistente de soporte</Typography>
@@ -175,7 +175,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
 
         {loading && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-            <CircularProgress size={16} sx={{ color: 'primary.main' }} />
+            <CircularProgress size={16} sx={{ color: 'brand.green' }} />
             <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>Pensando...</Typography>
           </Box>
         )}
@@ -203,7 +203,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
           <Divider sx={{ mb: 2 }} />
           {ticketSent ? (
             <Box sx={{ textAlign: 'center', py: 2 }}>
-              <Typography sx={{ color: 'primary.main', fontWeight: 500, fontSize: '0.875rem' }}>
+              <Typography sx={{ color: 'brand.green', fontWeight: 500, fontSize: '0.875rem' }}>
                 Ticket creado correctamente
               </Typography>
               <Button size="small" onClick={() => { setShowTicketForm(false); setTicketSent(false); }}
@@ -281,7 +281,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
           onClick={handleSend}
           disabled={!input.trim() || loading}
           sx={{
-            bgcolor: 'primary.main',
+            bgcolor: 'brand.green',
             color: '#fff',
             width: 40,
             height: 40,

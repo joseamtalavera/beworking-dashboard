@@ -592,9 +592,19 @@ function UserFreeBookingForm({ onCreated, usage }) {
 
   if (success) {
     return (
-      <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          borderRadius: '14px',
+          textAlign: 'center',
+          bgcolor: 'brand.accentSoft',
+          border: '1px solid',
+          borderColor: 'brand.green',
+        }}
+      >
         <Stack spacing={3} alignItems="center">
-          <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
+          <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'brand.green' }} />
           <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{t('steps.bookingConfirmed')}</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
             {t('steps.freeBookingSuccess', { used: usage.used + 1, limit: usage.freeLimit })}
@@ -731,9 +741,19 @@ function UserPaymentFormInner({ onCreated }) {
 
   if (success) {
     return (
-      <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          borderRadius: '14px',
+          textAlign: 'center',
+          bgcolor: 'brand.accentSoft',
+          border: '1px solid',
+          borderColor: 'brand.green',
+        }}
+      >
         <Stack spacing={3} alignItems="center">
-          <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
+          <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'brand.green' }} />
           <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{t('steps.bookingConfirmed')}</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
             {t('steps.paymentSuccessful', { amount: pricing.total.toFixed(2) })}
@@ -759,6 +779,26 @@ function UserPaymentFormInner({ onCreated }) {
           <PaymentElement />
         </Stack>
       </Paper>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.5,
+          p: 1.75,
+          borderRadius: '14px',
+          bgcolor: 'action.hover',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: 'text.primary', letterSpacing: '-0.005em' }}>
+          {t('steps.verificationNoteTitle')}
+        </Typography>
+        <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.55 }}>
+          {t('steps.verificationNote')}
+        </Typography>
+      </Box>
 
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button onClick={prevStep} disabled={submitting} sx={backButtonSx}>
@@ -877,7 +917,7 @@ function UserPaymentForm({ onCreated }) {
               sx={{
                 width: 32, height: 32,
                 border: '3px solid', borderColor: 'divider',
-                borderTopColor: 'primary.main', borderRadius: '50%',
+                borderTopColor: 'brand.green', borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite',
                 '@keyframes spin': { to: { transform: 'rotate(360deg)' } },
               }}

@@ -570,7 +570,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                 borderBottomColor: 'divider'
               }}>
                 <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                  <Avatar sx={{ bgcolor: 'brand.green', width: 36, height: 36 }}>
                     <BusinessRoundedIcon />
                   </Avatar>
                   <Typography variant="h6" fontWeight={600} color="text.primary">
@@ -1305,7 +1305,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             <IconButton
               aria-label="search"
               sx={{
-                bgcolor: 'primary.main',
+                bgcolor: 'brand.green',
                 color: 'common.white',
                 width: 44,
                 height: 44,
@@ -1330,7 +1330,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               color: 'text.secondary',
               borderRadius: 999,
               px: 2,
-              '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+              '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
             }}
           >
             {t('filters.reset')}

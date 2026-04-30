@@ -313,7 +313,7 @@ const Integrations = () => {
           <IconButton
             aria-label="Search"
             sx={{
-              bgcolor: 'primary.main', color: 'common.white',
+              bgcolor: 'brand.green', color: 'common.white',
               width: 44, height: 44,
               '&:hover': { bgcolor: 'primary.dark' },
             }}

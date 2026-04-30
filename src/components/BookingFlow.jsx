@@ -307,7 +307,7 @@ const BookingFlow = () => {
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 600,
-                  backgroundColor: 'primary.main',
+                  backgroundColor: 'brand.green',
                   '&:hover': {
                     backgroundColor: 'primary.dark'
                   }
@@ -534,7 +534,7 @@ const BookingFlow = () => {
                       </Typography>
                     </Stack>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <StarIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                      <StarIcon sx={{ fontSize: 16, color: 'brand.green' }} />
                       <Typography variant="body2" color="text.secondary">
                         {room.rating} ({room.reviewCount})
                       </Typography>
@@ -560,7 +560,7 @@ const BookingFlow = () => {
                       sx={{
                         textTransform: 'none',
                         fontWeight: 600,
-                        backgroundColor: 'primary.main',
+                        backgroundColor: 'brand.green',
                         '&:hover': {
                           backgroundColor: 'primary.dark'
                         }

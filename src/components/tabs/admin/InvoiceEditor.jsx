@@ -714,7 +714,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                 disabled={submitting}
                 onClick={() => handleSubmit(editMode ? (initial.status || 'Pendiente') : 'Pendiente')}
                 sx={{
-                  backgroundColor: 'primary.main',
+                  backgroundColor: 'brand.green',
                   color: 'white',
                   borderRadius: 1,
                   '&:hover': { backgroundColor: 'primary.dark' }

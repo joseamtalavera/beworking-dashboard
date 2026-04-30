@@ -627,7 +627,7 @@ const SpaceCatalog = () => {
           variant="contained"
           onClick={handleAdd}
           sx={{
-            backgroundColor: 'primary.main',
+            backgroundColor: 'brand.green',
             '&:hover': { backgroundColor: 'primary.dark' },
             fontWeight: 600,
             whiteSpace: 'nowrap'
@@ -762,7 +762,7 @@ const SpaceCatalog = () => {
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
-                '&.Mui-selected': { color: 'primary.main' }
+                '&.Mui-selected': { color: 'brand.green' }
               }}
             />
             <Tab
@@ -771,7 +771,7 @@ const SpaceCatalog = () => {
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
-                '&.Mui-selected': { color: 'primary.main' }
+                '&.Mui-selected': { color: 'brand.green' }
               }}
             />
           </Tabs>
@@ -1058,7 +1058,7 @@ const SpaceCatalog = () => {
                               onChange={handleAmenityToggle(amenity)}
                               sx={{
                                 '&.Mui-checked': {
-                                  color: 'primary.main'
+                                  color: 'brand.green'
                                 }
                               }}
                             />

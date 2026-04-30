@@ -254,7 +254,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
                     size="small"
                     sx={{
                       position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                      fontWeight: 700, fontSize: '0.7rem', bgcolor: 'primary.main', color: '#fff',
+                      fontWeight: 700, fontSize: '0.7rem', bgcolor: 'brand.green', color: '#fff',
                       borderRadius: '999px', px: 1.5, height: 24,
                     }}
                   />
@@ -266,14 +266,14 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
                 </Typography>
 
                 <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 2 }}>
-                  <Typography sx={{ fontSize: '2.25rem', fontWeight: 800, color: 'primary.main', lineHeight: 1 }}>{plan.price}€</Typography>
+                  <Typography sx={{ fontSize: '2.25rem', fontWeight: 800, color: 'brand.green', lineHeight: 1 }}>{plan.price}€</Typography>
                   <Typography variant="body2" color="text.secondary">/mes</Typography>
                 </Stack>
 
                 <Stack spacing={1.25} sx={{ flex: 1, mb: 2.5 }}>
                   {(plan.features[lang] || plan.features.en).map((f) => (
                     <Stack key={f} direction="row" spacing={1} alignItems="flex-start">
-                      <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: 'primary.main', mt: 0.2 }} />
+                      <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: 'brand.green', mt: 0.2 }} />
                       <Typography variant="body2" sx={{ lineHeight: 1.5 }}>{f}</Typography>
                     </Stack>
                   ))}
@@ -313,7 +313,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
             ? 'Todos los planes incluyen la Plataforma BeWorking completa: panel de gestión, facturación y todas las herramientas. Cambia de plan en cualquier momento.'
             : 'All plans include the full BeWorking Platform: management dashboard, invoicing and all tools. Change your plan at any time.'}
         </Typography>
-        <Typography variant="body2" sx={{ textAlign: 'center', mt: 1.5, fontWeight: 600, color: 'primary.main' }}>
+        <Typography variant="body2" sx={{ textAlign: 'center', mt: 1.5, fontWeight: 600, color: 'brand.green' }}>
           {lang === 'es' ? 'Todos los precios + IVA. Sin permanencia.' : 'All prices + VAT. No commitment.'}
         </Typography>
       </DialogContent>

@@ -188,6 +188,8 @@
     "freeBookingSuccess": "Free booking ({{used}} of {{limit}}) — no payment required.",
     "confirmFreeBooking": "Confirm free booking",
     "securePaymentStripe": "Secure payment powered by Stripe",
+    "verificationNoteTitle": "Why you'll see a €0.01 charge",
+    "verificationNote": "If you choose iDEAL or another bank method, your bank will show a €0.01 charge to verify your account. It refunds automatically in 1-2 days. It isn't a real charge — it just confirms the account is yours.",
     "payAmount": "Pay €{{amount}}",
     "checkingEligibility": "Checking booking eligibility...",
     "preparingPayment": "Preparing secure payment...",

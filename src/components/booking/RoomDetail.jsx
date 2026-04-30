@@ -122,7 +122,7 @@ const DEFAULT_BOOKING_INSTRUCTIONS = [
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -462,7 +462,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                               },
                             }}
                           >
-                            <AmenityIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                            <AmenityIcon sx={{ fontSize: 18, color: 'brand.green' }} />
                             <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 500 }}>
                               {amenity}
                             </Typography>
@@ -484,7 +484,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                     const PolicyIcon = pickPolicyIcon(item);
                     return (
                       <Stack direction="row" spacing={1.5} key={item}>
-                        <PolicyIcon sx={{ color: 'primary.main', mt: 0.35, flexShrink: 0 }} fontSize="small" />
+                        <PolicyIcon sx={{ color: 'brand.green', mt: 0.35, flexShrink: 0 }} fontSize="small" />
                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                           {item}
                         </Typography>
@@ -504,7 +504,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                     const InstructionIcon = pickInstructionIcon(item);
                     return (
                       <Stack direction="row" spacing={1.5} key={item}>
-                        <InstructionIcon sx={{ color: 'primary.main', mt: 0.35, flexShrink: 0 }} fontSize="small" />
+                        <InstructionIcon sx={{ color: 'brand.green', mt: 0.35, flexShrink: 0 }} fontSize="small" />
                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                           {item}
                         </Typography>
@@ -537,7 +537,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                       textTransform: 'none',
                       fontWeight: 700,
                       fontSize: '0.95rem',
-                      backgroundColor: 'primary.main',
+                      backgroundColor: 'brand.green',
                       '&:hover': { backgroundColor: 'primary.dark' },
                       borderRadius: 999,
                       px: 5,
@@ -623,7 +623,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                     textTransform: 'none',
                     fontWeight: 700,
                     fontSize: '0.95rem',
-                    backgroundColor: 'primary.main',
+                    backgroundColor: 'brand.green',
                     '&:hover': { backgroundColor: 'primary.dark' },
                     borderRadius: 999,
                     px: 5,

@@ -183,61 +183,61 @@ export default function ReviewSummary({ state }) {
         sx={{ px: 2.5, py: 2 }}
       >
         <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
-          <CalendarMonthRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+          <CalendarMonthRoundedIcon sx={{ color: 'brand.green', fontSize: 20 }} />
           <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'center' }}>
             {isRecurring
               ? t('steps.recurringDateRange', { from: formatDate(state.dateFrom), to: formatDate(state.dateTo) })
               : formatDate(state.dateFrom)}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
             {isRecurring ? t('admin.dateRange') : t('steps.date')}
           </Typography>
         </Stack>
         {isDesk ? (
           <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
-            <PlaceRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <PlaceRoundedIcon sx={{ color: 'brand.green', fontSize: 20 }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {roomName}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
               {state.reservationType === 'Mensual' ? t('steps.monthly') : t('steps.daily')}
             </Typography>
           </Stack>
         ) : (
           <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
-            <AccessTimeRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <AccessTimeRoundedIcon sx={{ color: 'brand.green', fontSize: 20 }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {state.startTime && state.endTime
                 ? `${state.startTime} – ${state.endTime}`
                 : '—'}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.time')}</Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>{t('steps.time')}</Typography>
           </Stack>
         )}
         {isRecurring && (
           <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
-            <EventRepeatRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <EventRepeatRoundedIcon sx={{ color: 'brand.green', fontSize: 20 }} />
             <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'center' }}>
               {weekdayLabels}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
               {t('steps.recurringCount', { count: bookingCount })}
             </Typography>
           </Stack>
         )}
         {state.attendees && (
           <Stack spacing={0.25} sx={{ flex: 1, alignItems: 'center' }}>
-            <PeopleAltRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            <PeopleAltRoundedIcon sx={{ color: 'brand.green', fontSize: 20 }} />
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {state.attendees}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>{t('steps.attendees')}</Typography>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>{t('steps.attendees')}</Typography>
           </Stack>
         )}
       </Stack>
 
       {/* Pricing breakdown */}
-      <Stack sx={{ px: 2.5, py: 1.5, borderTop: '1px solid', borderColor: 'divider' }} spacing={0.5}>
+      <Stack sx={{ px: 2.5, py: 1.5, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'action.hover' }} spacing={0.5}>
         {isFree ? (
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="body2" sx={{ fontWeight: 600 }}>

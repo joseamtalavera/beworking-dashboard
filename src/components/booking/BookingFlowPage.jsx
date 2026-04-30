@@ -144,7 +144,22 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
         </Box>
       )}
 
-      <Paper variant="outlined" sx={{ px: 3, py: 2, borderRadius: '14px', mb: 4 }}>
+      <Paper
+        variant="outlined"
+        sx={{
+          px: 3,
+          py: 2,
+          borderRadius: '14px',
+          mb: 4,
+          '& .MuiStepIcon-root': { color: 'divider' },
+          '& .MuiStepIcon-root.Mui-active': { color: 'brand.green' },
+          '& .MuiStepIcon-root.Mui-completed': { color: 'brand.green' },
+          '& .MuiStepLabel-label': { color: 'text.secondary', fontSize: '0.85rem' },
+          '& .MuiStepLabel-label.Mui-active': { color: 'text.primary', fontWeight: 600 },
+          '& .MuiStepLabel-label.Mui-completed': { color: 'text.secondary' },
+          '& .MuiStepConnector-line': { borderColor: 'divider' },
+        }}
+      >
         <Stepper activeStep={state.activeStep} alternativeLabel>
           {STEP_LABELS.map((label) => (
             <Step key={label}>

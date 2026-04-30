@@ -515,7 +515,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           <IconButton
             aria-label="search"
             sx={{
-              bgcolor: 'primary.main',
+              bgcolor: 'brand.green',
               color: 'common.white',
               width: 44,
               height: 44,
@@ -559,7 +559,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             color: 'text.secondary',
             borderRadius: 999,
             px: 2,
-            '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+            '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
           }}
         >
           {t('reset')}
@@ -574,7 +574,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               fontWeight: 600,
               borderRadius: 999,
               px: 2,
-              backgroundColor: 'primary.main',
+              backgroundColor: 'brand.green',
               color: 'white',
               '&:hover': { backgroundColor: 'primary.dark' },
             }}
@@ -594,7 +594,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               borderRadius: 999,
               px: 2,
               borderColor: 'primary.main',
-              color: 'primary.main',
+              color: 'brand.green',
               '&:hover': { borderColor: 'primary.dark', color: 'primary.dark' },
             }}
           >
@@ -613,7 +613,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               borderRadius: 999,
               px: 2,
               borderColor: 'primary.main',
-              color: 'primary.main',
+              color: 'brand.green',
               '&:hover': { borderColor: 'primary.dark', color: 'primary.dark' },
             }}
           >
@@ -842,7 +842,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       onClick={openPdf}
                       sx={{
                         borderColor: 'primary.main',
-                        color: 'primary.main',
+                        color: 'brand.green',
                         fontWeight: 600,
                         fontSize: '0.75rem',
                         height: 24,
