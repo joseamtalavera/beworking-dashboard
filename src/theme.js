@@ -199,7 +199,7 @@ export const getDesignTokens = (mode = 'light') => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: 14,
             boxShadow: 'none',
             border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
           },
@@ -341,13 +341,13 @@ export const getDesignTokens = (mode = 'light') => {
       },
       h2: {
         fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
-        fontWeight: 500,
+        fontWeight: 600,
         lineHeight: 1.12,
         letterSpacing: '-0.03em',
       },
       h3: {
         fontSize: 'clamp(1.5rem, 2.5vw, 2rem)',
-        fontWeight: 500,
+        fontWeight: 600,
         lineHeight: 1.15,
         letterSpacing: '-0.025em',
       },

@@ -89,11 +89,11 @@ const MariaAI = ({ userProfile }) => {
           </Box>
           <Typography
             sx={{
-              fontFamily: '"Poppins", sans-serif',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               fontWeight: 600,
               fontSize: { xs: '1.75rem', sm: '2.25rem' },
               color: 'text.primary',
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.025em',
             }}
           >
             {greeting}

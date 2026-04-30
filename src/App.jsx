@@ -13,8 +13,8 @@ import { useAuthProfile } from './components/hooks/useAuthProfile.js';
 const BrandedDialog = ({ open, icon: Icon, title, message, buttonText, onAction }) => (
   <Dialog open={open} disableEscapeKeyDown PaperProps={{ sx: { borderRadius: 4, maxWidth: 380, mx: 2 } }}>
     <Box sx={{ px: 4, pt: 5, pb: 4, textAlign: 'center' }}>
-      <Box sx={{ width: 52, height: 52, borderRadius: '50%', bgcolor: 'rgba(0,150,36,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2.5 }}>
-        <Icon sx={{ fontSize: 26, color: '#009624' }} />
+      <Box sx={(theme) => ({ width: 52, height: 52, borderRadius: '50%', bgcolor: theme.palette.brand.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2.5 })}>
+        <Icon sx={{ fontSize: 26, color: 'primary.main' }} />
       </Box>
       <Typography sx={{ fontWeight: 700, fontSize: '1.125rem', color: 'text.primary', mb: 1 }}>{title}</Typography>
       <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem', lineHeight: 1.6, mb: 3.5 }}>{message}</Typography>
