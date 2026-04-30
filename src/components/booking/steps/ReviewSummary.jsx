@@ -130,18 +130,18 @@ export default function ReviewSummary({ state }) {
       <Box
         sx={{
           position: 'relative',
-          height: 140,
+          height: 160,
           backgroundImage: heroImage ? `url(${heroImage})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          bgcolor: heroImage ? undefined : (theme) => alpha(theme.palette.primary.main, 0.08),
+          bgcolor: heroImage ? undefined : '#f5f5f7',
         }}
       >
         <Box
           sx={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)',
           }}
         />
         <Stack
@@ -151,12 +151,12 @@ export default function ReviewSummary({ state }) {
           alignItems="flex-end"
         >
           <Box>
-            <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, letterSpacing: '-0.01em' }}>
+            <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em' }}>
               {roomName}
             </Typography>
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <PlaceRoundedIcon sx={{ color: 'grey.300', fontSize: 16 }} />
-              <Typography variant="body2" sx={{ color: 'grey.300' }}>
+              <PlaceRoundedIcon sx={{ color: 'rgba(255,255,255,0.8)', fontSize: 16 }} />
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.85rem' }}>
                 {centroName}
               </Typography>
             </Stack>
@@ -170,10 +170,12 @@ export default function ReviewSummary({ state }) {
                 fontWeight: 600,
                 fontSize: '0.95rem',
                 height: 32,
+                borderRadius: '999px',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
                 '&.MuiChip-root': {
                   bgcolor: isFree ? 'success.main' : '#fff',
                   color: isFree ? '#fff' : '#1a1a1a',
+                  borderRadius: '999px',
                 },
               }}
             />
@@ -242,7 +244,7 @@ export default function ReviewSummary({ state }) {
       </Stack>
 
       {/* Pricing breakdown */}
-      <Stack sx={{ px: 2.5, py: 1.5, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'action.hover' }} spacing={0.5}>
+      <Stack sx={{ px: 2.5, py: 1.5, borderTop: '1px solid', borderColor: 'divider', bgcolor: '#f5f5f7' }} spacing={0.5}>
         {isFree ? (
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -282,10 +284,10 @@ export default function ReviewSummary({ state }) {
             )}
             <Divider sx={{ my: 0.5 }} />
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1d1d1f' }}>
                 {isRecurring ? t('steps.totalAllBookings', { count: bookingCount }) : t('steps.total')}
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>€{grandTotal.toFixed(2)}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1d1d1f' }}>€{grandTotal.toFixed(2)}</Typography>
             </Stack>
           </>
         )}

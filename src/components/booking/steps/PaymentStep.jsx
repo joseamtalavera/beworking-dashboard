@@ -41,6 +41,7 @@ import { useBookingFlow } from '../BookingFlowContext';
 import { timeStringToMinutes } from '../../../utils/calendarUtils';
 import ReviewSummary, { computePricing, computeBookingCount } from './ReviewSummary';
 import ExtraLineItems from '../ExtraLineItems';
+import { tokens } from '../../../theme/tokens.js';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('es', 'booking', esBooking);
@@ -54,22 +55,27 @@ const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 const WEEKDAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 const pillButtonSx = {
+  bgcolor: 'brand.green',
+  color: '#fff',
   borderRadius: 999,
   px: 4,
-  py: 1.25,
+  py: 1.4,
   textTransform: 'none',
   fontWeight: 600,
   fontSize: '0.95rem',
+  transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`,
+  '&:hover': { bgcolor: 'brand.greenHover', boxShadow: 'none' },
+  '&.Mui-disabled': { bgcolor: 'divider', color: '#6e6e73' },
 };
 
 const backButtonSx = {
   borderRadius: 999,
   px: 3,
-  py: 1.25,
+  py: 1.4,
   textTransform: 'none',
   fontWeight: 600,
-  color: 'text.primary',
-  '&:hover': { backgroundColor: 'brand.accentSoft', color: 'brand.green' },
+  color: '#424245',
+  '&:hover': { bgcolor: '#f5f5f7', color: '#1d1d1f' },
 };
 
 function isMonthlyDeskBooking(state) {
@@ -622,13 +628,22 @@ function UserFreeBookingForm({ onCreated, usage }) {
       {error && <Alert severity="error">{error}</Alert>}
       <ReviewSummary state={state} />
 
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          borderRadius: '22px',
+          bgcolor: 'brand.accentSoft',
+          border: '1px solid',
+          borderColor: 'brand.green',
+        }}
+      >
         <Stack spacing={1.5} alignItems="center" sx={{ py: 1 }}>
-          <CheckCircleRoundedIcon sx={{ fontSize: 40, color: 'success.main' }} />
+          <CheckCircleRoundedIcon sx={{ fontSize: 40, color: 'brand.green' }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
             {t('steps.freeBookingAvailable')}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
+          <Typography variant="body2" sx={{ color: '#424245', textAlign: 'center' }}>
             {t('steps.freeBookingUsage', { used: usage.used, limit: usage.freeLimit })}
           </Typography>
         </Stack>
@@ -768,11 +783,11 @@ function UserPaymentFormInner({ onCreated }) {
       {error && <Alert severity="error">{error}</Alert>}
       <ReviewSummary state={state} />
 
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '22px' }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} alignItems="center">
-            <LockRoundedIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            <LockRoundedIcon sx={{ fontSize: 18, color: '#6e6e73' }} />
+            <Typography variant="body2" sx={{ color: '#424245' }}>
               {t('steps.securePaymentStripe')}
             </Typography>
           </Stack>
@@ -787,15 +802,15 @@ function UserPaymentFormInner({ onCreated }) {
           gap: 0.5,
           p: 1.75,
           borderRadius: '14px',
-          bgcolor: 'action.hover',
+          bgcolor: '#f5f5f7',
           border: '1px solid',
           borderColor: 'divider',
         }}
       >
-        <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: 'text.primary', letterSpacing: '-0.005em' }}>
+        <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.005em' }}>
           {t('steps.verificationNoteTitle')}
         </Typography>
-        <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.55 }}>
+        <Typography sx={{ fontSize: '0.78rem', color: '#424245', lineHeight: 1.55 }}>
           {t('steps.verificationNote')}
         </Typography>
       </Box>
@@ -885,7 +900,7 @@ function UserPaymentForm({ onCreated }) {
     return (
       <Stack spacing={3}>
         <ReviewSummary state={state} />
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
+        <Paper variant="outlined" sx={{ p: 4, borderRadius: '22px', textAlign: 'center' }}>
           <Stack spacing={2} alignItems="center">
             <CircularProgress size={28} />
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -911,7 +926,7 @@ function UserPaymentForm({ onCreated }) {
     return (
       <Stack spacing={3}>
         <ReviewSummary state={state} />
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
+        <Paper variant="outlined" sx={{ p: 4, borderRadius: '22px', textAlign: 'center' }}>
           <Stack spacing={2} alignItems="center">
             <Box
               sx={{

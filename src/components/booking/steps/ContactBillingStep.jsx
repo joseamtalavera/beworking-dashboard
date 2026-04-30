@@ -27,6 +27,7 @@ import enBooking from '../../../i18n/locales/en/booking.json';
 import { fetchBookingContacts, fetchBookingUsage } from '../../../api/bookings.js';
 import { useBookingFlow } from '../BookingFlowContext';
 import ReviewSummary from './ReviewSummary';
+import { tokens } from '../../../theme/tokens.js';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('es', 'booking', esBooking);
@@ -34,22 +35,27 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
 }
 
 const pillButtonSx = {
+  bgcolor: 'brand.green',
+  color: '#fff',
   borderRadius: 999,
   px: 4,
-  py: 1.25,
+  py: 1.4,
   textTransform: 'none',
   fontWeight: 600,
   fontSize: '0.95rem',
+  transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`,
+  '&:hover': { bgcolor: 'brand.greenHover', boxShadow: 'none' },
+  '&.Mui-disabled': { bgcolor: 'divider', color: '#6e6e73' },
 };
 
 const backButtonSx = {
   borderRadius: 999,
   px: 3,
-  py: 1.25,
+  py: 1.4,
   textTransform: 'none',
   fontWeight: 600,
-  color: 'text.primary',
-  '&:hover': { backgroundColor: 'brand.accentSoft', color: 'brand.green' },
+  color: '#424245',
+  '&:hover': { bgcolor: '#f5f5f7', color: '#1d1d1f' },
 };
 
 const splitName = (fullName) => {
@@ -155,9 +161,9 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
       <ReviewSummary state={state} />
 
       {/* Contact details */}
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '22px' }}>
         <Stack spacing={1} sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
+          <Typography component="h3" sx={{ ...tokens.typography.h3, color: '#1d1d1f', m: 0 }}>
             {t('steps.contactDetails')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
