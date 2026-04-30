@@ -68,8 +68,8 @@ const backButtonSx = {
   py: 1.25,
   textTransform: 'none',
   fontWeight: 600,
-  color: '#4a7c59',
-  '&:hover': { backgroundColor: 'rgba(74, 124, 89, 0.08)', color: '#3d6b4a' },
+  color: 'text.primary',
+  '&:hover': { backgroundColor: 'brand.accentSoft', color: 'brand.green' },
 };
 
 function isMonthlyDeskBooking(state) {

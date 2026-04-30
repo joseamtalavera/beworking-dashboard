@@ -164,12 +164,17 @@ export default function ReviewSummary({ state }) {
           {(grandTotal > 0 || isFree) && (
             <Chip
               label={isFree ? t('steps.free') : `€${grandTotal.toFixed(2)}`}
-              color={isFree ? 'success' : 'default'}
               sx={{
-                bgcolor: isFree ? undefined : 'rgba(255,255,255,0.9)',
+                bgcolor: isFree ? 'success.main' : '#fff',
+                color: isFree ? '#fff' : '#1a1a1a',
                 fontWeight: 600,
                 fontSize: '0.95rem',
                 height: 32,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                '&.MuiChip-root': {
+                  bgcolor: isFree ? 'success.main' : '#fff',
+                  color: isFree ? '#fff' : '#1a1a1a',
+                },
               }}
             />
           )}

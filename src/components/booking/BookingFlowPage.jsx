@@ -129,7 +129,7 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
       <Button
         onClick={onBackToDetail}
         startIcon={<ArrowBackRoundedIcon />}
-        sx={{ mb: 2, textTransform: 'none', color: '#4a7c59', fontWeight: 600, '&:hover': { backgroundColor: 'rgba(74, 124, 89, 0.08)', color: '#3d6b4a' } }}
+        sx={{ mb: 2, textTransform: 'none', color: 'text.primary', fontWeight: 600, '&:hover': { backgroundColor: 'brand.accentSoft', color: 'brand.green' } }}
       >
         {t('dialog.backToRoom')}
       </Button>

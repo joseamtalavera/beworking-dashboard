@@ -257,12 +257,12 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           sx={{
             alignSelf: 'flex-start',
             textTransform: 'none',
-            color: '#4a7c59',
+            color: 'text.primary',
             fontWeight: 600,
             fontSize: '0.875rem',
             px: 1,
             borderRadius: '6px',
-            '&:hover': { backgroundColor: 'rgba(74, 124, 89, 0.08)', color: '#3d6b4a' },
+            '&:hover': { backgroundColor: 'brand.accentSoft', color: 'brand.green' },
           }}
         >
           {t('detail.back')}
