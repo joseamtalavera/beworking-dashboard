@@ -42,19 +42,20 @@ import { apiFetch } from '../../api/client.js';
 import { fetchSubscriptions } from '../../api/subscriptions.js';
 import PlanUpgradeDialog from '../PlanUpgradeDialog.jsx';
 import WebsiteAdBanner from '../WebsiteAdBanner.jsx';
+import { tokens } from '../../theme/tokens.js';
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
   i18n.addResourceBundle('es', 'overview', esOverview);
   i18n.addResourceBundle('en', 'overview', enOverview);
 }
 
-// Color palette for data visualization
-const dataColors = {
-  income: '#009624',      // Brand green - money coming in
-  pending: '#dc2626',     // Red - pending payment
-  overdue: '#dc2626',     // Red - attention needed
-  neutral: '#6b7280',     // Gray - neutral info
-};
+// Color palette for data visualization — pulled from the theme so dark mode tracks.
+const getDataColors = (theme) => ({
+  income: theme.palette.brand?.green || '#009624',
+  pending: theme.palette.error.main,
+  overdue: theme.palette.error.main,
+  neutral: theme.palette.text.disabled,
+});
 
 // Helper to format currency
 const formatCurrency = (value) => {
@@ -74,19 +75,19 @@ const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, loadin
   <Paper
     elevation={0}
     sx={{
-      borderRadius: 3,
+      borderRadius: `${tokens.radius.md}px`,
       p: 3,
       border: '1px solid',
       borderColor: 'divider',
-      transition: 'border-color 0.2s',
-      '&:hover': { borderColor: 'primary.main' }
+      transition: `border-color ${tokens.motion.durationFast} ${tokens.motion.ease}`,
+      '&:hover': { borderColor: 'brand.green' }
     }}
   >
     {loading ? (
-      <CircularProgress size={24} sx={{ color: 'primary.main' }} />
+      <CircularProgress size={24} sx={{ color: 'brand.green' }} />
     ) : (
       <>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 0.5, lineHeight: 1 }}>
+        <Typography variant="h3" sx={{ fontWeight: 600, letterSpacing: '-0.025em', mb: 0.5, lineHeight: 1 }}>
           {value}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -100,7 +101,7 @@ const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, loadin
         {(mtd !== undefined || ytd !== undefined) && (
           <Stack direction="row" spacing={1.5} sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
             {mtd !== undefined && (
-              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: 'brand.green', fontWeight: 600 }}>
                 {mtdLabel || 'MTD'} {mtd}
               </Typography>
             )}
@@ -126,13 +127,13 @@ const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 3,
+        borderRadius: `${tokens.radius.md}px`,
         p: 3,
         border: '1px solid',
         borderColor: 'divider',
-        borderLeft: `4px solid ${color}`,
-        transition: 'all 0.2s',
-        '&:hover': { boxShadow: `0 4px 12px ${alpha(color, 0.15)}` }
+        borderLeft: `3px solid ${color}`,
+        transition: `box-shadow ${tokens.motion.durationFast} ${tokens.motion.ease}`,
+        '&:hover': { boxShadow: `0 6px 18px ${alpha(color, 0.15)}` }
       }}
     >
       {loading ? (
@@ -152,7 +153,7 @@ const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
               </Stack>
             )}
           </Stack>
-          <Typography variant="h4" sx={{ fontWeight: 700, color }}>
+          <Typography variant="h4" sx={{ fontWeight: 600, letterSpacing: '-0.02em', color }}>
             {formatCurrency(value)}
           </Typography>
         </>
@@ -344,6 +345,7 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
 
 // Occupancy Bar
 const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
+  const dataColors = getDataColors(theme);
   const color = occupancy >= 70 ? dataColors.income :
                 occupancy >= 40 ? dataColors.pending :
                 dataColors.neutral;
@@ -625,6 +627,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
 const AdminOverview = () => {
   const theme = useTheme();
   const { t } = useTranslation('overview');
+  const dataColors = getDataColors(theme);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -1050,9 +1053,9 @@ const AdminOverview = () => {
       </Box>
 
       {/* Charts Section */}
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.md}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
             {t('charts.financialOverview')}
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
@@ -1091,9 +1094,9 @@ const AdminOverview = () => {
       </Paper>
 
       {/* Workspace Occupancy */}
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.md}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
             {t('occupancy.title')}
           </Typography>
           <Typography variant="caption" color="text.secondary">
@@ -1135,6 +1138,9 @@ const AdminOverview = () => {
    RECONCILIATION CARD
    ═══════════════════════════════════════════ */
 const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
+  const theme = useTheme();
+  const brand = theme.palette.brand?.green || '#009624';
+  const errorRed = theme.palette.error.main;
   const [detailDialog, setDetailDialog] = useState(null);
   const [breakdownCache, setBreakdownCache] = useState({});
   const [bdLoading, setBdLoading] = useState(false);
@@ -1185,7 +1191,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
   };
 
   // Header bar always uses brand green — per-KPI colors below surface any issues
-  const statusColor = () => '#009624';
+  const statusColor = () => brand;
 
   const Metric = ({ label, value, color, sub, onClick }) => (
     <Box onClick={onClick} sx={{ textAlign: 'center', px: 1, py: 1.5, cursor: onClick ? 'pointer' : 'default', borderRadius: 1, transition: 'background 0.15s', '&:hover': onClick ? { bgcolor: 'action.hover' } : {} }}>
@@ -1227,9 +1233,9 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
   return (
     <>
-    <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+    <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.md}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>{t('reconciliation.title')}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>{t('reconciliation.title')}</Typography>
         <Stack direction="row" spacing={2} alignItems="center">
           {runDate && <Typography variant="caption" color="text.secondary">{t('reconciliation.lastRun')}: {new Date(runDate).toLocaleDateString()}</Typography>}
           <Button size="small" variant="outlined" onClick={onRun} disabled={running} sx={{ textTransform: 'none', fontWeight: 600, minWidth: 90 }}>
@@ -1264,15 +1270,15 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                   <Metric label="Stripe Deviation" value={m.deviation} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Scheduled" value={m.scheduled} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
-                  <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? '#dc2626' : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
+                  <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? errorRed : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                 </Box>
 
                 {row.missing_invoice_count > 0 && (
                   <Box
                     onClick={() => openDetail(row.account, 'missingInvoices', `${row.account} — Facturas sin registrar`, parseMaybeJson(row.missing_invoices))}
-                    sx={{ px: 2, py: 1.5, cursor: 'pointer', transition: 'background 0.15s', '&:hover': { bgcolor: alpha('#dc2626', 0.04) } }}
+                    sx={{ px: 2, py: 1.5, cursor: 'pointer', transition: `background ${tokens.motion.durationFast} ${tokens.motion.ease}`, '&:hover': { bgcolor: alpha(errorRed, 0.04) } }}
                   >
-                    <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>
+                    <Typography variant="body2" sx={{ color: errorRed, fontWeight: 600, fontSize: '0.8rem' }}>
                       {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
                     </Typography>
                   </Box>
@@ -1286,7 +1292,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
     {(() => {
       const type = detailDialog?.type;
-      const accent = '#009624';
+      const accent = brand;
       const label = type === 'pastDue' ? 'Overdue'
         : type === 'missingInvoices' ? 'Stripe paid, not in our DB'
         : type === 'stripeDeviation' ? 'Ghost subs (DB active, Stripe cancelled)'
@@ -1294,7 +1300,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
         : type === 'bankTransfer' ? 'Bank transfer'
         : 'Stripe live';
       return (
-    <Dialog open={!!detailDialog} onClose={() => setDetailDialog(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden' } }}>
+    <Dialog open={!!detailDialog} onClose={() => setDetailDialog(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.md}px`, overflow: 'hidden' } }}>
       <Box sx={{ bgcolor: alpha(accent, 0.08), borderBottom: '3px solid', borderBottomColor: accent, px: 3, py: 2 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Stack direction="row" alignItems="center" spacing={1.5}>
