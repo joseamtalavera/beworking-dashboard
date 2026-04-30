@@ -22,6 +22,7 @@ import { fetchPublicAvailability } from '../../api/bookings';
 import { fetchDeskOccupancy } from '../../api/subscriptions';
 import RoomCalendarGrid, { CalendarLegend } from './RoomCalendarGrid';
 import CoworkingFloorPlan, { buildDeskMap } from './CoworkingFloorPlan';
+import { tokens } from '../../theme/tokens.js';
 
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
@@ -272,27 +273,51 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           <Stack spacing={1}>
             {centroName && (
               <Typography
-                variant="overline"
-                sx={{ color: 'text.secondary', letterSpacing: 1.2, fontSize: '0.75rem' }}
+                component="span"
+                sx={{
+                  fontSize: tokens.typography.eyebrow.fontSize,
+                  fontWeight: tokens.typography.eyebrow.fontWeight,
+                  letterSpacing: tokens.typography.eyebrow.letterSpacing,
+                  color: 'brand.green',
+                  textTransform: 'uppercase',
+                }}
               >
                 {centroName}
               </Typography>
             )}
-            <Typography
-              variant="h3"
-              sx={{ fontWeight: 800, fontSize: 'clamp(1.5rem, 2.5vw, 2rem)' }}
+            <Box
+              component="h1"
+              sx={{
+                ...tokens.typography.h2,
+                color: 'text.primary',
+                fontFamily: tokens.typography.fontFamily,
+                fontFeatureSettings: tokens.typography.fontFeatureSettings,
+                m: 0,
+              }}
             >
               {name}
-            </Typography>
+            </Box>
             {subtitle && (
               <Typography
-                variant="h6"
-                sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '1.25rem' }}
+                sx={{
+                  fontSize: tokens.typography.bodyLg.fontSize,
+                  lineHeight: tokens.typography.bodyLg.lineHeight,
+                  color: 'text.secondary',
+                  fontWeight: 500,
+                  mt: 0.5,
+                }}
               >
                 {subtitle}
               </Typography>
             )}
-            <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '1rem' }}>
+            <Typography
+              sx={{
+                fontSize: tokens.typography.body.fontSize,
+                lineHeight: tokens.typography.body.lineHeight,
+                color: 'text.secondary',
+                mt: 0.5,
+              }}
+            >
               {isDesk && priceDay != null && priceMonth != null
                 ? `${t('detail.capacityOnly', { capacity: capacity || '—' })} · € ${priceDay}/day · € ${priceMonth}/month`
                 : t('detail.capacityLine', { capacity: capacity || '—', price: priceFrom ?? '—', unit: priceUnit })}
@@ -352,7 +377,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 alt={`${name} principal`}
                 className="gallery-hero"
                 onClick={() => { setCarouselIndex(0); setGalleryOpen(true); }}
-                sx={{ width: '100%', objectFit: 'cover', borderRadius: '14px', cursor: 'pointer' }}
+                sx={{ width: '100%', objectFit: 'cover', borderRadius: `${tokens.radius.lg}px`, cursor: 'pointer' }}
               />
               {secondaryImages.map((image, index) => (
                 <Box
@@ -365,7 +390,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   sx={{
                     width: '100%',
                     objectFit: 'cover',
-                    borderRadius: '14px',
+                    borderRadius: `${tokens.radius.lg}px`,
                     gridArea: `thumb${index + 1}`,
                     cursor: 'pointer',
                   }}
@@ -400,7 +425,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
             <Stack spacing={4}>
               {/* Description */}
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 1, fontSize: '1.5rem' }}>
+                <Typography component="h2" sx={{ ...tokens.typography.h3, color: 'text.primary', m: 0, mb: 2 }}>
                   {t('detail.description')}
                 </Typography>
                 <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.65, fontSize: '1rem' }}>
@@ -411,7 +436,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               {/* Amenities */}
               {amenities.length > 0 && (
                 <section>
-                  <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 2, fontSize: '1.5rem' }}>
+                  <Typography component="h2" sx={{ ...tokens.typography.h3, color: 'text.primary', m: 0, mb: 2 }}>
                     {t('detail.includedServices')}
                   </Typography>
                   <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1.5}>
@@ -451,7 +476,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
               {/* Cancellation policy */}
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 1, fontSize: '1.5rem' }}>
+                <Typography component="h2" sx={{ ...tokens.typography.h3, color: 'text.primary', m: 0, mb: 2 }}>
                   {t('detail.cancellationPolicy')}
                 </Typography>
                 <Stack spacing={1.25}>
@@ -471,7 +496,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
               {/* Booking instructions */}
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 1, fontSize: '1.5rem' }}>
+                <Typography component="h2" sx={{ ...tokens.typography.h3, color: 'text.primary', m: 0, mb: 2 }}>
                   {t('detail.instructions')}
                 </Typography>
                 <Stack spacing={1.25}>
@@ -614,7 +639,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
         {/* Map */}
         <section>
-          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 2, fontSize: '1.5rem' }}>
+          <Typography component="h2" sx={{ ...tokens.typography.h3, color: 'text.primary', m: 0, mb: 2 }}>
             {t('detail.location')}
           </Typography>
           <Box
