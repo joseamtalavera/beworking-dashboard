@@ -38,11 +38,11 @@ export default function ExtraLineItems({ lines = [], onChange }) {
   );
 
   return (
-    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
+    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: '14px' }}>
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} alignItems="center">
-          <ReceiptLongRoundedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+          <ReceiptLongRoundedIcon sx={{ color: 'brand.green', fontSize: 20 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
             {t('steps.extraServices')}
           </Typography>
         </Stack>

@@ -156,14 +156,14 @@ export default function UninvoicedBookings({
     <Paper
       elevation={0}
       variant="outlined"
-      sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}
+      sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}
     >
       {/* Header */}
       <Box sx={{ p: 2, pb: 1 }}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
-          <EventRepeatRoundedIcon sx={{ color: 'primary.main', fontSize: 22 }} />
+          <EventRepeatRoundedIcon sx={{ color: 'brand.green', fontSize: 22 }} />
           <Box>
-            <Typography variant="subtitle1" fontWeight={700}>
+            <Typography variant="subtitle1" fontWeight={600}>
               {t('admin.uninvoicedTitle')}
             </Typography>
             <Typography variant="caption" color="text.secondary">

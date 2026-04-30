@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import Box from '@mui/material/Box';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '../common/ClearableTextField';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +42,7 @@ export default function TimeSlotSelect({
       sx={{
         '& .MuiInputLabel-root': {
           fontSize: '0.75rem',
-          fontWeight: 700,
+          fontWeight: 600,
           color: 'text.primary',
           textTransform: 'uppercase',
           letterSpacing: '0.04em',
@@ -59,9 +60,9 @@ export default function TimeSlotSelect({
           <MenuItem key={slot.id} value={slot.id} disabled={isBooked}>
             {slot.label}
             {isBooked && (
-              <span style={{ marginLeft: 8, color: '#dc2626', fontSize: '0.75rem' }}>
+              <Box component="span" sx={{ ml: 1, color: 'error.main', fontSize: '0.75rem' }}>
                 — {t('steps.slotBooked')}
-              </span>
+              </Box>
             )}
           </MenuItem>
         );

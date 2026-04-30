@@ -152,7 +152,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 3,
+        borderRadius: '14px',
         border: '1px solid',
         borderColor: 'divider',
         width: '100%',
@@ -164,7 +164,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
     >
       <Stack spacing={3} sx={{ p: 3 }}>
         <Stack spacing={0.5}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {t('detail.availability')} · {room?.name || t('steps.meetingRoom')}
           </Typography>
           {dateLabel ? (

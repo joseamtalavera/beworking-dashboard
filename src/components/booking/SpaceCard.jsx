@@ -45,7 +45,7 @@ const SpaceCard = ({ space, onBookNow }) => {
     >
       <Card
         sx={{
-          borderRadius: 3,
+          borderRadius: '14px',
           overflow: 'hidden',
           boxShadow: (theme) => `0 4px 6px -1px ${alpha(theme.palette.common.black, 0.1)}`,
           transition: 'transform 0.2s, box-shadow 0.2s',

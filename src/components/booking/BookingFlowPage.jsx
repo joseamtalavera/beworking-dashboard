@@ -138,13 +138,13 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
           <Typography variant="overline" sx={{ color: 'text.disabled' }}>
             {t('dialog.booking')}{centroName ? ` · ${centroName}` : ''}
           </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          <Typography variant="h4" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
             {productoName}
           </Typography>
         </Box>
       )}
 
-      <Paper variant="outlined" sx={{ px: 3, py: 2, borderRadius: 3, mb: 4 }}>
+      <Paper variant="outlined" sx={{ px: 3, py: 2, borderRadius: '14px', mb: 4 }}>
         <Stepper activeStep={state.activeStep} alternativeLabel>
           {STEP_LABELS.map((label) => (
             <Step key={label}>

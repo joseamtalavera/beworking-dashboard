@@ -77,7 +77,7 @@ function StepperDialogInner({ open, onClose, onCreated, defaultDate, mode }) {
       maxWidth="lg"
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: '14px',
           boxShadow: theme.shadows[6],
           maxWidth: 920,
         },
