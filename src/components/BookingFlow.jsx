@@ -200,10 +200,10 @@ const BookingFlow = () => {
         {/* Search and Filter Section */}
         <Paper 
           elevation={0}
-          sx={{ 
-            p: 3, 
-            mb: 4, 
-            borderRadius: 3,
+          sx={{
+            p: 3,
+            mb: 4,
+            borderRadius: '14px',
             border: '1px solid',
             borderColor: 'divider',
             backgroundColor: 'background.paper'
@@ -412,9 +412,9 @@ const BookingFlow = () => {
         <Grid container spacing={3}>
           {filteredRooms.map((room) => (
             <Grid item xs={12} sm={6} md={4} key={room.id}>
-              <Card 
-                sx={{ 
-                  borderRadius: 3,
+              <Card
+                sx={{
+                  borderRadius: '14px',
                   overflow: 'hidden',
                   boxShadow: (theme) => `0 4px 6px -1px ${alpha(theme.palette.common.black, 0.1)}`,
                   transition: 'transform 0.2s, box-shadow 0.2s',

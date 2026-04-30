@@ -38,7 +38,7 @@ const pillButtonSx = {
   px: 4,
   py: 1.25,
   textTransform: 'none',
-  fontWeight: 700,
+  fontWeight: 600,
   fontSize: '0.95rem',
 };
 
@@ -60,7 +60,7 @@ const splitName = (fullName) => {
 };
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -155,9 +155,9 @@ export default function ContactBillingStep({ mode = 'admin', userProfile }) {
       <ReviewSummary state={state} />
 
       {/* Contact details */}
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
         <Stack spacing={1} sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
             {t('steps.contactDetails')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>

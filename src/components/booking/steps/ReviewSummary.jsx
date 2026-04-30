@@ -120,7 +120,7 @@ export default function ReviewSummary({ state }) {
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 3,
+        borderRadius: '14px',
         overflow: 'hidden',
         border: '1px solid',
         borderColor: 'divider',
@@ -151,7 +151,7 @@ export default function ReviewSummary({ state }) {
           alignItems="flex-end"
         >
           <Box>
-            <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 700 }}>
+            <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, letterSpacing: '-0.01em' }}>
               {roomName}
             </Typography>
             <Stack direction="row" spacing={0.5} alignItems="center">
@@ -167,7 +167,7 @@ export default function ReviewSummary({ state }) {
               color={isFree ? 'success' : 'default'}
               sx={{
                 bgcolor: isFree ? undefined : 'rgba(255,255,255,0.9)',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: '0.95rem',
                 height: 32,
               }}
@@ -240,10 +240,10 @@ export default function ReviewSummary({ state }) {
       <Stack sx={{ px: 2.5, py: 1.5, borderTop: '1px solid', borderColor: 'divider' }} spacing={0.5}>
         {isFree ? (
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {t('steps.total')}
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.main' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
               {t('steps.free')}
             </Typography>
           </Stack>
@@ -277,10 +277,10 @@ export default function ReviewSummary({ state }) {
             )}
             <Divider sx={{ my: 0.5 }} />
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {isRecurring ? t('steps.totalAllBookings', { count: bookingCount }) : t('steps.total')}
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>€{grandTotal.toFixed(2)}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>€{grandTotal.toFixed(2)}</Typography>
             </Stack>
           </>
         )}

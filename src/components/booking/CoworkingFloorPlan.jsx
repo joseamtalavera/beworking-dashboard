@@ -57,7 +57,7 @@ function DeskButton({ deskNumber, data, onClick, t }) {
           px: 1,
           borderRadius: 2,
           textTransform: 'none',
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: '0.875rem',
           minWidth: 0,
           width: '100%',
@@ -145,7 +145,7 @@ export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
 
   if (loading) {
     return (
-      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
+      <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', py: 8 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <CircularProgress size={32} />
         </Box>
@@ -154,10 +154,10 @@ export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
   }
 
   return (
-    <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+    <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
       <Stack spacing={2.5}>
         <Stack spacing={0.5}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {t('admin.floorPlan')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
