@@ -127,15 +127,36 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
         }}
       >
         {!collapsed && (
-          <span
+          <Box
             role="button"
             tabIndex={0}
             onClick={() => handleTabClick('Overview')}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTabClick('Overview'); }}
-            style={{ fontFamily: '"Poppins", sans-serif', fontWeight: 600, fontSize: '1.8rem', color: '#007a1d', letterSpacing: '-0.01em', lineHeight: 1, cursor: 'pointer' }}
+            sx={{
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontWeight: 700,
+              fontSize: '1.4rem',
+              color: 'text.primary',
+              letterSpacing: '-0.03em',
+              lineHeight: 1,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'baseline',
+            }}
           >
-            beworking<span style={{ display: 'inline-block', width: '0.26em', height: '0.26em', borderRadius: '50%', backgroundColor: '#d4a843', marginLeft: '0.08em', verticalAlign: 'baseline', position: 'relative', top: '0.05em' }} />
-          </span>
+            beworking
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-block',
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                bgcolor: '#009624',
+                ml: '4px',
+              }}
+            />
+          </Box>
         )}
         <IconButton
           onClick={onToggleCollapse}
