@@ -13,6 +13,7 @@ import i18n from '../../i18n/i18n.js';
 import esBooking from '../../i18n/locales/es/booking.json';
 import enBooking from '../../i18n/locales/en/booking.json';
 
+import { tokens } from '../../theme/tokens.js';
 import { BookingFlowProvider, useBookingFlow } from './BookingFlowContext';
 import { fetchBookingProductos, fetchBookingCentros } from '../../api/bookings';
 import RoomCatalog from './RoomCatalog';
@@ -135,12 +136,32 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
 
       {productoName && (
         <Box sx={{ mb: 3 }}>
-          <Typography variant="overline" sx={{ color: 'text.disabled' }}>
+          <Typography
+            component="span"
+            sx={{
+              display: 'block',
+              fontSize: tokens.typography.eyebrow.fontSize,
+              fontWeight: tokens.typography.eyebrow.fontWeight,
+              letterSpacing: tokens.typography.eyebrow.letterSpacing,
+              color: 'brand.green',
+              textTransform: 'uppercase',
+              mb: 1,
+            }}
+          >
             {t('dialog.booking')}{centroName ? ` · ${centroName}` : ''}
           </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+          <Box
+            component="h1"
+            sx={{
+              ...tokens.typography.h2,
+              color: 'text.primary',
+              fontFamily: tokens.typography.fontFamily,
+              fontFeatureSettings: tokens.typography.fontFeatureSettings,
+              m: 0,
+            }}
+          >
             {productoName}
-          </Typography>
+          </Box>
         </Box>
       )}
 
