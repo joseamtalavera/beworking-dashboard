@@ -772,7 +772,7 @@ const BookingsTable = ({ bookings, onSelect }) => {
   };
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+    <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider' }}>
       <TableContainer>
         <Table size="small">
         <TableHead
@@ -914,7 +914,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
 
   if (sortedBloqueos.length === 0) {
     return (
-      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 6 }}>
+      <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', py: 6 }}>
         <Typography variant="body2" color="text.secondary" align="center">
           No bloqueos scheduled for this date.
         </Typography>
@@ -923,7 +923,7 @@ const AgendaTable = ({ bloqueos, onSelect, onDelete, onBulkDelete, deletingId, s
   }
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+    <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
       {/* Bulk actions bar */}
       {selectedIds.length > 0 && (
         <Stack direction="row" alignItems="center" spacing={2} sx={{ px: 2, py: 1, bgcolor: 'action.selected' }}>
@@ -1668,7 +1668,7 @@ const ReservaDialog = ({
       maxWidth="lg"
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: '14px',
           boxShadow: theme.shadows[6],
           maxWidth: '900px'
         }
@@ -1753,7 +1753,7 @@ const ReservaDialog = ({
               variant="outlined"
               sx={{ 
                 p: { xs: 2, md: 3 }, 
-                borderRadius: 3,
+                borderRadius: '14px',
                 border: '1px solid',
                 borderColor: 'divider',
                 backgroundColor: 'background.paper'
@@ -2052,7 +2052,7 @@ const ReservaDialog = ({
               variant="outlined"
               sx={{ 
                 p: { xs: 2, md: 3 }, 
-                borderRadius: 3,
+                borderRadius: '14px',
                 border: '1px solid',
                 borderColor: 'divider',
                 backgroundColor: 'background.paper'
@@ -2202,7 +2202,7 @@ const ReservaDialog = ({
               variant="outlined"
               sx={{ 
                 p: { xs: 2, md: 3 }, 
-                borderRadius: 3,
+                borderRadius: '14px',
                 border: '1px solid',
                 borderColor: 'divider',
                 backgroundColor: 'background.paper'
@@ -2396,7 +2396,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: '14px',
           overflow: 'hidden',
           boxShadow: theme.shadows[8]
         }
@@ -2978,7 +2978,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
 
   return (<>
     <Dialog open={paymentErrorOpen} onClose={() => setPaymentErrorOpen(false)} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ color: 'error.main', fontWeight: 700 }}>{t('steps.paymentFailed', 'Error de pago')}</DialogTitle>
+      <DialogTitle sx={{ color: 'error.main', fontWeight: 600, letterSpacing: '-0.015em' }}>{t('steps.paymentFailed', 'Error de pago')}</DialogTitle>
       <DialogContent>
         <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
       </DialogContent>
@@ -2993,7 +2993,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
       maxWidth="lg"
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: '14px',
           background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
           boxShadow: theme.shadows[6]
         }
@@ -3096,7 +3096,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                   <Paper
                     elevation={0}
                     sx={{
-                      borderRadius: 3,
+                      borderRadius: '14px',
                       border: '1px solid',
                       borderColor: 'divider',
                       overflow: 'hidden',
@@ -3179,7 +3179,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                   <Paper
                     elevation={0}
                     sx={{
-                      borderRadius: 3,
+                      borderRadius: '14px',
                       border: '1px solid',
                       borderColor: 'divider',
                       overflow: 'hidden',
@@ -3239,7 +3239,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                     <Paper
                       elevation={0}
                       sx={{
-                        borderRadius: 3,
+                        borderRadius: '14px',
                         border: '1px solid',
                         borderColor: 'divider',
                         overflow: 'hidden',
@@ -3562,7 +3562,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 3,
+        borderRadius: '14px',
         border: '1px solid',
         borderColor: 'divider',
         width: '100%',
@@ -3575,7 +3575,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
       <Stack spacing={3} sx={{ p: 3 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between">
           <Stack spacing={0.5}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{t('userView.availability')} · {room?.name || t('userView.meetingRoom')}</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>{t('userView.availability')} · {room?.name || t('userView.meetingRoom')}</Typography>
             {dateLabel && <Typography variant="body2" sx={{ color: 'text.secondary' }}>{dateLabel}</Typography>}
           </Stack>
           <UserCalendarLegend styles={resolvedUserCalendarStatusStyles} />
@@ -3763,7 +3763,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
 
   if (!bloqueos || bloqueos.length === 0) {
     return (
-      <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ p: 4, textAlign: 'center', borderRadius: '14px', border: '1px solid', borderColor: 'divider' }}>
         <Typography variant="h6" color="text.secondary">{t('form.noBookingsFound')}</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           {t('form.noBookingsDesc')}
@@ -3775,7 +3775,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
   const paginatedBloqueos = sortedBloqueos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'visible' }}>
+    <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', overflow: 'visible' }}>
       <TableContainer>
         <Table>
           <TableHead>
@@ -4000,7 +4000,7 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
 };
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -4853,19 +4853,19 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
           </Paper>
 
           {loading ? (
-            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
+            <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', py: 8 }}>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <CircularProgress size={32} />
               </Box>
             </Paper>
           ) : rooms.length === 0 ? (
-            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 6 }}>
+            <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', py: 6 }}>
               <Typography variant="body2" color="text.secondary" align="center">
                 {noDataMessage}
               </Typography>
             </Paper>
           ) : (
-            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflowX: 'auto' }}>
+            <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', overflowX: 'auto' }}>
               <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <Table
                   size="small"
@@ -5090,7 +5090,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
             <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
             <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
                 {t('admin.paymentStatus')}
               </Typography>
               <Select
@@ -5190,7 +5190,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
               <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
               <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
                   {t('admin.filterCentro')}
                 </Typography>
                 <Select
@@ -5212,7 +5212,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
               <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
               <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
                   {t('admin.filterUserType')}
                 </Typography>
                 <Select
@@ -5234,7 +5234,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
               <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
               <Box sx={{ flex: 0.8, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
                   {t('admin.filterProducto')}
                 </Typography>
                 <Select
@@ -5260,7 +5260,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
           <Legend />
 
           {loading ? (
-            <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', py: 8 }}>
+            <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid', borderColor: 'divider', py: 8 }}>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <CircularProgress size={32} />
               </Box>

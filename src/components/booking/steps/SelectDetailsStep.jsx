@@ -39,7 +39,7 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
 }
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -54,7 +54,7 @@ const pillSx = {
   px: 4,
   py: 1.25,
   textTransform: 'none',
-  fontWeight: 700,
+  fontWeight: 600,
   fontSize: '0.95rem',
 };
 
@@ -305,7 +305,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       {state.producto && (
         <Paper
           variant="outlined"
-          sx={{ p: 3, borderRadius: 3, display: 'flex', gap: 2, alignItems: 'center' }}
+          sx={{ p: 3, borderRadius: '14px', display: 'flex', gap: 2, alignItems: 'center' }}
         >
           {heroImage && (
             <Box
@@ -316,7 +316,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             />
           )}
           <Stack spacing={0.25} sx={{ flex: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
               {state.producto.name}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -336,10 +336,10 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       {isDeskProduct ? (
         <>
           {/* Period selection */}
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+          <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
             <Stack spacing={2.5}>
               <Stack spacing={0.5}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
                   {t('steps.pickDateTime')}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -443,10 +443,10 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
           </Paper>
 
           {/* Choose your desk */}
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+          <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
             <Stack spacing={2}>
               <Stack spacing={0.5}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
                   {t('admin.floorPlan')}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -532,10 +532,10 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
         </>
       ) : (
       /* ── Pick your date & time (meeting rooms) ── */
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
         <Stack spacing={2.5}>
           <Stack spacing={0.5}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
               {t('steps.pickDateTime')}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -828,9 +828,9 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       )}
 
       {/* ── Additional details ── */}
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
         <Stack spacing={2}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
             {t('steps.additionalDetails')}
           </Typography>
           {mode === 'admin' && (
@@ -852,7 +852,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
               </Box>
             </Paper>
           )}
-          <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', borderRadius: 3 }}>
+          <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', borderRadius: '14px' }}>
             <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: '100%' }}>
               <TextField
                 variant="standard"

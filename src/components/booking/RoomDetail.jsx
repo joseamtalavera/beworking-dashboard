@@ -121,7 +121,7 @@ const DEFAULT_BOOKING_INSTRUCTIONS = [
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 600, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -304,7 +304,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               startIcon={<IosShareOutlinedIcon />}
               variant="text"
               onClick={handleShare}
-              sx={{ textTransform: 'none', fontWeight: 700, color: 'text.primary' }}
+              sx={{ textTransform: 'none', fontWeight: 600, color: 'text.primary' }}
             >
               {t('detail.share')}
             </Button>
@@ -322,7 +322,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   document.body.removeChild(link);
                 }
               }}
-              sx={{ textTransform: 'none', fontWeight: 700, color: 'text.primary' }}
+              sx={{ textTransform: 'none', fontWeight: 600, color: 'text.primary' }}
             >
               {t('detail.save')}
             </Button>
@@ -352,7 +352,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 alt={`${name} principal`}
                 className="gallery-hero"
                 onClick={() => { setCarouselIndex(0); setGalleryOpen(true); }}
-                sx={{ width: '100%', objectFit: 'cover', borderRadius: 3, cursor: 'pointer' }}
+                sx={{ width: '100%', objectFit: 'cover', borderRadius: '14px', cursor: 'pointer' }}
               />
               {secondaryImages.map((image, index) => (
                 <Box
@@ -365,7 +365,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   sx={{
                     width: '100%',
                     objectFit: 'cover',
-                    borderRadius: 3,
+                    borderRadius: '14px',
                     gridArea: `thumb${index + 1}`,
                     cursor: 'pointer',
                   }}
@@ -400,7 +400,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
             <Stack spacing={4}>
               {/* Description */}
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, fontSize: '1.5rem' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 1, fontSize: '1.5rem' }}>
                   {t('detail.description')}
                 </Typography>
                 <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.65, fontSize: '1rem' }}>
@@ -411,7 +411,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
               {/* Amenities */}
               {amenities.length > 0 && (
                 <section>
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, fontSize: '1.5rem' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 2, fontSize: '1.5rem' }}>
                     {t('detail.includedServices')}
                   </Typography>
                   <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1.5}>
@@ -451,7 +451,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
               {/* Cancellation policy */}
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, fontSize: '1.5rem' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 1, fontSize: '1.5rem' }}>
                   {t('detail.cancellationPolicy')}
                 </Typography>
                 <Stack spacing={1.25}>
@@ -471,7 +471,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
               {/* Booking instructions */}
               <section>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, fontSize: '1.5rem' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 1, fontSize: '1.5rem' }}>
                   {t('detail.instructions')}
                 </Typography>
                 <Stack spacing={1.25}>
@@ -529,14 +529,14 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 sx={{
                   border: '1px solid',
                   borderColor: 'grey.200',
-                  borderRadius: 3,
+                  borderRadius: '14px',
                   p: 3,
                   bgcolor: 'background.paper',
                   position: { md: 'sticky' },
                   top: { md: 24 },
                 }}
               >
-                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em', fontSize: '1.25rem' }}>
                   {t('detail.availability')}
                 </Typography>
 
@@ -614,12 +614,12 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
         {/* Map */}
         <section>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, fontSize: '1.5rem' }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 2, fontSize: '1.5rem' }}>
             {t('detail.location')}
           </Typography>
           <Box
             sx={{
-              borderRadius: 3,
+              borderRadius: '14px',
               overflow: 'hidden',
               border: '1px solid',
               borderColor: 'grey.200',

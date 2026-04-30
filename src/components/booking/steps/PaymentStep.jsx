@@ -58,7 +58,7 @@ const pillButtonSx = {
   px: 4,
   py: 1.25,
   textTransform: 'none',
-  fontWeight: 700,
+  fontWeight: 600,
   fontSize: '0.95rem',
 };
 
@@ -358,11 +358,11 @@ function AdminPaymentOptions({ onCreated }) {
 
   return (
     <Stack spacing={3}>
-      <Dialog open={success} PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
+      <Dialog open={success} PaperProps={{ sx: { borderRadius: '14px', p: 2 } }}>
         <DialogContent sx={{ textAlign: 'center' }}>
           <Stack spacing={3} alignItems="center">
             <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('steps.reservaCreated')}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{t('steps.reservaCreated')}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {t('steps.bookingSuccessDesc')}
             </Typography>
@@ -374,7 +374,7 @@ function AdminPaymentOptions({ onCreated }) {
       </Dialog>
 
       <Dialog open={paymentErrorOpen} onClose={() => setPaymentErrorOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ color: 'error.main', fontWeight: 700 }}>{t('steps.paymentFailed', 'Error de pago')}</DialogTitle>
+        <DialogTitle sx={{ color: 'error.main', fontWeight: 600, letterSpacing: '-0.015em' }}>{t('steps.paymentFailed', 'Error de pago')}</DialogTitle>
         <DialogContent>
           <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         </DialogContent>
@@ -392,7 +392,7 @@ function AdminPaymentOptions({ onCreated }) {
         <Paper
           elevation={0}
           variant="outlined"
-          sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+          sx={{ p: 2, borderRadius: '14px', border: '1px solid', borderColor: 'divider' }}
         >
           <Typography variant="body2" color="text.secondary">{t('steps.contact')}</Typography>
           <Typography variant="body1" fontWeight={500}>{contactName}</Typography>
@@ -409,7 +409,7 @@ function AdminPaymentOptions({ onCreated }) {
       <Paper
         elevation={0}
         variant="outlined"
-        sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}
+        sx={{ p: { xs: 2, md: 3 }, borderRadius: '14px', border: '1px solid', borderColor: 'divider' }}
       >
         <Stack spacing={2}>
           <Typography variant="subtitle1" fontWeight={700}>{t('steps.payment')}</Typography>
@@ -592,10 +592,10 @@ function UserFreeBookingForm({ onCreated, usage }) {
 
   if (success) {
     return (
-      <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+      <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
         <Stack spacing={3} alignItems="center">
           <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('steps.bookingConfirmed')}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{t('steps.bookingConfirmed')}</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
             {t('steps.freeBookingSuccess', { used: usage.used + 1, limit: usage.freeLimit })}
           </Typography>
@@ -612,10 +612,10 @@ function UserFreeBookingForm({ onCreated, usage }) {
       {error && <Alert severity="error">{error}</Alert>}
       <ReviewSummary state={state} />
 
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
         <Stack spacing={1.5} alignItems="center" sx={{ py: 1 }}>
           <CheckCircleRoundedIcon sx={{ fontSize: 40, color: 'success.main' }} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
             {t('steps.freeBookingAvailable')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center' }}>
@@ -731,10 +731,10 @@ function UserPaymentFormInner({ onCreated }) {
 
   if (success) {
     return (
-      <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+      <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
         <Stack spacing={3} alignItems="center">
           <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>{t('steps.bookingConfirmed')}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{t('steps.bookingConfirmed')}</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
             {t('steps.paymentSuccessful', { amount: pricing.total.toFixed(2) })}
           </Typography>
@@ -748,7 +748,7 @@ function UserPaymentFormInner({ onCreated }) {
       {error && <Alert severity="error">{error}</Alert>}
       <ReviewSummary state={state} />
 
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} alignItems="center">
             <LockRoundedIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
@@ -845,7 +845,7 @@ function UserPaymentForm({ onCreated }) {
     return (
       <Stack spacing={3}>
         <ReviewSummary state={state} />
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+        <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
           <Stack spacing={2} alignItems="center">
             <CircularProgress size={28} />
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -871,7 +871,7 @@ function UserPaymentForm({ onCreated }) {
     return (
       <Stack spacing={3}>
         <ReviewSummary state={state} />
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+        <Paper variant="outlined" sx={{ p: 4, borderRadius: '14px', textAlign: 'center' }}>
           <Stack spacing={2} alignItems="center">
             <Box
               sx={{
