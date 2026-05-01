@@ -2,7 +2,7 @@
   "tabs": {
     "Overview": "Resumen",
     "Contacts": "Contactos",
-    "Business Address": "Domicilio Fiscal",
+    "DomicilioFiscal": "Domicilio Fiscal",
     "Booking": "Espacios",
     "MyBookings": "Mis Reservas",
     "MyInvoices": "Mis Facturas",
@@ -24,7 +24,12 @@
     "WebGen": "Sitio",
     "QA": "QA",
     "MariaAI": "MariaAI",
-    "Services": "Servicios"
+    "Services": "Servicios",
+    "Legal": "Legal",
+    "SupportAI": "Soporte",
+    "HumanResourcesAI": "Recursos Humanos",
+    "ProjectsAI": "Proyectos",
+    "MarketingAI": "Marketing"
   },
   "greeting": {
     "morning": "Buenos días",
@@ -37,7 +42,7 @@
     "subtitle_MyBookings": "Consulta y gestiona tus reservas.",
     "subtitle_MyInvoices": "Consulta y descarga tus facturas.",
     "subtitle_Booking": "Gestiona tus reservas de espacios.",
-    "subtitle_Business Address": "Tu domicilio fiscal y buzón digital.",
+    "subtitle_DomicilioFiscal": "Tu domicilio fiscal y buzón digital.",
     "search": "Buscar…",
     "clearSearch": "Limpiar búsqueda",
     "openNav": "Abrir navegación",

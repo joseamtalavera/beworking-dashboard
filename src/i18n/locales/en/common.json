@@ -2,7 +2,7 @@
   "tabs": {
     "Overview": "Overview",
     "Contacts": "Contacts",
-    "Business Address": "Business Address",
+    "DomicilioFiscal": "Business Address",
     "Booking": "Spaces",
     "MyBookings": "My Bookings",
     "MyInvoices": "My Invoices",
@@ -24,7 +24,12 @@
     "WebGen": "Site",
     "QA": "QA",
     "MariaAI": "MariaAI",
-    "Services": "Services"
+    "Services": "Services",
+    "Legal": "Legal",
+    "SupportAI": "Support",
+    "HumanResourcesAI": "Human Resources",
+    "ProjectsAI": "Projects",
+    "MarketingAI": "Marketing"
   },
   "greeting": {
     "morning": "Good morning",
@@ -37,7 +42,7 @@
     "subtitle_MyBookings": "View and manage your bookings.",
     "subtitle_MyInvoices": "View and download your invoices.",
     "subtitle_Booking": "Manage your space bookings.",
-    "subtitle_Business Address": "Your fiscal address and digital mailbox.",
+    "subtitle_DomicilioFiscal": "Your fiscal address and digital mailbox.",
     "search": "Search…",
     "clearSearch": "Clear search",
     "openNav": "Open navigation",
