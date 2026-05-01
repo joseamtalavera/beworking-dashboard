@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { tokens } from '../../theme/tokens.js';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -77,7 +78,7 @@ const initialOfficeData = {
 const InfoCard = ({ icon, title, content, action }) => {
   const theme = useTheme();
   return (
-    <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+    <Card elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider', height: '100%' }}>
       <CardContent sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={2} alignItems="center">
@@ -280,7 +281,7 @@ const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
       </Stack>
 
       {/* Main Address Card */}
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 4, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 4, border: '1px solid', borderColor: 'divider' }}>
         <Stack spacing={3}>
           <Stack direction="row" spacing={2} alignItems="center">
             <Box
@@ -432,7 +433,7 @@ const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
       </Grid>
 
       {/* Map */}
-      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         <Box sx={{ position: 'relative', height: 360 }}>
           <iframe
             title="Virtual office location map"

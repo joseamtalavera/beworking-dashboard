@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { tokens } from '../../theme/tokens.js';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -67,7 +68,7 @@ const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription =
       </Stack>
 
       {/* Subtab Navigation */}
-      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider' }}>
         <Tabs
           value={activeSubTab}
           onChange={handleSubTabChange}

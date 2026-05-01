@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { alpha } from '@mui/material/styles';
+import { tokens } from '../../theme/tokens.js';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -22,7 +23,7 @@ const Expenses = () => {
       </Stack>
 
       {/* Coming Soon Card */}
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 6, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 6, border: '1px solid', borderColor: 'divider' }}>
         <Stack spacing={3} alignItems="center" textAlign="center">
           <Box
             sx={{

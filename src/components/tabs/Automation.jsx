@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../theme/tokens.js';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
@@ -169,7 +170,7 @@ const Automation = () => {
 
       <Grid container spacing={3} sx={{ flex: 1, minHeight: 520 }}>
         <Grid size={{ xs: 12, md: 3, lg: 3 }}>
-          <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2, height: '100%' }}>
+          <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider', p: 2, height: '100%' }}>
             <Stack spacing={2}>
               <Stack spacing={0.5}>
                 <Typography variant="subtitle1" fontWeight="bold">
@@ -212,7 +213,7 @@ const Automation = () => {
           <Paper
             elevation={0}
             sx={{
-              borderRadius: 3,
+              borderRadius: `${tokens.radius.lg}px`,
               border: '1px solid',
               borderColor: 'divider',
               height: '100%',
@@ -238,7 +239,7 @@ const Automation = () => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 3, lg: 3 }}>
-          <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2, height: '100%' }}>
+          <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider', p: 2, height: '100%' }}>
             {selectedNode ? (
               <Stack spacing={2} sx={{ height: '100%' }}>
                 <Stack spacing={0.5}>

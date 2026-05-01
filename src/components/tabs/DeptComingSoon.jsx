@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../theme/tokens.js';
 import { useTranslation } from 'react-i18next';
 import { DEPT_TABS } from '../../constants.js';
 
@@ -17,7 +18,7 @@ const DeptComingSoon = ({ deptId }) => {
       <Paper
         elevation={0}
         sx={{
-          borderRadius: 3,
+          borderRadius: `${tokens.radius.lg}px`,
           p: 5,
           border: '1px solid',
           borderColor: 'divider',

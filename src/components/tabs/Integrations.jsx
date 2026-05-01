@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../theme/tokens.js';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -221,7 +222,7 @@ const Integrations = () => {
           <Box
             key={stat.label}
             sx={{
-              px: 3, py: 2, borderRadius: 3,
+              px: 3, py: 2, borderRadius: `${tokens.radius.lg}px`,
               border: '1px solid', borderColor: 'divider',
               minWidth: 140,
               bgcolor: stat.accent ? alpha(green, 0.04) : 'background.paper',
@@ -336,7 +337,7 @@ const Integrations = () => {
               key={suite.id}
               elevation={0}
               sx={{
-                borderRadius: 3, border: '1px solid',
+                borderRadius: `${tokens.radius.lg}px`, border: '1px solid',
                 borderColor: suite.status === 'connected' ? alpha(suite.color, 0.4) : 'divider',
                 overflow: 'hidden',
               }}
@@ -468,7 +469,7 @@ const Integrations = () => {
                 onMouseEnter={() => connector.status === 'connected' && setHoveredConnected(connector.id)}
                 onMouseLeave={() => setHoveredConnected(null)}
                 sx={{
-                  p: 3, borderRadius: 3,
+                  p: 3, borderRadius: `${tokens.radius.lg}px`,
                   border: '1px solid',
                   borderColor: connector.status === 'connected' ? alpha(green, 0.3) : 'divider',
                   bgcolor: connector.status === 'coming_soon' ? alpha(theme.palette.text.primary, 0.02) : 'background.paper',
@@ -586,7 +587,7 @@ const Integrations = () => {
       {/* Connecting modal */}
       <Dialog
         open={!!connectingId}
-        PaperProps={{ sx: { borderRadius: 3, p: 2, minWidth: 300, textAlign: 'center' } }}
+        PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px`, p: 2, minWidth: 300, textAlign: 'center' } }}
       >
         <DialogContent>
           <Stack spacing={3} alignItems="center" sx={{ py: 2 }}>

@@ -6,6 +6,7 @@ import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../theme/tokens.js';
 import { useTranslation } from 'react-i18next';
 import { DEPT_TABS } from '../../constants.js';
 import {
@@ -43,7 +44,7 @@ const Services = () => {
                 sx={{
                   p: 2.5,
                   height: '100%',
-                  borderRadius: 3,
+                  borderRadius: `${tokens.radius.lg}px`,
                   border: '1px solid',
                   borderColor: isOn ? alpha(theme.palette.brand.green, 0.4) : 'divider',
                   backgroundColor: isOn ? alpha(theme.palette.brand.green, 0.04) : theme.palette.background.paper,
