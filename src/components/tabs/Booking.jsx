@@ -1685,7 +1685,7 @@ const ReservaDialog = ({
           }}
         >
             <Stack>
-              <Typography variant="h5" fontWeight={700} color="text.primary">
+              <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }} color="text.primary">
                 {dialogTitle}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -3013,7 +3013,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
               <CalendarMonthRoundedIcon />
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
                 {dialogTitle}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
@@ -3959,7 +3959,7 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
       <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
         {mainView === 'bookings' && (
           <Stack spacing={1} sx={{ mb: 3 }}>
-            <Typography variant="h5" fontWeight="bold" color="text.primary">
+            <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }} color="text.primary">
               {t('userView.myBookings')}
             </Typography>
             <Typography variant="body1" color="text.secondary">
@@ -4752,7 +4752,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
         alignItems={{ xs: 'flex-start', sm: 'center' }}
       >
         <Stack spacing={1}>
-          <Typography variant="h5" fontWeight="bold" color="text.primary">
+          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }} color="text.primary">
             {t('admin.title')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
