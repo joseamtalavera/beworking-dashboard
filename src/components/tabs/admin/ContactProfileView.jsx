@@ -594,11 +594,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             height: 36,
             textTransform: 'none',
             fontWeight: 600,
-            borderColor: 'primary.main',
+            borderColor: 'brand.green',
             color: 'brand.green',
             '&:hover': {
-              borderColor: 'primary.dark',
-              color: 'primary.dark',
+              borderColor: 'brand.greenHover',
+              color: 'brand.greenHover',
               backgroundColor: alpha(theme.palette.brand.green, 0.08),
               transform: 'translateY(-1px)',
               boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
@@ -631,7 +631,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 fontSize: 36,
                 bgcolor: 'secondary.main',
                 border: '3px solid',
-                borderColor: (theme) => alpha(theme.palette.primary.light, 0.5)
+                borderColor: (theme) => alpha(theme.palette.brand.green, 0.5)
               }}
             >
               {initials.slice(0, 2)}
@@ -901,7 +901,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       >
         <DialogTitle sx={{ 
           pb: 0,
-          background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          background: (theme) => `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
           color: 'common.white',
           borderRadius: '12px 12px 0 0',
           p: 3
@@ -938,7 +938,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               >
                 <Box sx={{
                   p: 3,
-                  background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                  background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.brand.green, 0.05)} 100%)`,
                   borderBottom: '1px solid',
                   borderBottomColor: 'divider'
                 }}>
@@ -968,7 +968,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       <Avatar
                         src={draft?.avatar}
                         alt={draft?.name}
-                        sx={{ width: 80, height: 80, bgcolor: 'success.light', fontSize: 32, border: (th) => `3px solid ${th.palette.primary.light}80` }}
+                        sx={{ width: 80, height: 80, bgcolor: 'success.light', fontSize: 32, border: (th) => `3px solid ${th.palette.brand.green}80` }}
                       >
                         {draft?.name ? draft.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
                       </Avatar>
@@ -1134,7 +1134,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               >
                 <Box sx={{
                   p: 3,
-                  background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                  background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.brand.green, 0.05)} 100%)`,
                   borderBottom: '1px solid',
                   borderBottomColor: 'divider'
                 }}>
@@ -1268,14 +1268,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: 'primary.main',
+              borderColor: 'brand.green',
               color: 'brand.green',
               '&:hover': {
-                borderColor: 'primary.dark',
-                color: 'primary.dark',
-                backgroundColor: (theme) => `${theme.palette.primary.main}14`,
+                borderColor: 'brand.greenHover',
+                color: 'brand.greenHover',
+                backgroundColor: (theme) => `${theme.palette.brand.green}14`,
                 transform: 'translateY(-1px)',
-                boxShadow: (theme) => `0 4px 12px ${theme.palette.primary.main}33`
+                boxShadow: (theme) => `0 4px 12px ${theme.palette.brand.green}33`
               },
               transition: 'all 0.2s ease-in-out'
             }}
@@ -1293,9 +1293,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               textTransform: 'none',
               fontWeight: 600,
               backgroundColor: 'brand.green',
-              color: 'primary.contrastText',
+              color: '#fff',
               '&:hover': {
-                backgroundColor: 'primary.dark'
+                backgroundColor: 'brand.greenHover'
               }
             }}
           >
