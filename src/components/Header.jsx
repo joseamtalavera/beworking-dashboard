@@ -7,7 +7,6 @@ import { useColorMode } from '../main.jsx';
 import AccountSwitcher from './AccountSwitcher.jsx';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -38,11 +37,58 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'es' ? 'en' : 'es';
-    i18n.changeLanguage(newLang);
-    localStorage.setItem('beworking_lang', newLang);
+  const setLang = (lang) => {
+    if (i18n.language === lang) return;
+    i18n.changeLanguage(lang);
+    localStorage.setItem('beworking_lang', lang);
   };
+
+  const LangToggle = () => (
+    <Box
+      role="group"
+      aria-label="Language"
+      sx={{
+        display: 'inline-flex',
+        bgcolor: 'rgba(0,0,0,0.04)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        borderRadius: '999px',
+        p: '3px',
+      }}
+    >
+      {['es', 'en'].map((lang) => {
+        const active = i18n.language === lang;
+        return (
+          <Box
+            key={lang}
+            role="button"
+            tabIndex={0}
+            onClick={() => setLang(lang)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') setLang(lang);
+            }}
+            sx={{
+              minWidth: 32,
+              px: 1.25,
+              py: 0.35,
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textAlign: 'center',
+              borderRadius: '999px',
+              cursor: active ? 'default' : 'pointer',
+              userSelect: 'none',
+              color: active ? '#ffffff' : 'rgba(0,0,0,0.5)',
+              bgcolor: active ? '#1d1d1f' : 'transparent',
+              transition: 'background-color 0.15s ease, color 0.15s ease',
+              '&:hover': active ? {} : { color: 'rgba(0,0,0,0.75)' },
+            }}
+          >
+            {lang.toUpperCase()}
+          </Box>
+        );
+      })}
+    </Box>
+  );
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -186,9 +232,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 <IconButton onClick={toggleColorMode} size="small" sx={{ color: accentColor, width: 32, height: 32 }} aria-label="Toggle dark mode">
                   {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
                 </IconButton>
-                <Button variant="outlined" size="small" onClick={toggleLanguage} sx={{ textTransform: 'none', fontWeight: 600, minWidth: 36, px: 1, height: 32, fontSize: '0.75rem', borderRadius: 999, borderColor: accentColor, color: accentColor, transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`, '&:hover': { borderColor: accentColor, backgroundColor: theme.palette.brand.accentSoft } }}>
-                  {i18n.language === 'es' ? 'EN' : 'ES'}
-                </Button>
+                <LangToggle />
                 {userProfile?.hasMultipleAccounts && (
                   <AccountSwitcher currentTenantId={userProfile?.tenantId} />
                 )}
@@ -379,29 +423,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
               >
                 {mode === 'dark' ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}
               </IconButton>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={toggleLanguage}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  minWidth: 40,
-                  px: 1.5,
-                  height: 36,
-                  borderRadius: 999,
-                  borderColor: accentColor,
-                  color: accentColor,
-                  transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`,
-                  '&:hover': {
-                    borderColor: accentColor,
-                    color: accentColor,
-                    backgroundColor: theme.palette.brand.accentSoft,
-                  },
-                }}
-              >
-                {i18n.language === 'es' ? 'EN' : 'ES'}
-              </Button>
+              <LangToggle />
               {userProfile?.hasMultipleAccounts && (
                 <AccountSwitcher currentTenantId={userProfile?.tenantId} />
               )}
