@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 
-// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+// Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -125,7 +125,7 @@ const formatDateTime = (isoString) => {
 };
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -947,7 +947,7 @@ const MailboxAdmin = () => {
                 color: 'common.white',
                 width: 44,
                 height: 44,
-                '&:hover': { bgcolor: 'primary.dark' },
+                '&:hover': { bgcolor: 'brand.greenHover' },
               }}
             >
               <SearchRoundedIcon />
@@ -968,7 +968,7 @@ const MailboxAdmin = () => {
               color: 'text.secondary',
               borderRadius: 999,
               px: 2,
-              '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
+              '&:hover': { borderColor: 'brand.green', color: 'brand.green' },
             }}
           >
             {t('admin.clearFilters')}
@@ -1107,7 +1107,7 @@ const MailboxAdmin = () => {
                                   disabled={!doc.id || doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up'}
                                   sx={{
                                     color: (doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up')
-                                      ? 'primary.main' : 'secondary.main',
+                                      ? 'brand.green' : 'secondary.main',
                                     '&.Mui-disabled': (doc.status === 'notified' || doc.status === 'viewed' || doc.status === 'picked_up')
                                       ? { color: 'brand.green' } : {}
                                   }}
@@ -1124,7 +1124,7 @@ const MailboxAdmin = () => {
                                     onClick={() => doc.id && handleMarkPickedUp(doc.id)}
                                     disabled={!doc.id || doc.status === 'picked_up'}
                                     sx={{
-                                      color: doc.status === 'picked_up' ? 'primary.main' : '#f97316',
+                                      color: doc.status === 'picked_up' ? 'brand.green' : '#f97316',
                                       '&.Mui-disabled': doc.status === 'picked_up' ? { color: 'brand.green' } : {}
                                     }}
                                   >
@@ -1140,7 +1140,7 @@ const MailboxAdmin = () => {
                                     onClick={() => doc.id && handleMarkViewed(doc.id)}
                                     disabled={!doc.id || doc.status === 'viewed'}
                                     sx={{
-                                      color: doc.status === 'viewed' ? 'primary.main' : 'secondary.main',
+                                      color: doc.status === 'viewed' ? 'brand.green' : 'secondary.main',
                                       '&.Mui-disabled': doc.status === 'viewed' ? { color: 'brand.green' } : {}
                                     }}
                                   >
@@ -1339,13 +1339,13 @@ const MailboxAdmin = () => {
                           cursor: 'pointer',
                           '&:hover': {
                             borderColor: 'secondary.main',
-                            backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.04)
+                            backgroundColor: (theme) => alpha(theme.palette.brand.green, 0.04)
                           }
                         }}
                         onClick={() => handleSelectContact(contact)}
                       >
                         <Stack direction="row" spacing={2} alignItems="center">
-                          <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', color: 'secondary.contrastText', fontSize: '0.875rem', border: (theme) => `3px solid ${theme.palette.primary.light}80` }}>
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', color: 'secondary.contrastText', fontSize: '0.875rem', border: (theme) => `3px solid ${theme.palette.brand.green}80` }}>
                             {contact.name.split(' ').map(n => n[0]).join('')}
                           </Avatar>
                           <Box>
