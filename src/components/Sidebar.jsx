@@ -137,7 +137,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
               fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               fontWeight: 700,
               fontSize: '1.4rem',
-              color: '#0e0e0c',
+              color: 'text.primary',
               letterSpacing: '-0.034em',
               lineHeight: 1,
               cursor: 'pointer',
@@ -235,7 +235,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                         fontSize: '0.9rem',
                         fontWeight: active ? 600 : 500,
                         letterSpacing: '-0.005em',
-                        color: active ? activeColor : '#1d1d1f',
+                        color: active ? activeColor : 'text.primary',
                       }}>
                         {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
                       </Typography>
@@ -254,7 +254,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                 )}
                 {hasSubtabs && canExpand && !collapsed && (
                   <Collapse in={expanded} timeout="auto">
-                    <Box sx={{ pl: 3, pr: 2, pb: 1, ml: 2, mr: 1, mb: 0.5, borderRadius: `${tokens.radius.md}px`, backgroundColor: '#f5f5f7' }}>
+                    <Box sx={{ pl: 3, pr: 2, pb: 1, ml: 2, mr: 1, mb: 0.5, borderRadius: `${tokens.radius.md}px`, backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#27272a' : '#f5f5f7' }}>
                       {visibleSubtabs.map((sub) => (
                         <ButtonBase
                           key={sub.id}
@@ -270,11 +270,11 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                             ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.brand.green, 0.1) }),
                           }}
                         >
-                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : '#6e6e73', mr: 1.5 }} />
+                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.secondary', mr: 1.5 }} />
                           <Typography sx={{
                             fontSize: '0.85rem',
                             fontWeight: activeTab === sub.id ? 600 : 500,
-                            color: activeTab === sub.id ? activeColor : '#424245',
+                            color: activeTab === sub.id ? activeColor : 'text.primary',
                             flex: 1,
                             textAlign: 'left',
                           }}>

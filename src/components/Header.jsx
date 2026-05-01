@@ -223,7 +223,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 >
                   <MenuRoundedIcon />
                 </IconButton>
-                <Typography variant="h4" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' }, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f' }}>
+                <Typography variant="h4" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' }, fontWeight: 600, letterSpacing: '-0.025em', color: 'text.primary' }}>
                   {t('tabs.' + activeTab, { defaultValue: activeTab })}
                 </Typography>
               </Stack>
@@ -241,7 +241,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 </Avatar>
               </Stack>
             </Stack>
-            <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.875rem', color: '#6e6e73', lineHeight: 1.55 }}>
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.875rem', color: 'text.secondary', lineHeight: 1.55 }}>
               {greeting}, {userProfile?.name || 'User'}. {t('header.subtitle_' + activeTab, { defaultValue: t('header.subtitle') })}
             </Typography>
           </Stack>
@@ -332,7 +332,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                         borderBottom: index < searchResults.length - 1 ? '1px solid' : 'none',
                         borderBottomColor: 'divider',
                         '&:hover': {
-                          bgcolor: '#f5f5f7'
+                          bgcolor: (theme) => theme.palette.mode === 'dark' ? '#27272a' : '#f5f5f7'
                         }
                       }}
                       onClick={() => {
