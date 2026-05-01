@@ -576,8 +576,14 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
       <WebsiteAdBanner onViewPlans={() => setPlanDialogOpen(true)} />
 
       {/* Cancel booking confirm dialog */}
-      <Dialog open={Boolean(cancelTarget)} onClose={() => !cancelling && setCancelTarget(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>{t('user.upcomingBookings.confirmTitle')}</DialogTitle>
+      <Dialog
+        open={Boolean(cancelTarget)}
+        onClose={() => !cancelling && setCancelTarget(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>{t('user.upcomingBookings.confirmTitle')}</DialogTitle>
         <DialogContent>
           {cancelError && <Alert severity="error" sx={{ mb: 2 }}>{cancelError}</Alert>}
           <DialogContentText>
@@ -587,11 +593,21 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
             })}
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setCancelTarget(null)} disabled={cancelling}>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={() => setCancelTarget(null)}
+            disabled={cancelling}
+            sx={{ borderRadius: 999, px: 3, py: 1, textTransform: 'none', fontWeight: 600, color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' } }}
+          >
             {t('user.upcomingBookings.back')}
           </Button>
-          <Button variant="contained" color="error" onClick={handleConfirmCancel} disabled={cancelling}>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmCancel}
+            disabled={cancelling}
+            sx={{ borderRadius: 999, px: 3, py: 1, textTransform: 'none', fontWeight: 600, boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}
+          >
             {cancelling ? <CircularProgress size={16} color="inherit" /> : t('user.upcomingBookings.confirmCancel')}
           </Button>
         </DialogActions>
@@ -1053,7 +1069,7 @@ const AdminOverview = () => {
       </Box>
 
       {/* Charts Section */}
-      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.md}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
             {t('charts.financialOverview')}
@@ -1094,7 +1110,7 @@ const AdminOverview = () => {
       </Paper>
 
       {/* Workspace Occupancy */}
-      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.md}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
             {t('occupancy.title')}
@@ -1233,7 +1249,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
 
   return (
     <>
-    <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.md}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
+    <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>{t('reconciliation.title')}</Typography>
         <Stack direction="row" spacing={2} alignItems="center">
