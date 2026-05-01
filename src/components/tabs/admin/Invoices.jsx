@@ -557,11 +557,11 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           sx={{
             textTransform: 'none',
             fontWeight: 600,
-            borderColor: 'divider',
-            color: 'text.secondary',
+            borderColor: 'brand.green',
+            color: 'brand.green',
             borderRadius: 999,
             px: 2,
-            '&:hover': { borderColor: 'brand.green', color: 'brand.green' },
+            '&:hover': { borderColor: 'brand.greenHover', color: 'brand.greenHover', bgcolor: 'brand.accentSoft' },
           }}
         >
           {t('reset')}
