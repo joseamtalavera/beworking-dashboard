@@ -3,7 +3,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
-// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+// Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
@@ -338,7 +338,7 @@ const createEmptyForm = () => ({
 });
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -628,7 +628,7 @@ const SpaceCatalog = () => {
           onClick={handleAdd}
           sx={{
             backgroundColor: 'brand.green',
-            '&:hover': { backgroundColor: 'primary.dark' },
+            '&:hover': { backgroundColor: 'brand.greenHover' },
             fontWeight: 600,
             whiteSpace: 'nowrap'
           }}
@@ -642,7 +642,7 @@ const SpaceCatalog = () => {
         sx={{
           borderRadius: 3,
           border: '1px solid',
-          borderColor: (theme) => theme.palette.primary.light + '80',
+          borderColor: (theme) => theme.palette.brand.green + '80',
           overflowX: 'auto',
           WebkitOverflowScrolling: 'touch'
         }}
@@ -690,7 +690,7 @@ const SpaceCatalog = () => {
                           objectFit: 'cover',
                           borderRadius: 1,
                           border: '1px solid',
-                          borderColor: (theme) => theme.palette.primary.light + '80'
+                          borderColor: (theme) => theme.palette.brand.green + '80'
                         }}
                       />
                     ) : (
@@ -783,8 +783,8 @@ const SpaceCatalog = () => {
                 sx={{
                   p: 2,
                   borderRadius: 3,
-                  borderColor: (theme) => theme.palette.primary.light + '80',
-                  backgroundColor: (theme) => theme.palette.primary.light + '15'
+                  borderColor: (theme) => theme.palette.brand.green + '80',
+                  backgroundColor: (theme) => theme.palette.brand.green + '15'
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
@@ -1041,7 +1041,7 @@ const SpaceCatalog = () => {
                 sx={{
                   p: 2,
                   borderRadius: 3,
-                  borderColor: (theme) => theme.palette.primary.light + '80'
+                  borderColor: (theme) => theme.palette.brand.green + '80'
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
@@ -1076,7 +1076,7 @@ const SpaceCatalog = () => {
                 sx={{
                   p: 2,
                   borderRadius: 3,
-                  borderColor: (theme) => theme.palette.primary.light + '80'
+                  borderColor: (theme) => theme.palette.brand.green + '80'
                 }}
               >
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
@@ -1134,7 +1134,7 @@ const SpaceCatalog = () => {
                     fontWeight: 600,
                     '&:hover': {
                       borderColor: BRAND_PRIMARY_HOVER,
-                      backgroundColor: (theme) => theme.palette.primary.light + '15'
+                      backgroundColor: (theme) => theme.palette.brand.green + '15'
                     }
                   }}
                 >
@@ -1156,7 +1156,7 @@ const SpaceCatalog = () => {
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        borderColor: (theme) => theme.palette.primary.light + '80',
+                        borderColor: (theme) => theme.palette.brand.green + '80',
                         overflow: 'hidden',
                         opacity: draggingImageIndex === index ? 0.85 : 1,
                         outline:
@@ -1233,7 +1233,7 @@ const SpaceCatalog = () => {
                   </Grid>
                 ))}
                 {formValues.images.length === 0 && (
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Paper
                       variant="outlined"
                       sx={{
@@ -1242,8 +1242,8 @@ const SpaceCatalog = () => {
                         borderRadius: 3,
                         borderStyle: 'dashed',
                         color: 'text.secondary',
-                        borderColor: (theme) => theme.palette.primary.light + '80',
-                        backgroundColor: (theme) => theme.palette.primary.light + '15'
+                        borderColor: (theme) => theme.palette.brand.green + '80',
+                        backgroundColor: (theme) => theme.palette.brand.green + '15'
                       }}
                     >
                       <Typography variant="body2">
