@@ -3,6 +3,7 @@ import { TimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, parseISO } from 'date-fns';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../theme/tokens.js';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -184,8 +185,8 @@ const getViewToggleTabsStyle = (theme) => ({
     color: 'text.secondary',
     transition: 'all 0.15s ease',
     '&.Mui-selected': {
-      color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.primary.main,
-      bgcolor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.background.paper,
+      color: theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.brand.green,
+      bgcolor: theme.palette.mode === 'dark' ? theme.palette.brand.green : theme.palette.background.paper,
       boxShadow: theme.palette.mode === 'dark' ? 'none' : theme.shadows[1],
     },
     '&:hover:not(.Mui-selected)': {
@@ -1128,7 +1129,7 @@ const ReservaDialog = ({
         borderColor: theme.palette.grey[400]
       },
       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: theme.palette.primary.main
+        borderColor: theme.palette.brand.green
       },
       '& input': {
         fontSize: 14,
@@ -1145,7 +1146,7 @@ const ReservaDialog = ({
       fontWeight: 600,
       color: theme.palette.text.secondary,
       '&.Mui-focused': {
-        color: theme.palette.primary.main
+        color: theme.palette.brand.green
       }
     };
 
@@ -1775,7 +1776,7 @@ const ReservaDialog = ({
                 </Stack>
                 <Grid container spacing={2}>
                   {/* Contact search */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box sx={{ position: 'relative' }}>
                       <TextField
                         fullWidth
@@ -1852,7 +1853,7 @@ const ReservaDialog = ({
                   </Grid>
 
                   {/* Centro */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       label={t('admin.centro')}
@@ -1889,7 +1890,7 @@ const ReservaDialog = ({
                   </Grid>
 
                   {/* User Type */}
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                       fullWidth
                       label={t('admin.userType')}
@@ -1922,7 +1923,7 @@ const ReservaDialog = ({
                   </Grid>
 
                   {/* Producto */}
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                       fullWidth
                       label={t('admin.producto')}
@@ -1959,7 +1960,7 @@ const ReservaDialog = ({
                   </Grid>
 
                   {/* Reservation Type */}
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                       fullWidth
                       label={t('admin.reservationType')}
@@ -1992,7 +1993,7 @@ const ReservaDialog = ({
                   </Grid>
 
                   {/* Status */}
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                       fullWidth
                       label={t('admin.status')}
@@ -2024,7 +2025,7 @@ const ReservaDialog = ({
                   </Grid>
 
                   {/* Tarifa */}
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                       fullWidth
                       label={t('admin.tarifaLabel')}
@@ -2073,7 +2074,7 @@ const ReservaDialog = ({
                 </Typography>
                 </Stack>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={3}>
+                  <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                       type="date"
                       label={t('admin.dateFrom')}
@@ -2086,7 +2087,7 @@ const ReservaDialog = ({
                       size="small"
                     />
                   </Grid>
-                  <Grid item xs={12} md={3}>
+                  <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                       type="date"
                       label={t('admin.dateTo')}
@@ -2101,7 +2102,7 @@ const ReservaDialog = ({
                   </Grid>
                   {isPerHour ? (
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
-                      <Grid item xs={12} md={3}>
+                      <Grid size={{ xs: 12, md: 3 }}>
                         <TimePicker
                           label={t('admin.startTime')}
                           value={timeStringToDate(formState.startTime)}
@@ -2121,7 +2122,7 @@ const ReservaDialog = ({
                           minutesStep={30}
                         />
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid size={{ xs: 12, md: 3 }}>
                         <TimePicker
                           label={t('admin.endTime')}
                           value={timeStringToDate(formState.endTime)}
@@ -2223,7 +2224,7 @@ const ReservaDialog = ({
                 </Typography>
                 </Stack>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('admin.attendees')}
                       value={formState.attendees}
@@ -2240,7 +2241,7 @@ const ReservaDialog = ({
                       }}
                     />
               </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label={t('admin.configuracion')}
                       value={formState.configuracion}
@@ -2280,14 +2281,14 @@ const ReservaDialog = ({
               height: 36,
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: 'primary.main',
+              borderColor: 'brand.green',
               color: 'brand.green',
               '&:hover': {
-                borderColor: 'primary.dark',
-                color: 'primary.dark',
-                backgroundColor: (theme) => `${theme.palette.primary.main}14`,
+                borderColor: 'brand.greenHover',
+                color: 'brand.greenHover',
+                backgroundColor: (theme) => `${theme.palette.brand.green}14`,
                 transform: 'translateY(-1px)',
-                boxShadow: (theme) => `0 4px 12px ${theme.palette.primary.main}33`
+                boxShadow: (theme) => `0 4px 12px ${theme.palette.brand.green}33`
               },
               transition: 'all 0.2s ease-in-out'
             }}
@@ -2304,9 +2305,9 @@ const ReservaDialog = ({
               textTransform: 'none',
               fontWeight: 600,
               backgroundColor: 'brand.green',
-              color: 'primary.contrastText',
+              color: '#fff',
               '&:hover': {
-                backgroundColor: 'primary.dark'
+                backgroundColor: 'brand.greenHover'
               }
             }}
           >
@@ -2485,7 +2486,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
         {booking ? (
           <Stack spacing={2.5}>
             <Grid container spacing={2.5}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <DetailTile
                   icon={<LocationOnRoundedIcon fontSize="small" />}
                   label={t('admin.centro') + ' / ' + t('userView.room')}
@@ -2493,28 +2494,28 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                   secondary={booking.productName || booking.productType || '—'}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <DetailTile
                   icon={<CalendarMonthRoundedIcon fontSize="small" />}
                   label={t('admin.dateRange')}
                   primary={formatDateRange(booking.dateFrom, booking.dateTo)}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <DetailTile
                   icon={<AccessTimeRoundedIcon fontSize="small" />}
                   label={t('admin.time')}
                   primary={formatTimeRange(booking.timeFrom, booking.timeTo)}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <DetailTile
                   icon={<EventRepeatRoundedIcon fontSize="small" />}
                   label={t('admin.reservationType')}
                   primary={booking.reservationType ? t('reservationType.' + booking.reservationType) : '—'}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <DetailTile
                   icon={<CalendarViewWeekRoundedIcon fontSize="small" />}
                   label={t('admin.days')}
@@ -2551,7 +2552,7 @@ const BookingDetailsDialog = ({ booking, onClose }) => {
                   ) : null}
                 </DetailTile>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <DetailTile
                   icon={<PeopleAltRoundedIcon fontSize="small" />}
                   label={t('admin.attendees')}
@@ -3002,7 +3003,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
       <Box component="form" noValidate>
         <DialogTitle sx={{
           pb: 0,
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
           color: 'common.white',
           borderRadius: '12px 12px 0 0',
           p: 3
@@ -3105,7 +3106,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                   >
                     <Box sx={{
                       p: 3,
-                      background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                      background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.brand.green, 0.05)} 100%)`,
                       borderBottom: '1px solid',
                       borderBottomColor: 'divider'
                     }}>
@@ -3120,13 +3121,13 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                     </Box>
                     <Box sx={{ p: 3 }}>
                       <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <TextField fullWidth label={t('admin.contact')} value={formState.cliente || ''} onChange={(e) => handleFieldChange('cliente', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <TextField fullWidth label={t('admin.centro')} value={formState.centro || ''} onChange={(e) => handleFieldChange('centro', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <TextField fullWidth label={t('admin.userType')} value={formState.userType || ''} onChange={(e) => handleFieldChange('userType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
                             <MenuItem value="">—</MenuItem>
                             <MenuItem value="Usuario Aulas">Usuario Aulas</MenuItem>
@@ -3134,7 +3135,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                             <MenuItem value="Usuario Virtual">Usuario Virtual</MenuItem>
                           </TextField>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <TextField fullWidth label={t('admin.producto')} value={formState.productoId || ''} onChange={(e) => {
                             const prod = availableProducts.find((p) => p.id === Number(e.target.value));
                             if (prod) {
@@ -3147,14 +3148,14 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                             ))}
                           </TextField>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
                           <TextField fullWidth label={t('admin.reservationType')} value={formState.reservationType || 'Por Horas'} onChange={(e) => handleFieldChange('reservationType', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
                             <MenuItem value="Por Horas">{t('reservationType.Por Horas')}</MenuItem>
                             <MenuItem value="Diaria">{t('reservationType.Diaria')}</MenuItem>
                             <MenuItem value="Mensual">{t('reservationType.Mensual')}</MenuItem>
                           </TextField>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
                           <TextField fullWidth label={t('admin.status')} value={formState.status || 'Booked'} onChange={(e) => handleFieldChange('status', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" select sx={fieldSx}>
                             <MenuItem value="Booked">{t('status.booked')}</MenuItem>
                             <MenuItem value="Paid">{t('status.paid')}</MenuItem>
@@ -3162,13 +3163,13 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                             <MenuItem value="Free">{t('status.free')}</MenuItem>
                           </TextField>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
                           <TextField fullWidth label={t('admin.tarifaLabel')} value={formState.tarifa ?? ''} onChange={(e) => handleFieldChange('tarifa', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <TextField fullWidth label={t('admin.attendees')} value={formState.asistentes ?? ''} onChange={(e) => handleFieldChange('asistentes', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <TextField fullWidth label={t('admin.configuracion')} value={formState.configuracion || ''} onChange={(e) => handleFieldChange('configuracion', e.target.value)} disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                         </Grid>
                       </Grid>
@@ -3188,7 +3189,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                   >
                     <Box sx={{
                       p: 3,
-                      background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                      background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.brand.green, 0.05)} 100%)`,
                       borderBottom: '1px solid',
                       borderBottomColor: 'divider'
                     }}>
@@ -3204,13 +3205,13 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                     <Box sx={{ p: 3 }}>
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <Grid container spacing={3}>
-                          <Grid item xs={12} sm={3}>
+                          <Grid size={{ xs: 12, sm: 3 }}>
                             <TextField type="date" label={t('admin.dateFrom')} value={formState.dateFrom || ''} onChange={(e) => handleFieldChange('dateFrom', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid size={{ xs: 12, sm: 3 }}>
                             <TextField type="date" label={t('admin.dateTo')} value={formState.dateTo || ''} onChange={(e) => handleFieldChange('dateTo', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth disabled={!isEditMode} variant="outlined" size="small" sx={fieldSx} />
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid size={{ xs: 12, sm: 3 }}>
                             <TimePicker
                               label={t('admin.startTime')}
                               value={formState.horaIni ? timeStringToDate(formState.horaIni) : null}
@@ -3219,7 +3220,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                               minutesStep={30}
                             />
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid size={{ xs: 12, sm: 3 }}>
                             <TimePicker
                               label={t('admin.endTime')}
                               value={formState.horaFin ? timeStringToDate(formState.horaFin) : null}
@@ -3248,7 +3249,7 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                     >
                       <Box sx={{
                         p: 3,
-                        background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+                        background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.brand.green, 0.05)} 100%)`,
                         borderBottom: '1px solid',
                         borderBottomColor: 'divider'
                       }}>
@@ -3379,9 +3380,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                 fontWeight: 600,
                 px: 3,
                 py: 1,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
                 '&:hover': {
-                  background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+                  background: `linear-gradient(135deg, ${theme.palette.brand.greenHover} 0%, ${theme.palette.brand.green} 100%)`
                 }
               }}
             >
@@ -3399,9 +3400,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                 fontWeight: 600,
                 px: 3,
                 py: 1,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
                 '&:hover': {
-                  background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+                  background: `linear-gradient(135deg, ${theme.palette.brand.greenHover} 0%, ${theme.palette.brand.green} 100%)`
                 }
               }}
             >
@@ -3459,9 +3460,9 @@ const BloqueoDetailsDialog = ({ bloqueo, onClose, onEdit, onInvoice, onUpdated, 
                   fontWeight: 600,
                   px: 3,
                   py: 1,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                  background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
                   '&:hover': {
-                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+                    background: `linear-gradient(135deg, ${theme.palette.brand.greenHover} 0%, ${theme.palette.brand.green} 100%)`
                   }
                 }}
               >
@@ -3655,7 +3656,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSlot?.(slot, bloqueo); } }}
                           sx={{
                             height: 52, width: '100%', borderRadius: 2, border: '2px solid',
-                            borderColor: isSelected ? theme.palette.primary.main : styles.borderColor,
+                            borderColor: isSelected ? theme.palette.brand.green : styles.borderColor,
                             bgcolor: styles.bgcolor, color: styles.color, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             transition: 'transform 0.15s, border-color 0.15s',
@@ -3806,7 +3807,7 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
                 <TableRow key={bloqueo.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                   <TableCell>
                     <Stack direction="row" spacing={2} alignItems="center">
-                      <Avatar sx={{ bgcolor: 'primary.light', color: 'brand.green', width: 40, height: 40 }}>
+                      <Avatar sx={{ bgcolor: 'brand.accentSoft', color: 'brand.green', width: 40, height: 40 }}>
                         <MeetingRoomRoundedIcon fontSize="small" />
                       </Avatar>
                       <Box>
@@ -3867,21 +3868,21 @@ const UserBookingDetailsDialog = ({ bloqueo, onClose }) => {
           </Box>
           <Divider />
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={6}>
               <Typography variant="overline" color="text.secondary">{t('userView.date')}</Typography>
               <Typography variant="body1">{startDate ? startDate.toLocaleDateString() : '—'}</Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={6}>
               <Typography variant="overline" color="text.secondary">{t('userView.time')}</Typography>
               <Typography variant="body1">
                 {startDate ? startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} - {endDate ? endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
               </Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={6}>
               <Typography variant="overline" color="text.secondary">{t('userView.attendees')}</Typography>
               <Typography variant="body1">{bloqueo.asistentes || '—'}</Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={6}>
               <Typography variant="overline" color="text.secondary">{t('userView.status')}</Typography>
               <Typography variant="body1">{bloqueo.estado || t('userView.pending')}</Typography>
             </Grid>
@@ -4776,9 +4777,9 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
               fontSize: '0.875rem',
               px: 2.5,
               backgroundColor: 'brand.green',
-              color: 'primary.contrastText',
+              color: '#fff',
               '&:hover': {
-                backgroundColor: 'primary.dark'
+                backgroundColor: 'brand.greenHover'
               }
             }}
           >
@@ -4908,9 +4909,9 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                             sx={{
                               fontWeight: 700,
                               fontSize: '0.875rem',
-                              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.06),
+                              backgroundColor: (theme) => alpha(theme.palette.brand.green, 0.06),
                               borderLeft: '2px solid',
-                              borderLeftColor: 'primary.main'
+                              borderLeftColor: 'brand.green'
                             }}
                           >
                             {format(parseISO(dateKey), 'EEEE dd/MM', { locale: undefined })}
@@ -4941,7 +4942,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                           <TableCell
                             key={`${dateKey}-${slot.id}`}
                             align="center"
-                            sx={dateIdx > 0 && slotIdx === 0 ? { borderLeft: '2px solid', borderLeftColor: 'primary.main' } : undefined}
+                            sx={dateIdx > 0 && slotIdx === 0 ? { borderLeft: '2px solid', borderLeftColor: 'brand.green' } : undefined}
                           >
                             <Typography variant="subtitle2" fontWeight="bold">
                               {slot.label}
@@ -4981,7 +4982,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                                 align="center"
                                 sx={{
                                   p: 0.75, width: 64, maxWidth: 64,
-                                  ...(dateIdx > 0 && slotIdx === 0 ? { borderLeft: '2px solid', borderLeftColor: 'primary.main' } : {})
+                                  ...(dateIdx > 0 && slotIdx === 0 ? { borderLeft: '2px solid', borderLeftColor: 'brand.green' } : {})
                                 }}
                               >
                                 <Tooltip
@@ -5118,7 +5119,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                   color: 'common.white',
                   width: 44,
                   height: 44,
-                  '&:hover': { bgcolor: 'primary.dark' },
+                  '&:hover': { bgcolor: 'brand.greenHover' },
                 }}
               >
                 <SearchRoundedIcon />
@@ -5147,7 +5148,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                 color: 'text.secondary',
                 borderRadius: 999,
                 px: 2,
-                '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
+                '&:hover': { borderColor: 'brand.green', color: 'brand.green' },
               }}
             >
               {t('admin.reset')}

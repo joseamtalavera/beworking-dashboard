@@ -4,6 +4,8 @@ import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternate
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 
 // Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
+
+import { tokens } from '../../../theme/tokens.js';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
@@ -615,7 +617,7 @@ const SpaceCatalog = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Box>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h4" sx={{ fontWeight: 600, letterSpacing: '-0.022em' }}>
             {t('title')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
@@ -640,7 +642,7 @@ const SpaceCatalog = () => {
       <TableContainer
         component={Paper}
         sx={{
-          borderRadius: 3,
+          borderRadius: `${tokens.radius.lg}px`,
           border: '1px solid',
           borderColor: (theme) => theme.palette.brand.green + '80',
           overflowX: 'auto',
