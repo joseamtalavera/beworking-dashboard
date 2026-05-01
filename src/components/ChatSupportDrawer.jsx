@@ -106,7 +106,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
           justifyContent: 'space-between',
           px: 2.5,
           py: 2,
-          bgcolor: '#fff',
+          bgcolor: 'background.paper',
           borderBottom: '1px solid rgba(0,0,0,0.08)',
         }}
       >
@@ -160,9 +160,10 @@ export default function ChatSupportDrawer({ open, onClose }) {
                 px: 2,
                 py: 1.5,
                 borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                bgcolor: msg.role === 'user' ? 'brand.green' : '#fff',
+                bgcolor: msg.role === 'user' ? 'brand.green' : 'background.paper',
                 color: msg.role === 'user' ? '#fff' : 'text.primary',
-                border: msg.role === 'assistant' ? '1px solid rgba(0,0,0,0.08)' : 'none',
+                border: msg.role === 'assistant' ? '1px solid' : 'none',
+                borderColor: msg.role === 'assistant' ? 'divider' : 'transparent',
                 fontSize: '0.875rem',
                 lineHeight: 1.6,
                 whiteSpace: 'pre-wrap',
@@ -253,7 +254,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
         sx={{
           px: 2,
           py: 1.5,
-          bgcolor: '#fff',
+          bgcolor: 'background.paper',
           borderTop: '1px solid rgba(0,0,0,0.08)',
           display: 'flex',
           gap: 1,
