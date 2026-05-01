@@ -717,7 +717,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                   backgroundColor: 'brand.green',
                   color: 'white',
                   borderRadius: 1,
-                  '&:hover': { backgroundColor: 'primary.dark' }
+                  '&:hover': { backgroundColor: 'brand.greenHover' }
                 }}
               >
                 {editMode ? t('editor.saveChanges') : t('editor.approveInvoice')}
