@@ -38,7 +38,7 @@ const MODELS = [
 const MariaAI = ({ userProfile }) => {
   const theme = useTheme();
   const { t } = useTranslation();
-  const accent = theme.palette.primary.main;
+  const accent = theme.palette.brand.green;
   const firstName = (userProfile?.name || '').trim().split(/\s+/)[0];
 
   const [message, setMessage] = useState('');
