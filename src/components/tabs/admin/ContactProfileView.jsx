@@ -574,9 +574,13 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   }, [contact?.created_at]);
 
   const statusLabel = contact?.status || 'Unknown';
-  const statusColor = statusLabel === 'Active' ? 'success' :
+  // DB stores Spanish values (Activo, Suspendido); accept English too for compatibility.
+  const statusColor =
+    statusLabel === 'Active' || statusLabel === 'Activo' ? 'success' :
     statusLabel === 'Trial' ? 'warning' :
-    statusLabel === 'Suspended' ? 'warning' : 'default';
+    statusLabel === 'Suspended' || statusLabel === 'Suspendido' ? 'warning' :
+    statusLabel === 'Lista de Espera' ? 'warning' :
+    'default';
 
   return (
     <Stack spacing={4}>
