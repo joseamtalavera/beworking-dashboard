@@ -152,8 +152,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
               aria-hidden="true"
               sx={{
                 display: 'inline-block',
-                width: '0.14em',
-                height: '0.14em',
+                width: '0.18em',
+                height: '0.18em',
                 borderRadius: '50%',
                 bgcolor: '#2e8b3d',
                 alignSelf: 'flex-end',
