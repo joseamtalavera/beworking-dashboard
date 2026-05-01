@@ -240,7 +240,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
                 sx={{
                   position: 'relative',
                   border: '2px solid',
-                  borderColor: plan.popular ? 'primary.main' : 'divider',
+                  borderColor: plan.popular ? 'brand.green' : 'divider',
                   borderRadius: 3,
                   p: 3.5,
                   display: 'flex',

@@ -802,7 +802,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
           </Stack>
 
           {/* Current plan badge */}
-          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor: subscriptions.length > 0 ? 'primary.main' : 'divider' }}>
+          <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor: subscriptions.length > 0 ? 'brand.green' : 'divider' }}>
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Typography variant="body1" fontWeight={700}>
@@ -961,9 +961,9 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             variant="outlined" size="small" startIcon={<LogoutRoundedIcon />}
             sx={{
               minWidth: 120, height: 36, textTransform: 'none', fontWeight: 600,
-              borderColor: 'primary.main', color: 'brand.green',
+              borderColor: 'brand.green', color: 'brand.green',
               '&:hover': {
-                borderColor: 'primary.dark', color: 'primary.dark',
+                borderColor: 'brand.greenHover', color: 'brand.greenHover',
                 backgroundColor: theme.palette.brand.greenSoft,
               },
             }}

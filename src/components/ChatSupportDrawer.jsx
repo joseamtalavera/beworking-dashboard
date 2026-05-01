@@ -160,7 +160,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
                 px: 2,
                 py: 1.5,
                 borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                bgcolor: msg.role === 'user' ? 'primary.main' : '#fff',
+                bgcolor: msg.role === 'user' ? 'brand.green' : '#fff',
                 color: msg.role === 'user' ? '#fff' : 'text.primary',
                 border: msg.role === 'assistant' ? '1px solid rgba(0,0,0,0.08)' : 'none',
                 fontSize: '0.875rem',
@@ -285,7 +285,7 @@ export default function ChatSupportDrawer({ open, onClose }) {
             color: '#fff',
             width: 40,
             height: 40,
-            '&:hover': { bgcolor: 'primary.dark' },
+            '&:hover': { bgcolor: 'brand.greenHover' },
             '&.Mui-disabled': { bgcolor: 'rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.26)' },
           }}
         >

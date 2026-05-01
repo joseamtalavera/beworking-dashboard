@@ -201,7 +201,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
             {t('help.tutorials')}
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Avatar sx={{ bgcolor: 'text.primary', width: 44, height: 44 }}>
@@ -218,7 +218,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
                 </Stack>
               </Paper>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Avatar sx={{ bgcolor: 'text.primary', width: 44, height: 44 }}>
