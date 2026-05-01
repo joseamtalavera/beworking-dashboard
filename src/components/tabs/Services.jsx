@@ -45,8 +45,8 @@ const Services = () => {
                   height: '100%',
                   borderRadius: 3,
                   border: '1px solid',
-                  borderColor: isOn ? alpha(theme.palette.primary.main, 0.4) : 'divider',
-                  backgroundColor: isOn ? alpha(theme.palette.primary.main, 0.04) : theme.palette.background.paper,
+                  borderColor: isOn ? alpha(theme.palette.brand.green, 0.4) : 'divider',
+                  backgroundColor: isOn ? alpha(theme.palette.brand.green, 0.04) : theme.palette.background.paper,
                   transition: 'border-color 0.15s ease, background-color 0.15s ease',
                 }}
               >
@@ -57,7 +57,7 @@ const Services = () => {
                         width: 40,
                         height: 40,
                         borderRadius: 2,
-                        backgroundColor: alpha(theme.palette.primary.main, isOn ? 0.14 : 0.08),
+                        backgroundColor: alpha(theme.palette.brand.green, isOn ? 0.14 : 0.08),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -77,8 +77,8 @@ const Services = () => {
                             size="small"
                             variant="outlined"
                             sx={{
-                              borderColor: alpha(theme.palette.primary.main, 0.4),
-                              color: theme.palette.primary.main,
+                              borderColor: alpha(theme.palette.brand.green, 0.4),
+                              color: theme.palette.brand.green,
                               fontSize: '0.6rem',
                               height: 16,
                               '& .MuiChip-label': { px: 0.6, py: 0 },

@@ -31,7 +31,7 @@ const DeptComingSoon = ({ deptId }) => {
               width: 64,
               height: 64,
               borderRadius: '50%',
-              backgroundColor: alpha(theme.palette.primary.main, 0.08),
+              backgroundColor: alpha(theme.palette.brand.green, 0.08),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

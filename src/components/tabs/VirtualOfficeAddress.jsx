@@ -160,7 +160,7 @@ const TransportItem = ({ transport }) => (
 const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
   const { t } = useTranslation('mailbox');
   const theme = useTheme();
-  const accentColor = theme.palette.primary.main;
+  const accentColor = theme.palette.brand.green;
   const accentHover = theme.palette.brand.accentSoft;
   const [officeData, setOfficeData] = useState(initialOfficeData);
   const [editOpen, setEditOpen] = useState(false);
@@ -331,7 +331,7 @@ const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
               onClick={handleGetDirections}
               sx={{
                 bgcolor: accentColor,
-                '&:hover': { bgcolor: theme.palette.primary.dark },
+                '&:hover': { bgcolor: theme.palette.brand.greenHover },
                 borderRadius: 2
               }}
             >
@@ -352,7 +352,7 @@ const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
       {/* Information Grid */}
       <Grid container spacing={3}>
         {/* Contact Information */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <InfoCard
             icon={<BusinessIcon />}
             title={t('address.contactInfo')}
@@ -389,7 +389,7 @@ const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
         </Grid>
 
         {/* Office Hours */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <InfoCard
             icon={<AccessTimeIcon />}
             title={t('address.officeHours')}
@@ -410,7 +410,7 @@ const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
         </Grid>
 
         {/* Amenities */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <InfoCard
             icon={<WifiIcon />}
             title={t('address.amenities')}

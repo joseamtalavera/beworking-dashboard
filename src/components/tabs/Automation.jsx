@@ -9,7 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Paper from '@mui/material/Paper';
 
-// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+// Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 import Stack from '@mui/material/Stack';
 import TextField from '../common/ClearableTextField';
 import Tooltip from '@mui/material/Tooltip';
@@ -168,7 +168,7 @@ const Automation = () => {
       </Stack>
 
       <Grid container spacing={3} sx={{ flex: 1, minHeight: 520 }}>
-        <Grid item xs={12} md={3} lg={3}>
+        <Grid size={{ xs: 12, md: 3, lg: 3 }}>
           <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2, height: '100%' }}>
             <Stack spacing={2}>
               <Stack spacing={0.5}>
@@ -208,7 +208,7 @@ const Automation = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={6} lg={6}>
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <Paper
             elevation={0}
             sx={{
@@ -237,7 +237,7 @@ const Automation = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={3} lg={3}>
+        <Grid size={{ xs: 12, md: 3, lg: 3 }}>
           <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', p: 2, height: '100%' }}>
             {selectedNode ? (
               <Stack spacing={2} sx={{ height: '100%' }}>

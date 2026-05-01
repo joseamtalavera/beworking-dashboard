@@ -198,10 +198,9 @@ const Marketplace = () => {
                   fullWidth
                   sx={{
                     background: (theme) =>
-                      `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                      `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
                     '&:hover': {
-                      background: (theme) =>
-                        `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.brand.greenHover} 100%)`,
+                      background: (theme) => theme.palette.brand.greenHover,
                     },
                     fontWeight: 600,
                     textTransform: 'none'

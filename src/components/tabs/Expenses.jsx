@@ -32,7 +32,7 @@ const Expenses = () => {
               width: 80,
               height: 80,
               borderRadius: '50%',
-              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
+              bgcolor: (theme) => alpha(theme.palette.brand.green, 0.12),
               color: 'brand.green'
             }}
           >
