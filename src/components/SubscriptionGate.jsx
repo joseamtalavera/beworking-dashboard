@@ -56,7 +56,7 @@ const SubscriptionGate = ({ open, onClose }) => {
             width: 72,
             height: 72,
             borderRadius: '50%',
-            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+            bgcolor: (theme) => alpha(theme.palette.brand.green, 0.1),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

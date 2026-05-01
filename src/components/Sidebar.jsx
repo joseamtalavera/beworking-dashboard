@@ -52,8 +52,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
   const theme = useTheme();
   const { t } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const activeColor = theme.palette.primary.dark;
-  const activeHover = alpha(theme.palette.primary.main, 0.12);
+  const activeColor = theme.palette.brand.greenHover;
+  const activeHover = alpha(theme.palette.brand.green, 0.12);
 
   const currentWidth = collapsed ? collapsedDrawerWidth : drawerWidth;
 
@@ -198,8 +198,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                         justifyContent: 'center',
                         width: '100%',
                         py: 1.5,
-                        ...(active && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
-                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+                        ...(active && { backgroundColor: alpha(theme.palette.brand.green, 0.06) }),
+                        '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.04) },
                       }}
                     >
                       <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
@@ -221,8 +221,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                       width: '100%',
                       px: 3,
                       py: 1.5,
-                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
-                      ...(activeTab === dept.id && { backgroundColor: alpha(theme.palette.primary.main, 0.06) }),
+                      '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.04) },
+                      ...(activeTab === dept.id && { backgroundColor: alpha(theme.palette.brand.green, 0.06) }),
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -261,8 +261,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                             px: 2,
                             py: 1,
                             borderRadius: 1.5,
-                            '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.06) },
-                            ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.primary.main, 0.1) }),
+                            '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.06) },
+                            ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.brand.green, 0.1) }),
                           }}
                         >
                           <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'rgba(0,0,0,0.45)', mr: 1.5 }} />
@@ -281,8 +281,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                               size="small"
                               variant="outlined"
                               sx={{
-                                borderColor: alpha(theme.palette.primary.main, 0.4),
-                                color: theme.palette.primary.main,
+                                borderColor: alpha(theme.palette.brand.green, 0.4),
+                                color: theme.palette.brand.green,
                                 fontSize: '0.55rem',
                                 height: 14,
                                 minWidth: 'auto',
@@ -309,7 +309,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
             sx={{
               display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%',
               px: 3, py: 1.5,
-              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+              '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.04) },
             }}
           >
             <SettingsIcon sx={{ fontSize: 20, color: 'text.secondary', mr: collapsed ? 0 : 1.5 }} />
@@ -326,7 +326,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
             sx={{
               display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%',
               px: 3, py: 1.5,
-              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.04) },
+              '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.04) },
             }}
           >
             <LogoutRoundedIcon sx={{ fontSize: 20, color: 'brand.green', mr: collapsed ? 0 : 1.5 }} />
@@ -407,8 +407,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                     width: 40,
                     height: 40,
                     borderRadius: 1.5,
-                    ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.primary.main, 0.1) }),
-                    '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.06) },
+                    ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.brand.green, 0.1) }),
+                    '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.06) },
                   }}
                 >
                   <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.secondary' }} />

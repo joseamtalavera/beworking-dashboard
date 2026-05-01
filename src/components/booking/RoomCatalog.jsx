@@ -435,7 +435,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
               color: 'common.white',
               width: 44,
               height: 44,
-              '&:hover': { bgcolor: 'primary.dark' },
+              '&:hover': { bgcolor: 'brand.greenHover' },
             }}
           >
             <SearchRoundedIcon />

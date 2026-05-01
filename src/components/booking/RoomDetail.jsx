@@ -423,7 +423,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
         {/* Content: left column + right sidebar */}
         <Grid container spacing={5}>
-          <Grid item xs={12} md={isDesk ? 12 : 7}>
+          <Grid size={{ xs: 12, md: isDesk ? 12 : 7 }}>
             <Stack spacing={4}>
               {/* Description */}
               <section>
@@ -459,8 +459,8 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                               borderColor: 'divider',
                               transition: 'box-shadow 0.2s, border-color 0.2s',
                               '&:hover': {
-                                borderColor: (theme) => alpha(theme.palette.primary.main, 0.4),
-                                boxShadow: (theme) => `0 0 0 3px ${alpha(theme.palette.primary.main, 0.08)}`,
+                                borderColor: (theme) => alpha(theme.palette.brand.green, 0.4),
+                                boxShadow: (theme) => `0 0 0 3px ${alpha(theme.palette.brand.green, 0.08)}`,
                               },
                             }}
                           >
@@ -519,7 +519,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           </Grid>
 
           {/* Sidebar — availability + CTA */}
-          <Grid item xs={12} md={isDesk ? 12 : 5}>
+          <Grid size={{ xs: 12, md: isDesk ? 12 : 5 }}>
             {isDesk ? (
               <Stack spacing={3}>
                 <CoworkingFloorPlan
@@ -540,7 +540,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                       fontWeight: 700,
                       fontSize: '0.95rem',
                       backgroundColor: 'brand.green',
-                      '&:hover': { backgroundColor: 'primary.dark' },
+                      '&:hover': { backgroundColor: 'brand.greenHover' },
                       borderRadius: 999,
                       px: 5,
                       py: 1.25,
@@ -626,7 +626,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                     fontWeight: 700,
                     fontSize: '0.95rem',
                     backgroundColor: 'brand.green',
-                    '&:hover': { backgroundColor: 'primary.dark' },
+                    '&:hover': { backgroundColor: 'brand.greenHover' },
                     borderRadius: 999,
                     px: 5,
                     py: 1.25,

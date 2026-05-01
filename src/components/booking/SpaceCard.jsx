@@ -223,7 +223,7 @@ const SpaceCard = ({ space, onBookNow }) => {
                 backgroundColor: 'brand.green',
                 flexShrink: 0,
                 '&:hover': {
-                  backgroundColor: 'primary.dark'
+                  backgroundColor: 'brand.greenHover'
                 }
               }}
               disabled={!space.isBookable}
