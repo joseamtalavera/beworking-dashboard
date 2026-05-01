@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 
 import { apiFetch } from '../../../api/client';
 
-// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+// Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 
 import PropTypes from 'prop-types';
 import { alpha, useTheme } from '@mui/material/styles';
@@ -334,7 +334,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
     >
       <DialogTitle sx={{
         pb: 0,
-        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+        background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
         color: 'common.white',
         borderRadius: '12px 12px 0 0',
         p: 3
@@ -370,7 +370,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               <Box sx={{ 
                 p: 3, 
                 background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(
-                  theme.palette.primary.main,
+                  theme.palette.brand.green,
                   0.05
                 )} 100%)`,
                 borderBottom: '1px solid',
@@ -402,7 +402,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     <Avatar 
                       src={form.avatar} 
                       alt={form.name || 'New User'} 
-                      sx={{ width: 80, height: 80, bgcolor: 'success.light', fontSize: 32, border: (theme) => `3px solid ${theme.palette.primary.light}80` }}
+                      sx={{ width: 80, height: 80, bgcolor: 'success.light', fontSize: 32, border: (theme) => `3px solid ${theme.palette.brand.green}80` }}
                     >
                       {form.name ? form.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'NU'}
                     </Avatar>
@@ -563,7 +563,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
               <Box sx={{ 
                 p: 3, 
                 background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${alpha(
-                  theme.palette.primary.main,
+                  theme.palette.brand.green,
                   0.05
                 )} 100%)`,
                 borderBottom: '1px solid',
@@ -709,11 +709,11 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     fontWeight: 600,
                     px: 3,
                     py: 1,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                    background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
                     '&:hover': {
-                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.brand.greenHover} 100%)`,
+                      background: theme.palette.brand.greenHover,
                       transform: 'translateY(-1px)',
-                      boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.3)}`
+                      boxShadow: `0 8px 25px ${alpha(theme.palette.brand.green, 0.3)}`
                     },
                     '&:disabled': {
                       background: theme.palette.grey[300],
@@ -764,7 +764,7 @@ const buildQueryString = ({ page, search, status, email, userType }) => {
 };
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -1309,7 +1309,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 color: 'common.white',
                 width: 44,
                 height: 44,
-                '&:hover': { bgcolor: 'primary.dark' },
+                '&:hover': { bgcolor: 'brand.greenHover' },
               }}
             >
               <SearchRoundedIcon />
@@ -1330,7 +1330,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               color: 'text.secondary',
               borderRadius: 999,
               px: 2,
-              '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
+              '&:hover': { borderColor: 'brand.green', color: 'brand.green' },
             }}
           >
             {t('filters.reset')}
@@ -1412,7 +1412,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                         sx={{
                           bgcolor: 'secondary.main',
                           border: '3px solid',
-                          borderColor: (theme) => alpha(theme.palette.primary.light, 0.5)
+                          borderColor: (theme) => alpha(theme.palette.brand.green, 0.5)
                         }}
                       >
                         {initials.slice(0, 2)}
