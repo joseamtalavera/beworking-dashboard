@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../theme/tokens.js';
 import { updateUserAvatar, updateUserProfile, changePassword } from '../api/auth.js';
 import PlanUpgradeDialog from './PlanUpgradeDialog.jsx';
 import { apiFetch } from '../api/client.js';
@@ -546,11 +547,13 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
 
   const saveBtnSx = {
     minWidth: 80, height: 32, textTransform: 'none', fontWeight: 600,
+    borderRadius: 999, px: 2.5, boxShadow: 'none',
     backgroundColor: accentColor, color: 'common.white',
-    '&:hover': { backgroundColor: theme.palette.brand.greenHover },
+    transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`,
+    '&:hover': { backgroundColor: theme.palette.brand.greenHover, boxShadow: 'none' },
   };
 
-  const cancelBtnSx = { minWidth: 80, height: 32, textTransform: 'none', fontWeight: 600 };
+  const cancelBtnSx = { minWidth: 80, height: 32, textTransform: 'none', fontWeight: 600, borderRadius: 999, px: 2.5 };
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', md: 420 } } }}>
@@ -561,7 +564,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             <Avatar
               src={user.avatar}
               alt={user.name}
-              sx={{ width: 56, height: 56, border: '3px solid', borderColor: alpha(theme.palette.warning.light, 0.6) }}
+              sx={{ width: 56, height: 56, border: '3px solid', borderColor: theme.palette.brand.accentSoft }}
             />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>{user.name}</Typography>
