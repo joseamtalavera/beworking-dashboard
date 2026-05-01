@@ -78,6 +78,9 @@ const EMPTY_FORM = {
   capacity: '',
   priceFrom: '',
   priceUnit: '/h',
+  priceHourMin: '',
+  priceDay: '',
+  priceMonth: '',
   rating: '',
   reviewCount: '',
   heroImage: '',
@@ -415,6 +418,9 @@ const SpaceCatalog = () => {
       capacity: row.capacity ?? '',
       priceFrom: row.priceFrom ?? '',
       priceUnit: row.priceUnit ?? '/h',
+      priceHourMin: row.priceHourMin ?? '',
+      priceDay: row.priceDay ?? '',
+      priceMonth: row.priceMonth ?? '',
       rating: row.ratingAverage ?? row.rating ?? '',
       reviewCount: row.ratingCount ?? row.reviewCount ?? '',
       heroImage: row.heroImage ?? '',
@@ -566,6 +572,9 @@ const SpaceCatalog = () => {
       ratingCount: formValues.reviewCount ? Number(formValues.reviewCount) || null : null,
       capacity: formValues.capacity ? Number(formValues.capacity) || null : null,
       priceFrom: formValues.priceFrom ? Number(String(formValues.priceFrom).replace(/[^0-9.]/g, '')) || null : null,
+      priceHourMin: formValues.priceHourMin ? Number(String(formValues.priceHourMin).replace(/[^0-9.]/g, '')) || null : null,
+      priceDay: formValues.priceDay ? Number(String(formValues.priceDay).replace(/[^0-9.]/g, '')) || null : null,
+      priceMonth: formValues.priceMonth ? Number(String(formValues.priceMonth).replace(/[^0-9.]/g, '')) || null : null,
     };
     // Remove frontend-only field names
     delete payload.size;
@@ -955,6 +964,45 @@ const SpaceCatalog = () => {
                         </MenuItem>
                       ))}
                     </TextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <TextField
+                      label={t('dialog.priceHourMin')}
+                      name="priceHourMin"
+                      type="number"
+                      value={formValues.priceHourMin}
+                      onChange={handleChange}
+                      fullWidth
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={pillFieldSx(formValues.priceHourMin)}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <TextField
+                      label={t('dialog.priceDay')}
+                      name="priceDay"
+                      type="number"
+                      value={formValues.priceDay}
+                      onChange={handleChange}
+                      fullWidth
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={pillFieldSx(formValues.priceDay)}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <TextField
+                      label={t('dialog.priceMonth')}
+                      name="priceMonth"
+                      type="number"
+                      value={formValues.priceMonth}
+                      onChange={handleChange}
+                      fullWidth
+                      variant="standard"
+                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                      sx={pillFieldSx(formValues.priceMonth)}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
