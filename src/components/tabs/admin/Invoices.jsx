@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 
-// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+// Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -97,7 +97,7 @@ const getStatusInfo = (inv, t) => {
 const PAGE_SIZE = 25; // Server-side pagination
 
 const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'primary.main' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
+  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
   '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
 });
 
@@ -519,7 +519,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               color: 'common.white',
               width: 44,
               height: 44,
-              '&:hover': { bgcolor: 'primary.dark' },
+              '&:hover': { bgcolor: 'brand.greenHover' },
             }}
           >
             <SearchRoundedIcon />
@@ -559,7 +559,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             color: 'text.secondary',
             borderRadius: 999,
             px: 2,
-            '&:hover': { borderColor: 'primary.main', color: 'brand.green' },
+            '&:hover': { borderColor: 'brand.green', color: 'brand.green' },
           }}
         >
           {t('reset')}
@@ -576,7 +576,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               px: 2,
               backgroundColor: 'brand.green',
               color: 'white',
-              '&:hover': { backgroundColor: 'primary.dark' },
+              '&:hover': { backgroundColor: 'brand.greenHover' },
             }}
           >
             {t('newInvoice')}
@@ -593,9 +593,9 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               fontWeight: 600,
               borderRadius: 999,
               px: 2,
-              borderColor: 'primary.main',
+              borderColor: 'brand.green',
               color: 'brand.green',
-              '&:hover': { borderColor: 'primary.dark', color: 'primary.dark' },
+              '&:hover': { borderColor: 'brand.greenHover', color: 'brand.greenHover' },
             }}
           >
             {exporting ? t('exporting') : t('exportCsv')}
@@ -612,9 +612,9 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               fontWeight: 600,
               borderRadius: 999,
               px: 2,
-              borderColor: 'primary.main',
+              borderColor: 'brand.green',
               color: 'brand.green',
-              '&:hover': { borderColor: 'primary.dark', color: 'primary.dark' },
+              '&:hover': { borderColor: 'brand.greenHover', color: 'brand.greenHover' },
             }}
           >
             {exporting ? t('exporting') : t('exportExcel')}
@@ -841,14 +841,14 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       clickable
                       onClick={openPdf}
                       sx={{
-                        borderColor: 'primary.main',
+                        borderColor: 'brand.green',
                         color: 'brand.green',
                         fontWeight: 600,
                         fontSize: '0.75rem',
                         height: 24,
                         cursor: 'pointer',
                         '&:hover': {
-                          backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                          backgroundColor: (theme) => alpha(theme.palette.brand.green, 0.08),
                         },
                       }}
                     />
