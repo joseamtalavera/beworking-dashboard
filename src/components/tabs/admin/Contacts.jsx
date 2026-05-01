@@ -6,6 +6,7 @@ import { apiFetch } from '../../../api/client';
 
 import PropTypes from 'prop-types';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../../theme/tokens.js';
 
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -344,7 +345,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
             <AddRoundedIcon />
           </Avatar>
           <Box>
-            <Typography variant="h5" fontWeight={700}>
+            <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
               {t('addDialog.title')}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
@@ -704,16 +705,17 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                   onClick={handleSubmit}
                   disabled={!form.name.trim() || !form.email.trim()}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 999,
                     textTransform: 'none',
                     fontWeight: 600,
                     px: 3,
                     py: 1,
-                    background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
+                    boxShadow: 'none',
+                    bgcolor: 'brand.green',
+                    transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`,
                     '&:hover': {
-                      background: theme.palette.brand.greenHover,
-                      transform: 'translateY(-1px)',
-                      boxShadow: `0 8px 25px ${alpha(theme.palette.brand.green, 0.3)}`
+                      bgcolor: 'brand.greenHover',
+                      boxShadow: 'none',
                     },
                     '&:disabled': {
                       background: theme.palette.grey[300],
@@ -1143,7 +1145,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: `${tokens.radius.lg}px`,
         overflow: 'hidden',
         border: '1px solid',
         borderColor: 'divider',
@@ -1153,7 +1155,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       <Box sx={{ px: 4, pt: 4, pb: 2 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={3}>
           <Stack spacing={1}>
-            <Typography variant="h5" fontWeight={700}>
+            <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
               {t('header.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -1571,7 +1573,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               <WarningRoundedIcon />
             </Avatar>
             <Box>
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
                 {t('deleteDialog.title')}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>

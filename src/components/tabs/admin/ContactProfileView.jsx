@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useEffect, useMemo, useState } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../../theme/tokens.js';
 
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ChatBubbleOutlineRoundedIcon from '@mui/icons-material/ChatBubbleOutlineRounded';
@@ -613,7 +614,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       <Paper
         elevation={0}
         sx={{
-          borderRadius: 4,
+          borderRadius: `${tokens.radius.lg}px`,
           border: '1px solid',
           borderColor: 'divider',
           p: { xs: 3, md: 4 },
@@ -638,7 +639,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             </Avatar>
             <Box>
               <Stack direction="row" spacing={2} alignItems="center">
-                <Typography variant="h4" fontWeight={700}>
+                <Typography variant="h4" sx={{ fontWeight: 600, letterSpacing: '-0.022em' }}>
                   {contact.name}
                 </Typography>
                 <Chip label={t('status.' + statusLabel, { defaultValue: statusLabel })} color={statusColor} sx={{ borderRadius: 2 }} />
@@ -911,7 +912,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               <EditRoundedIcon />
             </Avatar>
             <Box>
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
                 {t('profile.editUserProfile')}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
@@ -1522,7 +1523,7 @@ const MetricCard = ({ title, value }) => (
     <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
       {title}
     </Typography>
-    <Typography variant="h6" fontWeight={700}>
+    <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
       {value}
     </Typography>
   </Paper>
@@ -1638,7 +1639,7 @@ const HighlightCard = ({ label, value, trend }) => (
     <Typography variant="caption" color="text.secondary" textTransform="uppercase" letterSpacing={0.8}>
       {label}
     </Typography>
-    <Typography variant="h6" fontWeight={700} sx={{ mt: 0.5 }}>
+    <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em', mt: 0.5 }}>
       {value}
     </Typography>
     <Typography variant="caption" color="text.secondary">
