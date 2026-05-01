@@ -564,7 +564,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
               sx={{ width: 56, height: 56, border: '3px solid', borderColor: alpha(theme.palette.warning.light, 0.6) }}
             />
             <Box>
-              <Typography variant="h6" fontWeight="bold">{user.name}</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>{user.name}</Typography>
               <Stack direction="row" spacing={1} alignItems="center">
                 {userType && (
                   <Typography variant="body2" color="text.secondary">{userType}</Typography>

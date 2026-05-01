@@ -68,7 +68,7 @@ const HelpSupportDrawer = ({ open, onClose }) => {
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
           <Stack spacing={0.5}>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
               {t('help.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">

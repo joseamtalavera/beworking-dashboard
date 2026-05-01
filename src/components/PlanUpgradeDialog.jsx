@@ -4,6 +4,7 @@ import {
   Box, Button, Chip, Stack, Typography, CircularProgress, Alert,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import { tokens } from '../theme/tokens.js';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import IconButton from '@mui/material/IconButton';
@@ -189,7 +190,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
   // Payment step: show Stripe form
   if (paymentStep) {
     return (
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
           <Stack>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -219,7 +220,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
 
   // Plan selection step
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {lang === 'es' ? 'Elige tu plan' : 'Choose your plan'}
