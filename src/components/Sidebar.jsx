@@ -134,27 +134,30 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
             onClick={() => handleTabClick('Overview')}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTabClick('Overview'); }}
             sx={{
-              fontFamily: tokens.typography.fontFamily,
-              fontWeight: 600,
+              fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontWeight: 700,
               fontSize: '1.4rem',
-              color: '#1d1d1f',
-              letterSpacing: '-0.025em',
+              color: '#0e0e0c',
+              letterSpacing: '-0.034em',
               lineHeight: 1,
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'baseline',
+              gap: '0.04em',
             }}
           >
             beworking
             <Box
               component="span"
+              aria-hidden="true"
               sx={{
                 display: 'inline-block',
-                width: 7,
-                height: 7,
+                width: '0.14em',
+                height: '0.14em',
                 borderRadius: '50%',
-                bgcolor: 'brand.green',
-                ml: '4px',
+                bgcolor: '#2e8b3d',
+                alignSelf: 'flex-end',
+                marginBottom: '0.04em',
               }}
             />
           </Box>
