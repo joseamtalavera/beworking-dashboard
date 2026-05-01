@@ -17,6 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../theme/tokens.js';
 import { useTranslation } from 'react-i18next';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
@@ -133,11 +134,11 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
             onClick={() => handleTabClick('Overview')}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTabClick('Overview'); }}
             sx={{
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              fontWeight: 700,
+              fontFamily: tokens.typography.fontFamily,
+              fontWeight: 600,
               fontSize: '1.4rem',
-              color: 'text.primary',
-              letterSpacing: '-0.03em',
+              color: '#1d1d1f',
+              letterSpacing: '-0.025em',
               lineHeight: 1,
               cursor: 'pointer',
               display: 'inline-flex',
@@ -152,7 +153,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                 width: 7,
                 height: 7,
                 borderRadius: '50%',
-                bgcolor: '#009624',
+                bgcolor: 'brand.green',
                 ml: '4px',
               }}
             />
@@ -229,8 +230,9 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                       <dept.icon sx={{ fontSize: 20, color: active ? activeColor : 'text.secondary' }} />
                       <Typography sx={{
                         fontSize: '0.9rem',
-                        fontWeight: active ? 700 : 600,
-                        color: active ? activeColor : 'text.primary',
+                        fontWeight: active ? 600 : 500,
+                        letterSpacing: '-0.005em',
+                        color: active ? activeColor : '#1d1d1f',
                       }}>
                         {t(`departments.${dept.id}.name`, { defaultValue: dept.label })}
                       </Typography>
@@ -249,7 +251,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                 )}
                 {hasSubtabs && canExpand && !collapsed && (
                   <Collapse in={expanded} timeout="auto">
-                    <Box sx={{ pl: 3, pr: 2, pb: 1, ml: 2, mr: 1, mb: 0.5, borderRadius: 2, backgroundColor: alpha('#000', 0.03) }}>
+                    <Box sx={{ pl: 3, pr: 2, pb: 1, ml: 2, mr: 1, mb: 0.5, borderRadius: `${tokens.radius.md}px`, backgroundColor: '#f5f5f7' }}>
                       {visibleSubtabs.map((sub) => (
                         <ButtonBase
                           key={sub.id}
@@ -260,16 +262,16 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                             width: '100%',
                             px: 2,
                             py: 1,
-                            borderRadius: 1.5,
+                            borderRadius: `${tokens.radius.sm}px`,
                             '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.06) },
                             ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.brand.green, 0.1) }),
                           }}
                         >
-                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'rgba(0,0,0,0.45)', mr: 1.5 }} />
+                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : '#6e6e73', mr: 1.5 }} />
                           <Typography sx={{
                             fontSize: '0.85rem',
                             fontWeight: activeTab === sub.id ? 600 : 500,
-                            color: activeTab === sub.id ? activeColor : 'rgba(0,0,0,0.55)',
+                            color: activeTab === sub.id ? activeColor : '#424245',
                             flex: 1,
                             textAlign: 'left',
                           }}>
@@ -388,7 +390,7 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
         onClose={() => { setPopoverAnchor(null); setPopoverDept(null); }}
         anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
         transformOrigin={{ vertical: 'center', horizontal: 'left' }}
-        slotProps={{ paper: { sx: { borderRadius: 2, py: 0.5, px: 0.5, ml: 0.5 } } }}
+        slotProps={{ paper: { sx: { borderRadius: `${tokens.radius.md}px`, py: 0.5, px: 0.5, ml: 0.5 } } }}
       >
         {popoverDept && (
           <Stack spacing={0.25}>

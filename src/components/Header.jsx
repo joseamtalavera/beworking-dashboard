@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../theme/tokens.js';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../api/client.js';
 import { useColorMode } from '../main.jsx';
@@ -176,7 +177,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 >
                   <MenuRoundedIcon />
                 </IconButton>
-                <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' } }}>
+                <Typography variant="h4" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' }, fontWeight: 600, letterSpacing: '-0.025em', color: '#1d1d1f' }}>
                   {t('tabs.' + activeTab, { defaultValue: activeTab })}
                 </Typography>
               </Stack>
@@ -185,18 +186,18 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 <IconButton onClick={toggleColorMode} size="small" sx={{ color: accentColor, width: 32, height: 32 }} aria-label="Toggle dark mode">
                   {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
                 </IconButton>
-                <Button variant="outlined" size="small" onClick={toggleLanguage} sx={{ textTransform: 'none', fontWeight: 700, minWidth: 36, px: 1, height: 32, fontSize: '0.75rem', borderColor: accentColor, color: accentColor, '&:hover': { borderColor: accentColor, backgroundColor: theme.palette.brand.accentSoft } }}>
+                <Button variant="outlined" size="small" onClick={toggleLanguage} sx={{ textTransform: 'none', fontWeight: 600, minWidth: 36, px: 1, height: 32, fontSize: '0.75rem', borderRadius: 999, borderColor: accentColor, color: accentColor, transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`, '&:hover': { borderColor: accentColor, backgroundColor: theme.palette.brand.accentSoft } }}>
                   {i18n.language === 'es' ? 'EN' : 'ES'}
                 </Button>
                 {userProfile?.hasMultipleAccounts && (
                   <AccountSwitcher currentTenantId={userProfile?.tenantId} />
                 )}
-                <Avatar src={userProfile?.avatar || userProfile?.photo || undefined} alt={userProfile?.name || userProfile?.email || 'User'} onClick={onOpenSettings} sx={{ width: 32, height: 32, border: '2px solid', borderColor: (theme) => alpha(theme.palette.warning.light, 0.6), bgcolor: accentColor, cursor: 'pointer', fontSize: '0.75rem' }}>
+                <Avatar src={userProfile?.avatar || userProfile?.photo || undefined} alt={userProfile?.name || userProfile?.email || 'User'} onClick={onOpenSettings} sx={{ width: 32, height: 32, border: '2px solid', borderColor: (theme) => theme.palette.brand.accentSoft, bgcolor: accentColor, cursor: 'pointer', fontSize: '0.75rem' }}>
                   {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('') : 'U'}
                 </Avatar>
               </Stack>
             </Stack>
-            <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
+            <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.875rem', color: '#6e6e73', lineHeight: 1.55 }}>
               {greeting}, {userProfile?.name || 'User'}. {t('header.subtitle_' + activeTab, { defaultValue: t('header.subtitle') })}
             </Typography>
           </Stack>
@@ -270,8 +271,8 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                     zIndex: 1000,
                     mt: 1,
                     bgcolor: 'background.paper',
-                    borderRadius: 2,
-                    boxShadow: (theme) => theme.shadows[4],
+                    borderRadius: `${tokens.radius.md}px`,
+                    boxShadow: tokens.shadow.frame,
                     border: '1px solid',
                     borderColor: 'divider',
                     maxHeight: 300,
@@ -287,7 +288,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                         borderBottom: index < searchResults.length - 1 ? '1px solid' : 'none',
                         borderBottomColor: 'divider',
                         '&:hover': {
-                          bgcolor: 'background.default'
+                          bgcolor: '#f5f5f7'
                         }
                       }}
                       onClick={() => {
@@ -384,20 +385,19 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 onClick={toggleLanguage}
                 sx={{
                   textTransform: 'none',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   minWidth: 40,
                   px: 1.5,
                   height: 36,
+                  borderRadius: 999,
                   borderColor: accentColor,
                   color: accentColor,
+                  transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`,
                   '&:hover': {
                     borderColor: accentColor,
                     color: accentColor,
                     backgroundColor: theme.palette.brand.accentSoft,
-                    transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(accentColor, 0.2)}`
                   },
-                  transition: 'all 0.2s ease-in-out'
                 }}
               >
                 {i18n.language === 'es' ? 'EN' : 'ES'}
@@ -413,7 +413,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                   width: { xs: 36, sm: 44 },
                   height: { xs: 36, sm: 44 },
                   border: '3px solid',
-                  borderColor: (theme) => alpha(theme.palette.warning.light, 0.6),
+                  borderColor: (theme) => theme.palette.brand.accentSoft,
                   bgcolor: accentColor,
                   cursor: 'pointer',
                   flexShrink: 0
