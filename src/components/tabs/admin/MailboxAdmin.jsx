@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 
 // Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
+
+import { tokens } from '../../../theme/tokens.js';
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -82,7 +84,7 @@ import { fetchBookingContacts } from '../../../api/bookings.js';
 // Using theme.secondary.main for all green colors
 
 const SummaryCard = ({ icon, title, value, helper, color, accentHover }) => (
-  <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+  <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
     <Stack direction="row" spacing={2} alignItems="center">
       <Box
         sx={{
@@ -102,7 +104,7 @@ const SummaryCard = ({ icon, title, value, helper, color, accentHover }) => (
         <Typography variant="overline" color="text.secondary">
           {title}
         </Typography>
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
           {value}
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -758,7 +760,7 @@ const MailboxAdmin = () => {
   return (
     <Stack spacing={4}>
       <Stack spacing={2}>
-        <Typography variant="h5" fontWeight="bold" color="text.primary">
+        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }} color="text.primary">
           {t('admin.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
@@ -798,7 +800,7 @@ const MailboxAdmin = () => {
         />
       </Stack>
 
-      <Paper elevation={0} sx={{ borderRadius: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
         <Stack
           direction={{ xs: 'column', md: 'row' }}
           spacing={2}
@@ -806,7 +808,7 @@ const MailboxAdmin = () => {
           justifyContent="space-between"
         >
           <Box>
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
+            <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }} color="text.primary">
               {t('admin.incomingDocuments')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -1244,7 +1246,7 @@ const MailboxAdmin = () => {
             >
               <UploadFileOutlinedIcon />
             </Box>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
               {t('uploadDialog.title', { type: uploadForm.documentType === 'package' ? t('uploadDialog.typePackagePhoto') : t('uploadDialog.typeDocument') })}
             </Typography>
           </Stack>
@@ -1585,7 +1587,7 @@ const MailboxAdmin = () => {
             >
               <QrCodeScannerIcon />
             </Box>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
               {t('pickupDialog.title')}
             </Typography>
           </Stack>

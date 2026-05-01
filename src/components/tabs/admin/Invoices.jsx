@@ -3,6 +3,8 @@ import { alpha, useTheme } from '@mui/material/styles';
 
 // Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 
+import { tokens } from '../../../theme/tokens.js';
+
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -396,9 +398,9 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   };
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: 4, p: 3, border: '1px solid', borderColor: 'divider' }}>
+    <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack spacing={0.5} sx={{ mb: 3 }}>
-        <Typography variant="h6" fontWeight={700}>
+        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
           {t(isAdmin ? 'title' : 'titleUser')}
         </Typography>
         <Typography variant="body2" color="text.secondary">

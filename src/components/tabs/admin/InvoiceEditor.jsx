@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
+import { tokens } from '../../../theme/tokens.js';
 
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -275,7 +276,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         borderColor: 'divider'
       }}>
         <Box>
-          <Typography variant="h5" fontWeight="bold" color="text.primary">
+          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }} color="text.primary">
             {editMode ? t('editor.editTitle') : t('editor.title')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
