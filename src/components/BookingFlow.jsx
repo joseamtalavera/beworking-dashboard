@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 
-// Colors are now defined in theme.js - use theme palette: primary.main/dark for green, secondary.main/dark for orange
+// Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 
 import {
   Box,
@@ -230,7 +230,7 @@ const BookingFlow = () => {
 
           {/* Search Fields */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 fullWidth
                 label="Where:"
@@ -252,7 +252,7 @@ const BookingFlow = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <TextField
                 fullWidth
                 label="Check in"
@@ -275,7 +275,7 @@ const BookingFlow = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <TextField
                 fullWidth
                 label="Check out"
@@ -298,7 +298,7 @@ const BookingFlow = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid size={{ xs: 12, md: 2 }}>
               <Button
                 fullWidth
                 variant="contained"
@@ -309,7 +309,7 @@ const BookingFlow = () => {
                   fontWeight: 600,
                   backgroundColor: 'brand.green',
                   '&:hover': {
-                    backgroundColor: 'primary.dark'
+                    backgroundColor: 'brand.greenHover'
                   }
                 }}
               >
@@ -411,7 +411,7 @@ const BookingFlow = () => {
         {/* Room Listings */}
         <Grid container spacing={3}>
           {filteredRooms.map((room) => (
-            <Grid item xs={12} sm={6} md={4} key={room.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room.id}>
               <Card
                 sx={{
                   borderRadius: '14px',
@@ -562,7 +562,7 @@ const BookingFlow = () => {
                         fontWeight: 600,
                         backgroundColor: 'brand.green',
                         '&:hover': {
-                          backgroundColor: 'primary.dark'
+                          backgroundColor: 'brand.greenHover'
                         }
                       }}
                     >
