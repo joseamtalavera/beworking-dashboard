@@ -421,14 +421,14 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           </Box>
         ) : null}
 
-        {/* Content: left column + right sidebar.
-            Split at lg (≥1200px) instead of md so the dashboard's narrower
-            content area (sidebar eats ~240px) doesn't squeeze the Availability
-            time-grid into a column too narrow to show enough slots. Below lg,
-            both stack full width — Availability lands below description with
-            plenty of horizontal room. */}
+        {/* Content: stacked vertically. Description first, Availability below.
+            Even on 2K screens, the side-by-side layout left the right column
+            too narrow (~600px usable after padding) to show enough time slots
+            without horizontal scrolling. Stacking gives Availability the full
+            content width every time. The booking-app keeps its side-by-side
+            since that app has no sidebar and stays usable that way. */}
         <Grid container spacing={5}>
-          <Grid size={{ xs: 12, lg: isDesk ? 12 : 7 }}>
+          <Grid size={{ xs: 12 }}>
             <Stack spacing={4}>
               {/* Description */}
               <section>
@@ -523,8 +523,8 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
             </Stack>
           </Grid>
 
-          {/* Sidebar — availability + CTA */}
-          <Grid size={{ xs: 12, lg: isDesk ? 12 : 5 }}>
+          {/* Availability + CTA — always full width below description */}
+          <Grid size={{ xs: 12 }}>
             {isDesk ? (
               <Stack spacing={3}>
                 <CoworkingFloorPlan
@@ -564,8 +564,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   borderRadius: '14px',
                   p: 3,
                   bgcolor: 'background.paper',
-                  position: { lg: 'sticky' },
-                  top: { lg: 24 },
+                  // No sticky — always stacked, scrolls naturally with the page
                 }}
               >
                 <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em', fontSize: '1.25rem' }}>
