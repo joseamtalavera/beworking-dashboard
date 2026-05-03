@@ -775,7 +775,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                 })()
               ]}
             />
-            <Box sx={{ px: 2, pb: 2, pt: 0 }}>
+            <Box sx={{ pt: 1.5 }}>
               <Stack direction="row" justifyContent="flex-end">
                 <Button
                   size="small"
@@ -788,6 +788,15 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   {revalidating ? 'Revalidando…' : 'Revalidar VAT (VIES)'}
                 </Button>
               </Stack>
+              {revalidateResult?.subscriptionsRelocked?.length > 0 && (
+                <Box sx={{ mt: 1, fontSize: 12, color: 'text.secondary', textAlign: 'right' }}>
+                  {revalidateResult.subscriptionsRelocked.map(s => (
+                    <div key={s.subId}>
+                      Sub #{s.subId}: Tax {s.previousVatPercent}% → Tax {s.newVatPercent}% {s.changed ? '(cambiado)' : '(sin cambio)'}
+                    </div>
+                  ))}
+                </Box>
+              )}
               {revalidateError && (
                 <Alert severity="error" sx={{ mt: 1, fontSize: 13 }}>{revalidateError}</Alert>
               )}
