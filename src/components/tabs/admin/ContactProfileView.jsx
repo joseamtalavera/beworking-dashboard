@@ -768,7 +768,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   value: contact.billing?.tax_id
                   ? <>{vatStatus === 'loading' && <CircularProgress size={14} sx={{ mr: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{contact.billing.tax_id}</>
                   : '—' },
-                { label: 'Tipo (Stripe)', value: taxIdTypeLabel(contact.billing?.tax_id_type) }
+                { label: 'Categoría fiscal', value: taxIdTypeLabel(contact.billing?.tax_id_type) }
               ]}
             />
             <Box sx={{ px: 2, pb: 2, pt: 0 }}>
@@ -1307,7 +1307,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         select
-                        label="Tipo de Tax ID (Stripe)"
+                        label="Categoría fiscal"
                         value={draft?.billing?.tax_id_type || ''}
                         onChange={(e) => setDraft((prev) => ({ ...prev, billing: { ...prev.billing, tax_id_type: e.target.value || null } }))}
                         fullWidth

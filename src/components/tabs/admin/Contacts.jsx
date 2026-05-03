@@ -155,7 +155,9 @@ const normalizeContact = (entry = {}) => {
     city: billing.city ?? entry.billing_city ?? entry.billingCity ?? null,
     county: billing.county ?? entry.billing_province ?? entry.billingProvince ?? null,
     country: billing.country ?? entry.billing_country ?? entry.billingCountry ?? null,
-    tax_id: billing.tax_id ?? entry.billing_tax_id ?? entry.billingTaxId ?? null
+    tax_id: billing.tax_id ?? entry.billing_tax_id ?? entry.billingTaxId ?? null,
+    tax_id_type: billing.tax_id_type ?? entry.billing_tax_id_type ?? entry.billingTaxIdType ?? null,
+    vat_valid: billing.vat_valid ?? entry.vat_valid ?? null
   };
 
   const usageValue = typeof entry.usage === 'number' && Number.isFinite(entry.usage)
