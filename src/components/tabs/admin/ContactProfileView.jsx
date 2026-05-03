@@ -772,17 +772,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               ]}
             />
             <Box sx={{ px: 2, pb: 2, pt: 0 }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={handleRevalidateVat}
-                  disabled={revalidating || !contact?.billing?.tax_id}
-                  startIcon={revalidating ? <CircularProgress size={14} /> : <AutorenewRoundedIcon />}
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
-                >
-                  {revalidating ? 'Revalidando…' : 'Revalidar VAT (VIES)'}
-                </Button>
+              <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
                 {revalidateResult && (
                   <Tooltip title={`Antes: vat_valid=${String(revalidateResult.vatValidBefore)}, tipo=${revalidateResult.typeBefore || '—'} → Ahora: vat_valid=${String(revalidateResult.vatValidAfter)}, tipo=${revalidateResult.typeAfter || '—'}. ${revalidateResult.subscriptionsRelocked?.length || 0} suscripciones recalculadas.`}>
                     <CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 18 }} />
@@ -793,12 +783,22 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                     <ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 18 }} />
                   </Tooltip>
                 )}
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={handleRevalidateVat}
+                  disabled={revalidating || !contact?.billing?.tax_id}
+                  startIcon={revalidating ? <CircularProgress size={14} /> : <AutorenewRoundedIcon />}
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                >
+                  {revalidating ? 'Revalidando…' : 'Revalidar VAT (VIES)'}
+                </Button>
               </Stack>
               {revalidateResult?.subscriptionsRelocked?.length > 0 && (
-                <Box sx={{ mt: 1, fontSize: 12, color: 'text.secondary' }}>
+                <Box sx={{ mt: 1, fontSize: 12, color: 'text.secondary', textAlign: 'right' }}>
                   {revalidateResult.subscriptionsRelocked.map(s => (
                     <div key={s.subId}>
-                      Sub #{s.subId}: {s.previousVatPercent}% → {s.newVatPercent}% {s.changed ? '(cambiado)' : '(sin cambio)'}
+                      Sub #{s.subId}: Tax {s.previousVatPercent}% → Tax {s.newVatPercent}% {s.changed ? '(cambiado)' : '(sin cambio)'}
                     </div>
                   ))}
                 </Box>
