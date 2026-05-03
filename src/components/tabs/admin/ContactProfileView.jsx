@@ -768,6 +768,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   value: contact.billing?.tax_id
                   ? <>{vatStatus === 'loading' && <CircularProgress size={14} sx={{ mr: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{contact.billing.tax_id}</>
                   : '—' },
+                (() => {
+                  const activeSub = subscriptions.find(s => s.active);
+                  const rate = activeSub && activeSub.vatPercent != null ? activeSub.vatPercent : null;
+                  return { label: 'Tax %', value: rate != null ? `${rate}%` : '—' };
+                })(),
                 { label: 'Categoría fiscal', value: taxIdTypeLabel(contact.billing?.tax_id_type) }
               ]}
             />
@@ -794,15 +799,6 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   {revalidating ? 'Revalidando…' : 'Revalidar VAT (VIES)'}
                 </Button>
               </Stack>
-              {revalidateResult?.subscriptionsRelocked?.length > 0 && (
-                <Box sx={{ mt: 1, fontSize: 12, color: 'text.secondary', textAlign: 'right' }}>
-                  {revalidateResult.subscriptionsRelocked.map(s => (
-                    <div key={s.subId}>
-                      Sub #{s.subId}: Tax {s.previousVatPercent}% → Tax {s.newVatPercent}% {s.changed ? '(cambiado)' : '(sin cambio)'}
-                    </div>
-                  ))}
-                </Box>
-              )}
             </Box>
           </SectionCard>
         </Box>
