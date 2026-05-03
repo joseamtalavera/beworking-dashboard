@@ -87,6 +87,22 @@ const STATUS_OPTIONS = [
 
 const CENTER_OPTIONS = ['MA1 MALAGA DUMAS'];
 
+// Stripe-style tax ID types. Drives the VAT lock-in logic on the backend
+// (com.beworking.tax.TaxResolver). Each option pairs an ISO flag with a label
+// so the admin sees the same UX Stripe shows in their dashboard.
+const TAX_ID_TYPE_OPTIONS = [
+  { value: 'es_cif', flag: '🇪🇸', label: 'ES CIF (empresa)' },
+  { value: 'es_nif', flag: '🇪🇸', label: 'ES NIF (autónomo / persona)' },
+  { value: 'eu_vat', flag: '🇪🇺', label: 'EU VAT (intracomunitario)' },
+  { value: 'no_vat', flag: '∅',   label: 'Particular sin NIF' },
+];
+
+const taxIdTypeLabel = (code) => {
+  if (!code) return '—';
+  const opt = TAX_ID_TYPE_OPTIONS.find(o => o.value === code);
+  return opt ? `${opt.flag} ${opt.label}` : code;
+};
+
 const DESK_PRODUCT_RE = /^MA1O1[-_ ]?\d{1,2}$/i;
 
 if (!i18n.hasResourceBundle('es', 'contacts')) {
@@ -159,6 +175,11 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // VAT validation
   const [vatStatus, setVatStatus] = useState('idle'); // idle | loading | valid | invalid | error
   const [vatTooltip, setVatTooltip] = useState('');
+
+  // Re-validate VAT (force VIES + relock subs) — admin support flow
+  const [revalidating, setRevalidating] = useState(false);
+  const [revalidateResult, setRevalidateResult] = useState(null);
+  const [revalidateError, setRevalidateError] = useState('');
   const EU_VAT_RE = /^[A-Z]{2}\s*[A-Z0-9]+$/i;
   const EU_COUNTRY_CODES = {
     'España': 'ES', 'Spain': 'ES',
@@ -195,6 +216,27 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     const country = billingData?.country;
     if (!country) return null;
     return EU_COUNTRY_CODES[country] ?? null;
+  };
+
+  const handleRevalidateVat = async () => {
+    if (!contact?.id) return;
+    setRevalidating(true);
+    setRevalidateError('');
+    setRevalidateResult(null);
+    try {
+      const res = await apiFetch(`/contact-profiles/${contact.id}/revalidate-vat`, {
+        method: 'POST',
+      });
+      setRevalidateResult(res);
+      // Refresh the parent so the UI shows the new vat_valid + tax_id_type
+      if (refreshProfile) {
+        try { await refreshProfile(); } catch { /* swallow */ }
+      }
+    } catch (e) {
+      setRevalidateError(e?.message || 'Error revalidating VAT');
+    } finally {
+      setRevalidating(false);
+    }
   };
 
   const validateVat = async (taxId, billingData) => {
@@ -725,9 +767,43 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   copyValue: contact.billing?.tax_id,
                   value: contact.billing?.tax_id
                   ? <>{vatStatus === 'loading' && <CircularProgress size={14} sx={{ mr: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{contact.billing.tax_id}</>
-                  : '—' }
+                  : '—' },
+                { label: 'Tipo (Stripe)', value: taxIdTypeLabel(contact.billing?.tax_id_type) }
               ]}
             />
+            <Box sx={{ px: 2, pb: 2, pt: 0 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={handleRevalidateVat}
+                  disabled={revalidating || !contact?.billing?.tax_id}
+                  startIcon={revalidating ? <CircularProgress size={14} /> : <AutorenewRoundedIcon />}
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                >
+                  {revalidating ? 'Revalidando…' : 'Revalidar VAT (VIES)'}
+                </Button>
+                {revalidateResult && (
+                  <Tooltip title={`Antes: vat_valid=${String(revalidateResult.vatValidBefore)}, tipo=${revalidateResult.typeBefore || '—'} → Ahora: vat_valid=${String(revalidateResult.vatValidAfter)}, tipo=${revalidateResult.typeAfter || '—'}. ${revalidateResult.subscriptionsRelocked?.length || 0} suscripciones recalculadas.`}>
+                    <CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 18 }} />
+                  </Tooltip>
+                )}
+                {revalidateError && (
+                  <Tooltip title={revalidateError}>
+                    <ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 18 }} />
+                  </Tooltip>
+                )}
+              </Stack>
+              {revalidateResult?.subscriptionsRelocked?.length > 0 && (
+                <Box sx={{ mt: 1, fontSize: 12, color: 'text.secondary' }}>
+                  {revalidateResult.subscriptionsRelocked.map(s => (
+                    <div key={s.subId}>
+                      Sub #{s.subId}: {s.previousVatPercent}% → {s.newVatPercent}% {s.changed ? '(cambiado)' : '(sin cambio)'}
+                    </div>
+                  ))}
+                </Box>
+              )}
+            </Box>
           </SectionCard>
         </Box>
 
@@ -1227,6 +1303,27 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                           <TextField {...params} label={t('profile.billingCity')} variant="outlined" size="small" sx={autocompleteFieldSx} slotProps={{ inputLabel: { shrink: true } }} />
                         )}
                       />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        select
+                        label="Tipo de Tax ID (Stripe)"
+                        value={draft?.billing?.tax_id_type || ''}
+                        onChange={(e) => setDraft((prev) => ({ ...prev, billing: { ...prev.billing, tax_id_type: e.target.value || null } }))}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        sx={fieldSx}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        helperText="Empresa / autónomo / EU intracomunitario / particular"
+                      >
+                        <MenuItem value=""><em>—</em></MenuItem>
+                        {TAX_ID_TYPE_OPTIONS.map(opt => (
+                          <MenuItem key={opt.value} value={opt.value}>
+                            <span style={{ marginRight: 8 }}>{opt.flag}</span>{opt.label}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField

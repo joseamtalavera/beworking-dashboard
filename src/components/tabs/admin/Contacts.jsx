@@ -984,7 +984,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         billingPostalCode: normalizeString(updatedProfile.billing?.postal_code) ?? null,
         billingCounty: normalizeString(updatedProfile.billing?.county) ?? null,
         billingCountry: normalizeString(updatedProfile.billing?.country) ?? null,
-        billingTaxId: normalizeString(updatedProfile.billing?.tax_id) ?? null
+        billingTaxId: normalizeString(updatedProfile.billing?.tax_id) ?? null,
+        billingTaxIdType: normalizeString(updatedProfile.billing?.tax_id_type) ?? null
       };
 
       console.log('DEBUG: Payload being sent to backend:', payload);
@@ -1020,7 +1021,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             postal_code: payload.billingPostalCode ?? updatedProfile.billing?.postal_code ?? null,
             county: payload.billingCounty ?? updatedProfile.billing?.county ?? null,
             country: payload.billingCountry ?? updatedProfile.billing?.country ?? null,
-            tax_id: payload.billingTaxId ?? updatedProfile.billing?.tax_id ?? null
+            tax_id: payload.billingTaxId ?? updatedProfile.billing?.tax_id ?? null,
+            tax_id_type: payload.billingTaxIdType ?? updatedProfile.billing?.tax_id_type ?? null
           }
         });
 
