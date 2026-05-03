@@ -421,9 +421,14 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           </Box>
         ) : null}
 
-        {/* Content: left column + right sidebar */}
+        {/* Content: left column + right sidebar.
+            Split at lg (≥1200px) instead of md so the dashboard's narrower
+            content area (sidebar eats ~240px) doesn't squeeze the Availability
+            time-grid into a column too narrow to show enough slots. Below lg,
+            both stack full width — Availability lands below description with
+            plenty of horizontal room. */}
         <Grid container spacing={5}>
-          <Grid size={{ xs: 12, md: isDesk ? 12 : 7 }}>
+          <Grid size={{ xs: 12, lg: isDesk ? 12 : 7 }}>
             <Stack spacing={4}>
               {/* Description */}
               <section>
@@ -519,7 +524,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           </Grid>
 
           {/* Sidebar — availability + CTA */}
-          <Grid size={{ xs: 12, md: isDesk ? 12 : 5 }}>
+          <Grid size={{ xs: 12, lg: isDesk ? 12 : 5 }}>
             {isDesk ? (
               <Stack spacing={3}>
                 <CoworkingFloorPlan
@@ -559,8 +564,8 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                   borderRadius: '14px',
                   p: 3,
                   bgcolor: 'background.paper',
-                  position: { md: 'sticky' },
-                  top: { md: 24 },
+                  position: { lg: 'sticky' },
+                  top: { lg: 24 },
                 }}
               >
                 <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em', fontSize: '1.25rem' }}>
