@@ -87,18 +87,31 @@ const STATUS_OPTIONS = [
 
 const CENTER_OPTIONS = ['MA1 - MALAGA DUMAS'];
 
-// Stripe-style tax ID types. Drives the VAT lock-in logic on the backend
-// (com.beworking.tax.TaxResolver).
-const TAX_ID_TYPE_OPTIONS = [
-  { value: 'es_cif', label: 'ES CIF (empresa)' },
-  { value: 'es_nif', label: 'ES NIF (autónomo / persona)' },
-  { value: 'eu_vat', label: 'EU VAT (intracomunitario)' },
-  { value: 'no_vat', label: 'Particular sin NIF' },
-];
+import { TAX_ID_TYPES, taxIdTypeOption } from '../../../data/taxIdTypes';
+
+// Flat-square country badge — renders identically across every OS unlike emoji flags.
+const FlagBadge = ({ code, color }) => (
+  <span
+    style={{
+      display: 'inline-block',
+      minWidth: 22,
+      height: 14,
+      lineHeight: '14px',
+      fontSize: 9,
+      fontWeight: 700,
+      color: '#fff',
+      background: color,
+      borderRadius: 2,
+      textAlign: 'center',
+      letterSpacing: '0.04em',
+      marginRight: 8,
+    }}
+  >{code}</span>
+);
 
 const taxIdTypeLabel = (code) => {
   if (!code) return '—';
-  const opt = TAX_ID_TYPE_OPTIONS.find(o => o.value === code);
+  const opt = taxIdTypeOption(code);
   return opt ? opt.label : code;
 };
 
@@ -1301,23 +1314,35 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
-                        select
-                        label="Categoría fiscal"
-                        value={draft?.billing?.tax_id_type || ''}
-                        onChange={(e) => setDraft((prev) => ({ ...prev, billing: { ...prev.billing, tax_id_type: e.target.value || null } }))}
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        sx={fieldSx}
-                        slotProps={{ inputLabel: { shrink: true } }}
-                        helperText="Empresa / autónomo / EU intracomunitario / particular"
-                      >
-                        <MenuItem value=""><em>—</em></MenuItem>
-                        {TAX_ID_TYPE_OPTIONS.map(opt => (
-                          <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                        ))}
-                      </TextField>
+                      <Autocomplete
+                        options={TAX_ID_TYPES}
+                        value={taxIdTypeOption(draft?.billing?.tax_id_type) || null}
+                        onChange={(_e, opt) => setDraft((prev) => ({
+                          ...prev,
+                          billing: { ...prev.billing, tax_id_type: opt ? opt.value : null }
+                        }))}
+                        getOptionLabel={(o) => `${o.country} ${o.label.replace(/^[A-Z]{2,3}\s*/, '')}`}
+                        isOptionEqualToValue={(o, v) => o.value === v.value}
+                        filterOptions={(opts, state) => {
+                          const q = state.inputValue.trim().toLowerCase();
+                          if (!q) return opts;
+                          return opts.filter(o =>
+                            o.value.toLowerCase().includes(q) ||
+                            o.country.toLowerCase().includes(q) ||
+                            o.label.toLowerCase().includes(q) ||
+                            o.name.toLowerCase().includes(q));
+                        }}
+                        renderOption={(props, opt) => (
+                          <li {...props} key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                            <FlagBadge code={opt.country} color={opt.color} />
+                            <span style={{ fontWeight: 600, marginRight: 8, fontSize: 13 }}>{opt.label}</span>
+                            <span style={{ fontSize: 12, color: '#667085' }}>{opt.name}</span>
+                          </li>
+                        )}
+                        renderInput={(params) => (
+                          <TextField {...params} label="Categoría fiscal" variant="outlined" size="small" sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} placeholder="Buscar país o tipo…" />
+                        )}
+                      />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
