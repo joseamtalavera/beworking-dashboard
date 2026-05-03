@@ -88,19 +88,18 @@ const STATUS_OPTIONS = [
 const CENTER_OPTIONS = ['MA1 - MALAGA DUMAS'];
 
 // Stripe-style tax ID types. Drives the VAT lock-in logic on the backend
-// (com.beworking.tax.TaxResolver). Each option pairs an ISO flag with a label
-// so the admin sees the same UX Stripe shows in their dashboard.
+// (com.beworking.tax.TaxResolver).
 const TAX_ID_TYPE_OPTIONS = [
-  { value: 'es_cif', flag: '🇪🇸', label: 'ES CIF (empresa)' },
-  { value: 'es_nif', flag: '🇪🇸', label: 'ES NIF (autónomo / persona)' },
-  { value: 'eu_vat', flag: '🇪🇺', label: 'EU VAT (intracomunitario)' },
-  { value: 'no_vat', flag: '∅',   label: 'Particular sin NIF' },
+  { value: 'es_cif', label: 'ES CIF (empresa)' },
+  { value: 'es_nif', label: 'ES NIF (autónomo / persona)' },
+  { value: 'eu_vat', label: 'EU VAT (intracomunitario)' },
+  { value: 'no_vat', label: 'Particular sin NIF' },
 ];
 
 const taxIdTypeLabel = (code) => {
   if (!code) return '—';
   const opt = TAX_ID_TYPE_OPTIONS.find(o => o.value === code);
-  return opt ? `${opt.flag} ${opt.label}` : code;
+  return opt ? opt.label : code;
 };
 
 const DESK_PRODUCT_RE = /^MA1O1[-_ ]?\d{1,2}$/i;
@@ -1316,9 +1315,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                       >
                         <MenuItem value=""><em>—</em></MenuItem>
                         {TAX_ID_TYPE_OPTIONS.map(opt => (
-                          <MenuItem key={opt.value} value={opt.value}>
-                            <span style={{ marginRight: 8 }}>{opt.flag}</span>{opt.label}
-                          </MenuItem>
+                          <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                         ))}
                       </TextField>
                     </Grid>

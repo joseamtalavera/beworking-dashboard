@@ -123,6 +123,7 @@ const ADD_USER_DEFAULT = {
   avatar: '',
   billingCompany: '',
   billingTaxId: '',
+  billingTaxIdType: '',
   billingAddress: '',
   billingPostalCode: '',
   billingCity: '',
@@ -595,6 +596,26 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                       InputProps={{ startAdornment: <InputAdornment position="start"><BusinessRoundedIcon sx={{ color: 'text.disabled' }} /></InputAdornment> }}
                     />
               </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      select
+                      label="Categoría fiscal"
+                      value={form.billingTaxIdType}
+                      onChange={handleFieldChange('billingTaxIdType')}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      sx={contactFieldSx}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      SelectProps={{ displayEmpty: true }}
+                    >
+                      <MenuItem value=""><em>—</em></MenuItem>
+                      <MenuItem value="es_cif">ES CIF (empresa)</MenuItem>
+                      <MenuItem value="es_nif">ES NIF (autónomo / persona)</MenuItem>
+                      <MenuItem value="eu_vat">EU VAT (intracomunitario)</MenuItem>
+                      <MenuItem value="no_vat">Particular sin NIF</MenuItem>
+                    </TextField>
+                  </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       label={t('addDialog.billingTaxId')}
@@ -1071,6 +1092,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         channel: values.channel,
         billingCompany: values.billingCompany,
         billingTaxId: values.billingTaxId,
+        billingTaxIdType: values.billingTaxIdType || null,
         billingAddress: values.billingAddress,
         billingPostalCode: values.billingPostalCode,
         billingCity: values.billingCity,

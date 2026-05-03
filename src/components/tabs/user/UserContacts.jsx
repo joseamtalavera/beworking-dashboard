@@ -47,6 +47,7 @@ const normalizeContact = (entry = {}) => {
     county: billing.county ?? entry.billing_province ?? entry.billingProvince ?? null,
     country: billing.country ?? entry.billing_country ?? entry.billingCountry ?? null,
     tax_id: billing.tax_id ?? entry.billing_tax_id ?? entry.billingTaxId ?? null,
+    tax_id_type: billing.tax_id_type ?? entry.billing_tax_id_type ?? entry.billingTaxIdType ?? null,
     vat_valid: billing.vat_valid ?? entry.vat_valid ?? entry.vatValid ?? null,
   };
 
@@ -175,6 +176,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
       billingCounty: normalizeString(updatedProfile.billing?.county) ?? null,
       billingCountry: normalizeString(updatedProfile.billing?.country) ?? null,
       billingTaxId: normalizeString(updatedProfile.billing?.tax_id) ?? null,
+      billingTaxIdType: normalizeString(updatedProfile.billing?.tax_id_type) ?? null,
     };
 
     await apiFetch(`/contact-profiles/${updatedProfile.id}`, {
@@ -207,6 +209,7 @@ const UserContacts = ({ userProfile, refreshProfile }) => {
         county: payload.billingCounty ?? updatedProfile.billing?.county ?? null,
         country: payload.billingCountry ?? updatedProfile.billing?.country ?? null,
         tax_id: payload.billingTaxId ?? updatedProfile.billing?.tax_id ?? null,
+        tax_id_type: payload.billingTaxIdType ?? updatedProfile.billing?.tax_id_type ?? null,
       },
     });
 
