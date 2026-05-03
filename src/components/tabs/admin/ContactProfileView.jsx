@@ -85,7 +85,7 @@ const STATUS_OPTIONS = [
   { value: 'Inactive', label: 'Inactivo' },
 ];
 
-const CENTER_OPTIONS = ['MA1 MALAGA DUMAS'];
+const CENTER_OPTIONS = ['MA1 - MALAGA DUMAS'];
 
 // Stripe-style tax ID types. Drives the VAT lock-in logic on the backend
 // (com.beworking.tax.TaxResolver). Each option pairs an ISO flag with a label
@@ -163,7 +163,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         value.user_type && value.user_type !== '—'
           ? normalizeUserTypeLabel(value.user_type)
           : '',
-      center: value.center || 'MA1 MALAGA DUMAS'
+      center: value.center || 'MA1 - MALAGA DUMAS'
     };
   };
 
@@ -772,8 +772,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   const activeSub = subscriptions.find(s => s.active);
                   const rate = activeSub && activeSub.vatPercent != null ? activeSub.vatPercent : null;
                   return { label: 'Tax %', value: rate != null ? `${rate}%` : '—' };
-                })(),
-                { label: 'Categoría fiscal', value: taxIdTypeLabel(contact.billing?.tax_id_type) }
+                })()
               ]}
             />
             <Box sx={{ px: 2, pb: 2, pt: 0 }}>

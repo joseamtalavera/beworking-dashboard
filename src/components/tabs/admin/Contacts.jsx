@@ -109,7 +109,7 @@ const VIRTUAL_USER_BILLING = {
   billingCounty: 'Málaga',
   billingCity: 'Málaga',
   billingPostalCode: '29004',
-  center: 'MA1 MALAGA DUMAS'
+  center: 'MA1 - MALAGA DUMAS'
 };
 
 const ADD_USER_DEFAULT = {
@@ -118,7 +118,7 @@ const ADD_USER_DEFAULT = {
   phone: '',
   status: 'Activo',
   userType: 'Usuario Mesa',
-  center: 'MA1 MALAGA DUMAS',
+  center: 'MA1 - MALAGA DUMAS',
   channel: '',
   avatar: '',
   billingCompany: '',
@@ -276,7 +276,7 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
     return Array.from(labelMap.values()).sort((a, b) => a.label.localeCompare(b.label));
   }, [existingStatuses]);
 
-  const CENTER_OPTIONS = ['MA1 MALAGA DUMAS'];
+  const CENTER_OPTIONS = ['MA1 - MALAGA DUMAS'];
 
   const handleFieldChange = useCallback((field) => (event) => {
     const { value } = event.target;
