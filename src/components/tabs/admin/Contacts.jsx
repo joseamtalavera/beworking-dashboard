@@ -21,6 +21,22 @@ import InputLabel from '@mui/material/InputLabel';
 import LinearProgress from '@mui/material/LinearProgress';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
+import { TAX_ID_TYPES, taxIdTypeOption, flagUrl } from '../../../data/taxIdTypes';
+
+const FlagImg = ({ country }) => {
+  const url = flagUrl(country);
+  if (!url) return <span style={{ display: 'inline-block', width: 20, marginRight: 8 }} />;
+  return (
+    <img
+      src={url}
+      alt={country}
+      width={20}
+      height={15}
+      style={{ marginRight: 8, borderRadius: 2, verticalAlign: 'middle', flexShrink: 0 }}
+      onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+    />
+  );
+};
 import Paper from '@mui/material/Paper';
 import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
@@ -597,24 +613,32 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
                     />
               </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      select
-                      label="Categoría fiscal"
-                      value={form.billingTaxIdType}
-                      onChange={handleFieldChange('billingTaxIdType')}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      sx={contactFieldSx}
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      SelectProps={{ displayEmpty: true }}
-                    >
-                      <MenuItem value=""><em>—</em></MenuItem>
-                      <MenuItem value="es_cif">ES CIF (empresa)</MenuItem>
-                      <MenuItem value="es_nif">ES NIF (autónomo / persona)</MenuItem>
-                      <MenuItem value="eu_vat">EU VAT (intracomunitario)</MenuItem>
-                      <MenuItem value="no_vat">Particular sin NIF</MenuItem>
-                    </TextField>
+                    <Autocomplete
+                      options={TAX_ID_TYPES}
+                      value={taxIdTypeOption(form.billingTaxIdType) || null}
+                      onChange={(_e, opt) => handleFieldChange('billingTaxIdType')({ target: { value: opt ? opt.value : '' } })}
+                      getOptionLabel={(o) => `${o.country} ${o.label.replace(/^[A-Z]{2,3}\s*/, '')}`}
+                      isOptionEqualToValue={(o, v) => o.value === v.value}
+                      filterOptions={(opts, state) => {
+                        const q = state.inputValue.trim().toLowerCase();
+                        if (!q) return opts;
+                        return opts.filter(o =>
+                          o.value.toLowerCase().includes(q) ||
+                          o.country.toLowerCase().includes(q) ||
+                          o.label.toLowerCase().includes(q) ||
+                          o.name.toLowerCase().includes(q));
+                      }}
+                      renderOption={(props, opt) => (
+                        <li {...props} key={`${opt.value}-${opt.country}`} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                          <FlagImg country={opt.country} />
+                          <span style={{ fontWeight: 600, marginRight: 8, fontSize: 13 }}>{opt.label}</span>
+                          <span style={{ fontSize: 12, color: '#667085' }}>{opt.name}</span>
+                        </li>
+                      )}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Categoría fiscal" variant="outlined" size="small" sx={contactFieldSx} slotProps={{ inputLabel: { shrink: true } }} placeholder="Buscar país o tipo…" />
+                      )}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
