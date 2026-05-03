@@ -776,17 +776,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               ]}
             />
             <Box sx={{ px: 2, pb: 2, pt: 0 }}>
-              <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
-                {revalidateResult && (
-                  <Tooltip title={`Antes: vat_valid=${String(revalidateResult.vatValidBefore)}, tipo=${revalidateResult.typeBefore || '—'} → Ahora: vat_valid=${String(revalidateResult.vatValidAfter)}, tipo=${revalidateResult.typeAfter || '—'}. ${revalidateResult.subscriptionsRelocked?.length || 0} suscripciones recalculadas.`}>
-                    <CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 18 }} />
-                  </Tooltip>
-                )}
-                {revalidateError && (
-                  <Tooltip title={revalidateError}>
-                    <ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 18 }} />
-                  </Tooltip>
-                )}
+              <Stack direction="row" justifyContent="flex-end">
                 <Button
                   size="small"
                   variant="outlined"
@@ -798,6 +788,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   {revalidating ? 'Revalidando…' : 'Revalidar VAT (VIES)'}
                 </Button>
               </Stack>
+              {revalidateError && (
+                <Alert severity="error" sx={{ mt: 1, fontSize: 13 }}>{revalidateError}</Alert>
+              )}
             </Box>
           </SectionCard>
         </Box>
