@@ -202,7 +202,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
               <TableRow>
                 <TableCell
                   sx={{
-                    width: 220,
+                    width: { xs: 100, sm: 140, md: 180 },
                     position: 'sticky',
                     top: 0,
                     left: 0,
@@ -241,8 +241,7 @@ const RoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey, onS
                   sx={{
                     position: 'sticky',
                     left: 0,
-                    width: 220,
-                    maxWidth: 220,
+                    width: { xs: 100, sm: 140, md: 180 },
                     backgroundColor: 'background.paper',
                     zIndex: 2,
                     borderRight: '1px solid',
