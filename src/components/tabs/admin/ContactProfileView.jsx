@@ -236,6 +236,14 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         method: 'POST',
       });
       setRevalidateResult(res);
+      // Update local subscriptions state from response so the Tax % row
+      // reflects new locked rates without requiring a full page reload.
+      if (Array.isArray(res?.subscriptionsRelocked) && res.subscriptionsRelocked.length > 0) {
+        setSubscriptions(prev => prev.map(sub => {
+          const update = res.subscriptionsRelocked.find(r => r.subId === sub.id);
+          return update ? { ...sub, vatPercent: update.newVatPercent } : sub;
+        }));
+      }
       // Refresh the parent so the UI shows the new vat_valid + tax_id_type
       if (refreshProfile) {
         try { await refreshProfile(); } catch { /* swallow */ }
