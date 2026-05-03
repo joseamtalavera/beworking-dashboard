@@ -286,18 +286,30 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     }
   };
 
-  // Auto-validate VAT on load (read-only view) and when editor opens
+  // Show the persisted vat_valid state (authoritative, drives billing) on the
+  // readonly view. NO live VIES re-check on load — VIES is famously flaky and
+  // hitting it on every page render produced misleading red icons whenever VIES
+  // was down (even though billing was correctly locked-in). The Revalidar
+  // button is the explicit way to force a fresh check when needed.
   useEffect(() => {
     const taxId = contact?.billing?.tax_id;
-    const hasPrefix = taxId && EU_VAT_RE.test(taxId.trim());
-    const countryHint = getCountryHint(contact?.billing);
-    if (taxId && (hasPrefix || countryHint)) {
-      validateVat(taxId, contact?.billing);
-    } else {
+    if (!taxId) {
       setVatStatus('idle');
       setVatTooltip('');
+      return;
     }
-  }, [contact?.billing?.tax_id]);
+    const persisted = contact?.billing?.vat_valid;
+    if (persisted === true) {
+      setVatStatus('valid');
+      setVatTooltip('VIES-validated');
+    } else if (persisted === false) {
+      setVatStatus('invalid');
+      setVatTooltip('VIES did not validate this tax ID');
+    } else {
+      setVatStatus('idle');
+      setVatTooltip('Not yet validated against VIES');
+    }
+  }, [contact?.billing?.tax_id, contact?.billing?.vat_valid]);
 
   useEffect(() => {
     if (editorOpen && draft?.billing?.tax_id) {
