@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { tokens } from '../../../theme/tokens.js';
 
@@ -52,6 +52,7 @@ import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { fetchBookingStats, fetchBookingProductos } from '../../../api/bookings';
 import { fetchSubscriptions, createSubscription, updateSubscription, linkStripeSubscription } from '../../../api/subscriptions';
+import AddSubscriptionDialog from './AddSubscriptionDialog';
 import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
 import { fetchInvoices } from '../../../api/invoices';
 import { loadStripe } from '@stripe/stripe-js';
@@ -353,10 +354,6 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // Subscriptions
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
-  const [subError, setSubError] = useState('');
-  const startDateInputRef = useRef(null);
-  const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', billingInterval: 'month', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
-  const [subSaving, setSubSaving] = useState(false);
   const [editSubDialog, setEditSubDialog] = useState({ open: false, sub: null, stripeSubscriptionId: '' });
   const [editSubSaving, setEditSubSaving] = useState(false);
   const [editSubResult, setEditSubResult] = useState(null);
@@ -441,32 +438,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     loadPaymentMethods();
   };
 
-  const handleAddSubscription = async () => {
-    setSubSaving(true);
-    setSubError('');
-    try {
-      await createSubscription({
-        contactId: contact.id,
-        billingMethod: newSub.billingMethod,
-        stripeSubscriptionId: newSub.billingMethod === 'stripe' ? (newSub.stripeSubscriptionId || undefined) : undefined,
-        monthlyAmount: Number(newSub.monthlyAmount),
-        billingInterval: newSub.billingInterval,
-        cuenta: newSub.cuenta,
-        description: newSub.description,
-        startDate: newSub.startDate,
-        productoId: newSub.productoId || undefined
-      });
-      setSubDialogOpen(false);
-      setSubError('');
-      setNewSub({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', billingInterval: 'month', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
-      loadSubscriptions();
-    } catch (err) {
-      let msg = err?.message || t('profile.addSubscriptionError');
-      try { const parsed = JSON.parse(msg); if (parsed.error) msg = parsed.error; } catch {}
-      setSubError(msg);
-    } finally {
-      setSubSaving(false);
-    }
+  const handleAddSubscriptionSubmit = async (formData) => {
+    await createSubscription({ contactId: contact.id, ...formData });
+    loadSubscriptions();
   };
 
   const handleCancelSubscription = async (id) => {
@@ -798,11 +772,15 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   ? <>{vatStatus === 'loading' && <CircularProgress size={14} sx={{ mr: 0.5, verticalAlign: 'text-bottom' }} />}{vatStatus === 'valid' && <Tooltip title={vatTooltip}><CheckCircleRoundedIcon sx={{ color: 'success.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{vatStatus === 'invalid' && <Tooltip title={vatTooltip}><ErrorRoundedIcon sx={{ color: 'error.main', fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} /></Tooltip>}{contact.billing.tax_id}</>
                   : '—' },
                 (() => {
+                  // Tax % is sub-specific — only show the row if the contact has any
+                  // subscription (active or cancelled). Aula/booking-only users don't
+                  // get a Tax % row at all.
+                  if (!subscriptions || subscriptions.length === 0) return null;
                   const activeSub = subscriptions.find(s => s.active);
                   const rate = activeSub && activeSub.vatPercent != null ? activeSub.vatPercent : null;
                   return { label: 'Tax %', value: rate != null ? `${rate}%` : '—' };
                 })()
-              ]}
+              ].filter(Boolean)}
             />
             <Box sx={{ pt: 1.5 }}>
               <Stack direction="row" justifyContent="flex-end">
@@ -1442,120 +1420,12 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         </DialogActions>
       </Dialog>
 
-      <Dialog open={subDialogOpen} onClose={() => { setSubDialogOpen(false); setSubError(''); }} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('profile.addSubscription')}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            {subError && <Alert severity="error">{subError}</Alert>}
-            <TextField
-              size="small"
-              label={t('profile.billingMethod')}
-              value={newSub.billingMethod}
-              onChange={(e) => setNewSub({ ...newSub, billingMethod: e.target.value })}
-              select
-              fullWidth
-            >
-              <MenuItem value="stripe">Stripe</MenuItem>
-              <MenuItem value="bank_transfer">{t('profile.bankTransfer')}</MenuItem>
-            </TextField>
-            {newSub.billingMethod === 'stripe' && (
-            <TextField
-              size="small"
-              label="Stripe Subscription ID"
-              value={newSub.stripeSubscriptionId}
-              onChange={(e) => setNewSub({ ...newSub, stripeSubscriptionId: e.target.value })}
-              placeholder="sub_..."
-              helperText={t('profile.stripeIdHelper')}
-              fullWidth
-            />
-            )}
-            <TextField
-              size="small"
-              label={t('profile.amount')}
-              type="number"
-              value={newSub.monthlyAmount}
-              onChange={(e) => setNewSub({ ...newSub, monthlyAmount: e.target.value })}
-              slotProps={{ input: { startAdornment: <InputAdornment position="start">€</InputAdornment> } }}
-              fullWidth
-            />
-            <TextField
-              size="small"
-              label={t('profile.billingInterval')}
-              value={newSub.billingInterval}
-              onChange={(e) => setNewSub({ ...newSub, billingInterval: e.target.value })}
-              select
-              fullWidth
-            >
-              <MenuItem value="month">{t('profile.monthly')}</MenuItem>
-              <MenuItem value="quarter">{t('profile.quarterly')}</MenuItem>
-              <MenuItem value="half_year">{t('profile.halfYearly')}</MenuItem>
-              <MenuItem value="year">{t('profile.yearly')}</MenuItem>
-            </TextField>
-            <TextField
-              size="small"
-              label={t('profile.startDate')}
-              type="date"
-              value={newSub.startDate}
-              onChange={(e) => setNewSub({ ...newSub, startDate: e.target.value })}
-              inputRef={startDateInputRef}
-              onClick={() => { try { startDateInputRef.current?.showPicker?.(); } catch (_) {} }}
-              slotProps={{
-                inputLabel: { shrink: true },
-                htmlInput: { style: { cursor: 'pointer' } },
-              }}
-              fullWidth
-            />
-            <TextField
-              size="small"
-              label={t('profile.cuenta')}
-              value={newSub.cuenta}
-              onChange={(e) => setNewSub({ ...newSub, cuenta: e.target.value })}
-              select
-              fullWidth
-            >
-              <MenuItem value="PT">BeWorking Partners Offices</MenuItem>
-              <MenuItem value="GT">GLOBALTECHNO OÜ</MenuItem>
-            </TextField>
-            <TextField
-              size="small"
-              label={t('profile.description')}
-              value={newSub.description}
-              onChange={(e) => setNewSub({ ...newSub, description: e.target.value })}
-              fullWidth
-            />
-            {deskProducts.length > 0 && (
-            <TextField
-              size="small"
-              label={t('profile.deskProduct')}
-              value={newSub.productoId}
-              onChange={(e) => setNewSub({ ...newSub, productoId: e.target.value })}
-              select
-              fullWidth
-              helperText={t('profile.deskProductHelper')}
-            >
-              <MenuItem value="">
-                <em>{t('profile.noDesk')}</em>
-              </MenuItem>
-              {deskProducts.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {p.nombre}
-                </MenuItem>
-              ))}
-            </TextField>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSubDialogOpen(false)}>{t('profile.cancel')}</Button>
-          <Button
-            variant="contained"
-            onClick={handleAddSubscription}
-            disabled={!newSub.monthlyAmount || subSaving}
-          >
-            {subSaving ? t('profile.creating') : t('profile.add')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AddSubscriptionDialog
+        open={subDialogOpen}
+        onClose={() => setSubDialogOpen(false)}
+        onSubmit={handleAddSubscriptionSubmit}
+        deskProducts={deskProducts}
+      />
 
       {/* Edit Stripe Link Dialog */}
       <Dialog open={editSubDialog.open} onClose={() => setEditSubDialog({ open: false, sub: null, stripeSubscriptionId: '' })} maxWidth="sm" fullWidth>
