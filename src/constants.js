@@ -47,6 +47,7 @@ export const DEPT_TABS = [
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
   { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
+    { id: 'Leads', label: 'Leads', icon: ContactsIcon, adminOnly: true },
   ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
     { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },

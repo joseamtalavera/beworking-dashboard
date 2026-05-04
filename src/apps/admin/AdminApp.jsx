@@ -21,6 +21,7 @@ const Automation = React.lazy(() => import('../../components/tabs/Automation.jsx
 const Community = React.lazy(() => import('../../components/tabs/Community.jsx'));
 const Events = React.lazy(() => import('../../components/tabs/Events.jsx'));
 const Contacts = React.lazy(() => import('../../components/tabs/admin/Contacts.jsx'));
+const Leads = React.lazy(() => import('../../components/tabs/admin/Leads.jsx'));
 const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.jsx'));
 const Expenses = React.lazy(() => import('../../components/tabs/Expenses.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
@@ -32,6 +33,7 @@ const DeptComingSoon = React.lazy(() => import('../../components/tabs/DeptComing
 const TAB_COMPONENTS = {
   Overview,
   Contacts,
+  Leads,
   Booking,
   Invoices,
   Expenses,
