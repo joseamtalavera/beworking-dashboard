@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { tokens } from '../../../theme/tokens.js';
 
@@ -354,6 +354,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [subscriptions, setSubscriptions] = useState([]);
   const [subDialogOpen, setSubDialogOpen] = useState(false);
   const [subError, setSubError] = useState('');
+  const startDateInputRef = useRef(null);
   const [newSub, setNewSub] = useState({ billingMethod: 'stripe', stripeSubscriptionId: '', monthlyAmount: '', billingInterval: 'month', cuenta: 'PT', description: 'Oficina Virtual', startDate: new Date().toISOString().split('T')[0], productoId: '' });
   const [subSaving, setSubSaving] = useState(false);
   const [editSubDialog, setEditSubDialog] = useState({ open: false, sub: null, stripeSubscriptionId: '' });
@@ -1496,7 +1497,12 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
               type="date"
               value={newSub.startDate}
               onChange={(e) => setNewSub({ ...newSub, startDate: e.target.value })}
-              slotProps={{ inputLabel: { shrink: true } }}
+              inputRef={startDateInputRef}
+              onClick={() => { try { startDateInputRef.current?.showPicker?.(); } catch (_) {} }}
+              slotProps={{
+                inputLabel: { shrink: true },
+                htmlInput: { style: { cursor: 'pointer' } },
+              }}
               fullWidth
             />
             <TextField
