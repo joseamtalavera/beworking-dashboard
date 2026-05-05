@@ -689,7 +689,7 @@ const resolveDisplayTenantType = (bloqueo) => {
 const ROOM_CAPACITIES = {
   MA1A1: 6,
   MA1A2: 25,
-  MA1A3: 40,
+  MA1A3: 45,
   MA1A4: 50,
   MA1A5: 25,
 };
@@ -4983,7 +4983,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                             </Typography>
                             {room.capacity ? (
                               <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>
-                                {t('detail.capacityGuests', { capacity: room.capacity })}
+                                {`${room.capacity} pax`}
                               </Typography>
                             ) : null}
                           </Stack>
