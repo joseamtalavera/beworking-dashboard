@@ -96,6 +96,8 @@ const STATUS_COLOR = {
   Inactivo: { color: 'default', label: 'Inactivo' },
   Potencial: { color: 'primary', label: 'Potencial' },
   Trial: { color: 'primary', label: 'Trial' },
+  Abandono: { color: 'warning', label: 'Abandono' },
+  'Pendiente Pago': { color: 'warning', label: 'Pendiente Pago' },
   Suspended: { color: 'default', label: 'Suspended' },
   Inactive: { color: 'default', label: 'Inactive' }
 };
@@ -106,18 +108,23 @@ const ACTIVITY_STATUS = {
   Inactivo: { color: 'default', label: 'Inactivo', variant: 'outlined' },
   Potencial: { color: 'primary', label: 'Potencial', variant: 'outlined' },
   Trial: { color: 'info', label: 'Trial', variant: 'outlined' },
+  Abandono: { color: 'warning', label: 'Abandono', variant: 'outlined' },
+  'Pendiente Pago': { color: 'warning', label: 'Pendiente Pago', variant: 'outlined' },
   'Lista de Espera': { color: 'warning', label: 'Lista de Espera', variant: 'outlined' },
   Suspended: { color: 'error', label: 'Suspended', variant: 'outlined' },
   Inactive: { color: 'default', label: 'Inactive', variant: 'outlined' }
 };
 
 const PAGE_SIZE = 10; // Client-side pagination like MailboxAdmin
-const DEFAULT_STATUSES = ['Activo', 'Lista de Espera', 'Potencial', 'Trial', 'Suspended', 'Inactive'];
+// Trimmed to actually-used statuses. Removed: Lista de Espera, Trial,
+// Suspended, Inactive (English duplicate of Inactivo).
+const DEFAULT_STATUSES = ['Activo', 'Abandono', 'Pendiente Pago', 'Potencial', 'Inactivo'];
 const ADD_USER_STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
-  { value: 'Lista de Espera', label: 'Lista de Espera' },
+  { value: 'Abandono', label: 'Abandono' },
+  { value: 'Pendiente Pago', label: 'Pendiente Pago' },
   { value: 'Potencial', label: 'Potencial' },
-  { value: 'Inactive', label: 'Inactivo' }
+  { value: 'Inactivo', label: 'Inactivo' }
 ];
 
 const VIRTUAL_USER_BILLING = {
@@ -198,7 +205,7 @@ const normalizeContact = (entry = {}) => {
     plan: entry.plan ?? 'Custom',
     center: entry.center != null ? String(entry.center) : null,
     user_type: normalizedUserType,
-    status: entry.status ?? 'Unknown',
+    status: entry.status ?? 'Abandono',
     seats: seatsValue,
     usage: usageValue,
     lastActive: entry.lastActive ?? '—',
@@ -1440,7 +1447,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             )}
 
             {!loading && !error && paginatedContacts.map((tenant) => {
-              const statusMeta = ACTIVITY_STATUS[tenant.status] || { color: 'default', label: 'Unknown' };
+              const statusMeta = ACTIVITY_STATUS[tenant.status] || { color: 'warning', label: 'Abandono' };
               const initials = tenant.name
                 .split(' ')
                 .map((word) => word[0])
