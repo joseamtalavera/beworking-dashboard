@@ -684,6 +684,16 @@ const resolveDisplayTenantType = (bloqueo) => {
   return tenantType;
 };
 
+// Canonical capacities for MA1 aulas — used to display "X personas" under the
+// room name on the calendar grid. Source: SpaceCatalog room cards.
+const ROOM_CAPACITIES = {
+  MA1A1: 6,
+  MA1A2: 25,
+  MA1A3: 40,
+  MA1A4: 50,
+  MA1A5: 25,
+};
+
 const composeRooms = (bloqueos) => {
   const map = new Map();
 
@@ -691,6 +701,7 @@ const composeRooms = (bloqueos) => {
     map.set(roomName, {
       id: roomName,
       label: roomName,
+      capacity: ROOM_CAPACITIES[roomName] || null,
       productId: null,
       centerName: null,
       centerCode: null
@@ -713,6 +724,7 @@ const composeRooms = (bloqueos) => {
     const existing = map.get(productName) || {
       id: productName || bloqueo.producto.id,
       label: productName || `Room ${bloqueo.producto.id}`,
+      capacity: ROOM_CAPACITIES[productName] || null,
       productId: null,
       centerName: null,
       centerCode: null
@@ -722,6 +734,7 @@ const composeRooms = (bloqueos) => {
       ...existing,
       id: existing.id,
       label: productName || existing.label,
+      capacity: ROOM_CAPACITIES[productName] || existing.capacity,
       productId: bloqueo.producto.id,
       centerName: bloqueo.centro?.nombre || existing.centerName,
       centerCode: bloqueo.centro?.codigo || existing.centerCode
@@ -4964,10 +4977,15 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
                             boxShadow: (theme) => `2px 0 8px ${alpha(theme.palette.common.black, 0.04)}`
                           }}
                         >
-                          <Stack spacing={0.5}>
+                          <Stack spacing={0.25}>
                             <Typography variant="body2" fontWeight="medium">
                               {room.label}
                             </Typography>
+                            {room.capacity ? (
+                              <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.72rem' }}>
+                                {t('detail.capacityGuests', { capacity: room.capacity })}
+                              </Typography>
+                            ) : null}
                           </Stack>
                         </TableCell>
                         {calendarDates.map((dateKey, dateIdx) => (
