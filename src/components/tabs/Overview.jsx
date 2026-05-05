@@ -773,6 +773,29 @@ const AdminOverview = () => {
     };
   }, [invoices, selectedYear, i18n.language]);
 
+  // Pending invoices grouped by cuenta — mirrors the chart's pending filter so
+  // the per-row totals on the reconciliation card sum to chartData.pendingTotal.
+  const pendingByAccount = useMemo(() => {
+    const acc = {};
+    invoices.forEach((invoice) => {
+      const rawDate = invoice.createdAt || invoice.fechaFactura;
+      if (!rawDate) return;
+      const invoiceDate = new Date(rawDate);
+      if (invoiceDate.getFullYear() !== selectedYear) return;
+      const status = (invoice.estado || '').toLowerCase();
+      const isPending = status.includes('pend') || status.includes('confir')
+        || status.includes('fact') || status.includes('invoice') || status.includes('created');
+      if (!isPending) return;
+      const amount = parseFloat(invoice.total || invoice.importe || 0);
+      const cuenta = (invoice.cuenta || 'PT').toUpperCase();
+      if (!acc[cuenta]) acc[cuenta] = { count: 0, amount: 0, invoices: [] };
+      acc[cuenta].count += 1;
+      acc[cuenta].amount += amount;
+      acc[cuenta].invoices.push(invoice);
+    });
+    return acc;
+  }, [invoices, selectedYear]);
+
   // Fetch quick stats (raw data for stat card computation)
   const fetchQuickStats = async () => {
     setStatsLoading(true);
@@ -1145,7 +1168,7 @@ const AdminOverview = () => {
       </Paper>
 
       {/* Subscription Reconciliation */}
-      <ReconciliationCard data={reconciliationData} loading={reconciliationLoading} t={t} onRun={handleRunReconciliation} running={reconciliationRunning} />
+      <ReconciliationCard data={reconciliationData} loading={reconciliationLoading} t={t} onRun={handleRunReconciliation} running={reconciliationRunning} pendingByAccount={pendingByAccount} />
     </Stack>
   );
 };
@@ -1153,7 +1176,7 @@ const AdminOverview = () => {
 /* ═══════════════════════════════════════════
    RECONCILIATION CARD
    ═══════════════════════════════════════════ */
-const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
+const ReconciliationCard = ({ data, loading, t, onRun, running, pendingByAccount = {} }) => {
   const theme = useTheme();
   const brand = theme.palette.brand?.green || '#009624';
   const errorRed = theme.palette.error.main;
@@ -1189,6 +1212,12 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
       setDetailDialog({ account, type, title, rows: Array.isArray(preloadedRows) ? preloadedRows : [] });
       return;
     }
+    if (type === 'pendingInvoices') {
+      // Pending invoices are computed locally on the client — no breakdown call.
+      const rows = pendingByAccount[account]?.invoices || [];
+      setDetailDialog({ account, type, title, rows });
+      return;
+    }
     const bd = await fetchBreakdown(account);
     if (!bd) return;
     const rows = type === 'stripeActive' ? bd.stripeActive
@@ -1196,6 +1225,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
       : type === 'bankTransfer' ? bd.bankTransfer
       : type === 'pastDue' ? bd.pastDueSubs
       : type === 'stripeDeviation' ? bd.stripeDeviation
+      : type === 'pendingInvoices' ? (pendingByAccount[account]?.invoices || [])
       : [];
     setDetailDialog({ account, type, title, rows: Array.isArray(rows) ? rows : [] });
   };
@@ -1236,6 +1266,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
     const dbActive = row.db_active || 0;
     const deviation = Math.max(0, dbActive - stripe - scheduled - bank);
     const total = stripe + scheduled + deviation + bank; // = dbActive (overdue is inside stripe)
+    const pending = pendingByAccount[row.account] || { count: 0, amount: 0 };
     return {
       stripe,
       scheduled,
@@ -1244,6 +1275,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
       total,
       overdue,
       overdueAmt: row.past_due_amount,
+      pendingCount: pending.count,
+      pendingAmount: pending.amount,
     };
   };
 
@@ -1281,12 +1314,19 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
                   <Chip label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)} size="small" sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }} />
                 </Stack>
 
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
-                  <Metric label="Stripe Deviation" value={m.deviation} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Scheduled" value={m.scheduled} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
                   <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
+                  <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? errorRed : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
                   <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? errorRed : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
+                  <Metric
+                    label="Pendiente"
+                    value={m.pendingCount}
+                    color={m.pendingCount > 0 ? errorRed : undefined}
+                    sub={m.pendingAmount > 0 ? `€${Number(m.pendingAmount).toFixed(0)}` : undefined}
+                    onClick={m.pendingCount > 0 ? () => openDetail(row.account, 'pendingInvoices', `${row.account} — Pendiente`) : undefined}
+                  />
                 </Box>
 
                 {row.missing_invoice_count > 0 && (
@@ -1314,6 +1354,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
         : type === 'stripeDeviation' ? 'Ghost subs (DB active, Stripe cancelled)'
         : type === 'stripeScheduled' ? 'Scheduled future subs (sub_sched_*)'
         : type === 'bankTransfer' ? 'Bank transfer'
+        : type === 'pendingInvoices' ? 'Pending invoices (unpaid)'
         : 'Stripe live';
       return (
     <Dialog open={!!detailDialog} onClose={() => setDetailDialog(null)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.md}px`, overflow: 'hidden' } }}>
@@ -1327,7 +1368,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
             </Box>
           </Stack>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Chip label={`${detailDialog?.rows?.length || 0} ${type === 'missingInvoices' ? 'facturas' : 'subs'}`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.15), color: accent }} />
+            <Chip label={`${detailDialog?.rows?.length || 0} ${(type === 'missingInvoices' || type === 'pendingInvoices') ? 'facturas' : 'subs'}`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.15), color: accent }} />
             <IconButton size="small" aria-label="close" onClick={() => setDetailDialog(null)} sx={{ color: accent }}>
               <CloseIcon fontSize="small" />
             </IconButton>
@@ -1339,6 +1380,36 @@ const ReconciliationCard = ({ data, loading, t, onRun, running }) => {
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress sx={{ color: accent }} /></Box>
         ) : !detailDialog?.rows?.length ? (
           <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>No subscriptions</Typography>
+        ) : type === 'pendingInvoices' ? (
+          <TableContainer>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Nº</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Cliente</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Estado</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Fecha</TableCell>
+                  <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(detailDialog?.rows || []).map((inv, i) => {
+                  const dateStr = inv.fechaFactura || inv.createdAt;
+                  const dateFormatted = dateStr ? new Date(dateStr).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US') : '—';
+                  const amount = parseFloat(inv.total || inv.importe || 0);
+                  return (
+                    <TableRow key={inv.id || i} hover>
+                      <TableCell sx={{ fontWeight: 600 }}>{inv.idfactura ? `${inv.cuenta || 'PT'}${inv.idfactura}` : '—'}</TableCell>
+                      <TableCell>{inv.clientName || inv.cliente || inv.descripcion || '—'}</TableCell>
+                      <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{inv.estado || '—'}</TableCell>
+                      <TableCell sx={{ color: 'text.secondary' }}>{dateFormatted}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, color: accent }}>€{amount.toFixed(2)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
         ) : type === 'missingInvoices' ? (
           <TableContainer>
             <Table size="small" stickyHeader>
