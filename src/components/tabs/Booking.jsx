@@ -4,6 +4,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, parseISO } from 'date-fns';
 import { alpha, useTheme } from '@mui/material/styles';
 import { tokens } from '../../theme/tokens.js';
+import { pillFieldSx } from '../common/pillField.js';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -4000,10 +4001,7 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
   );
 };
 
-const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
-  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
-});
+// pillFieldSx imported from src/components/common/pillField.js
 
 const Booking = ({ mode = 'user', userProfile, initialView }) => {
   const theme = useTheme();

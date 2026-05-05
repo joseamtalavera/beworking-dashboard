@@ -6,6 +6,7 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 // Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 
 import { tokens } from '../../../theme/tokens.js';
+import { pillFieldSx } from '../../common/pillField.js';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
@@ -342,10 +343,7 @@ const createEmptyForm = () => ({
   images: []
 });
 
-const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
-  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
-});
+// pillFieldSx imported from src/components/common/pillField.js
 
 const SpaceCatalog = () => {
   const { t } = useTranslation('spaceCatalog');

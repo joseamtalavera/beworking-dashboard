@@ -4,6 +4,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 // Colors live on theme.palette.brand (brand.green / brand.greenHover / brand.accentSoft)
 
 import { tokens } from '../../../theme/tokens.js';
+import { pillFieldSx } from '../../common/pillField.js';
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -126,10 +127,7 @@ const formatDateTime = (isoString) => {
   });
 };
 
-const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.75rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
-  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
-});
+// pillFieldSx imported from src/components/common/pillField.js
 
 const MailboxAdmin = () => {
   const { t } = useTranslation('mailbox');

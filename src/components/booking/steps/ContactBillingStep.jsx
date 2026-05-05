@@ -10,6 +10,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '../../common/ClearableTextField';
+import { pillFieldSx } from '../../common/pillField.js';
 import Typography from '@mui/material/Typography';
 
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
@@ -65,10 +66,7 @@ const splitName = (fullName) => {
   return { first: parts[0], last: parts.slice(1).join(' ') };
 };
 
-const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
-  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
-});
+// pillFieldSx imported from src/components/common/pillField.js
 
 export default function ContactBillingStep({ mode = 'admin', userProfile }) {
   const { t } = useTranslation('booking');

@@ -8,6 +8,7 @@ import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import TextField from '../common/ClearableTextField';
+import { pillFieldSx } from '../common/pillField.js';
 import Typography from '@mui/material/Typography';
 
 import Divider from '@mui/material/Divider';
@@ -49,10 +50,7 @@ const isDeskProducto = (p) => {
   return /^MA1[-_]?O1[-_ ]?\d{1,2}$/.test(name);
 };
 
-const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
-  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
-});
+// pillFieldSx imported from src/components/common/pillField.js
 
 const pillFieldNumberSx = (hasValue) => ({
   ...pillFieldSx(hasValue),

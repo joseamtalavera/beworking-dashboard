@@ -13,6 +13,7 @@ import Stack from '@mui/material/Stack';
 import { alpha } from '@mui/material/styles';
 import Switch from '@mui/material/Switch';
 import TextField from '../../common/ClearableTextField';
+import { pillFieldSx } from '../../common/pillField.js';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
@@ -38,10 +39,7 @@ if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('en', 'booking', enBooking);
 }
 
-const pillFieldSx = (hasValue) => ({
-  '& .MuiInputLabel-root': { fontSize: '0.7rem', fontWeight: 700, color: hasValue ? 'brand.green' : 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', transition: 'color 0.2s' },
-  '& .MuiInput-input': { fontSize: '0.875rem', color: hasValue ? 'text.primary' : 'text.secondary', py: 0.25 },
-});
+// pillFieldSx imported from src/components/common/pillField.js
 
 const pillFieldNumberSx = (hasValue) => ({
   ...pillFieldSx(hasValue),
