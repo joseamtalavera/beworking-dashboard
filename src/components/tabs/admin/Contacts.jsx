@@ -90,39 +90,27 @@ if (!i18n.hasResourceBundle('es', 'contacts')) {
   i18n.addResourceBundle('en', 'contacts', enContacts);
 }
 
+// 3-state funnel:
+//   Potencial — started a paid flow (OV / room booking) and dropped. Recovery cron target.
+//   Activo    — has at least one invoice (paid).
+//   Inactivo  — free register that never started a paid flow, OR aged-out Potencial,
+//               OR cancelled subscription.
 const STATUS_COLOR = {
   Activo: { color: 'success', label: 'Activo' },
-  'Lista de Espera': { color: 'warning', label: 'Lista de Espera' },
-  Inactivo: { color: 'default', label: 'Inactivo' },
-  Potencial: { color: 'primary', label: 'Potencial' },
-  Trial: { color: 'primary', label: 'Trial' },
-  Abandono: { color: 'warning', label: 'Abandono' },
-  'Pendiente Pago': { color: 'warning', label: 'Pendiente Pago' },
-  Suspended: { color: 'default', label: 'Suspended' },
-  Inactive: { color: 'default', label: 'Inactive' }
+  Potencial: { color: 'warning', label: 'Potencial' },
+  Inactivo: { color: 'default', label: 'Inactivo' }
 };
 
-// Activity status based on bookings and invoices
 const ACTIVITY_STATUS = {
   Activo: { color: 'success', label: 'Activo', variant: 'outlined' },
-  Inactivo: { color: 'default', label: 'Inactivo', variant: 'outlined' },
-  Potencial: { color: 'primary', label: 'Potencial', variant: 'outlined' },
-  Trial: { color: 'info', label: 'Trial', variant: 'outlined' },
-  Abandono: { color: 'warning', label: 'Abandono', variant: 'outlined' },
-  'Pendiente Pago': { color: 'warning', label: 'Pendiente Pago', variant: 'outlined' },
-  'Lista de Espera': { color: 'warning', label: 'Lista de Espera', variant: 'outlined' },
-  Suspended: { color: 'error', label: 'Suspended', variant: 'outlined' },
-  Inactive: { color: 'default', label: 'Inactive', variant: 'outlined' }
+  Potencial: { color: 'warning', label: 'Potencial', variant: 'outlined' },
+  Inactivo: { color: 'default', label: 'Inactivo', variant: 'outlined' }
 };
 
-const PAGE_SIZE = 10; // Client-side pagination like MailboxAdmin
-// Trimmed to actually-used statuses. Removed: Lista de Espera, Trial,
-// Suspended, Inactive (English duplicate of Inactivo).
-const DEFAULT_STATUSES = ['Activo', 'Abandono', 'Pendiente Pago', 'Potencial', 'Inactivo'];
+const PAGE_SIZE = 10;
+const DEFAULT_STATUSES = ['Activo', 'Potencial', 'Inactivo'];
 const ADD_USER_STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
-  { value: 'Abandono', label: 'Abandono' },
-  { value: 'Pendiente Pago', label: 'Pendiente Pago' },
   { value: 'Potencial', label: 'Potencial' },
   { value: 'Inactivo', label: 'Inactivo' }
 ];
@@ -205,7 +193,7 @@ const normalizeContact = (entry = {}) => {
     plan: entry.plan ?? 'Custom',
     center: entry.center != null ? String(entry.center) : null,
     user_type: normalizedUserType,
-    status: entry.status ?? 'Abandono',
+    status: entry.status ?? 'Inactivo',
     seats: seatsValue,
     usage: usageValue,
     lastActive: entry.lastActive ?? '—',
@@ -1351,9 +1339,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             >
               <MenuItem value="all">{t('filters.allStatuses')}</MenuItem>
               <MenuItem value="Activo">{t('status.Activo')}</MenuItem>
-              <MenuItem value="Inactivo">{t('status.Inactivo')}</MenuItem>
               <MenuItem value="Potencial">{t('status.Potencial')}</MenuItem>
-              <MenuItem value="Trial">Trial</MenuItem>
+              <MenuItem value="Inactivo">{t('status.Inactivo')}</MenuItem>
             </Select>
           </Box>
 
@@ -1447,7 +1434,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             )}
 
             {!loading && !error && paginatedContacts.map((tenant) => {
-              const statusMeta = ACTIVITY_STATUS[tenant.status] || { color: 'warning', label: 'Abandono' };
+              const statusMeta = ACTIVITY_STATUS[tenant.status] || { color: 'default', label: 'Inactivo', variant: 'outlined' };
               const initials = tenant.name
                 .split(' ')
                 .map((word) => word[0])
@@ -1492,13 +1479,12 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                       color={statusMeta.color} 
                       variant={statusMeta.variant || 'filled'}
                       size="small" 
-                      sx={{ 
-                        borderRadius: 1.5, 
+                      sx={{
+                        borderRadius: 1.5,
                         fontWeight: 600,
-                        minWidth: 80,
-                        width: 80,
+                        minWidth: 90,
                         justifyContent: 'center'
-                      }} 
+                      }}
                     />
                   </TableCell>
                   <TableCell align="center">

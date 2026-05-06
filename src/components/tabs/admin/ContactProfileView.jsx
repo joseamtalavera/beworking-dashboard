@@ -79,11 +79,8 @@ const VIRTUAL_USER_BILLING = {
 
 const STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
-  { value: 'Lista de Espera', label: 'Lista de Espera' },
   { value: 'Potencial', label: 'Potencial' },
-  { value: 'Trial', label: 'Trial' },
-  { value: 'Suspended', label: 'Suspendido' },
-  { value: 'Inactive', label: 'Inactivo' },
+  { value: 'Inactivo', label: 'Inactivo' },
 ];
 
 const CENTER_OPTIONS = ['MA1 - MALAGA DUMAS'];
@@ -618,13 +615,10 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     });
   }, [contact?.created_at]);
 
-  const statusLabel = contact?.status || 'Unknown';
-  // DB stores Spanish values (Activo, Suspendido); accept English too for compatibility.
+  const statusLabel = contact?.status || 'Inactivo';
   const statusColor =
-    statusLabel === 'Active' || statusLabel === 'Activo' ? 'success' :
-    statusLabel === 'Trial' ? 'warning' :
-    statusLabel === 'Suspended' || statusLabel === 'Suspendido' ? 'warning' :
-    statusLabel === 'Lista de Espera' ? 'warning' :
+    statusLabel === 'Activo' ? 'success' :
+    statusLabel === 'Potencial' ? 'warning' :
     'default';
 
   return (
