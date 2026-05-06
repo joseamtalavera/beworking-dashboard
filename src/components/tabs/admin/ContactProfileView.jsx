@@ -1359,11 +1359,71 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                   </Grid>
                 </Box>
               </Paper>
+
+              {draft?.user_type === 'Proveedor' && (
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px', bgcolor: 'background.paper' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                    Acceso al portal del proveedor
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                    Credenciales para descargar facturas en su portal privado. Solo visibles para administradores.
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        label="Usuario portal"
+                        value={draft?.supplier_portal?.username || ''}
+                        onChange={(e) => setDraft((prev) => ({
+                          ...prev,
+                          supplier_portal: { ...(prev?.supplier_portal || {}), username: e.target.value },
+                        }))}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        sx={fieldSx}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField
+                        label="Contraseña portal"
+                        type="password"
+                        value={draft?.supplier_portal?.password || ''}
+                        onChange={(e) => setDraft((prev) => ({
+                          ...prev,
+                          supplier_portal: { ...(prev?.supplier_portal || {}), password: e.target.value },
+                        }))}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        sx={fieldSx}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField
+                        label="Web del portal"
+                        placeholder="https://"
+                        value={draft?.supplier_portal?.url || ''}
+                        onChange={(e) => setDraft((prev) => ({
+                          ...prev,
+                          supplier_portal: { ...(prev?.supplier_portal || {}), url: e.target.value },
+                        }))}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        sx={fieldSx}
+                        slotProps={{ inputLabel: { shrink: true } }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Paper>
+              )}
             </Stack>
           </Box>
         </DialogContent>
-        
-        <DialogActions sx={{ 
+
+        <DialogActions sx={{
           p: 3, 
           background: (theme) => `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
           borderRadius: '0 0 12px 12px'

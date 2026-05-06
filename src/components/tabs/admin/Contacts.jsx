@@ -163,7 +163,10 @@ const ADD_USER_DEFAULT = {
   billingPostalCode: '',
   billingCity: '',
   billingCounty: '',
-  billingCountry: ''
+  billingCountry: '',
+  supplierPortalUsername: '',
+  supplierPortalPassword: '',
+  supplierPortalUrl: ''
 };
 
 const normalizeContact = (entry = {}) => {
@@ -739,15 +742,63 @@ const AddUserDialog = ({ open, onClose, onSave, existingStatuses, refreshProfile
             </Grid>
           </Box>
             </Paper>
+
+            {form.userType === 'Proveedor' && (
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.paper' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+                  Acceso al portal del proveedor
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                  Credenciales para descargar facturas en su portal privado. Solo visibles para administradores.
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Usuario portal"
+                      value={form.supplierPortalUsername || ''}
+                      onChange={(e) => setForm((prev) => ({ ...prev, supplierPortalUsername: e.target.value }))}
+                      sx={contactFieldSx}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="password"
+                      label="Contraseña portal"
+                      value={form.supplierPortalPassword || ''}
+                      onChange={(e) => setForm((prev) => ({ ...prev, supplierPortalPassword: e.target.value }))}
+                      sx={contactFieldSx}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Web del portal"
+                      placeholder="https://"
+                      value={form.supplierPortalUrl || ''}
+                      onChange={(e) => setForm((prev) => ({ ...prev, supplierPortalUrl: e.target.value }))}
+                      sx={contactFieldSx}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
+            )}
         </Stack>
         </Box>
       </DialogContent>
-      <DialogActions sx={{ 
-        p: 3, 
+      <DialogActions sx={{
+        p: 3,
         background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
         borderRadius: '0 0 12px 12px'
       }}>
-        <Button 
+        <Button
           startIcon={<CloseRoundedIcon />}
           onClick={onClose}
           sx={{
@@ -1167,7 +1218,10 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         billingCounty: normalizeString(updatedProfile.billing?.county) ?? null,
         billingCountry: normalizeString(updatedProfile.billing?.country) ?? null,
         billingTaxId: normalizeString(updatedProfile.billing?.tax_id) ?? null,
-        billingTaxIdType: normalizeString(updatedProfile.billing?.tax_id_type) ?? null
+        billingTaxIdType: normalizeString(updatedProfile.billing?.tax_id_type) ?? null,
+        supplierPortalUsername: normalizeString(updatedProfile.supplier_portal?.username) ?? null,
+        supplierPortalPassword: normalizeString(updatedProfile.supplier_portal?.password) ?? null,
+        supplierPortalUrl: normalizeString(updatedProfile.supplier_portal?.url) ?? null
       };
 
       console.log('DEBUG: Payload being sent to backend:', payload);
@@ -1256,7 +1310,10 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         billingPostalCode: values.billingPostalCode,
         billingCity: values.billingCity,
         billingCounty: values.billingCounty,
-        billingCountry: values.billingCountry
+        billingCountry: values.billingCountry,
+        supplierPortalUsername: values.supplierPortalUsername || null,
+        supplierPortalPassword: values.supplierPortalPassword || null,
+        supplierPortalUrl: values.supplierPortalUrl || null
       };
 
       const newUser = await apiFetch('/contact-profiles', {
