@@ -13,3 +13,9 @@ export const fetchLead = (id, options = {}) =>
 
 export const deleteLead = (id, options = {}) =>
   apiFetch(`/leads/${id}`, { method: 'DELETE', ...options });
+
+export const updateLead = (id, body, options = {}) =>
+  apiFetch(`/leads/${id}`, { method: 'PATCH', body, ...options });
+
+export const convertLeadToContact = (id, options = {}) =>
+  apiFetch(`/leads/${id}/convert`, { method: 'POST', ...options });

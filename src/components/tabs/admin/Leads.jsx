@@ -101,9 +101,16 @@ const Leads = () => {
   return (
     <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack spacing={0.5} sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
-          Leads
-        </Typography>
+        <Stack direction="row" spacing={1.5} alignItems="baseline" flexWrap="wrap" useFlexGap>
+          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
+            Leads
+          </Typography>
+          <Chip
+            size="small"
+            label={`${data.totalElements} ${data.totalElements === 1 ? 'lead' : 'leads'}`}
+            sx={{ fontWeight: 600, height: 22, bgcolor: 'brand.accentSoft', color: 'brand.greenHover' }}
+          />
+        </Stack>
         <Typography variant="body2" color="text.secondary">
           Inbound del formulario de contacto y captaciones de Oficina Virtual. Cuando un lead se convierte en cliente (registra perfil), se elimina automáticamente.
         </Typography>
