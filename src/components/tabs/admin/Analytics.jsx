@@ -39,6 +39,8 @@ const Analytics = () => {
   const counts = stats?.counts || {};
   const total = Object.values(counts).reduce((a, b) => a + (b || 0), 0);
   const recoveryByTpl = stats?.recoveryEmailsByTemplate30d || {};
+  const opensByTpl = stats?.recoveryOpensByTemplate30d || {};
+  const reengagementOpens = stats?.reengagementOpens30d ?? 0;
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
@@ -110,15 +112,32 @@ const Analytics = () => {
                     <TableRow sx={{ backgroundColor: 'grey.100' }}>
                       <TableCell sx={{ fontWeight: 700 }}>Plantilla</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700 }}>Envíos</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700 }}>Aperturas únicas</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700 }}>Tasa</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Object.entries(recoveryByTpl).map(([n, count]) => (
-                      <TableRow key={n}>
-                        <TableCell>Email #{n}</TableCell>
-                        <TableCell align="right">{formatNumber(count)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {Object.entries(recoveryByTpl).map(([n, count]) => {
+                      const opens = opensByTpl[n] ?? 0;
+                      const rate = count > 0 ? `${Math.round((opens / count) * 100)}%` : '—';
+                      return (
+                        <TableRow key={n}>
+                          <TableCell>Email #{n}</TableCell>
+                          <TableCell align="right">{formatNumber(count)}</TableCell>
+                          <TableCell align="right">{formatNumber(opens)}</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, color: opens > 0 ? 'success.main' : 'text.secondary' }}>
+                            {rate}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow>
+                      <TableCell colSpan={2} sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                        Reactivación (Inactivo)
+                      </TableCell>
+                      <TableCell align="right">{formatNumber(reengagementOpens)}</TableCell>
+                      <TableCell />
+                    </TableRow>
                   </TableBody>
                 </Table>
               </TableContainer>

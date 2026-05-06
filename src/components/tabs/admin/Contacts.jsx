@@ -12,6 +12,7 @@ import { pillFieldSx } from '../../common/pillField.js';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
@@ -66,6 +67,7 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import Snackbar from '@mui/material/Snackbar';
@@ -857,6 +859,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const [funnelCounts, setFunnelCounts] = useState({ Activo: 0, Potencial: 0, Inactivo: 0 });
   const [recoverySendingId, setRecoverySendingId] = useState(null);
   const [recoveryToast, setRecoveryToast] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   const fetchFunnelCounts = useCallback(async () => {
     try {
@@ -1005,6 +1009,74 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       setRecoverySendingId(null);
     }
   }, [fetchContacts, fetchFunnelCounts]);
+
+  const toggleRow = useCallback((id, checked) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const togglePageSelection = useCallback((checked) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      contacts.forEach((c) => {
+        if (checked) next.add(c.id);
+        else next.delete(c.id);
+      });
+      return next;
+    });
+  }, [contacts]);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const runBulk = useCallback(async (path, label) => {
+    if (selectedIds.size === 0) return;
+    setBulkRunning(true);
+    try {
+      const result = await apiFetch(`/contact-profiles/${path}`, {
+        method: 'POST',
+        body: { ids: Array.from(selectedIds) },
+      });
+      const sent = result?.sent ?? 0;
+      const skipped = result?.skipped ?? 0;
+      setRecoveryToast({
+        severity: sent > 0 ? 'success' : 'warning',
+        message: `${label}: ${sent} enviados · ${skipped} omitidos`,
+      });
+      clearSelection();
+      await fetchContacts();
+      await fetchFunnelCounts();
+    } catch (err) {
+      setRecoveryToast({ severity: 'error', message: err?.message || `Falló ${label}` });
+    } finally {
+      setBulkRunning(false);
+    }
+  }, [selectedIds, clearSelection, fetchContacts, fetchFunnelCounts]);
+
+  const exportCsv = useCallback(async () => {
+    const params = new URLSearchParams();
+    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+    if (userTypeFilter && userTypeFilter !== 'all') params.set('userType', userTypeFilter);
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    const url = `/contact-profiles/export.csv${params.toString() ? `?${params}` : ''}`;
+    try {
+      const csv = await apiFetch(url, { parse: 'text' });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `contactos-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      setRecoveryToast({ severity: 'error', message: err?.message || 'No se pudo exportar' });
+    }
+  }, [statusFilter, userTypeFilter, debouncedSearch]);
 
   // Check for selected contact ID from search
   useEffect(() => {
@@ -1475,11 +1547,71 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
             {t('filters.reset')}
           </Button>
           <Box sx={{ flex: 1 }} />
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<FileDownloadRoundedIcon />}
+            onClick={exportCsv}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 999, mr: 1 }}
+          >
+            Exportar CSV
+          </Button>
           <Typography variant="body2" color="text.secondary">
             {t('list.showing')} {contacts.length} {t('list.of')} {total} {t('list.contacts')}
           </Typography>
         </Stack>
       </Box>
+
+      {selectedIds.size > 0 && (
+        <Box
+          sx={{
+            mx: { xs: 2, md: 4 },
+            mb: 2,
+            p: 1.5,
+            borderRadius: 2,
+            bgcolor: (theme) => alpha(theme.palette.brand.green, 0.08),
+            border: '1px solid',
+            borderColor: 'brand.green',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            flexWrap: 'wrap',
+          }}
+        >
+          <Typography variant="body2" fontWeight={600}>
+            {selectedIds.size} seleccionados
+          </Typography>
+          <Box sx={{ flex: 1 }} />
+          <Button
+            size="small"
+            variant="outlined"
+            color="warning"
+            startIcon={bulkRunning ? <CircularProgress size={14} /> : <SendRoundedIcon />}
+            onClick={() => runBulk('bulk-send-recovery', 'Recuperación')}
+            disabled={bulkRunning}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 999 }}
+          >
+            Enviar recuperación (Potencial)
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={bulkRunning ? <CircularProgress size={14} /> : <SendRoundedIcon />}
+            onClick={() => runBulk('bulk-send-reengagement', 'Reactivación')}
+            disabled={bulkRunning}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 999 }}
+          >
+            Reactivar (Inactivo)
+          </Button>
+          <Button
+            size="small"
+            onClick={clearSelection}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Limpiar
+          </Button>
+        </Box>
+      )}
 
       <Divider />
 
@@ -1487,7 +1619,17 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
         <Table size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: 'grey.100' }}>
-              <TableCell sx={{ pl: 4, fontWeight: 'bold' }}>{t('table.user')}</TableCell>
+              <TableCell padding="checkbox" sx={{ pl: 2 }}>
+                <Checkbox
+                  size="small"
+                  color="success"
+                  checked={contacts.length > 0 && contacts.every((c) => selectedIds.has(c.id))}
+                  indeterminate={contacts.some((c) => selectedIds.has(c.id)) && !contacts.every((c) => selectedIds.has(c.id))}
+                  onChange={(e) => togglePageSelection(e.target.checked)}
+                  inputProps={{ 'aria-label': 'select all on page' }}
+                />
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>{t('table.user')}</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>{t('table.typeOfUser')}</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.status')}</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.recovery')}</TableCell>
@@ -1498,7 +1640,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           <TableBody>
             {loading && (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                   <Stack spacing={1} alignItems="center">
                     <CircularProgress size={24} />
                     <Typography variant="body2" color="text.secondary">
@@ -1511,7 +1653,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
             {!loading && error && (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" sx={{ color: 'secondary.main' }}>
                     {error}
                   </Typography>
@@ -1521,7 +1663,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
             {!loading && !error && paginatedContacts.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     {t('list.noMatch')}
                   </Typography>
@@ -1541,10 +1683,20 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 <TableRow
                   key={tenant.id}
                   hover
+                  selected={selectedIds.has(tenant.id)}
                   sx={{ '& td': { borderBottomColor: 'divider' }, cursor: 'pointer' }}
                   onClick={() => handleRowClick(tenant)}
                 >
-                  <TableCell sx={{ pl: 4 }}>
+                  <TableCell padding="checkbox" sx={{ pl: 2 }} onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      size="small"
+                      color="success"
+                      checked={selectedIds.has(tenant.id)}
+                      onChange={(e) => toggleRow(tenant.id, e.target.checked)}
+                      inputProps={{ 'aria-label': `select ${tenant.name}` }}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ pl: 1 }}>
                     <Stack direction="row" spacing={2} alignItems="center">
                       <Avatar 
                         src={tenant.avatar || tenant.photo} 
