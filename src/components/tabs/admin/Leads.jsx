@@ -42,7 +42,7 @@ const sourceColor = (src) => {
 };
 
 const Leads = () => {
-  const { t } = useTranslation('contacts');
+  const { t, i18n } = useTranslation('contacts');
   const [data, setData] = useState({ content: [], totalElements: 0, totalPages: 1 });
   const [page, setPage] = useState(0);
   const [q, setQ] = useState('');
@@ -108,7 +108,7 @@ const Leads = () => {
       setToast({ severity: 'success', message: 'Lead actualizado' });
       load();
     } catch (e) {
-      setToast({ severity: 'error', message: e?.message || 'No se pudo guardar' });
+      setToast({ severity: 'error', message: e?.message || t('leads.toast.saveError') });
     } finally {
       setSaving(false);
     }
@@ -120,8 +120,8 @@ const Leads = () => {
     try {
       const result = await convertLeadToContact(detail.id);
       const msg = result?.created
-        ? 'Convertido a contacto Potencial'
-        : `Email ya existía como contacto (id ${result?.contactId})`;
+        ? t('leads.toast.convertedNew')
+        : t('leads.toast.convertedExisting', { id: result?.contactId });
       setToast({ severity: 'success', message: msg });
       // Refresh local detail to show 'Convertido' status
       const refreshed = await fetchLead(detail.id);
@@ -129,7 +129,7 @@ const Leads = () => {
       setEditStatus(refreshed.status || 'Convertido');
       load();
     } catch (e) {
-      setToast({ severity: 'error', message: e?.message || 'No se pudo convertir' });
+      setToast({ severity: 'error', message: e?.message || t('leads.toast.convertError') });
     } finally {
       setConverting(false);
     }
@@ -148,30 +148,23 @@ const Leads = () => {
   };
 
   const headerCells = useMemo(() => ([
-    { key: 'name', label: 'Nombre', width: '18%' },
-    { key: 'email', label: 'Email', width: '20%' },
-    { key: 'phone', label: 'Teléfono', width: '12%' },
-    { key: 'subject', label: 'Asunto', width: '15%' },
-    { key: 'status', label: 'Estado', width: '10%' },
-    { key: 'source', label: 'Origen', width: '11%' },
-    { key: 'createdAt', label: 'Fecha', width: '14%' },
-  ]), []);
+    { key: 'name', label: t('leads.table.name'), width: '18%' },
+    { key: 'email', label: t('leads.table.email'), width: '20%' },
+    { key: 'phone', label: t('leads.table.phone'), width: '12%' },
+    { key: 'subject', label: t('leads.table.subject'), width: '15%' },
+    { key: 'status', label: t('leads.table.status'), width: '10%' },
+    { key: 'source', label: t('leads.table.source'), width: '11%' },
+    { key: 'createdAt', label: t('leads.table.createdAt'), width: '14%' },
+  ]), [t, i18n.language]);
 
   return (
     <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
       <Stack spacing={0.5} sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={1.5} alignItems="baseline" flexWrap="wrap" useFlexGap>
-          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
-            Leads
-          </Typography>
-          <Chip
-            size="small"
-            label={`${data.totalElements} ${data.totalElements === 1 ? 'lead' : 'leads'}`}
-            sx={{ fontWeight: 600, height: 22, bgcolor: 'brand.accentSoft', color: 'brand.greenHover' }}
-          />
-        </Stack>
+        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
+          {t('leads.title')}
+        </Typography>
         <Typography variant="body2" color="text.secondary">
-          Inbound del formulario de contacto y captaciones de Oficina Virtual. Cuando un lead se convierte en cliente (registra perfil), se elimina automáticamente.
+          {t('leads.subtitle')}
         </Typography>
       </Stack>
 
@@ -195,7 +188,7 @@ const Leads = () => {
             variant="standard"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por nombre, email, teléfono o asunto"
+            placeholder={t('leads.searchPlaceholder')}
             fullWidth
             slotProps={{ input: { disableUnderline: true } }}
             sx={{
@@ -228,7 +221,7 @@ const Leads = () => {
           <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress size={24} /></Box>
         ) : data.content.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary', fontSize: '0.9rem' }}>
-            {debouncedQ ? 'Sin resultados para esa búsqueda.' : 'Aún no hay leads.'}
+            {debouncedQ ? t('leads.noResults') : t('leads.empty')}
           </Box>
         ) : (
           data.content.map((lead) => (
@@ -289,16 +282,16 @@ const Leads = () => {
         <DialogContent dividers>
           {detail && (
             <Stack spacing={1.5}>
-              <Field label="Nombre" value={detail.name} />
-              <Field label="Email" value={detail.email} copy />
-              <Field label="Teléfono" value={detail.phone} copy />
-              <Field label="Asunto" value={detail.subject} />
-              <Field label="Origen" value={detail.source} />
-              <Field label="Fecha" value={formatDate(detail.createdAt)} />
+              <Field label={t('leads.fields.name')} value={detail.name} />
+              <Field label={t('leads.fields.email')} value={detail.email} copy />
+              <Field label={t('leads.fields.phone')} value={detail.phone} copy />
+              <Field label={t('leads.fields.subject')} value={detail.subject} />
+              <Field label={t('leads.fields.source')} value={detail.source} />
+              <Field label={t('leads.fields.createdAt')} value={formatDate(detail.createdAt)} />
               {detail.message && (
                 <Box>
                   <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.5 }}>
-                    Mensaje
+                    {t('leads.fields.message')}
                   </Typography>
                   <Typography sx={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{detail.message}</Typography>
                 </Box>
@@ -307,10 +300,10 @@ const Leads = () => {
               {/* Pipeline editor */}
               <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                 <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                  <InputLabel id="lead-status-label">Estado</InputLabel>
+                  <InputLabel id="lead-status-label">{t('leads.fields.status')}</InputLabel>
                   <Select
                     labelId="lead-status-label"
-                    label="Estado"
+                    label={t('leads.fields.status')}
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value)}
                   >
@@ -323,8 +316,8 @@ const Leads = () => {
                   fullWidth
                   multiline
                   minRows={3}
-                  label="Notas"
-                  placeholder="Última conversación, próximos pasos…"
+                  label={t('leads.fields.notes')}
+                  placeholder={t('leads.fields.notesPlaceholder')}
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   size="small"
@@ -334,12 +327,12 @@ const Leads = () => {
 
               <Box sx={{ pt: 1 }}>
                 <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.5 }}>
-                  HubSpot
+                  {t('leads.fields.hubspot')}
                 </Typography>
                 <Typography sx={{ fontSize: '0.85rem' }}>
                   {detail.hubspotSyncStatus
-                    ? <>Estado: <strong>{detail.hubspotSyncStatus}</strong>{detail.hubspotId ? ` · id ${detail.hubspotId}` : ''}</>
-                    : 'No sincronizado'}
+                    ? <>{t('leads.hubspotStatus', { status: detail.hubspotSyncStatus })}{detail.hubspotId ? ` · id ${detail.hubspotId}` : ''}</>
+                    : t('leads.hubspotNotSynced')}
                 </Typography>
               </Box>
             </Stack>
@@ -347,7 +340,7 @@ const Leads = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmDelete(detail)} startIcon={<DeleteOutlineRoundedIcon />} color="error">
-            Eliminar
+            {t('leads.actions.delete')}
           </Button>
           <Button
             onClick={handleConvert}
@@ -355,17 +348,17 @@ const Leads = () => {
             disabled={converting || detail?.status === 'Convertido'}
             sx={{ textTransform: 'none', fontWeight: 600 }}
           >
-            {detail?.status === 'Convertido' ? 'Ya convertido' : 'Convertir a contacto'}
+            {detail?.status === 'Convertido' ? t('leads.actions.alreadyConverted') : t('leads.actions.convert')}
           </Button>
           <Box sx={{ flex: 1 }} />
           {detail?.email && (
-            <Tooltip title="Abrir en nuevo email">
+            <Tooltip title={t('leads.actions.openMail')}>
               <IconButton component="a" href={`mailto:${detail.email}`} size="small">
                 <OpenInNewRoundedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
-          <Button onClick={() => setDetail(null)}>Cerrar</Button>
+          <Button onClick={() => setDetail(null)}>{t('leads.actions.close')}</Button>
           <Button
             onClick={handleSaveLead}
             variant="contained"
@@ -373,7 +366,7 @@ const Leads = () => {
             disableElevation
             sx={{ textTransform: 'none', fontWeight: 600 }}
           >
-            {saving ? 'Guardando…' : 'Guardar'}
+            {saving ? t('leads.actions.saving') : t('leads.actions.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -393,15 +386,15 @@ const Leads = () => {
 
       {/* Confirm delete */}
       <Dialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>¿Eliminar lead?</DialogTitle>
+        <DialogTitle>{t('leads.deleteDialog.title')}</DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: '0.9rem' }}>
-            Vas a eliminar permanentemente el lead de <strong>{confirmDelete?.name}</strong> ({confirmDelete?.email}). No se puede deshacer.
+            {t('leads.deleteDialog.warningPrefix')} <strong>{confirmDelete?.name}</strong> ({confirmDelete?.email}). {t('leads.deleteDialog.warningSuffix')}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDelete(null)}>Cancelar</Button>
-          <Button onClick={handleDelete} color="error" variant="contained" disableElevation>Eliminar</Button>
+          <Button onClick={() => setConfirmDelete(null)}>{t('leads.deleteDialog.cancel')}</Button>
+          <Button onClick={handleDelete} color="error" variant="contained" disableElevation>{t('leads.deleteDialog.confirm')}</Button>
         </DialogActions>
       </Dialog>
     </Paper>

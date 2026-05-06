@@ -231,6 +231,62 @@
     "title": "Contacts",
     "subtitle": "List of users with their type, funnel status, and last activity."
   },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Inbound from the contact form and Virtual Office sign-ups. When a lead becomes a customer (registers a profile), it is auto-deleted.",
+    "searchPlaceholder": "Search by name, email, phone or subject",
+    "leadCount_one": "{{count}} lead",
+    "leadCount_other": "{{count}} leads",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "subject": "Subject",
+      "status": "Status",
+      "source": "Source",
+      "createdAt": "Date"
+    },
+    "empty": "No leads yet.",
+    "noResults": "No results for that search.",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "subject": "Subject",
+      "source": "Source",
+      "createdAt": "Date",
+      "message": "Message",
+      "status": "Status",
+      "notes": "Notes",
+      "notesPlaceholder": "Last conversation, next steps…",
+      "hubspot": "HubSpot"
+    },
+    "actions": {
+      "delete": "Delete",
+      "convert": "Convert to contact",
+      "alreadyConverted": "Already converted",
+      "save": "Save",
+      "saving": "Saving…",
+      "close": "Close",
+      "openMail": "Open new email"
+    },
+    "deleteDialog": {
+      "title": "Delete lead?",
+      "warningPrefix": "You are permanently deleting the lead from",
+      "warningSuffix": "This cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "toast": {
+      "saved": "Lead updated",
+      "saveError": "Could not save",
+      "convertedNew": "Converted to Potencial contact",
+      "convertedExisting": "Email already existed as a contact (id {{id}})",
+      "convertError": "Could not convert"
+    },
+    "hubspotNotSynced": "Not synced",
+    "hubspotStatus": "Status: {{status}}"
+  },
   "errors": {
     "noProfile": "No contact profile found for your account.",
     "unableToLoad": "Unable to load your profile.",

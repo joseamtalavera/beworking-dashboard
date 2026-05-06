@@ -231,6 +231,62 @@
     "title": "Contactos",
     "subtitle": "Listado de usuarios con su tipo, estado en el funnel y última actividad."
   },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Inbound del formulario de contacto y captaciones de Oficina Virtual. Cuando un lead se convierte en cliente (registra perfil), se elimina automáticamente.",
+    "searchPlaceholder": "Buscar por nombre, email, teléfono o asunto",
+    "leadCount_one": "{{count}} lead",
+    "leadCount_other": "{{count}} leads",
+    "table": {
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "subject": "Asunto",
+      "status": "Estado",
+      "source": "Origen",
+      "createdAt": "Fecha"
+    },
+    "empty": "Aún no hay leads.",
+    "noResults": "Sin resultados para esa búsqueda.",
+    "fields": {
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "subject": "Asunto",
+      "source": "Origen",
+      "createdAt": "Fecha",
+      "message": "Mensaje",
+      "status": "Estado",
+      "notes": "Notas",
+      "notesPlaceholder": "Última conversación, próximos pasos…",
+      "hubspot": "HubSpot"
+    },
+    "actions": {
+      "delete": "Eliminar",
+      "convert": "Convertir a contacto",
+      "alreadyConverted": "Ya convertido",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "close": "Cerrar",
+      "openMail": "Abrir en nuevo email"
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar lead?",
+      "warningPrefix": "Vas a eliminar permanentemente el lead de",
+      "warningSuffix": "No se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar"
+    },
+    "toast": {
+      "saved": "Lead actualizado",
+      "saveError": "No se pudo guardar",
+      "convertedNew": "Convertido a contacto Potencial",
+      "convertedExisting": "Email ya existía como contacto (id {{id}})",
+      "convertError": "No se pudo convertir"
+    },
+    "hubspotNotSynced": "No sincronizado",
+    "hubspotStatus": "Estado: {{status}}"
+  },
   "errors": {
     "noProfile": "No se encontró perfil de contacto para tu cuenta.",
     "unableToLoad": "No se pudo cargar tu perfil.",
