@@ -800,9 +800,8 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             </>
           )}
 
-          <Divider />
-
-          {/* Availability calendar — only for single-date bookings */}
+          {/* Availability error / loader (calendar grid removed — redundant with
+              TimeSlotSelect, which already marks slots as Booked). */}
           {!recurring && (
             <>
               {availError ? (
@@ -813,22 +812,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                   <CircularProgress size={28} />
                 </Box>
-              ) : (
-                <Stack spacing={1.5}>
-                  <CalendarLegend />
-                  <RoomCalendarGrid
-                    room={{
-                      id: state.producto?.id || 'room',
-                      name: state.producto?.name || t('steps.meetingRoom'),
-                      capacity: state.producto?.capacity,
-                    }}
-                    dateLabel={dateLabel}
-                    bloqueos={roomBloqueos}
-                    selectedSlotKey={selectedSlotKey}
-                    onSelectSlot={handleSlotSelect}
-                  />
-                </Stack>
-              )}
+              ) : null}
             </>
           )}
         </Stack>

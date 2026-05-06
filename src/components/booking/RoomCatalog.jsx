@@ -10,6 +10,8 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '../common/ClearableTextField';
 import { pillFieldSx } from '../common/pillField.js';
 import Typography from '@mui/material/Typography';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -17,13 +19,24 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import DeskRoundedIcon from '@mui/icons-material/DeskRounded';
 import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/i18n.js';
 import esBooking from '../../i18n/locales/es/booking.json';
 import enBooking from '../../i18n/locales/en/booking.json';
 
-import { fetchBookingCentros, fetchPublicProductos } from '../../api/bookings.js';
+import { fetchBookingCentros, fetchPublicProductos, fetchPublicAvailability } from '../../api/bookings.js';
+
+// Half-hour booking slots from 06:00 to 22:00. Mirrors booking-app /malaga/salas-de-reunion.
+const TIME_SLOTS = (() => {
+  const slots = [];
+  for (let h = 6; h <= 22; h += 1) {
+    slots.push(`${String(h).padStart(2, '0')}:00`);
+    if (h < 22) slots.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return slots;
+})();
 import SpaceCard from './SpaceCard';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
@@ -64,13 +77,30 @@ export default function RoomCatalog({ onClose, onBookNow }) {
   const [cityFilter, setCityFilter] = useState('');
   const [cityOptions, setCityOptions] = useState([{ id: 'all', label: t('catalog.allLocations'), isAllOption: true }]);
   const [checkIn, setCheckIn] = useState('');
-  const [timeFilter, setTimeFilter] = useState('');
-  const [people, setPeople] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [people, setPeople] = useState('1');
 
   const [centros, setCentros] = useState([]);
   const [centrosLoading, setCentrosLoading] = useState(false);
   const [productos, setProductos] = useState([]);
   const [productosLoading, setProductosLoading] = useState(false);
+  const [bloqueos, setBloqueos] = useState([]);
+
+  // Fetch availability for the picked date so we can drop rooms with overlapping bloqueos.
+  useEffect(() => {
+    if (!checkIn) { setBloqueos([]); return; }
+    let active = true;
+    (async () => {
+      try {
+        const data = await fetchPublicAvailability({ date: checkIn });
+        if (active) setBloqueos(Array.isArray(data) ? data : []);
+      } catch {
+        if (active) setBloqueos([]);
+      }
+    })();
+    return () => { active = false; };
+  }, [checkIn]);
 
   // Load centros and derive city options
   useEffect(() => {
@@ -263,7 +293,7 @@ export default function RoomCatalog({ onClose, onBookNow }) {
       filtered = filtered.filter((s) => (s.location ?? '').toLowerCase() === cf);
     }
 
-    if (people && people.trim() !== '') {
+    if (people && String(people).trim() !== '') {
       const userCount = parseInt(people);
       if (!isNaN(userCount)) {
         filtered = filtered.filter((s) => {
@@ -279,16 +309,41 @@ export default function RoomCatalog({ onClose, onBookNow }) {
       }
     }
 
+    // Availability filter: when date + start + end are all set, drop rooms with
+    // a bloqueo overlapping the requested [startTime, endTime] window.
+    if (checkIn && startTime && endTime) {
+      const reqStart = new Date(`${checkIn}T${startTime}:00`).getTime();
+      const reqEnd = new Date(`${checkIn}T${endTime}:00`).getTime();
+      if (!Number.isNaN(reqStart) && !Number.isNaN(reqEnd) && reqEnd > reqStart) {
+        const conflictingRoomNames = new Set();
+        bloqueos.forEach((b) => {
+          const productName = (b?.producto?.nombre || '').trim();
+          if (!productName) return;
+          const bStart = new Date(b.fechaIni).getTime();
+          const bEnd = new Date(b.fechaFin).getTime();
+          if (Number.isNaN(bStart) || Number.isNaN(bEnd)) return;
+          const overlaps = bStart < reqEnd && bEnd > reqStart;
+          if (overlaps) conflictingRoomNames.add(productName);
+        });
+        filtered = filtered.filter((s) => !conflictingRoomNames.has(s.name));
+      }
+    }
+
     return filtered;
-  }, [productos, centros, cityFilter, people, activeTab]);
+  }, [productos, centros, cityFilter, people, activeTab, checkIn, startTime, endTime, bloqueos]);
 
   const handleBookNow = useCallback(
     (space) => {
       if (typeof onBookNow === 'function') {
-        onBookNow(space);
+        onBookNow(space, {
+          date: checkIn || undefined,
+          startTime: startTime || undefined,
+          endTime: endTime || undefined,
+          attendees: people || undefined,
+        });
       }
     },
-    [onBookNow]
+    [onBookNow, checkIn, startTime, endTime, people]
   );
 
   return (
@@ -317,9 +372,31 @@ export default function RoomCatalog({ onClose, onBookNow }) {
       <Typography variant="h3" fontWeight={700} sx={{ mb: 1 }}>
         {t('catalog.heroTitle')}
       </Typography>
-      <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 4 }}>
+      <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 2 }}>
         {t('catalog.heroSubtitle')}
       </Typography>
+
+      {/* Need-help WhatsApp CTA — mirrors booking-app catalog pattern */}
+      <Button
+        component="a"
+        href="https://wa.me/34640369759?text=Hola,%20necesito%20ayuda%20para%20encontrar%20una%20sala"
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="outlined"
+        startIcon={<WhatsAppIcon />}
+        sx={{
+          mb: 4,
+          textTransform: 'none',
+          fontWeight: 600,
+          borderRadius: 999,
+          borderColor: 'brand.green',
+          color: 'brand.green',
+          bgcolor: 'background.paper',
+          '&:hover': { borderColor: 'brand.greenHover', bgcolor: 'brand.accentSoft' },
+        }}
+      >
+        {t('catalog.needHelp', '¿Necesitas ayuda? Escríbenos por WhatsApp')}
+      </Button>
 
       {/* Tabs */}
       <Tabs
@@ -392,19 +469,48 @@ export default function RoomCatalog({ onClose, onBookNow }) {
         <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
         <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
 
-        {/* Time */}
+        {/* Inicio */}
         <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-          <TextField
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+            {t('catalog.startTime', 'Inicio')}
+          </Typography>
+          <Select
             variant="standard"
-            type="time"
-            value={timeFilter}
-            onChange={(e) => setTimeFilter(e.target.value)}
-            label={t('catalog.time')}
-            placeholder={t('catalog.timePlaceholder')}
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            displayEmpty
+            disableUnderline
             fullWidth
-            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-            sx={pillFieldSx(timeFilter)}
-          />
+            sx={{ fontSize: '0.875rem', color: startTime ? 'text.primary' : 'text.secondary' }}
+          >
+            <MenuItem value=""><em>{t('catalog.startTimePlaceholder', 'Hora de inicio')}</em></MenuItem>
+            {TIME_SLOTS.map((slot) => (
+              <MenuItem key={slot} value={slot}>{slot}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+        <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />
+
+        {/* Fin */}
+        <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.25 }}>
+            {t('catalog.endTime', 'Fin')}
+          </Typography>
+          <Select
+            variant="standard"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            displayEmpty
+            disableUnderline
+            fullWidth
+            sx={{ fontSize: '0.875rem', color: endTime ? 'text.primary' : 'text.secondary' }}
+          >
+            <MenuItem value=""><em>{t('catalog.endTimePlaceholder', 'Hora de fin')}</em></MenuItem>
+            {TIME_SLOTS.filter((s) => !startTime || s > startTime).map((slot) => (
+              <MenuItem key={slot} value={slot}>{slot}</MenuItem>
+            ))}
+          </Select>
         </Box>
         <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
         <Divider sx={{ display: { xs: 'block', sm: 'none' }, width: '90%', mx: 'auto' }} />

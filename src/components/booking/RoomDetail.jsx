@@ -554,89 +554,30 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                 </Stack>
               </Stack>
             ) : (
-              <Stack
-                spacing={3}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'grey.200',
-                  borderRadius: '14px',
-                  p: 3,
-                  bgcolor: 'background.paper',
-                  // No sticky — always stacked, scrolls naturally with the page
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em', fontSize: '1.25rem' }}>
-                  {t('detail.availability')}
-                </Typography>
-
-                <Paper
-                  elevation={0}
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    backgroundColor: 'background.paper',
-                    display: 'flex',
-                    alignItems: 'center',
-                    overflow: 'hidden',
-                    boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    borderRadius: { xs: 3, sm: 999 },
-                  }}
-                >
-                  <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                    <TextField
-                      variant="standard"
-                      type="date"
-                      label={t('detail.date')}
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      fullWidth
-                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={pillFieldSx(selectedDate)}
-                    />
-                  </Box>
-                  <Divider orientation="vertical" flexItem />
-                  <Box sx={{ display: 'flex', justifyContent: 'center', px: 3, py: { xs: 1.5, sm: 2 } }}>
-                    <CalendarLegend />
-                  </Box>
-                </Paper>
-
-                {availError ? (
-                  <Alert severity="error">{availError}</Alert>
-                ) : null}
-
-                {availLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                    <CircularProgress size={28} />
-                  </Box>
-                ) : (
-                  <RoomCalendarGrid
-                    room={{ id: producto.id || space?.id, name, capacity }}
-                    dateLabel={dateLabel}
-                    bloqueos={roomBloqueos}
-                    interactive={false}
-                  />
-                )}
-
+              // Meeting-room layer 2: layer 1 (catalog) is the source of truth
+              // for date/time, layer 3 is where the user commits. We just
+              // need a single centered CTA that drops them into the booking flow.
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 2, md: 3 } }}>
                 <Button
                   onClick={onStartBooking}
                   variant="contained"
                   size="large"
+                  disableElevation
                   sx={{
-                    alignSelf: 'center',
                     textTransform: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.95rem',
+                    fontWeight: 600,
+                    fontSize: '1rem',
                     backgroundColor: 'brand.green',
-                    '&:hover': { backgroundColor: 'brand.greenHover' },
+                    color: 'background.paper',
+                    '&:hover': { backgroundColor: 'brand.greenHover', boxShadow: 'none' },
                     borderRadius: 999,
                     px: 5,
-                    py: 1.25,
+                    py: 1.6,
                   }}
                 >
-                  {t('detail.startBooking')}
+                  {t('detail.startBooking', 'Empezar reserva →')}
                 </Button>
-              </Stack>
+              </Box>
             )}
           </Grid>
         </Grid>
