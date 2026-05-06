@@ -2,15 +2,27 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Box, Paper, Stack, Typography, TextField, IconButton, Chip, CircularProgress,
   Alert, Pagination, Dialog, DialogTitle, DialogContent, DialogActions, Button, Tooltip,
+  Snackbar, Select, MenuItem, FormControl, InputLabel,
 } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import { useTranslation } from 'react-i18next';
 import { tokens } from '../../../theme/tokens.js';
-import { fetchLeads, fetchLead, deleteLead } from '../../../api/leads.js';
+import { fetchLeads, fetchLead, deleteLead, updateLead, convertLeadToContact } from '../../../api/leads.js';
 
 const PAGE_SIZE = 25;
+
+const LEAD_STATUSES = ['Nuevo', 'Contactado', 'Calificado', 'Convertido', 'No-go'];
+
+const STATUS_COLOR = {
+  Nuevo:      'info',
+  Contactado: 'primary',
+  Calificado: 'warning',
+  Convertido: 'success',
+  'No-go':    'default',
+};
 
 const formatDate = (iso) => {
   if (!iso) return '—';
@@ -39,6 +51,11 @@ const Leads = () => {
   const [error, setError] = useState('');
   const [detail, setDetail] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [editStatus, setEditStatus] = useState('Nuevo');
+  const [editNotes, setEditNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [toast, setToast] = useState(null);
 
   // Debounce search
   useEffect(() => {
@@ -72,8 +89,49 @@ const Leads = () => {
     try {
       const lead = await fetchLead(id);
       setDetail(lead);
+      setEditStatus(lead.status || 'Nuevo');
+      setEditNotes(lead.notes || '');
     } catch (e) {
       setError(e?.message || 'Failed to load lead');
+    }
+  };
+
+  const handleSaveLead = async () => {
+    if (!detail?.id) return;
+    setSaving(true);
+    try {
+      const updated = await updateLead(detail.id, {
+        status: editStatus,
+        notes: editNotes,
+      });
+      setDetail(updated);
+      setToast({ severity: 'success', message: 'Lead actualizado' });
+      load();
+    } catch (e) {
+      setToast({ severity: 'error', message: e?.message || 'No se pudo guardar' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleConvert = async () => {
+    if (!detail?.id) return;
+    setConverting(true);
+    try {
+      const result = await convertLeadToContact(detail.id);
+      const msg = result?.created
+        ? 'Convertido a contacto Potencial'
+        : `Email ya existía como contacto (id ${result?.contactId})`;
+      setToast({ severity: 'success', message: msg });
+      // Refresh local detail to show 'Convertido' status
+      const refreshed = await fetchLead(detail.id);
+      setDetail(refreshed);
+      setEditStatus(refreshed.status || 'Convertido');
+      load();
+    } catch (e) {
+      setToast({ severity: 'error', message: e?.message || 'No se pudo convertir' });
+    } finally {
+      setConverting(false);
     }
   };
 
@@ -90,11 +148,12 @@ const Leads = () => {
   };
 
   const headerCells = useMemo(() => ([
-    { key: 'name', label: 'Nombre', width: '20%' },
-    { key: 'email', label: 'Email', width: '22%' },
-    { key: 'phone', label: 'Teléfono', width: '14%' },
-    { key: 'subject', label: 'Asunto', width: '18%' },
-    { key: 'source', label: 'Origen', width: '12%' },
+    { key: 'name', label: 'Nombre', width: '18%' },
+    { key: 'email', label: 'Email', width: '20%' },
+    { key: 'phone', label: 'Teléfono', width: '12%' },
+    { key: 'subject', label: 'Asunto', width: '15%' },
+    { key: 'status', label: 'Estado', width: '10%' },
+    { key: 'source', label: 'Origen', width: '11%' },
     { key: 'createdAt', label: 'Fecha', width: '14%' },
   ]), []);
 
@@ -191,6 +250,15 @@ const Leads = () => {
               <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>{lead.phone || '—'}</Typography>
               <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>{lead.subject || '—'}</Typography>
               <Box>
+                <Chip
+                  size="small"
+                  label={lead.status || 'Nuevo'}
+                  color={STATUS_COLOR[lead.status] || 'default'}
+                  variant="outlined"
+                  sx={{ fontSize: '0.7rem', height: 22, fontWeight: 600 }}
+                />
+              </Box>
+              <Box>
                 {lead.source ? (
                   <Chip size="small" label={lead.source} color={sourceColor(lead.source)} sx={{ fontSize: '0.7rem', height: 22 }} />
                 ) : <Typography sx={{ fontSize: '0.85rem', color: 'text.disabled' }}>—</Typography>}
@@ -235,6 +303,35 @@ const Leads = () => {
                   <Typography sx={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{detail.message}</Typography>
                 </Box>
               )}
+
+              {/* Pipeline editor */}
+              <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                  <InputLabel id="lead-status-label">Estado</InputLabel>
+                  <Select
+                    labelId="lead-status-label"
+                    label="Estado"
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                  >
+                    {LEAD_STATUSES.map((s) => (
+                      <MenuItem key={s} value={s}>{s}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  label="Notas"
+                  placeholder="Última conversación, próximos pasos…"
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  size="small"
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+              </Box>
+
               <Box sx={{ pt: 1 }}>
                 <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', mb: 0.5 }}>
                   HubSpot
@@ -252,6 +349,14 @@ const Leads = () => {
           <Button onClick={() => setConfirmDelete(detail)} startIcon={<DeleteOutlineRoundedIcon />} color="error">
             Eliminar
           </Button>
+          <Button
+            onClick={handleConvert}
+            startIcon={converting ? <CircularProgress size={14} /> : <PersonAddAltRoundedIcon />}
+            disabled={converting || detail?.status === 'Convertido'}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            {detail?.status === 'Convertido' ? 'Ya convertido' : 'Convertir a contacto'}
+          </Button>
           <Box sx={{ flex: 1 }} />
           {detail?.email && (
             <Tooltip title="Abrir en nuevo email">
@@ -261,8 +366,30 @@ const Leads = () => {
             </Tooltip>
           )}
           <Button onClick={() => setDetail(null)}>Cerrar</Button>
+          <Button
+            onClick={handleSaveLead}
+            variant="contained"
+            disabled={saving}
+            disableElevation
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            {saving ? 'Guardando…' : 'Guardar'}
+          </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={!!toast}
+        autoHideDuration={5000}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {toast && (
+          <Alert onClose={() => setToast(null)} severity={toast.severity} variant="filled" sx={{ width: '100%' }}>
+            {toast.message}
+          </Alert>
+        )}
+      </Snackbar>
 
       {/* Confirm delete */}
       <Dialog open={!!confirmDelete} onClose={() => setConfirmDelete(null)} maxWidth="xs" fullWidth>
