@@ -65,8 +65,11 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
@@ -201,6 +204,8 @@ const normalizeContact = (entry = {}) => {
     created_at: entry.created_at ?? entry.createdAt ?? null,
     phone_primary: entry.phone_primary ?? entry.phonePrimary ?? null,
     avatar: entry.avatar ?? null,
+    recovery_email_count: entry.recovery_email_count ?? entry.recoveryEmailCount ?? 0,
+    last_recovery_email_at: entry.last_recovery_email_at ?? entry.lastRecoveryEmailAt ?? null,
     contact: {
       name: fallbackContactName ?? '—',
       email: fallbackContactEmail ?? '—'
@@ -831,6 +836,28 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [funnelCounts, setFunnelCounts] = useState({ Activo: 0, Potencial: 0, Inactivo: 0 });
+  const [recoverySendingId, setRecoverySendingId] = useState(null);
+  const [recoveryToast, setRecoveryToast] = useState(null);
+
+  const fetchFunnelCounts = useCallback(async () => {
+    try {
+      const data = await apiFetch('/contact-profiles/funnel-counts');
+      if (data && typeof data === 'object') {
+        setFunnelCounts({
+          Activo: data.Activo ?? 0,
+          Potencial: data.Potencial ?? 0,
+          Inactivo: data.Inactivo ?? 0,
+        });
+      }
+    } catch {
+      // counts are decorative; silent fail keeps the page usable
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchFunnelCounts();
+  }, [fetchFunnelCounts]);
 
   // Reset view when component mounts (when Contacts tab is clicked)
   // This will reset the view back to list when switching to Contacts tab
@@ -935,6 +962,31 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   useEffect(() => {
     fetchContacts();
   }, [fetchContacts]);
+
+  const handleSendRecoveryNow = useCallback(async (tenant, event) => {
+    event?.stopPropagation();
+    if (!tenant?.id) return;
+    setRecoverySendingId(tenant.id);
+    try {
+      const result = await apiFetch(`/contact-profiles/${tenant.id}/abandonment/send-now`, {
+        method: 'POST',
+      });
+      const n = result?.templateSent ?? '';
+      setRecoveryToast({
+        severity: 'success',
+        message: `Recuperación enviada (#${n}) a ${tenant.contact?.email || tenant.name}`,
+      });
+      await fetchContacts();
+      await fetchFunnelCounts();
+    } catch (err) {
+      setRecoveryToast({
+        severity: 'error',
+        message: err?.message || 'No se pudo enviar el correo de recuperación',
+      });
+    } finally {
+      setRecoverySendingId(null);
+    }
+  }, [fetchContacts, fetchFunnelCounts]);
 
   // Check for selected contact ID from search
   useEffect(() => {
@@ -1250,6 +1302,31 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
         <Box sx={{ mb: 3 }} />
 
+        {/* Funnel snapshot — one-click filter chips */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{ mb: 2 }}
+          flexWrap="wrap"
+          useFlexGap
+        >
+          {[
+            { value: 'Activo', label: 'Activo', color: 'success' },
+            { value: 'Potencial', label: 'Potencial', color: 'warning' },
+            { value: 'Inactivo', label: 'Inactivo', color: 'default' },
+          ].map((opt) => (
+            <Chip
+              key={opt.value}
+              label={`${opt.label} · ${funnelCounts[opt.value] ?? 0}`}
+              color={opt.color}
+              variant={statusFilter === opt.value ? 'filled' : 'outlined'}
+              onClick={() => setStatusFilter(statusFilter === opt.value ? 'all' : opt.value)}
+              sx={{ fontWeight: 600, borderRadius: 1.5, cursor: 'pointer' }}
+            />
+          ))}
+        </Stack>
+
         {/* Search Bar */}
         <Paper
           elevation={0}
@@ -1395,6 +1472,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               <TableCell sx={{ pl: 4, fontWeight: 'bold' }}>{t('table.user')}</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>{t('table.typeOfUser')}</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.status')}</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Recuperación</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.lastActivity')}</TableCell>
               <TableCell align="right" sx={{ pr: 4, fontWeight: 'bold' }}>{t('table.actions')}</TableCell>
             </TableRow>
@@ -1402,7 +1480,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           <TableBody>
             {loading && (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
                   <Stack spacing={1} alignItems="center">
                     <CircularProgress size={24} />
                     <Typography variant="body2" color="text.secondary">
@@ -1415,7 +1493,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
             {!loading && error && (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" sx={{ color: 'secondary.main' }}>
                     {error}
                   </Typography>
@@ -1425,7 +1503,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
 
             {!loading && !error && paginatedContacts.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     No contacts match your filters.
                   </Typography>
@@ -1474,11 +1552,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                     <Typography fontWeight={500}>{tenant.user_type || '—'}</Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Chip 
-                      label={statusMeta.label} 
-                      color={statusMeta.color} 
+                    <Chip
+                      label={statusMeta.label}
+                      color={statusMeta.color}
                       variant={statusMeta.variant || 'filled'}
-                      size="small" 
+                      size="small"
                       sx={{
                         borderRadius: 1.5,
                         fontWeight: 600,
@@ -1488,13 +1566,40 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                     />
                   </TableCell>
                   <TableCell align="center">
+                    {tenant.status === 'Potencial' ? (
+                      <Typography variant="body2" fontWeight={500} color={tenant.recovery_email_count > 0 ? 'text.primary' : 'text.secondary'}>
+                        {tenant.recovery_email_count > 0
+                          ? `${tenant.recovery_email_count}/4`
+                          : 'Pendiente'}
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" color="text.disabled">—</Typography>
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
                     <Typography variant="body2" fontWeight={500} color="text.secondary">
                       {tenant.lastActive}
                     </Typography>
                   </TableCell>
                   <TableCell align="right" sx={{ pr: 4 }}>
                     <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-                      <Tooltip title="Copy email">
+                      {tenant.status === 'Potencial' && tenant.recovery_email_count < 4 && (
+                        <Tooltip title="Enviar recuperación ahora">
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={(event) => handleSendRecoveryNow(tenant, event)}
+                              disabled={recoverySendingId === tenant.id}
+                              sx={{ color: 'warning.main', '&:hover': { color: 'warning.dark' } }}
+                            >
+                              {recoverySendingId === tenant.id
+                                ? <CircularProgress size={14} />
+                                : <SendRoundedIcon fontSize="inherit" />}
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      )}
+                      <Tooltip title="Copiar email">
                       <IconButton
                         size="small"
                         onClick={(event) => {
@@ -1507,7 +1612,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                           <MailOutlinedIcon fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
-                      <Tooltip title="Delete user">
+                      <Tooltip title="Eliminar usuario">
                         <IconButton
                           size="small"
                           onClick={(event) => {
@@ -1587,6 +1692,24 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           refreshProfile={refreshProfile}
         />
       )}
+
+      <Snackbar
+        open={!!recoveryToast}
+        autoHideDuration={5000}
+        onClose={() => setRecoveryToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {recoveryToast && (
+          <Alert
+            onClose={() => setRecoveryToast(null)}
+            severity={recoveryToast.severity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {recoveryToast.message}
+          </Alert>
+        )}
+      </Snackbar>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
