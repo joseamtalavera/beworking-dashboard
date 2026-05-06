@@ -112,6 +112,24 @@ const ACTIVITY_STATUS = {
 
 const PAGE_SIZE = 10;
 const DEFAULT_STATUSES = ['Activo', 'Potencial', 'Inactivo'];
+
+// Backend now returns ISO-8601 timestamps for lastActive (not pre-baked strings).
+// Format relatively in the user's locale via Intl.RelativeTimeFormat.
+const formatRelative = (iso, locale) => {
+  if (!iso) return '—';
+  const dt = new Date(iso);
+  if (Number.isNaN(dt.getTime())) return iso;
+  const now = Date.now();
+  const diffMs = dt.getTime() - now;
+  const absSec = Math.abs(diffMs) / 1000;
+  const rtf = new Intl.RelativeTimeFormat(locale || 'es', { numeric: 'auto' });
+  if (absSec < 60) return rtf.format(Math.round(diffMs / 1000), 'second');
+  if (absSec < 3600) return rtf.format(Math.round(diffMs / 60000), 'minute');
+  if (absSec < 86400) return rtf.format(Math.round(diffMs / 3600000), 'hour');
+  if (absSec < 86400 * 7) return rtf.format(Math.round(diffMs / 86400000), 'day');
+  // Longer than a week — fall back to absolute date in user locale.
+  return dt.toLocaleDateString(locale || 'es', { year: 'numeric', month: 'short', day: '2-digit' });
+};
 const ADD_USER_STATUS_OPTIONS = [
   { value: 'Activo', label: 'Activo' },
   { value: 'Potencial', label: 'Potencial' },
@@ -817,7 +835,7 @@ const buildQueryString = ({ page, search, status, email, userType }) => {
 
 const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const theme = useTheme();
-  const { t } = useTranslation('contacts');
+  const { t, i18n } = useTranslation('contacts');
   const [statusFilter, setStatusFilter] = useState('all');
   const [emailFilter, setEmailFilter] = useState('all');
   const [userTypeFilter, setUserTypeFilter] = useState('all');
@@ -1458,7 +1476,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           </Button>
           <Box sx={{ flex: 1 }} />
           <Typography variant="body2" color="text.secondary">
-            Showing {contacts.length} of {total} contacts
+            {t('list.showing')} {contacts.length} {t('list.of')} {total} {t('list.contacts')}
           </Typography>
         </Stack>
       </Box>
@@ -1472,7 +1490,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               <TableCell sx={{ pl: 4, fontWeight: 'bold' }}>{t('table.user')}</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>{t('table.typeOfUser')}</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.status')}</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Recuperación</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.recovery')}</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('table.lastActivity')}</TableCell>
               <TableCell align="right" sx={{ pr: 4, fontWeight: 'bold' }}>{t('table.actions')}</TableCell>
             </TableRow>
@@ -1484,7 +1502,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   <Stack spacing={1} alignItems="center">
                     <CircularProgress size={24} />
                     <Typography variant="body2" color="text.secondary">
-                      Loading contacts…
+                      {t('list.loading')}
                     </Typography>
                   </Stack>
                 </TableCell>
@@ -1505,7 +1523,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
-                    No contacts match your filters.
+                    {t('list.noMatch')}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -1578,13 +1596,13 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                   </TableCell>
                   <TableCell align="center">
                     <Typography variant="body2" fontWeight={500} color="text.secondary">
-                      {tenant.lastActive}
+                      {formatRelative(tenant.lastActive, i18n.language)}
                     </Typography>
                   </TableCell>
                   <TableCell align="right" sx={{ pr: 4 }}>
                     <Stack direction="row" spacing={0.5} justifyContent="flex-end">
                       {tenant.status === 'Potencial' && tenant.recovery_email_count < 4 && (
-                        <Tooltip title="Enviar recuperación ahora">
+                        <Tooltip title={t('actions.sendRecoveryNow')}>
                           <span>
                             <IconButton
                               size="small"
@@ -1599,7 +1617,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                           </span>
                         </Tooltip>
                       )}
-                      <Tooltip title="Copiar email">
+                      <Tooltip title={t('actions.copyEmail')}>
                       <IconButton
                         size="small"
                         onClick={(event) => {
@@ -1612,7 +1630,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                           <MailOutlinedIcon fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
-                      <Tooltip title="Eliminar usuario">
+                      <Tooltip title={t('actions.deleteUser')}>
                         <IconButton
                           size="small"
                           onClick={(event) => {
@@ -1675,10 +1693,12 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography variant="body2" color="text.secondary">
-            {total === 0 ? '0 results' : `${startIndex + 1}-${Math.min(startIndex + contacts.length, total)} of ${total}`}
+            {total === 0
+              ? t('list.noResults')
+              : `${startIndex + 1}-${Math.min(startIndex + contacts.length, total)} ${t('list.of')} ${total}`}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Page {page} of {totalPages}
+            {t('list.page')} {page} {t('list.of')} {totalPages}
           </Typography>
         </Stack>
       </Box>

@@ -37,7 +37,13 @@
     "typeOfUser": "Tipo de usuario",
     "status": "Estado",
     "lastActivity": "Última actividad",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "recovery": "Recuperación"
+  },
+  "actions": {
+    "copyEmail": "Copiar email",
+    "deleteUser": "Eliminar usuario",
+    "sendRecoveryNow": "Enviar recuperación ahora"
   },
   "filters": {
     "searchByName": "Buscar por Nombre",
@@ -56,7 +62,11 @@
     "of": "de",
     "noContacts": "No se encontraron contactos",
     "noContactsDesc": "Prueba a ajustar los filtros o añadir un nuevo contacto.",
-    "loading": "Cargando contactos..."
+    "noMatch": "Ningún contacto coincide con tus filtros.",
+    "loading": "Cargando contactos...",
+    "results": "resultados",
+    "page": "Página",
+    "noResults": "0 resultados"
   },
   "status": {
     "Activo": "Activo",
@@ -219,7 +229,7 @@
   },
   "header": {
     "title": "Contactos",
-    "subtitle": "Seguimiento del progreso de incorporación, titularidad y estado de cada usuario."
+    "subtitle": "Listado de usuarios con su tipo, estado en el funnel y última actividad."
   },
   "errors": {
     "noProfile": "No se encontró perfil de contacto para tu cuenta.",

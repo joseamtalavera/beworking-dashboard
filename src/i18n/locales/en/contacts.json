@@ -37,7 +37,13 @@
     "typeOfUser": "Type of user",
     "status": "Status",
     "lastActivity": "Last activity",
-    "actions": "Actions"
+    "actions": "Actions",
+    "recovery": "Recovery"
+  },
+  "actions": {
+    "copyEmail": "Copy email",
+    "deleteUser": "Delete user",
+    "sendRecoveryNow": "Send recovery now"
   },
   "filters": {
     "searchByName": "Search by Name",
@@ -56,7 +62,11 @@
     "of": "of",
     "noContacts": "No contacts found",
     "noContactsDesc": "Try adjusting the filters or adding a new contact.",
-    "loading": "Loading contacts..."
+    "noMatch": "No contacts match your filters.",
+    "loading": "Loading contacts...",
+    "results": "results",
+    "page": "Page",
+    "noResults": "0 results"
   },
   "status": {
     "Activo": "Active",
@@ -219,7 +229,7 @@
   },
   "header": {
     "title": "Contacts",
-    "subtitle": "Track onboarding progress, ownership, and engagement health across every user."
+    "subtitle": "List of users with their type, funnel status, and last activity."
   },
   "errors": {
     "noProfile": "No contact profile found for your account.",

@@ -49,6 +49,7 @@ export const DEPT_TABS = [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
     { id: 'Leads', label: 'Leads', icon: ContactsIcon, adminOnly: true },
     { id: 'Analytics', label: 'Analytics', icon: ContactsIcon, adminOnly: true },
+    { id: 'EmailAutomation', label: 'Email Automation', icon: ContactsIcon, adminOnly: true },
   ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
     { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
