@@ -36,3 +36,6 @@ export const linkStripeSubscription = (id, stripeSubscriptionId, options = {}) =
 
 export const fetchDeskOccupancy = (options = {}) =>
   apiFetch('/subscriptions/desk-occupancy', options);
+
+export const fetchDeskOccupancySummary = (options = {}) =>
+  apiFetch('/subscriptions/desk-occupancy/summary', options);

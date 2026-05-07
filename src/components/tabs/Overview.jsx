@@ -39,7 +39,7 @@ import { fetchInvoices } from '../../api/invoices.js';
 import { fetchBloqueos, fetchBookingProductos, fetchBookingStats, cancelBloqueo } from '../../api/bookings.js';
 import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
-import { fetchSubscriptions, fetchDeskOccupancy } from '../../api/subscriptions.js';
+import { fetchSubscriptions, fetchDeskOccupancySummary } from '../../api/subscriptions.js';
 import PlanUpgradeDialog from '../PlanUpgradeDialog.jsx';
 import WebsiteAdBanner from '../WebsiteAdBanner.jsx';
 import { tokens } from '../../theme/tokens.js';
@@ -934,15 +934,14 @@ const AdminOverview = () => {
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-      const [products, bookings, deskSubs] = await Promise.all([
+      const [products, bookings, deskSummary] = await Promise.all([
         fetchBookingProductos(),
         fetchBloqueos({ from: firstDay.toISOString().split('T')[0], to: lastDay.toISOString().split('T')[0] }),
-        fetchDeskOccupancy().catch(() => [])
+        fetchDeskOccupancySummary().catch(() => null)
       ]);
 
       const productList = Array.isArray(products) ? products : [];
       const bookingList = Array.isArray(bookings) ? bookings : [];
-      const deskSubList = Array.isArray(deskSubs) ? deskSubs : [];
 
       // Fixed: 30 days × 8h = 240h per month per space
       const totalHours = 30 * 8;
@@ -986,13 +985,10 @@ const AdminOverview = () => {
         .filter(r => r.totalHours > 0)
         .sort((a, b) => b.occupancy - a.occupancy);
 
-      // Desks: subscription-based occupancy (each active sub = full month occupied)
-      const deskProducts = productList.filter(p => {
-        const name = p.nombre || p.name || '';
-        return getKey(name) === 'MA1-DESKS';
-      });
-      const totalDesks = deskProducts.length;
-      const occupiedDesks = deskSubList.filter(s => s.productoId != null).length;
+      // Desks: backend summary counts MA1O* products as total capacity and
+      // active subs with producto_id as occupied. Each active sub = full month.
+      const totalDesks = Number(deskSummary?.totalDesks) || 0;
+      const occupiedDesks = Number(deskSummary?.occupiedDesks) || 0;
 
       const deskRow = totalDesks > 0
         ? [{
