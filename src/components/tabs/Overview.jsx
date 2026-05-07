@@ -531,7 +531,7 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
     invoices.forEach(inv => {
       const amount = parseFloat(inv.total || 0);
       const status = (inv.estado || '').toLowerCase();
-      const d = new Date(inv.createdAt || inv.fechaFactura);
+      const d = new Date(inv.fechaFactura || inv.createdAt);
       const isPaid = status.includes('pag') || status.includes('paid');
       const isOverdue = status.includes('venc') || status.includes('overdue');
       const isPending = status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice');
@@ -866,7 +866,7 @@ const AdminOverview = () => {
 
     invoices.forEach(inv => {
       if (!isRelevantInvoice(inv)) return;
-      const d = parseDate(inv.createdAt || inv.fechaFactura);
+      const d = parseDate(inv.fechaFactura || inv.createdAt);
       if (!d) return;
       const y = d.getFullYear();
       const m = d.getMonth();
@@ -891,30 +891,35 @@ const AdminOverview = () => {
       if (y === curYear) { subYTD++; if (m === curMonth) { subMTD++; if (ds === todayStr) subToday++; } }
     });
 
-    // Active users: unique clients with booking or active subscription today
-    const activeToday = new Set();
-    todayBloqueos.forEach(b => { if (b.cliente?.id) activeToday.add(String(b.cliente.id)); });
-    subscriptions.filter(s => s.active).forEach(s => { if (s.contactId) activeToday.add(String(s.contactId)); });
+    // Active users — definition:
+    //   A unique contact who, within the period, has at least one of:
+    //     (a) an active subscription, OR
+    //     (b) a paid/pending invoice (per isRelevantInvoice).
+    // "Today" represents the live customer base right now (active subs only).
+    // MTD / YTD are cumulative unique counts within the period.
+    const activeSubContactIds = subscriptions
+      .filter(s => s.active && s.contactId)
+      .map(s => String(s.contactId));
 
-    // MTD: unique clients from invoices this month + active subscriptions
-    const activeMTD = new Set();
+    const activeToday = new Set(activeSubContactIds);
+
+    const activeMTD = new Set(activeSubContactIds);
     invoices.forEach(inv => {
-      const d = parseDate(inv.createdAt || inv.fechaFactura);
+      if (!isRelevantInvoice(inv)) return;
+      const d = parseDate(inv.fechaFactura || inv.createdAt);
       if (d && d.getFullYear() === curYear && d.getMonth() === curMonth && inv.idCliente) {
         activeMTD.add(String(inv.idCliente));
       }
     });
-    subscriptions.filter(s => s.active).forEach(s => { if (s.contactId) activeMTD.add(String(s.contactId)); });
 
-    // YTD: unique clients from invoices this year + all subscriptions
-    const activeYTD = new Set();
+    const activeYTD = new Set(activeSubContactIds);
     invoices.forEach(inv => {
-      const d = parseDate(inv.createdAt || inv.fechaFactura);
+      if (!isRelevantInvoice(inv)) return;
+      const d = parseDate(inv.fechaFactura || inv.createdAt);
       if (d && d.getFullYear() === curYear && inv.idCliente) {
         activeYTD.add(String(inv.idCliente));
       }
     });
-    subscriptions.forEach(s => { if (s.contactId) activeYTD.add(String(s.contactId)); });
 
     return {
       meetingToday, meetingMTD, meetingYTD,
@@ -1067,7 +1072,7 @@ const AdminOverview = () => {
         <StatCard label={t('stats.businessAddresses')} value={registrationStats.today} sublabel={t('stats.today')} mtd={registrationStats.mtd} ytd={registrationStats.ytd} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
-        <StatCard label={t('stats.activeUsers')} value={statCards.activeToday} sublabel={t('stats.withBookings')} mtd={statCards.activeMTD} ytd={statCards.activeYTD} mtdLabel={t('stats.mtdAvg')} ytdLabel={t('stats.ytdAvg')} loading={statsLoading || loading} theme={theme} />
+        <StatCard label={t('stats.activeUsers')} value={statCards.activeToday} sublabel={t('stats.activeNow')} mtd={statCards.activeMTD} ytd={statCards.activeYTD} loading={statsLoading || loading} theme={theme} />
       </Box>
 
       {/* Financial Metrics */}
@@ -1125,7 +1130,7 @@ const AdminOverview = () => {
                 ))}
               </Select>
             </FormControl>
-            <Chip label={t('charts.invoicesCount', { count: invoices.filter(inv => new Date(inv.createdAt || inv.fechaFactura).getFullYear() === selectedYear).length })} size="small" sx={{ fontWeight: 600 }} />
+            <Chip label={t('charts.invoicesCount', { count: invoices.filter(inv => new Date(inv.fechaFactura || inv.createdAt).getFullYear() === selectedYear).length })} size="small" sx={{ fontWeight: 600 }} />
           </Stack>
         </Stack>
 
