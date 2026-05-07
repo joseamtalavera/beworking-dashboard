@@ -891,47 +891,10 @@ const AdminOverview = () => {
       if (y === curYear) { subYTD++; if (m === curMonth) { subMTD++; if (ds === todayStr) subToday++; } }
     });
 
-    // Active users — definition:
-    //   A unique paying contact within a month. "Paying" = an idCliente on a
-    //   relevant invoice (per isRelevantInvoice).
-    // Big value: unique paying contacts THIS MONTH (cumulative MTD).
-    // dailyAvg: avg daily unique paying contacts this month (sum daily-distinct / days elapsed).
-    // monthlyAvg: avg monthly unique paying contacts YTD (sum monthly-distinct / months elapsed).
-    const monthlyPayers = Array.from({ length: curMonth + 1 }, () => new Set());
-    const dailyPayers = new Map(); // ISO date -> Set of idCliente
-
-    invoices.forEach(inv => {
-      if (!isRelevantInvoice(inv) || !inv.idCliente) return;
-      const d = parseDate(inv.fechaFactura || inv.createdAt);
-      if (!d || d.getFullYear() !== curYear) return;
-      const m = d.getMonth();
-      if (m > curMonth) return;
-      monthlyPayers[m].add(String(inv.idCliente));
-      if (m === curMonth) {
-        const ds = d.toISOString().split('T')[0];
-        if (!dailyPayers.has(ds)) dailyPayers.set(ds, new Set());
-        dailyPayers.get(ds).add(String(inv.idCliente));
-      }
-    });
-
-    const thisMonthPayers = monthlyPayers[curMonth].size;
-
-    const daysElapsed = now.getDate();
-    let dailyPayerSum = 0;
-    dailyPayers.forEach(set => { dailyPayerSum += set.size; });
-    const dailyAvg = daysElapsed > 0 ? Math.round(dailyPayerSum / daysElapsed) : 0;
-
-    const monthsElapsed = curMonth + 1;
-    const monthlyPayerSum = monthlyPayers.reduce((acc, s) => acc + s.size, 0);
-    const monthlyAvg = monthsElapsed > 0 ? Math.round(monthlyPayerSum / monthsElapsed) : 0;
-
     return {
       meetingToday, meetingMTD, meetingYTD,
       deskToday, deskMTD, deskYTD,
-      subToday, subMTD, subYTD,
-      thisMonthPayers,
-      dailyAvg,
-      monthlyAvg
+      subToday, subMTD, subYTD
     };
   }, [invoices, subscriptions, todayBloqueos]);
 
@@ -1072,11 +1035,10 @@ const AdminOverview = () => {
   return (
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Quick Stats Row */}
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' } }}>
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' } }}>
         <StatCard label={t('stats.businessAddresses')} value={registrationStats.today} sublabel={t('stats.today')} mtd={registrationStats.mtd} ytd={registrationStats.ytd} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
-        <StatCard label={t('stats.activeUsers')} value={statCards.thisMonthPayers} sublabel={t('stats.thisMonth')} mtd={statCards.dailyAvg} ytd={statCards.monthlyAvg} mtdLabel={t('stats.dailyAvg')} ytdLabel={t('stats.monthlyAvg')} loading={statsLoading || loading} theme={theme} />
       </Box>
 
       {/* Financial Metrics */}

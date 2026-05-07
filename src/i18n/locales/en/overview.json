@@ -3,14 +3,7 @@
     "meetingRooms": "Meeting Room Invoices",
     "deskBookings": "Coworking Invoices",
     "businessAddresses": "Virtual Offices",
-    "activeUsers": "Active Users",
-    "today": "today",
-    "active": "active",
-    "activeNow": "active subs today",
-    "withBookings": "with bookings",
-    "thisMonth": "this month",
-    "dailyAvg": "daily avg",
-    "monthlyAvg": "monthly avg"
+    "today": "today"
   },
   "metrics": {
     "incomeYTD": "Income YTD",

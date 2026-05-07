@@ -3,14 +3,7 @@
     "meetingRooms": "Facturas Salas de Reunión",
     "deskBookings": "Facturas Coworking",
     "businessAddresses": "Oficinas Virtuales",
-    "activeUsers": "Usuarios Activos",
-    "today": "hoy",
-    "active": "activos",
-    "activeNow": "subs. activas hoy",
-    "withBookings": "con reservas",
-    "thisMonth": "este mes",
-    "dailyAvg": "media/día",
-    "monthlyAvg": "media/mes"
+    "today": "hoy"
   },
   "metrics": {
     "incomeYTD": "Ingresos del año",
