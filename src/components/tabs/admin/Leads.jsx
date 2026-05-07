@@ -4,6 +4,7 @@ import {
   Alert, Pagination, Dialog, DialogTitle, DialogContent, DialogActions, Button, Tooltip,
   Snackbar, Select, MenuItem, FormControl, InputLabel,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
@@ -43,6 +44,7 @@ const sourceColor = (src) => {
 
 const Leads = () => {
   const { t, i18n } = useTranslation('contacts');
+  const theme = useTheme();
   const [data, setData] = useState({ content: [], totalElements: 0, totalPages: 1 });
   const [page, setPage] = useState(0);
   const [q, setQ] = useState('');
@@ -263,16 +265,53 @@ const Leads = () => {
       </Paper>
 
       {data.totalPages > 1 && (
-        <Stack direction="row" justifyContent="center" sx={{ mt: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 2 }}>
           <Pagination
             count={data.totalPages}
             page={page + 1}
             onChange={(_, p) => setPage(p - 1)}
-            color="primary"
-            shape="rounded"
+            color="success"
+            size="large"
+            showFirstButton
+            showLastButton
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: 'secondary.main',
+                '&.Mui-selected': {
+                  backgroundColor: 'secondary.main',
+                  color: 'secondary.contrastText',
+                  '&:hover': { backgroundColor: 'secondary.main' },
+                },
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.secondary.main, 0.12),
+                },
+              },
+            }}
           />
-        </Stack>
+        </Box>
       )}
+
+      {/* Pagination Info */}
+      <Box
+        sx={{
+          px: 4,
+          py: 2,
+          borderTop: '1px solid',
+          borderTopColor: 'divider',
+          bgcolor: alpha(theme.palette.background.default, 0.6),
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography variant="body2" color="text.secondary">
+            {data.totalElements === 0
+              ? t('list.noResults')
+              : `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, data.totalElements)} ${t('list.of')} ${data.totalElements}`}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('list.page')} {page + 1} {t('list.of')} {data.totalPages}
+          </Typography>
+        </Stack>
+      </Box>
 
       {/* Detail dialog */}
       <Dialog open={!!detail} onClose={() => setDetail(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>

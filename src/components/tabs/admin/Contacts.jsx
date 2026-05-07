@@ -1459,13 +1459,13 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           useFlexGap
         >
           {[
-            { value: 'Activo', label: 'Activo', color: 'success' },
-            { value: 'Potencial', label: 'Potencial', color: 'warning' },
-            { value: 'Inactivo', label: 'Inactivo', color: 'default' },
+            { value: 'Activo', color: 'success' },
+            { value: 'Potencial', color: 'warning' },
+            { value: 'Inactivo', color: 'default' },
           ].map((opt) => (
             <Chip
               key={opt.value}
-              label={`${opt.label} · ${funnelCounts[opt.value] ?? 0}`}
+              label={`${t(`status.${opt.value}`)} · ${funnelCounts[opt.value] ?? 0}`}
               color={opt.color}
               variant={statusFilter === opt.value ? 'filled' : 'outlined'}
               onClick={() => setStatusFilter(statusFilter === opt.value ? 'all' : opt.value)}
