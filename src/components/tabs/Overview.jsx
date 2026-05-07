@@ -892,42 +892,46 @@ const AdminOverview = () => {
     });
 
     // Active users — definition:
-    //   A unique contact who, within the period, has at least one of:
-    //     (a) an active subscription, OR
-    //     (b) a paid/pending invoice (per isRelevantInvoice).
-    // "Today" represents the live customer base right now (active subs only).
-    // MTD / YTD are cumulative unique counts within the period.
-    const activeSubContactIds = subscriptions
-      .filter(s => s.active && s.contactId)
-      .map(s => String(s.contactId));
+    //   A unique paying contact within a month. "Paying" = an idCliente on a
+    //   relevant invoice (per isRelevantInvoice).
+    // Big value: unique paying contacts THIS MONTH (cumulative MTD).
+    // dailyAvg: avg daily unique paying contacts this month (sum daily-distinct / days elapsed).
+    // monthlyAvg: avg monthly unique paying contacts YTD (sum monthly-distinct / months elapsed).
+    const monthlyPayers = Array.from({ length: curMonth + 1 }, () => new Set());
+    const dailyPayers = new Map(); // ISO date -> Set of idCliente
 
-    const activeToday = new Set(activeSubContactIds);
-
-    const activeMTD = new Set(activeSubContactIds);
     invoices.forEach(inv => {
-      if (!isRelevantInvoice(inv)) return;
+      if (!isRelevantInvoice(inv) || !inv.idCliente) return;
       const d = parseDate(inv.fechaFactura || inv.createdAt);
-      if (d && d.getFullYear() === curYear && d.getMonth() === curMonth && inv.idCliente) {
-        activeMTD.add(String(inv.idCliente));
+      if (!d || d.getFullYear() !== curYear) return;
+      const m = d.getMonth();
+      if (m > curMonth) return;
+      monthlyPayers[m].add(String(inv.idCliente));
+      if (m === curMonth) {
+        const ds = d.toISOString().split('T')[0];
+        if (!dailyPayers.has(ds)) dailyPayers.set(ds, new Set());
+        dailyPayers.get(ds).add(String(inv.idCliente));
       }
     });
 
-    const activeYTD = new Set(activeSubContactIds);
-    invoices.forEach(inv => {
-      if (!isRelevantInvoice(inv)) return;
-      const d = parseDate(inv.fechaFactura || inv.createdAt);
-      if (d && d.getFullYear() === curYear && inv.idCliente) {
-        activeYTD.add(String(inv.idCliente));
-      }
-    });
+    const thisMonthPayers = monthlyPayers[curMonth].size;
+
+    const daysElapsed = now.getDate();
+    let dailyPayerSum = 0;
+    dailyPayers.forEach(set => { dailyPayerSum += set.size; });
+    const dailyAvg = daysElapsed > 0 ? Math.round(dailyPayerSum / daysElapsed) : 0;
+
+    const monthsElapsed = curMonth + 1;
+    const monthlyPayerSum = monthlyPayers.reduce((acc, s) => acc + s.size, 0);
+    const monthlyAvg = monthsElapsed > 0 ? Math.round(monthlyPayerSum / monthsElapsed) : 0;
 
     return {
       meetingToday, meetingMTD, meetingYTD,
       deskToday, deskMTD, deskYTD,
       subToday, subMTD, subYTD,
-      activeToday: activeToday.size,
-      activeMTD: activeMTD.size,
-      activeYTD: activeYTD.size
+      thisMonthPayers,
+      dailyAvg,
+      monthlyAvg
     };
   }, [invoices, subscriptions, todayBloqueos]);
 
@@ -1072,7 +1076,7 @@ const AdminOverview = () => {
         <StatCard label={t('stats.businessAddresses')} value={registrationStats.today} sublabel={t('stats.today')} mtd={registrationStats.mtd} ytd={registrationStats.ytd} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
         <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
-        <StatCard label={t('stats.activeUsers')} value={statCards.activeToday} sublabel={t('stats.activeNow')} mtd={statCards.activeMTD} ytd={statCards.activeYTD} loading={statsLoading || loading} theme={theme} />
+        <StatCard label={t('stats.activeUsers')} value={statCards.thisMonthPayers} sublabel={t('stats.thisMonth')} mtd={statCards.dailyAvg} ytd={statCards.monthlyAvg} mtdLabel={t('stats.dailyAvg')} ytdLabel={t('stats.monthlyAvg')} loading={statsLoading || loading} theme={theme} />
       </Box>
 
       {/* Financial Metrics */}
