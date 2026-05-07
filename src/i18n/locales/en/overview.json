@@ -30,7 +30,8 @@
   "occupancy": {
     "title": "Workspace Occupancy",
     "noData": "No occupancy data available",
-    "bookedOf": "{{booked}}h booked of {{total}}h"
+    "bookedOf": "{{booked}}h booked of {{total}}h",
+    "desksSubtitle": "{{occupied}} of {{total}} desks occupied (active subscriptions)"
   },
   "reconciliation": {
     "title": "Subscription Reconciliation",

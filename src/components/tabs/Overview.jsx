@@ -39,7 +39,7 @@ import { fetchInvoices } from '../../api/invoices.js';
 import { fetchBloqueos, fetchBookingProductos, fetchBookingStats, cancelBloqueo } from '../../api/bookings.js';
 import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
-import { fetchSubscriptions } from '../../api/subscriptions.js';
+import { fetchSubscriptions, fetchDeskOccupancy } from '../../api/subscriptions.js';
 import PlanUpgradeDialog from '../PlanUpgradeDialog.jsx';
 import WebsiteAdBanner from '../WebsiteAdBanner.jsx';
 import { tokens } from '../../theme/tokens.js';
@@ -344,7 +344,7 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
 };
 
 // Occupancy Bar
-const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
+const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, subtitleKey, subtitleVars, theme }) => {
   const dataColors = getDataColors(theme);
   const color = occupancy >= 70 ? dataColors.income :
                 occupancy >= 40 ? dataColors.pending :
@@ -368,9 +368,11 @@ const OccupancyBar = ({ name, occupancy, bookedHours, totalHours, theme }) => {
           '& .MuiLinearProgress-bar': { borderRadius: 3, bgcolor: color }
         }}
       />
-      {bookedHours !== undefined && (
+      {(subtitleKey || bookedHours !== undefined) && (
         <Typography variant="caption" color="text.disabled" sx={{ mt: 0.25, display: 'block' }}>
-          {i18n.t('overview:occupancy.bookedOf', { booked: bookedHours, total: totalHours })}
+          {subtitleKey
+            ? i18n.t(`overview:${subtitleKey}`, subtitleVars)
+            : i18n.t('overview:occupancy.bookedOf', { booked: bookedHours, total: totalHours })}
         </Typography>
       )}
     </Box>
@@ -932,13 +934,15 @@ const AdminOverview = () => {
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-      const [products, bookings] = await Promise.all([
+      const [products, bookings, deskSubs] = await Promise.all([
         fetchBookingProductos(),
-        fetchBloqueos({ from: firstDay.toISOString().split('T')[0], to: lastDay.toISOString().split('T')[0] })
+        fetchBloqueos({ from: firstDay.toISOString().split('T')[0], to: lastDay.toISOString().split('T')[0] }),
+        fetchDeskOccupancy().catch(() => [])
       ]);
 
       const productList = Array.isArray(products) ? products : [];
       const bookingList = Array.isArray(bookings) ? bookings : [];
+      const deskSubList = Array.isArray(deskSubs) ? deskSubs : [];
 
       // Fixed: 30 days × 8h = 240h per month per space
       const totalHours = 30 * 8;
@@ -950,12 +954,12 @@ const AdminOverview = () => {
         return null;
       };
 
-      // Group by space
+      // Group by space — meeting rooms only here; desks are handled below
       const groups = {};
       productList.forEach(p => {
         const name = p.nombre || p.name || '';
         const key = getKey(name);
-        if (!key) return;
+        if (!key || key === 'MA1-DESKS') return;
 
         if (!groups[key]) groups[key] = { ids: [], booked: 0 };
         groups[key].ids.push(p.id);
@@ -964,14 +968,15 @@ const AdminOverview = () => {
       bookingList.forEach(b => {
         const name = b.producto?.nombre || '';
         const key = getKey(name);
+        if (!key || key === 'MA1-DESKS') return;
 
-        if (key && groups[key] && b.fechaIni && b.fechaFin) {
+        if (groups[key] && b.fechaIni && b.fechaFin) {
           const hours = (new Date(b.fechaFin) - new Date(b.fechaIni)) / 3600000;
           if (hours > 0 && hours <= 24) groups[key].booked += hours;
         }
       });
 
-      const results = Object.entries(groups)
+      const meetingRoomResults = Object.entries(groups)
         .map(([name, data]) => ({
           name,
           occupancy: Math.min(100, Math.round((data.booked / (totalHours * data.ids.length)) * 100)) || 0,
@@ -979,10 +984,28 @@ const AdminOverview = () => {
           totalHours: totalHours * data.ids.length
         }))
         .filter(r => r.totalHours > 0)
-        .sort((a, b) => b.occupancy - a.occupancy)
-        .slice(0, 6);
+        .sort((a, b) => b.occupancy - a.occupancy);
 
-      setOccupancyData(results);
+      // Desks: subscription-based occupancy (each active sub = full month occupied)
+      const deskProducts = productList.filter(p => {
+        const name = p.nombre || p.name || '';
+        return getKey(name) === 'MA1-DESKS';
+      });
+      const totalDesks = deskProducts.length;
+      const occupiedDesks = deskSubList.filter(s => s.productoId != null).length;
+
+      const deskRow = totalDesks > 0
+        ? [{
+            name: 'MA1-DESKS',
+            occupancy: Math.min(100, Math.round((occupiedDesks / totalDesks) * 100)),
+            bookedHours: occupiedDesks * totalHours,
+            totalHours: totalDesks * totalHours,
+            subtitleKey: 'occupancy.desksSubtitle',
+            subtitleVars: { occupied: occupiedDesks, total: totalDesks }
+          }]
+        : [];
+
+      setOccupancyData([...meetingRoomResults, ...deskRow].slice(0, 6));
     } catch (error) {
       console.error('Error fetching occupancy:', error);
       setOccupancyData([]);
@@ -1160,6 +1183,8 @@ const AdminOverview = () => {
                 occupancy={item.occupancy}
                 bookedHours={item.bookedHours}
                 totalHours={item.totalHours}
+                subtitleKey={item.subtitleKey}
+                subtitleVars={item.subtitleVars}
                 theme={theme}
               />
             ))}

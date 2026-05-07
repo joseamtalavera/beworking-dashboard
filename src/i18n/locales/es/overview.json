@@ -30,7 +30,8 @@
   "occupancy": {
     "title": "Ocupación del Espacio",
     "noData": "No hay datos de ocupación disponibles",
-    "bookedOf": "{{booked}}h reservadas de {{total}}h"
+    "bookedOf": "{{booked}}h reservadas de {{total}}h",
+    "desksSubtitle": "{{occupied}} de {{total}} mesas ocupadas (suscripciones activas)"
   },
   "reconciliation": {
     "title": "Reconciliación de Suscripciones",
