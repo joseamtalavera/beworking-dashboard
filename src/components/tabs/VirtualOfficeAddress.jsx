@@ -158,7 +158,7 @@ const TransportItem = ({ transport }) => (
   </Stack>
 );
 
-const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
+const VirtualOfficeAddress = ({ userProfile, hasActiveSubscription = true }) => {
   const { t } = useTranslation('mailbox');
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
@@ -517,7 +517,7 @@ const VirtualOfficeAddress = ({ hasActiveSubscription = true }) => {
         </DialogActions>
       </Dialog>
 
-      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} />
+      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} userProfile={userProfile} />
     </Stack>
   );
 };

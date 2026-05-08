@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent,
-  Box, Button, Chip, Stack, Typography, CircularProgress, Alert,
+  Box, Button, Stack, Typography, CircularProgress, Alert,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import { tokens } from '../theme/tokens.js';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -19,34 +18,16 @@ const stripePromise = PT_STRIPE_KEY ? loadStripe(PT_STRIPE_KEY) : null;
 
 const PLANS = [
   {
-    key: 'free',
-    name: 'Free',
-    price: 0,
-    description: { es: 'Empieza gratis con tu cuenta.', en: 'Start free with your account.' },
-    features: {
-      es: ['Plataforma BeWorking', 'Reserva de espacios BeWorking', 'Panel de gestión', 'Facturación básica', 'Soporte por email'],
-      en: ['BeWorking Platform', 'BeWorking space booking', 'Management dashboard', 'Basic invoicing', 'Email support'],
-    },
-  },
-  {
     key: 'basic',
-    name: 'Basic',
+    name: 'BeWorkingVirtual',
     price: 15,
-    popular: true,
-    description: { es: 'Dirección empresarial registrada.', en: 'Registered business address.' },
-    features: {
-      es: ['Todo en Free', 'Domicilio fiscal y legal', 'Recepción de correo', 'Buzón digital', 'Logo en recepción'],
-      en: ['Everything in Free', 'Legal & fiscal address', 'Mail reception', 'Digital mailbox', 'Logo at reception'],
+    description: {
+      es: 'Dirección profesional en Málaga, domicilio legal y fiscal, recepción de correo y acceso a BeWorkingApp.',
+      en: 'Professional address in Málaga, legal and fiscal domicile, mail reception, and full access to BeWorkingApp.',
     },
-  },
-  {
-    key: 'pro',
-    name: 'Pro',
-    price: 25,
-    description: { es: 'Todo en Basic más Web personalizada.', en: 'Everything in Basic plus custom website.' },
     features: {
-      es: ['Todo en Basic', 'Atención de llamadas', 'Multi-usuario (3 usuarios)', 'Gestor dedicado', 'Web corporativa'],
-      en: ['Everything in Basic', 'Call handling', 'Multi-user (3 users)', 'Dedicated manager', 'Corporate website'],
+      es: ['Domicilio fiscal y legal', 'Recepción de correo y paquetería', 'Logo en recepción', '5 días de oficina al mes', 'Acceso completo a BeWorkingApp'],
+      en: ['Legal & fiscal address', 'Mail & parcel reception', 'Logo at reception', '5 office days per month', 'Full access to BeWorkingApp'],
     },
   },
 ];
@@ -218,12 +199,15 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
     );
   }
 
-  // Plan selection step
+  // Plan selection step — single BeWorkingVirtual card
+  const plan = PLANS[0];
+  const isCurrent = currentKey === plan.key;
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          {lang === 'es' ? 'Elige tu plan' : 'Choose your plan'}
+          {lang === 'es' ? 'Activa tu plan' : 'Activate your plan'}
         </Typography>
         <IconButton onClick={onClose} size="small"><CloseRoundedIcon /></IconButton>
       </DialogTitle>
@@ -231,91 +215,67 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, py: 1 }}>
-          {PLANS.map((plan) => {
-            const isCurrent = currentKey === plan.key;
+        <Box
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 3,
+            p: { xs: 3, sm: 4 },
+            mt: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: { xs: '1.75rem', sm: '2rem' },
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+              mb: 1.5,
+            }}
+          >
+            BeWorking
+            <Box component="span" sx={{ color: 'brand.green' }}>Virtual</Box>
+          </Typography>
 
-            return (
-              <Box
-                key={plan.key}
-                sx={{
-                  position: 'relative',
-                  border: '2px solid',
-                  borderColor: plan.popular ? 'brand.green' : 'divider',
-                  borderRadius: 3,
-                  p: 3.5,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  ...(isCurrent && { bgcolor: alpha('#009624', 0.04) }),
-                }}
-              >
-                {plan.popular && (
-                  <Chip
-                    label="POPULAR"
-                    size="small"
-                    sx={{
-                      position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                      fontWeight: 700, fontSize: '0.7rem', bgcolor: 'brand.green', color: '#fff',
-                      borderRadius: '999px', px: 1.5, height: 24,
-                    }}
-                  />
-                )}
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2.5, lineHeight: 1.55 }}>
+            {plan.description[lang]}
+          </Typography>
 
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>{plan.name}</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5, fontSize: '0.85rem', lineHeight: 1.5 }}>
-                  {plan.description[lang]}
-                </Typography>
+          <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 2.5 }}>
+            <Typography sx={{ fontSize: '2.5rem', fontWeight: 800, color: 'brand.green', lineHeight: 1, letterSpacing: '-0.02em' }}>{plan.price}€</Typography>
+            <Typography variant="body2" color="text.secondary">/{lang === 'es' ? 'mes' : 'month'}</Typography>
+          </Stack>
 
-                <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 2 }}>
-                  <Typography sx={{ fontSize: '2.25rem', fontWeight: 800, color: 'brand.green', lineHeight: 1 }}>{plan.price}€</Typography>
-                  <Typography variant="body2" color="text.secondary">/mes</Typography>
-                </Stack>
+          <Stack spacing={1.25} sx={{ mb: 3 }}>
+            {(plan.features[lang] || plan.features.en).map((f) => (
+              <Stack key={f} direction="row" spacing={1} alignItems="center">
+                <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: 'brand.green' }} />
+                <Typography variant="body2">{f}</Typography>
+              </Stack>
+            ))}
+          </Stack>
 
-                <Stack spacing={1.25} sx={{ flex: 1, mb: 2.5 }}>
-                  {(plan.features[lang] || plan.features.en).map((f) => (
-                    <Stack key={f} direction="row" spacing={1} alignItems="flex-start">
-                      <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: 'brand.green', mt: 0.2 }} />
-                      <Typography variant="body2" sx={{ lineHeight: 1.5 }}>{f}</Typography>
-                    </Stack>
-                  ))}
-                </Stack>
-
-                {isCurrent ? (
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    disabled
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1.25 }}
-                  >
-                    {lang === 'es' ? 'Plan actual' : 'Current plan'}
-                  </Button>
-                ) : (
-                  <Button
-                    variant={plan.popular ? 'contained' : 'outlined'}
-                    fullWidth
-                    onClick={() => handleSelect(plan)}
-                    disabled={loading !== null}
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1.25 }}
-                  >
-                    {loading === plan.key ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      lang === 'es' ? 'Elegir plan' : 'Choose plan'
-                    )}
-                  </Button>
-                )}
-              </Box>
-            );
-          })}
+          {isCurrent ? (
+            <Button variant="outlined" fullWidth disabled sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1.4 }}>
+              {lang === 'es' ? 'Plan actual' : 'Current plan'}
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => handleSelect(plan)}
+              disabled={loading !== null}
+              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.4, fontSize: '1rem' }}
+            >
+              {loading === plan.key
+                ? <CircularProgress size={20} color="inherit" />
+                : (lang === 'es' ? 'Registrarse online →' : 'Register online →')}
+            </Button>
+          )}
         </Box>
 
-        <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.secondary', mt: 3 }}>
-          {lang === 'es'
-            ? 'Todos los planes incluyen la Plataforma BeWorking completa: panel de gestión, facturación y todas las herramientas. Cambia de plan en cualquier momento.'
-            : 'All plans include the full BeWorking Platform: management dashboard, invoicing and all tools. Change your plan at any time.'}
-        </Typography>
-        <Typography variant="body2" sx={{ textAlign: 'center', mt: 1.5, fontWeight: 600, color: 'brand.green' }}>
-          {lang === 'es' ? 'Todos los precios + IVA. Sin permanencia.' : 'All prices + VAT. No commitment.'}
+        <Typography variant="body2" sx={{ textAlign: 'center', mt: 2, fontWeight: 600, color: 'brand.green' }}>
+          {lang === 'es' ? 'Precio + IVA. Sin permanencia.' : 'Price + VAT. No commitment.'}
         </Typography>
       </DialogContent>
     </Dialog>

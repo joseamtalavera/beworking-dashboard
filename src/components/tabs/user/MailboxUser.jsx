@@ -481,7 +481,7 @@ const MailboxUser = ({ userProfile, hasActiveSubscription = true }) => {
         </DialogActions>
       </Dialog>
 
-      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} />
+      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} userProfile={userProfile} />
     </Stack>
   );
 };

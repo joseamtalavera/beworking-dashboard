@@ -111,7 +111,7 @@ const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription =
         )}
       </Box>
 
-      <SubscriptionGate {...gateProps} />
+      <SubscriptionGate {...gateProps} userProfile={userProfile} />
     </Stack>
   );
 };
