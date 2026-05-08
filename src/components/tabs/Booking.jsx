@@ -78,6 +78,7 @@ import {
   fetchBookingCentros,
   fetchBookingProductos,
   deleteBloqueo,
+  cancelBloqueo,
   updateBloqueo,
   fetchPublicAvailability
 } from '../../api/bookings.js';
@@ -3693,7 +3694,7 @@ const UserRoomCalendarGrid = ({ dateLabel, room, bloqueos = [], selectedSlotKey,
 };
 
 // User Bookings Table - shows the user's own bookings
-const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
+const UserBookingsTable = ({ bloqueos, loading, onViewDetails, onDelete }) => {
   const theme = useTheme();
   const { t } = useTranslation('booking');
   const [page, setPage] = useState(0);
@@ -3835,9 +3836,22 @@ const UserBookingsTable = ({ bloqueos, loading, onViewDetails }) => {
                   <TableCell>{bloqueo.centro?.nombre || '—'}</TableCell>
                   <TableCell>{getStatusChip(bloqueo.estado)}</TableCell>
                   <TableCell align="right">
-                    <Button size="small" onClick={() => onViewDetails?.(bloqueo)} sx={{ textTransform: 'none' }}>
-                      {t('userView.viewDetails')}
-                    </Button>
+                    <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center">
+                      <Button size="small" onClick={() => onViewDetails?.(bloqueo)} sx={{ textTransform: 'none' }}>
+                        {t('userView.viewDetails')}
+                      </Button>
+                      {startDate && startDate.getTime() > Date.now() && onDelete && (
+                        <Tooltip title={t('userView.cancelBooking', { defaultValue: 'Cancelar reserva' })}>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => { e.stopPropagation(); onDelete(bloqueo); }}
+                            sx={{ color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: alpha(theme.palette.error.main, 0.04) } }}
+                          >
+                            <DeleteOutlineRoundedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Stack>
                   </TableCell>
                 </TableRow>
               );
@@ -3927,6 +3941,10 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
   const [userBloqueos, setUserBloqueos] = useState([]);
   const [bloqueosLoading, setBloqueosLoading] = useState(false);
   const [selectedBloqueo, setSelectedBloqueo] = useState(null);
+  const [bloqueoToDelete, setBloqueoToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (mainView !== 'bookings') return;
@@ -3955,7 +3973,22 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
     };
     loadUserBloqueos();
     return () => { active = false; };
-  }, [mainView]);
+  }, [mainView, reloadKey]);
+
+  const confirmDelete = async () => {
+    if (!bloqueoToDelete) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await cancelBloqueo(bloqueoToDelete.id);
+      setBloqueoToDelete(null);
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setDeleteError(err?.message || t('userView.cancelError', { defaultValue: 'No se pudo cancelar la reserva.' }));
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleCreated = useCallback(() => {
     setMainView('bookings');
@@ -3994,11 +4027,50 @@ const UserBookingWrapper = ({ userProfile, initialView = 'spaces' }) => {
               bloqueos={userBloqueos}
               loading={bloqueosLoading}
               onViewDetails={setSelectedBloqueo}
+              onDelete={(b) => { setDeleteError(''); setBloqueoToDelete(b); }}
             />
             <UserBookingDetailsDialog
               bloqueo={selectedBloqueo}
               onClose={() => setSelectedBloqueo(null)}
             />
+            <Dialog
+              open={Boolean(bloqueoToDelete)}
+              onClose={() => !deleting && setBloqueoToDelete(null)}
+              maxWidth="xs"
+              fullWidth
+            >
+              <DialogTitle sx={{ fontWeight: 700 }}>
+                {t('userView.cancelBooking', { defaultValue: 'Cancelar reserva' })}
+              </DialogTitle>
+              <DialogContent>
+                <Typography variant="body2" color="text.secondary">
+                  {t('userView.cancelConfirm', { defaultValue: '¿Seguro que quieres cancelar esta reserva? Volverá a contar como un día gratis disponible este mes.' })}
+                </Typography>
+                {deleteError && (
+                  <Typography variant="body2" color="error" sx={{ mt: 2 }}>{deleteError}</Typography>
+                )}
+                <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
+                  <Button
+                    onClick={() => setBloqueoToDelete(null)}
+                    disabled={deleting}
+                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3 }}
+                  >
+                    {t('userView.keep', { defaultValue: 'No, mantener' })}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={confirmDelete}
+                    disabled={deleting}
+                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3 }}
+                  >
+                    {deleting
+                      ? <CircularProgress size={18} color="inherit" />
+                      : t('userView.confirmCancel', { defaultValue: 'Sí, cancelar' })}
+                  </Button>
+                </Stack>
+              </DialogContent>
+            </Dialog>
           </>
         )}
 
