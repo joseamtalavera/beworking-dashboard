@@ -101,14 +101,16 @@ export default function WebsiteAdBanner({ onViewPlans }) {
             <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(0,0,0,0.4)' }}>/mes</span>
           </div>
           <div style={{ width: '1px', height: '32px', background: 'rgba(0,0,0,0.1)' }} />
-          <button
-            style={{ background: '#009624', color: '#fff', border: 'none', borderRadius: '100px', padding: '14px 30px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', letterSpacing: '-0.2px', transition: 'background 0.18s, transform 0.18s' }}
+          <a
+            href="https://wa.me/34640369759?text=Hola,%20me%20interesa%20informaci%C3%B3n%20sobre%20el%20Plan%20Pro%20de%20BeWorking"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ background: '#009624', color: '#fff', border: 'none', borderRadius: '100px', padding: '14px 30px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', letterSpacing: '-0.2px', transition: 'background 0.18s, transform 0.18s', textDecoration: 'none', display: 'inline-block' }}
             onMouseEnter={(e) => { e.currentTarget.style.background = '#007a1d'; e.currentTarget.style.transform = 'scale(1.03)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = '#009624'; e.currentTarget.style.transform = 'scale(1)'; }}
-            onClick={() => onViewPlans?.()}
           >
-            Activar ahora →
-          </button>
+            Solicitar información →
+          </a>
           <span style={{ fontSize: '12px', color: 'rgba(0,0,0,0.3)' }}>Sin permanencia</span>
         </div>
       </div>
