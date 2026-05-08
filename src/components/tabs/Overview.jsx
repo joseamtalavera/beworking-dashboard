@@ -1309,8 +1309,8 @@ const ReconciliationCard = ({ data, loading, t, onRun, running, pendingByAccount
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
                   <Metric label="Scheduled" value={m.scheduled} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
-                  <Metric label="Bank Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank Transfer`)} />
-                  <Metric label="Stripe Deviation" value={m.deviation} color={m.deviation > 0 ? errorRed : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Stripe Deviation`)} />
+                  <Metric label="Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Transfer`)} />
+                  <Metric label="Deviation*" value={m.deviation} color={m.deviation > 0 ? errorRed : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Deviation`)} />
                   <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? errorRed : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                   <Metric
                     label="Pendiente"
@@ -1335,6 +1335,11 @@ const ReconciliationCard = ({ data, loading, t, onRun, running, pendingByAccount
             );
           })}
         </Box>
+      )}
+      {!loading && data.length > 0 && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, fontStyle: 'italic' }}>
+          * Deviation = DB active subs not present (or cancelled) in Stripe
+        </Typography>
       )}
     </Paper>
 
