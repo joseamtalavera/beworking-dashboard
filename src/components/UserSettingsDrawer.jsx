@@ -141,6 +141,9 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
   const [userInvoices, setUserInvoices] = useState([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState('');
 
   // Billing edit state
   const [isEditingBilling, setIsEditingBilling] = useState(false);
@@ -861,18 +864,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             {subscriptions.length > 0 && (
               <Button
                 size="small"
-                onClick={async () => {
-                  if (!window.confirm(i18n.language === 'es'
-                    ? '¿Seguro que quieres cancelar tu suscripción? Perderás acceso a los servicios del plan.'
-                    : 'Are you sure you want to cancel your subscription? You will lose access to plan services.')) return;
-                  try {
-                    const sub = subscriptions[0];
-                    await apiFetch(`/subscriptions/${sub.id}`, { method: 'DELETE' });
-                    setSubscriptions([]);
-                  } catch (err) {
-                    console.error('Failed to cancel subscription:', err);
-                  }
-                }}
+                onClick={() => { setCancelError(''); setCancelDialogOpen(true); }}
                 sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3, color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: alpha('#f44336', 0.04) } }}
               >
                 {i18n.language === 'es' ? 'Cancelar suscripción' : 'Cancel subscription'}
@@ -890,7 +882,7 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
             subscriptionId={subscriptions.length > 0 ? subscriptions[0].id : null}
             userProfile={user}
             onUpgraded={() => {
-              // Reload subscriptions
+              // Reload subscriptions + global profile so the gates unlock app-wide
               if (user?.email) {
                 apiFetch(`/contact-profiles/${user.tenantId || ''}`)
                   .then(data => data?.id && fetchSubscriptions({ contactId: data.id }))
@@ -900,8 +892,64 @@ const UserSettingsDrawer = ({ open, onClose, user, refreshProfile, onLogout }) =
                   })
                   .catch(() => {});
               }
+              if (refreshProfile) refreshProfile();
             }}
           />
+
+          <Dialog
+            open={cancelDialogOpen}
+            onClose={() => !cancelling && setCancelDialogOpen(false)}
+            maxWidth="xs"
+            fullWidth
+            PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}
+          >
+            <DialogTitle sx={{ fontWeight: 700 }}>
+              {i18n.language === 'es' ? 'Cancelar suscripción' : 'Cancel subscription'}
+            </DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: cancelError ? 2 : 0 }}>
+                {i18n.language === 'es'
+                  ? '¿Seguro que quieres cancelar tu suscripción? Perderás acceso a los servicios del plan.'
+                  : 'Are you sure you want to cancel your subscription? You will lose access to plan services.'}
+              </Typography>
+              {cancelError && <Alert severity="error">{cancelError}</Alert>}
+              <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
+                <Button
+                  onClick={() => setCancelDialogOpen(false)}
+                  disabled={cancelling}
+                  sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3 }}
+                >
+                  {i18n.language === 'es' ? 'No, mantener' : 'Keep'}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  disabled={cancelling}
+                  onClick={async () => {
+                    setCancelling(true);
+                    setCancelError('');
+                    try {
+                      const sub = subscriptions[0];
+                      await apiFetch(`/subscriptions/${sub.id}`, { method: 'DELETE' });
+                      setSubscriptions([]);
+                      setCancelDialogOpen(false);
+                      if (refreshProfile) refreshProfile();
+                    } catch (err) {
+                      setCancelError(err?.message || (i18n.language === 'es'
+                        ? 'No se pudo cancelar la suscripción.'
+                        : 'Failed to cancel subscription.'));
+                    } finally {
+                      setCancelling(false);
+                    }
+                  }}
+                  sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '999px', px: 3 }}
+                >
+                  {cancelling ? <CircularProgress size={18} color="inherit" />
+                    : (i18n.language === 'es' ? 'Sí, cancelar' : 'Yes, cancel')}
+                </Button>
+              </Stack>
+            </DialogContent>
+          </Dialog>
         </Stack>
 
         <Divider sx={{ my: 3 }} />

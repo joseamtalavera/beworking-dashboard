@@ -115,7 +115,7 @@ const normalizeDocuments = (payload) => {
   });
 };
 
-const MailboxUser = ({ userProfile, hasActiveSubscription = true }) => {
+const MailboxUser = ({ userProfile, hasActiveSubscription = true, onUpgraded }) => {
   const { t } = useTranslation('mailbox');
   const theme = useTheme();
   const accentColor = theme.palette.brand.green;
@@ -481,7 +481,7 @@ const MailboxUser = ({ userProfile, hasActiveSubscription = true }) => {
         </DialogActions>
       </Dialog>
 
-      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} userProfile={userProfile} />
+      <SubscriptionGate open={gateOpen} onClose={() => setGateOpen(false)} userProfile={userProfile} onUpgraded={onUpgraded} />
     </Stack>
   );
 };

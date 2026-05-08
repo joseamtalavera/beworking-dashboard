@@ -24,7 +24,7 @@ const MailboxUser = React.lazy(() => import('./user/MailboxUser.jsx'));
 const MailboxAdmin = React.lazy(() => import('./admin/MailboxAdmin.jsx'));
 const VirtualOfficeAddress = React.lazy(() => import('./VirtualOfficeAddress.jsx'));
 
-const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription = true }) => {
+const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription = true, onUpgraded }) => {
   const { t } = useTranslation('mailbox');
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [gateOpen, triggerGate, gateProps] = useSubscriptionGate(hasActiveSubscription);
@@ -106,12 +106,12 @@ const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription =
           <React.Suspense
             fallback={<SpiralLoader />}
           >
-            <ActiveComponent userType={userType} userProfile={userProfile} hasActiveSubscription={hasActiveSubscription} />
+            <ActiveComponent userType={userType} userProfile={userProfile} hasActiveSubscription={hasActiveSubscription} onUpgraded={onUpgraded} />
           </React.Suspense>
         )}
       </Box>
 
-      <SubscriptionGate {...gateProps} userProfile={userProfile} />
+      <SubscriptionGate {...gateProps} userProfile={userProfile} onUpgraded={onUpgraded} />
     </Stack>
   );
 };

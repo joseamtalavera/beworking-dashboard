@@ -99,7 +99,7 @@ const UserApp = ({ userProfile, refreshProfile, logout }) => {
       return <Component userType="user" userProfile={userProfile} setActiveTab={handleTabChange} />;
     }
     if (activeTab === 'DomicilioFiscal') {
-      return <Component userType="user" userProfile={userProfile} hasActiveSubscription={isSubscribed} />;
+      return <Component userType="user" userProfile={userProfile} hasActiveSubscription={isSubscribed} onUpgraded={refreshProfile} />;
     }
     if (activeTab === 'MariaAI') {
       return <Component userProfile={userProfile} />;
