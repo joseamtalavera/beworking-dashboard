@@ -1309,7 +1309,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running, pendingByAccount
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
                   <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
                   <Metric label="Scheduled" value={m.scheduled} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
-                  <Metric label="Transfer" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Transfer`)} />
+                  <Metric label="Bank" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank`)} />
                   <Metric label="Deviation*" value={m.deviation} color={m.deviation > 0 ? errorRed : undefined} onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Deviation`)} />
                   <Metric label="Overdue" value={m.overdue} color={m.overdue > 0 ? errorRed : undefined} sub={m.overdueAmt > 0 ? `€${Number(m.overdueAmt).toFixed(0)}` : undefined} onClick={() => openDetail(row.account, 'pastDue', `${row.account} — Overdue`)} />
                   <Metric
@@ -1350,7 +1350,7 @@ const ReconciliationCard = ({ data, loading, t, onRun, running, pendingByAccount
         : type === 'missingInvoices' ? 'Stripe paid, not in our DB'
         : type === 'stripeDeviation' ? 'Ghost subs (DB active, Stripe cancelled)'
         : type === 'stripeScheduled' ? 'Scheduled future subs (sub_sched_*)'
-        : type === 'bankTransfer' ? 'Bank transfer'
+        : type === 'bankTransfer' ? 'Bank'
         : type === 'pendingInvoices' ? 'Pending invoices (unpaid)'
         : 'Stripe live';
       return (
