@@ -807,20 +807,20 @@ const AdminOverview = () => {
       const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
       const firstOfYear = `${today.getFullYear()}-01-01`;
 
-      const [todayBookingsData, subsData, regToday, regMTD, regYTD] = await Promise.all([
+      const [todayBookingsData, subsData, voToday, voMTD, voYTD] = await Promise.all([
         fetchBloqueos({ from: todayStr, to: todayStr }),
         fetchSubscriptions(),
-        apiFetch(`/contact-profiles?size=1&tenantType=Usuario+Virtual&startDate=${todayStr}&endDate=${todayStr}`),
-        apiFetch(`/contact-profiles?size=1&tenantType=Usuario+Virtual&startDate=${firstOfMonth}&endDate=${todayStr}`),
-        apiFetch(`/contact-profiles?size=1&tenantType=Usuario+Virtual&startDate=${firstOfYear}&endDate=${todayStr}`)
+        apiFetch(`/subscriptions/stats/virtual-offices?startDate=${todayStr}&endDate=${todayStr}`),
+        apiFetch(`/subscriptions/stats/virtual-offices?startDate=${firstOfMonth}&endDate=${todayStr}`),
+        apiFetch(`/subscriptions/stats/virtual-offices?startDate=${firstOfYear}&endDate=${todayStr}`)
       ]);
 
       setTodayBloqueos(Array.isArray(todayBookingsData) ? todayBookingsData : []);
       setSubscriptions(Array.isArray(subsData) ? subsData : []);
       setRegistrationStats({
-        today: regToday?.totalElements ?? 0,
-        mtd: regMTD?.totalElements ?? 0,
-        ytd: regYTD?.totalElements ?? 0
+        today: voToday?.count ?? 0,
+        mtd: voMTD?.count ?? 0,
+        ytd: voYTD?.count ?? 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
