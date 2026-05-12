@@ -360,10 +360,15 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                           onClick={() => handleSelectContact(contact)}
                         >
                           <Typography variant="body2" fontWeight={600}>
-                            {contact.name || contact.email || `Contact ${contact.id}`}
+                            {contact.name || contact.billingName || contact.email || `Contact ${contact.id}`}
                           </Typography>
+                          {contact.billingName && contact.billingName !== contact.name && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              {contact.billingName}
+                            </Typography>
+                          )}
                           {contact.email && contact.name && (
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                               {contact.email}
                             </Typography>
                           )}
