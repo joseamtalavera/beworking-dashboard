@@ -42,15 +42,20 @@ export const DEPT_TABS = [
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
     { id: 'Services', label: 'Services', icon: ServicesIcon, adminOnly: true },
     { id: 'Integrations', label: 'Integration', icon: IntegrationsIcon, soon: true, adminOnly: true },
-    { id: 'Reports', label: 'Reports', icon: ReportsIcon, adminOnly: true },
-    { id: 'EmailAutomationContacts', label: 'Contactos y Leads', icon: AutomationIcon, adminOnly: true },
-    { id: 'EmailAutomationBilling', label: 'Facturación', icon: AutomationIcon, adminOnly: true },
+    { id: 'Reports', label: 'Reports', icon: ReportsIcon, adminOnly: true, subtabs: [
+      { id: 'Reconciliation', label: 'Reconciliation', icon: ReportsIcon, adminOnly: true },
+      { id: 'InvoiceAudit', label: 'Invoice Audit', icon: ReportsIcon, adminOnly: true },
+    ]},
   ]},
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
   { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
     { id: 'Leads', label: 'Leads', icon: MarketingAIIcon, adminOnly: true },
     { id: 'Analytics', label: 'Analytics', icon: ReportsIcon, adminOnly: true },
+    { id: 'EmailAutomation', label: 'Email Automation', icon: AutomationIcon, adminOnly: true, subtabs: [
+      { id: 'EmailAutomationContacts', label: 'Contacts & Leads', icon: AutomationIcon, adminOnly: true },
+      { id: 'EmailAutomationBilling', label: 'Billing', icon: AutomationIcon, adminOnly: true },
+    ]},
   ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
     { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
@@ -80,5 +85,10 @@ export const DEPT_TABS = [
   ]},
 ];
 
-// Flat list of all renderable tab IDs (for AdminApp/UserApp TAB_COMPONENTS)
-export const ALL_TAB_IDS = DEPT_TABS.flatMap(d => [d.id, ...(d.subtabs?.map(s => s.id) || [])]);
+// Flat list of all renderable tab IDs (for AdminApp/UserApp TAB_COMPONENTS).
+// Handles up to 3 levels of nesting: dept → subtab → sub-subtab.
+const flattenTabIds = (node) => {
+  const childIds = (node.subtabs || []).flatMap(flattenTabIds);
+  return [node.id, ...childIds];
+};
+export const ALL_TAB_IDS = DEPT_TABS.flatMap(flattenTabIds);

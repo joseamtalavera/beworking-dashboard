@@ -85,10 +85,10 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
     return filtered.length > 0 ? filtered : null;
   }, [isAdmin]);
 
-  // Check if a dept item or any of its subtabs is active
+  // Check if a dept item or any descendant (sub or sub-sub) is active
   const isDeptActive = useCallback((dept) => {
     if (activeTab === dept.id) return true;
-    return dept.subtabs?.some(s => s.id === activeTab) || false;
+    return dept.subtabs?.some(s => s.id === activeTab || s.subtabs?.some(c => c.id === activeTab)) || false;
   }, [activeTab]);
 
   const isItemCollapsed = useCallback((deptId) => {
@@ -255,48 +255,123 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                 {hasSubtabs && canExpand && !collapsed && (
                   <Collapse in={expanded} timeout="auto">
                     <Box sx={{ pl: 3, pr: 2, pb: 1, ml: 2, mr: 1, mb: 0.5, borderRadius: `${tokens.radius.md}px`, backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#27272a' : '#f5f5f7' }}>
-                      {visibleSubtabs.map((sub) => (
-                        <ButtonBase
-                          key={sub.id}
-                          onClick={() => handleTabClick(sub.id)}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: '100%',
-                            px: 2,
-                            py: 1,
-                            borderRadius: `${tokens.radius.sm}px`,
-                            '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.06) },
-                            ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.brand.green, 0.1) }),
-                          }}
-                        >
-                          <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.secondary', mr: 1.5 }} />
-                          <Typography sx={{
-                            fontSize: '0.85rem',
-                            fontWeight: activeTab === sub.id ? 600 : 500,
-                            color: activeTab === sub.id ? activeColor : 'text.primary',
-                            flex: 1,
-                            textAlign: 'left',
-                          }}>
-                            {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
-                          </Typography>
-                          {sub.soon && (
-                            <Chip
-                              label={t('sidebar.soon')}
-                              size="small"
-                              variant="outlined"
-                              sx={{
-                                borderColor: alpha(theme.palette.brand.green, 0.4),
-                                color: theme.palette.brand.green,
-                                fontSize: '0.55rem',
-                                height: 14,
-                                minWidth: 'auto',
-                                '& .MuiChip-label': { px: 0.5, py: 0 }
-                              }}
-                            />
-                          )}
-                        </ButtonBase>
-                      ))}
+                      {visibleSubtabs.map((sub) => {
+                        const grandchildren = (sub.subtabs || [])
+                          .filter(g => (!g.adminOnly || isAdmin) && (!g.userOnly || !isAdmin));
+                        const hasGrandchildren = grandchildren.length > 0;
+                        const subExpanded = hasGrandchildren && !isItemCollapsed(sub.id);
+                        const subActive = activeTab === sub.id || grandchildren.some(g => g.id === activeTab);
+
+                        if (hasGrandchildren) {
+                          return (
+                            <Box key={sub.id}>
+                              <ButtonBase
+                                onClick={() => toggleGroup(sub.id)}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  width: '100%',
+                                  px: 2,
+                                  py: 1,
+                                  borderRadius: `${tokens.radius.sm}px`,
+                                  '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.06) },
+                                }}
+                              >
+                                <sub.icon sx={{ fontSize: 18, color: subActive ? activeColor : 'text.secondary', mr: 1.5 }} />
+                                <Typography sx={{
+                                  fontSize: '0.85rem',
+                                  fontWeight: subActive ? 600 : 500,
+                                  color: subActive ? activeColor : 'text.primary',
+                                  flex: 1,
+                                  textAlign: 'left',
+                                }}>
+                                  {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
+                                </Typography>
+                                <ExpandMoreRoundedIcon sx={{
+                                  fontSize: 16,
+                                  color: 'text.secondary',
+                                  transition: `transform ${tokens.motion.durationFast} ${tokens.motion.ease}`,
+                                  transform: subExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                                }} />
+                              </ButtonBase>
+                              <Collapse in={subExpanded} timeout="auto">
+                                <Box sx={{ pl: 3 }}>
+                                  {grandchildren.map((g) => (
+                                    <ButtonBase
+                                      key={g.id}
+                                      onClick={() => handleTabClick(g.id)}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                        px: 2,
+                                        py: 0.75,
+                                        borderRadius: `${tokens.radius.sm}px`,
+                                        '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.06) },
+                                        ...(activeTab === g.id && { backgroundColor: alpha(theme.palette.brand.green, 0.1) }),
+                                      }}
+                                    >
+                                      <g.icon sx={{ fontSize: 16, color: activeTab === g.id ? activeColor : 'text.secondary', mr: 1.5 }} />
+                                      <Typography sx={{
+                                        fontSize: '0.8rem',
+                                        fontWeight: activeTab === g.id ? 600 : 500,
+                                        color: activeTab === g.id ? activeColor : 'text.primary',
+                                        flex: 1,
+                                        textAlign: 'left',
+                                      }}>
+                                        {t(`tabs.${g.id}`, { defaultValue: g.label })}
+                                      </Typography>
+                                    </ButtonBase>
+                                  ))}
+                                </Box>
+                              </Collapse>
+                            </Box>
+                          );
+                        }
+
+                        return (
+                          <ButtonBase
+                            key={sub.id}
+                            onClick={() => handleTabClick(sub.id)}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              width: '100%',
+                              px: 2,
+                              py: 1,
+                              borderRadius: `${tokens.radius.sm}px`,
+                              '&:hover': { backgroundColor: alpha(theme.palette.brand.green, 0.06) },
+                              ...(activeTab === sub.id && { backgroundColor: alpha(theme.palette.brand.green, 0.1) }),
+                            }}
+                          >
+                            <sub.icon sx={{ fontSize: 18, color: activeTab === sub.id ? activeColor : 'text.secondary', mr: 1.5 }} />
+                            <Typography sx={{
+                              fontSize: '0.85rem',
+                              fontWeight: activeTab === sub.id ? 600 : 500,
+                              color: activeTab === sub.id ? activeColor : 'text.primary',
+                              flex: 1,
+                              textAlign: 'left',
+                            }}>
+                              {t(`tabs.${sub.id}`, { defaultValue: sub.label })}
+                            </Typography>
+                            {sub.soon && (
+                              <Chip
+                                label={t('sidebar.soon')}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  borderColor: alpha(theme.palette.brand.green, 0.4),
+                                  color: theme.palette.brand.green,
+                                  fontSize: '0.55rem',
+                                  height: 14,
+                                  minWidth: 'auto',
+                                  '& .MuiChip-label': { px: 0.5, py: 0 }
+                                }}
+                              />
+                            )}
+                          </ButtonBase>
+                        );
+                      })}
                     </Box>
                   </Collapse>
                 )}

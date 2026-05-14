@@ -27,7 +27,8 @@ const EmailAutomation = React.lazy(() => import('../../components/tabs/admin/Ema
 const Invoices = React.lazy(() => import('../../components/tabs/admin/Invoices.jsx'));
 const Expenses = React.lazy(() => import('../../components/tabs/Expenses.jsx'));
 const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx'));
-const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
+const Reconciliation = React.lazy(() => import('../../components/tabs/admin/Reconciliation.jsx'));
+const InvoiceAudit = React.lazy(() => import('../../components/tabs/admin/InvoiceAudit.jsx'));
 const SpaceCatalog = React.lazy(() => import('../../components/tabs/admin/SpaceCatalog.jsx'));
 import Marketplace from '../../components/tabs/Marketplace.jsx';
 const DeptComingSoon = React.lazy(() => import('../../components/tabs/DeptComingSoon.jsx'));
@@ -37,7 +38,6 @@ const TAB_COMPONENTS = {
   Contacts,
   Leads,
   Analytics,
-  EmailAutomation,
   EmailAutomationContacts: EmailAutomation,
   EmailAutomationBilling: EmailAutomation,
   Booking,
@@ -47,7 +47,8 @@ const TAB_COMPONENTS = {
   Events,
   Storage,
   Tickets,
-  Reports,
+  Reconciliation,
+  InvoiceAudit,
   SpaceCatalog,
   Marketplace,
   MariaAI,
