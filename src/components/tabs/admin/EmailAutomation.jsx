@@ -9,8 +9,6 @@ import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -21,18 +19,12 @@ import { apiFetch } from '../../../api/client';
 
 const formatNumber = (n) => (typeof n === 'number' ? n.toLocaleString('es-ES') : '—');
 
-const DOMAIN_TABS = [
-  { value: 'contacts', label: 'Contactos y Leads' },
-  { value: 'billing',  label: 'Facturación' },
-];
-
-const EmailAutomation = () => {
+const EmailAutomation = ({ domain, title }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [runningId, setRunningId] = useState(null);
   const [toast, setToast] = useState(null);
-  const [subTab, setSubTab] = useState('contacts');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,104 +59,82 @@ const EmailAutomation = () => {
   };
 
   const visibleJobs = useMemo(
-    () => jobs.filter((j) => (j.domain || 'other') === subTab),
-    [jobs, subTab]
+    () => (domain ? jobs.filter((j) => (j.domain || 'other') === domain) : jobs),
+    [jobs, domain]
   );
+
+  const heading = title || 'Email Automation';
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>Email Automation</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>{heading}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Panel de control de los procesos automáticos. Cada trabajo corre según su programación; usa "Ejecutar ahora" para forzar una pasada manual.
       </Typography>
 
-      <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
-        <Box sx={{ borderRight: 1, borderColor: 'divider', flexShrink: 0 }}>
-          <Tabs
-            orientation="vertical"
-            value={subTab}
-            onChange={(_, v) => setSubTab(v)}
-            textColor="primary"
-            indicatorColor="primary"
-            sx={{ minWidth: 200 }}
-          >
-            {DOMAIN_TABS.map((t) => (
-              <Tab
-                key={t.value}
-                value={t.value}
-                label={t.label}
-                sx={{ textTransform: 'none', fontWeight: 600, alignItems: 'flex-start' }}
-              />
-            ))}
-          </Tabs>
-        </Box>
-
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
-          ) : error ? (
-            <Alert severity="error">{error}</Alert>
-          ) : (
-            <Stack spacing={2}>
-              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                      <TableCell sx={{ fontWeight: 700 }}>Trabajo</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Programación</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 700 }}>Candidatos</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 700 }}>Acción</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {visibleJobs.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} sx={{ textAlign: 'center', color: 'text.secondary', py: 3 }}>
-                          No hay trabajos en esta categoría todavía.
-                        </TableCell>
-                      </TableRow>
-                    ) : visibleJobs.map((job) => (
-                      <TableRow key={job.name}>
-                        <TableCell>
-                          <Typography fontWeight={600}>{job.label}</Typography>
-                          <Typography variant="caption" color="text.secondary">{job.description}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2">{job.cadence}</Typography>
-                          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-                            {job.cron}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Chip
-                            size="small"
-                            label={formatNumber(job.candidates)}
-                            color={job.candidates > 0 ? 'warning' : 'default'}
-                            variant="outlined"
-                            sx={{ borderRadius: 1.5, fontWeight: 600 }}
-                          />
-                        </TableCell>
-                        <TableCell align="right">
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={runningId === job.name ? <CircularProgress size={14} /> : <PlayArrowRoundedIcon />}
-                            onClick={() => runJob(job)}
-                            disabled={runningId === job.name}
-                            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 999 }}
-                          >
-                            Ejecutar ahora
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Stack>
-          )}
-        </Box>
-      </Box>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : (
+        <Stack spacing={2}>
+          <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: 'grey.100' }}>
+                  <TableCell sx={{ fontWeight: 700 }}>Trabajo</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Programación</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>Candidatos</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>Acción</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {visibleJobs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} sx={{ textAlign: 'center', color: 'text.secondary', py: 3 }}>
+                      No hay trabajos en esta categoría todavía.
+                    </TableCell>
+                  </TableRow>
+                ) : visibleJobs.map((job) => (
+                  <TableRow key={job.name}>
+                    <TableCell>
+                      <Typography fontWeight={600}>{job.label}</Typography>
+                      <Typography variant="caption" color="text.secondary">{job.description}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{job.cadence}</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                        {job.cron}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Chip
+                        size="small"
+                        label={formatNumber(job.candidates)}
+                        color={job.candidates > 0 ? 'warning' : 'default'}
+                        variant="outlined"
+                        sx={{ borderRadius: 1.5, fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={runningId === job.name ? <CircularProgress size={14} /> : <PlayArrowRoundedIcon />}
+                        onClick={() => runJob(job)}
+                        disabled={runningId === job.name}
+                        sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 999 }}
+                      >
+                        Ejecutar ahora
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Stack>
+      )}
 
       <Snackbar
         open={!!toast}

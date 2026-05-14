@@ -43,13 +43,14 @@ export const DEPT_TABS = [
     { id: 'Services', label: 'Services', icon: ServicesIcon, adminOnly: true },
     { id: 'Integrations', label: 'Integration', icon: IntegrationsIcon, soon: true, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, adminOnly: true },
+    { id: 'EmailAutomationContacts', label: 'Contactos y Leads', icon: AutomationIcon, adminOnly: true },
+    { id: 'EmailAutomationBilling', label: 'Facturación', icon: AutomationIcon, adminOnly: true },
   ]},
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
   { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
     { id: 'Leads', label: 'Leads', icon: MarketingAIIcon, adminOnly: true },
     { id: 'Analytics', label: 'Analytics', icon: ReportsIcon, adminOnly: true },
-    { id: 'EmailAutomation', label: 'Email Automation', icon: AutomationIcon, adminOnly: true },
   ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
     { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },

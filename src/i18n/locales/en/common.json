@@ -19,6 +19,8 @@
     "Storage": "Storage",
     "Tickets": "Tickets",
     "Reports": "Reports",
+    "EmailAutomationContacts": "Contacts & Leads",
+    "EmailAutomationBilling": "Billing",
     "Marketplace": "Marketplace",
     "SpaceCatalog": "Products",
     "WebGen": "Site",
