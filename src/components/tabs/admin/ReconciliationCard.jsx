@@ -371,6 +371,7 @@ const ReconciliationCard = () => {
                     <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Amount</TableCell>
                     <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Interval</TableCell>
                     {type === 'pastDue' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Amount Due</TableCell>}
+                    {type === 'pastDue' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>WhatsApp</TableCell>}
                     {type === 'stripeDeviation' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Cancelled</TableCell>}
                     {type === 'stripeDeviation' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Stripe Sub ID</TableCell>}
                     {type === 'bankTransfer' && <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Last invoiced</TableCell>}
@@ -386,6 +387,35 @@ const ReconciliationCard = () => {
                       <TableCell align="right" sx={{ fontWeight: 600 }}>€{Number(row.monthly_amount ?? row.monthlyAmount ?? row.amount ?? 0).toFixed(2)}</TableCell>
                       <TableCell sx={{ textTransform: 'capitalize', color: 'text.secondary' }}>{row.billing_interval || row.billingInterval || '—'}</TableCell>
                       {type === 'pastDue' && <TableCell align="right" sx={{ color: accent, fontWeight: 700 }}>€{Number(row.amountDue ?? 0).toFixed(2)}</TableCell>}
+                      {type === 'pastDue' && (
+                        <TableCell>
+                          {row.phone_primary ? (
+                            <Button
+                              size="small"
+                              component="a"
+                              href={`https://wa.me/${String(row.phone_primary).replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              sx={{
+                                textTransform: 'none',
+                                bgcolor: '#25D366',
+                                color: '#fff',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                borderRadius: 999,
+                                px: 1.5,
+                                py: 0.25,
+                                minWidth: 0,
+                                '&:hover': { bgcolor: '#1ebe5a' },
+                              }}
+                            >
+                              WhatsApp
+                            </Button>
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">—</Typography>
+                          )}
+                        </TableCell>
+                      )}
                       {type === 'stripeDeviation' && <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{row.cancelled_at || '—'}</TableCell>}
                       {type === 'stripeDeviation' && <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>{row.stripe_subscription_id || '—'}</TableCell>}
                       {type === 'bankTransfer' && <TableCell sx={{ color: 'text.secondary' }}>{row.last_invoiced_month || '—'}</TableCell>}
