@@ -52,7 +52,7 @@ export const DEPT_TABS = [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
     { id: 'Leads', label: 'Leads', icon: MarketingAIIcon, adminOnly: true },
     { id: 'Analytics', label: 'Analytics', icon: ReportsIcon, adminOnly: true },
-    { id: 'EmailAutomation', label: 'Email Automation', icon: AutomationIcon, adminOnly: true, subtabs: [
+    { id: 'EmailAutomation', label: 'Cron Jobs', icon: AutomationIcon, adminOnly: true, subtabs: [
       { id: 'EmailAutomationContacts', label: 'Contacts & Leads', icon: AutomationIcon, adminOnly: true },
       { id: 'EmailAutomationBilling', label: 'Billing', icon: AutomationIcon, adminOnly: true },
     ]},

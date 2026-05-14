@@ -21,7 +21,7 @@
     "Reports": "Reports",
     "Reconciliation": "Reconciliation",
     "InvoiceAudit": "Invoice Audit",
-    "EmailAutomation": "Email Automation",
+    "EmailAutomation": "Cron Jobs",
     "EmailAutomationContacts": "Contacts & Leads",
     "EmailAutomationBilling": "Billing",
     "Marketplace": "Marketplace",
