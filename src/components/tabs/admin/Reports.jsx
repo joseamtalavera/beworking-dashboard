@@ -257,17 +257,26 @@ const Reports = () => {
   const [subTab, setSubTab] = useState('reconciliation');
 
   return (
-    <Stack spacing={2}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={subTab} onChange={(_, v) => setSubTab(v)} textColor="primary" indicatorColor="primary">
-          <Tab value="audit" label="Invoice Audit" sx={{ textTransform: 'none', fontWeight: 600 }} />
-          <Tab value="reconciliation" label="Reconciliation" sx={{ textTransform: 'none', fontWeight: 600 }} />
+    <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+      <Box sx={{ borderRight: 1, borderColor: 'divider', flexShrink: 0 }}>
+        <Tabs
+          orientation="vertical"
+          value={subTab}
+          onChange={(_, v) => setSubTab(v)}
+          textColor="primary"
+          indicatorColor="primary"
+          sx={{ minWidth: 180 }}
+        >
+          <Tab value="reconciliation" label="Reconciliation" sx={{ textTransform: 'none', fontWeight: 600, alignItems: 'flex-start' }} />
+          <Tab value="audit" label="Invoice Audit" sx={{ textTransform: 'none', fontWeight: 600, alignItems: 'flex-start' }} />
         </Tabs>
       </Box>
 
-      {subTab === 'audit' && <InvoiceAudit />}
-      {subTab === 'reconciliation' && <ReconciliationCard />}
-    </Stack>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        {subTab === 'audit' && <InvoiceAudit />}
+        {subTab === 'reconciliation' && <ReconciliationCard />}
+      </Box>
+    </Box>
   );
 };
 
