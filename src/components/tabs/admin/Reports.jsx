@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -15,6 +18,7 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Chip from '@mui/material/Chip';
 import { fetchInvoiceAudit } from '../../../api/reports.js';
+import ReconciliationCard from './ReconciliationCard.jsx';
 
 const CUENTA_OPTIONS = ['PT', 'OF', 'GT'];
 
@@ -92,7 +96,7 @@ const Section = ({ title, count, amount, rows, columns, csvName, emptyText = 'No
   </Paper>
 );
 
-const Reports = () => {
+const InvoiceAudit = () => {
   const [month, setMonth] = useState(currentMonth());
   const [cuentas, setCuentas] = useState(['PT', 'OF']);
   const [data, setData] = useState(null);
@@ -124,7 +128,6 @@ const Reports = () => {
 
   return (
     <Stack spacing={2}>
-      {/* Filters */}
       <Paper elevation={0} sx={{ borderRadius: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
           <TextField
@@ -246,6 +249,24 @@ const Reports = () => {
           />
         </>
       )}
+    </Stack>
+  );
+};
+
+const Reports = () => {
+  const [subTab, setSubTab] = useState('audit');
+
+  return (
+    <Stack spacing={2}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={subTab} onChange={(_, v) => setSubTab(v)} textColor="primary" indicatorColor="primary">
+          <Tab value="audit" label="Invoice Audit" sx={{ textTransform: 'none', fontWeight: 600 }} />
+          <Tab value="reconciliation" label="Reconciliation" sx={{ textTransform: 'none', fontWeight: 600 }} />
+        </Tabs>
+      </Box>
+
+      {subTab === 'audit' && <InvoiceAudit />}
+      {subTab === 'reconciliation' && <ReconciliationCard />}
     </Stack>
   );
 };
