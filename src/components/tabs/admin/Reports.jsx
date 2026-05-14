@@ -254,7 +254,7 @@ const InvoiceAudit = () => {
 };
 
 const Reports = () => {
-  const [subTab, setSubTab] = useState('audit');
+  const [subTab, setSubTab] = useState('reconciliation');
 
   return (
     <Stack spacing={2}>
