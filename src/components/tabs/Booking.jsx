@@ -528,7 +528,7 @@ const buildTimeSlotsWithBoundsUser = (minMinutes, maxMinutes) => {
   return slots;
 };
 
-const buildTimeSlotsUser = (startHour = 6, endHour = 22) => buildTimeSlotsWithBoundsUser(startHour * 60, endHour * 60);
+const buildTimeSlotsUser = (startHour = 6, endHour = 23.5) => buildTimeSlotsWithBoundsUser(startHour * 60, endHour * 60);
 
 const extractTimeFromISO = (isoString) => {
   if (!isoString) return null;
@@ -567,7 +567,7 @@ const bloqueoCoversSlotUser = (bloqueo, slotId) => {
 const buildTimeSlotsFromBloqueosUser = (bloqueos = []) => {
   if (!Array.isArray(bloqueos) || bloqueos.length === 0) return buildTimeSlotsUser();
   let min = 6 * 60;
-  let max = 22 * 60;
+  let max = 23.5 * 60;
   let hasData = false;
   bloqueos.forEach((bloqueo) => {
     const start = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni));
