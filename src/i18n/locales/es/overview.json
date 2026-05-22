@@ -1,8 +1,10 @@
 {
   "stats": {
-    "meetingRooms": "Facturas Salas de Reunión",
-    "deskBookings": "Facturas Coworking",
-    "businessAddresses": "Oficinas Virtuales",
+    "meetingRooms": "Salas de Reunión",
+    "coworking": "Coworking",
+    "virtualOffices": "Oficinas Virtuales",
+    "app": "App",
+    "extra": "Extras",
     "today": "hoy"
   },
   "metrics": {

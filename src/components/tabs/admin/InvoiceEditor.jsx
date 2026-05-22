@@ -457,7 +457,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                     <MenuItem value="meeting_room">{t('editor.categories.meeting_room')}</MenuItem>
                     <MenuItem value="coworking">{t('editor.categories.coworking')}</MenuItem>
                     <MenuItem value="virtual_office">{t('editor.categories.virtual_office')}</MenuItem>
-                    <MenuItem value="other">{t('editor.categories.other')}</MenuItem>
+                    <MenuItem value="extra">{t('editor.categories.extra')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

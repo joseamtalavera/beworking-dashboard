@@ -67,7 +67,12 @@ const calcChange = (current, previous) => {
 };
 
 // Clean Stat Card - minimal design with optional MTD/YTD
-const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, loading, theme }) => (
+const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, change, trend, loading, theme }) => {
+  const TrendIcon = trend === 'down' ? TrendingDownRoundedIcon
+                  : trend === 'up' ? TrendingUpRoundedIcon
+                  : TrendingFlatRoundedIcon;
+  const trendColor = trend === 'down' ? 'error.main' : trend === 'up' ? 'brand.green' : 'text.disabled';
+  return (
   <Paper
     elevation={0}
     sx={{
@@ -86,9 +91,19 @@ const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, loadin
         <Typography variant="h3" sx={{ fontWeight: 600, letterSpacing: '-0.025em', mb: 0.5, lineHeight: 1 }}>
           {value}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-          {label}
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+            {label}
+          </Typography>
+          {change && (
+            <Stack direction="row" alignItems="center" spacing={0.25}>
+              <TrendIcon sx={{ fontSize: 14, color: trendColor }} />
+              <Typography variant="caption" sx={{ fontWeight: 600, color: trendColor }}>
+                {change}
+              </Typography>
+            </Stack>
+          )}
+        </Stack>
         {sublabel && (
           <Typography variant="caption" color="text.disabled">
             {sublabel}
@@ -111,7 +126,8 @@ const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, loadin
       </>
     )}
   </Paper>
-);
+  );
+};
 
 // Metric Card with color coding
 const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
@@ -199,8 +215,11 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
   const plotW = svgW - padding.left - padding.right;
   const plotH = svgH - padding.top - padding.bottom;
 
-  // Points centered in each month slot so dots align with month labels below
+  // Points centered in each month slot so dots align with month labels below.
+  // value === null marks a month that hasn't happened yet — kept as a slot for
+  // the x-axis label, but excluded from the line so it doesn't crash to €0.
   const plotPoints = data.map((item, idx) => {
+    const isEmpty = item.value == null;
     const val = item.value || 0;
     const centerFrac = (idx + 0.5) / data.length;
     const svgX = centerFrac * plotW;
@@ -211,15 +230,17 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
     const pctY = chartMax > 0
       ? ((1 - val / chartMax) * plotH + padding.top) / svgH * 100
       : (plotH + padding.top) / svgH * 100;
-    return { svgX, svgY, pctX, pctY, value: val };
+    return { svgX, svgY, pctX, pctY, value: val, isEmpty };
   });
 
-  const linePath2 = plotPoints.length > 1
-    ? plotPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.svgX},${p.svgY}`).join(' ')
+  // Line/area span only the months that have actually happened.
+  const realPoints = plotPoints.filter(p => !p.isEmpty);
+  const linePath2 = realPoints.length > 1
+    ? realPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.svgX},${p.svgY}`).join(' ')
     : '';
   const baselineY = padding.top + plotH;
-  const areaPath2 = linePath2 && plotPoints.length > 1
-    ? `${linePath2} L${plotPoints[plotPoints.length - 1].svgX},${baselineY} L${plotPoints[0].svgX},${baselineY} Z`
+  const areaPath2 = linePath2 && realPoints.length > 1
+    ? `${linePath2} L${realPoints[realPoints.length - 1].svgX},${baselineY} L${realPoints[0].svgX},${baselineY} Z`
     : '';
 
   return (
@@ -646,12 +667,6 @@ const AdminOverview = () => {
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Quick stats raw data
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [todayBloqueos, setTodayBloqueos] = useState([]);
-  const [registrationStats, setRegistrationStats] = useState({ today: 0, mtd: 0, ytd: 0 });
-  const [statsLoading, setStatsLoading] = useState(true);
-
   // Occupancy
   const [occupancyData, setOccupancyData] = useState([]);
   const [occupancyLoading, setOccupancyLoading] = useState(true);
@@ -751,124 +766,79 @@ const AdminOverview = () => {
       }
     });
 
-    const revenueMonthly = months.map(m => ({ month: m.month, value: m.revenue }));
-    const pendingMonthly = months.map(m => ({ month: m.month, value: m.pending }));
+    // Months that haven't happened yet get value null — the chart keeps the
+    // x-axis slot but stops the line there instead of plotting a €0 cliff.
+    const now = new Date();
+    const futureFrom = selectedYear === now.getFullYear() ? now.getMonth() + 1 : 12;
+    const series = (key) => months.map((m, i) => ({
+      month: m.month,
+      value: i >= futureFrom ? null : m[key]
+    }));
+
     const revenueTotal = months.reduce((s, m) => s + m.revenue, 0);
     const pendingTotal = months.reduce((s, m) => s + m.pending, 0);
 
     return {
-      revenue: revenueMonthly,
-      pending: pendingMonthly,
-      overdue: months.map(m => ({ month: m.month, value: m.overdue })),
+      revenue: series('revenue'),
+      pending: series('pending'),
+      overdue: series('overdue'),
       revenueTotal,
       pendingTotal,
       overdueTotal: months.reduce((s, m) => s + m.overdue, 0)
     };
   }, [invoices, selectedYear, i18n.language]);
 
-  // Fetch quick stats (raw data for stat card computation)
-  const fetchQuickStats = async () => {
-    setStatsLoading(true);
-    try {
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
-      const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-      const firstOfYear = `${today.getFullYear()}-01-01`;
-
-      const [todayBookingsData, subsData, voToday, voMTD, voYTD] = await Promise.all([
-        fetchBloqueos({ from: todayStr, to: todayStr }),
-        fetchSubscriptions(),
-        apiFetch(`/subscriptions/stats/virtual-offices?startDate=${todayStr}&endDate=${todayStr}`),
-        apiFetch(`/subscriptions/stats/virtual-offices?startDate=${firstOfMonth}&endDate=${todayStr}`),
-        apiFetch(`/subscriptions/stats/virtual-offices?startDate=${firstOfYear}&endDate=${todayStr}`)
-      ]);
-
-      setTodayBloqueos(Array.isArray(todayBookingsData) ? todayBookingsData : []);
-      setSubscriptions(Array.isArray(subsData) ? subsData : []);
-      setRegistrationStats({
-        today: voToday?.count ?? 0,
-        mtd: voMTD?.count ?? 0,
-        ytd: voYTD?.count ?? 0
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
-
-  // Stat cards computed from invoices + subscriptions + today's bookings
-  const statCards = useMemo(() => {
+  // Revenue per business line, grouped by the customer's tenant_type — which
+  // the invoice list API already returns on every row as `tenantType`.
+  const lineRevenue = useMemo(() => {
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
     const curYear = now.getFullYear();
     const curMonth = now.getMonth();
+    const lastMonth = curMonth === 0 ? 11 : curMonth - 1;
+    const lastMonthYear = curMonth === 0 ? curYear - 1 : curYear;
 
-    const parseDate = (raw) => {
-      if (!raw) return null;
-      const d = new Date(raw);
-      return isNaN(d.getTime()) ? null : d;
+    const blank = () => ({ mtd: 0, ytd: 0, lastMonth: 0 });
+    const acc = {
+      meeting_room: blank(),
+      coworking: blank(),
+      virtual_office: blank(),
+      app: blank(),
+      extra: blank(),
     };
 
-    // Prefer the stored category (set at invoice creation). Fall back to the
-    // legacy keyword match only for old rows that predate the category column.
-    const isMeetingRoom = (inv) => {
-      if (inv.category) return inv.category === 'meeting_room';
-      const p = (inv.products || inv.descripcion || '').toLowerCase();
-      return p.includes('ma1a') || p.includes('aula') || p.includes('sala');
-    };
-
-    const isDesk = (inv) => {
-      if (inv.category) return inv.category === 'coworking';
-      const p = (inv.products || inv.descripcion || '').toLowerCase();
-      return p.includes('ma1o') || p.includes('mesa') || p.includes('desk') || p.includes('escritorio');
-    };
-
-    let meetingToday = 0, meetingMTD = 0, meetingYTD = 0;
-    let deskToday = 0, deskMTD = 0, deskYTD = 0;
-
-    const isRelevantInvoice = (inv) => {
-      const amount = parseFloat(inv.total || inv.importe || 0);
-      if (amount <= 0) return false;
-      const status = (inv.estado || '').toLowerCase();
-      if (status.includes('rect') || status.includes('cancel') || status.includes('anula')) return false;
-      if (!status.includes('pag') && !status.includes('pend')) return false;
-      return true;
+    // Map the customer's tenant_type onto a revenue line.
+    const bucketOf = (inv) => {
+      const t = (inv.tenantType || '').toLowerCase();
+      if (t.includes('aula')) return 'meeting_room';                            // Usuario Aulas
+      if (t.includes('mesa') || t.includes('nóma') || t.includes('noma')) return 'coworking'; // Mesa / Nómada
+      if (t.includes('virtual')) return 'virtual_office';                       // Usuario Virtual
+      if (t.includes('portal') || t.includes('servicio')) return 'app';         // Portal + Servicios
+      return 'extra';                                                           // Proveedor, Distribuidor, Free, untyped
     };
 
     invoices.forEach(inv => {
-      if (!isRelevantInvoice(inv)) return;
-      const d = parseDate(inv.fechaFactura || inv.createdAt);
-      if (!d) return;
+      const status = (inv.estado || '').toLowerCase();
+      // Billed revenue = everything not cancelled / rectified.
+      if (status.includes('cancel') || status.includes('void') || status.includes('anula') || status.includes('rectificad')) return;
+      const raw = inv.createdAt || inv.fechaFactura;
+      if (!raw) return;
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return;
+      const amount = parseFloat(inv.total || inv.importe || 0);
+      if (!amount) return;
+
+      const bucket = acc[bucketOf(inv)];
       const y = d.getFullYear();
       const m = d.getMonth();
-      const ds = d.toISOString().split('T')[0];
-
-      if (isMeetingRoom(inv)) {
-        if (y === curYear) { meetingYTD++; if (m === curMonth) { meetingMTD++; if (ds === todayStr) meetingToday++; } }
+      if (y === curYear) {
+        bucket.ytd += amount;
+        if (m === curMonth) bucket.mtd += amount;
       }
-      if (isDesk(inv)) {
-        if (y === curYear) { deskYTD++; if (m === curMonth) { deskMTD++; if (ds === todayStr) deskToday++; } }
-      }
+      if (y === lastMonthYear && m === lastMonth) bucket.lastMonth += amount;
     });
 
-    // Subscriptions created
-    let subToday = 0, subMTD = 0, subYTD = 0;
-    subscriptions.forEach(s => {
-      const d = parseDate(s.createdAt || s.startDate);
-      if (!d) return;
-      const y = d.getFullYear();
-      const m = d.getMonth();
-      const ds = d.toISOString().split('T')[0];
-      if (y === curYear) { subYTD++; if (m === curMonth) { subMTD++; if (ds === todayStr) subToday++; } }
-    });
-
-    return {
-      meetingToday, meetingMTD, meetingYTD,
-      deskToday, deskMTD, deskYTD,
-      subToday, subMTD, subYTD
-    };
-  }, [invoices, subscriptions, todayBloqueos]);
+    return acc;
+  }, [invoices]);
 
   // Fetch occupancy
   const fetchOccupancy = async () => {
@@ -969,7 +939,6 @@ const AdminOverview = () => {
 
   useEffect(() => {
     fetchAllInvoices();
-    fetchQuickStats();
     fetchOccupancy();
   }, []);
 
@@ -980,11 +949,30 @@ const AdminOverview = () => {
 
   return (
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
-      {/* Quick Stats Row */}
-      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' } }}>
-        <StatCard label={t('stats.businessAddresses')} value={registrationStats.today} sublabel={t('stats.today')} mtd={registrationStats.mtd} ytd={registrationStats.ytd} loading={statsLoading || loading} theme={theme} />
-        <StatCard label={t('stats.meetingRooms')} value={statCards.meetingToday} sublabel={t('stats.today')} mtd={statCards.meetingMTD} ytd={statCards.meetingYTD} loading={statsLoading || loading} theme={theme} />
-        <StatCard label={t('stats.deskBookings')} value={statCards.deskToday} sublabel={t('stats.today')} mtd={statCards.deskMTD} ytd={statCards.deskYTD} loading={statsLoading || loading} theme={theme} />
+      {/* Revenue by business line */}
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' } }}>
+        {[
+          { key: 'meeting_room', label: t('stats.meetingRooms') },
+          { key: 'coworking', label: t('stats.coworking') },
+          { key: 'virtual_office', label: t('stats.virtualOffices') },
+          { key: 'app', label: t('stats.app') },
+          { key: 'extra', label: t('stats.extra') },
+        ].map(({ key, label }) => {
+          const r = lineRevenue[key];
+          return (
+            <StatCard
+              key={key}
+              label={label}
+              value={formatCurrency(r.mtd)}
+              change={r.lastMonth > 0 ? getChange(r.mtd, r.lastMonth) : undefined}
+              trend={r.mtd >= r.lastMonth ? 'up' : 'down'}
+              mtd={formatCurrency(r.mtd)}
+              ytd={formatCurrency(r.ytd)}
+              loading={loading}
+              theme={theme}
+            />
+          );
+        })}
       </Box>
 
       {/* Financial Metrics */}
