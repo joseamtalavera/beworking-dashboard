@@ -64,6 +64,14 @@
     "selectUserType": "Select user type",
     "center": "Center",
     "selectCenter": "Select center",
+    "category": "Category",
+    "selectCategory": "Select category",
+    "categories": {
+      "meeting_room": "Meeting room",
+      "coworking": "Coworking",
+      "virtual_office": "Virtual office",
+      "other": "Other"
+    },
     "company": "Company",
     "selectCompany": "Select company",
     "invoiceNumber": "Invoice #",

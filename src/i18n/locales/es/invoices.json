@@ -64,6 +64,14 @@
     "selectUserType": "Seleccionar tipo de usuario",
     "center": "Centro",
     "selectCenter": "Seleccionar centro",
+    "category": "Categoría",
+    "selectCategory": "Seleccionar categoría",
+    "categories": {
+      "meeting_room": "Sala de reuniones",
+      "coworking": "Coworking",
+      "virtual_office": "Oficina virtual",
+      "other": "Otros"
+    },
     "company": "Empresa",
     "selectCompany": "Seleccionar empresa",
     "invoiceNumber": "Nº factura",

@@ -30,6 +30,7 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
+import CategoryIcon from '@mui/icons-material/Category';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import EmailIcon from '@mui/icons-material/Email';
 import Select from '@mui/material/Select';
@@ -71,6 +72,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
   const [userType, setUserType] = useState(initial.userType || '');
   const [center, setCenter] = useState(initial.center || '');
   const [cuenta, setCuenta] = useState(initial.cuenta || '');
+  const [category, setCategory] = useState(initial.category || '');
   const [cuentaOptions, setCuentaOptions] = useState([]);
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [paymentInfoLoading, setPaymentInfoLoading] = useState(false);
@@ -104,6 +106,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
 
   const handleSubmit = async (status = 'Pendiente') => {
     if (submitting) return;
+    if (!editMode && !category) return; // category is required when creating
     setSubmitting(true);
 
     const payload = {
@@ -112,6 +115,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
       userType: userType || undefined,
       center: center || undefined,
       cuenta: cuenta || undefined,
+      category: category || undefined,
       invoiceNum: invoiceNum || undefined,
       date,
       dueDate: dueDate || undefined,
@@ -221,6 +225,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         setUserType(initial.userType || '');
         setCenter(initial.center || '');
         setCuenta(initial.cuenta || '');
+        setCategory(initial.category || '');
       } else {
         setClient(null);
         setClientSearch('');
@@ -232,6 +237,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
         setUserType('');
         setCenter('');
         setCuenta('');
+        setCategory('');
       }
       setContactOptions([]);
       setPaymentMode('card');
@@ -427,6 +433,31 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                     </MenuItem>
                     <MenuItem value="1">MALAGA DUMAS (MA1)</MenuItem>
                     <MenuItem value="8">Oficina Virtual (MAOV)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <FormControl fullWidth size="small" required={!editMode} error={!editMode && !category}>
+                  <InputLabel id="category-label">{t('editor.category')}</InputLabel>
+                  <Select
+                    labelId="category-label"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    label={t('editor.category')}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <CategoryIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="">
+                      <span style={{ color: theme.palette.text.disabled }}>{t('editor.selectCategory')}</span>
+                    </MenuItem>
+                    <MenuItem value="meeting_room">{t('editor.categories.meeting_room')}</MenuItem>
+                    <MenuItem value="coworking">{t('editor.categories.coworking')}</MenuItem>
+                    <MenuItem value="virtual_office">{t('editor.categories.virtual_office')}</MenuItem>
+                    <MenuItem value="other">{t('editor.categories.other')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -717,7 +748,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
-                disabled={submitting}
+                disabled={submitting || (!editMode && !category)}
                 onClick={() => handleSubmit(editMode ? (initial.status || 'Pendiente') : 'Pendiente')}
                 sx={{
                   backgroundColor: 'brand.green',

@@ -810,12 +810,16 @@ const AdminOverview = () => {
       return isNaN(d.getTime()) ? null : d;
     };
 
+    // Prefer the stored category (set at invoice creation). Fall back to the
+    // legacy keyword match only for old rows that predate the category column.
     const isMeetingRoom = (inv) => {
+      if (inv.category) return inv.category === 'meeting_room';
       const p = (inv.products || inv.descripcion || '').toLowerCase();
       return p.includes('ma1a') || p.includes('aula') || p.includes('sala');
     };
 
     const isDesk = (inv) => {
+      if (inv.category) return inv.category === 'coworking';
       const p = (inv.products || inv.descripcion || '').toLowerCase();
       return p.includes('ma1o') || p.includes('mesa') || p.includes('desk') || p.includes('escritorio');
     };
