@@ -106,7 +106,6 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
 
   const handleSubmit = async (status = 'Pendiente') => {
     if (submitting) return;
-    if (!editMode && !category) return; // category is required when creating
     setSubmitting(true);
 
     const payload = {
@@ -437,7 +436,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
                 </FormControl>
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
-                <FormControl fullWidth size="small" required={!editMode} error={!editMode && !category}>
+                <FormControl fullWidth size="small">
                   <InputLabel id="category-label">{t('editor.category')}</InputLabel>
                   <Select
                     labelId="category-label"
@@ -748,7 +747,7 @@ const InvoiceEditor = ({ open, onClose, onCreate, onUpdate, initial = {}, editMo
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
-                disabled={submitting || (!editMode && !category)}
+                disabled={submitting}
                 onClick={() => handleSubmit(editMode ? (initial.status || 'Pendiente') : 'Pendiente')}
                 sx={{
                   backgroundColor: 'brand.green',

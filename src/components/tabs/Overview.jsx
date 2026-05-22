@@ -699,10 +699,11 @@ const AdminOverview = () => {
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const status = (invoice.estado || '').toLowerCase();
 
-      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula') || status.includes('rectificad');
+      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
       const isOverdue = status.includes('venc') || status.includes('overdue');
       const isPending = status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice') || status.includes('created');
-      // Billed revenue = all non-cancelled, non-rectified invoices
+      // Billed revenue = all non-voided invoices. A 'Rectificado' original stays
+      // counted — its 'Rectificativa' credit note nets it back out.
       const isBilled = !isCancelled;
 
       if (invoiceYear === currentYear) {
@@ -757,7 +758,7 @@ const AdminOverview = () => {
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const status = (invoice.estado || '').toLowerCase();
 
-      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula') || status.includes('rectificad');
+      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
       if (!isCancelled) {
         months[month].revenue += amount;
       }
@@ -818,8 +819,10 @@ const AdminOverview = () => {
 
     invoices.forEach(inv => {
       const status = (inv.estado || '').toLowerCase();
-      // Billed revenue = everything not cancelled / rectified.
-      if (status.includes('cancel') || status.includes('void') || status.includes('anula') || status.includes('rectificad')) return;
+      // Skip only truly-voided invoices. A 'Rectificado' original stays counted —
+      // its 'Rectificativa' credit note nets it out (full credit -> 0, partial
+      // credit -> the amount actually kept).
+      if (status.includes('cancel') || status.includes('void') || status.includes('anula')) return;
       const raw = inv.createdAt || inv.fechaFactura;
       if (!raw) return;
       const d = new Date(raw);
