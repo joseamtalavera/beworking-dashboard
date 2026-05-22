@@ -52,8 +52,6 @@
   "creditNoRefundNotice": "Esta factura no estaba pagada. No habrá reembolso, sólo se anulará en Stripe.",
   "creditDeleteBookings": "Eliminar las reservas asociadas a esta factura",
   "creditAmount": "Importe a abonar (€)",
-  "creditHalf": "Mitad",
-  "creditFull": "Total",
   "creditFullAmount": "Factura completa: {{amount}}",
   "invoiceCreated": "Factura creada",
   "invoiceCreateError": "Error al crear la factura",

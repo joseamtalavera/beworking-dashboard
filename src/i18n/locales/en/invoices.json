@@ -52,8 +52,6 @@
   "creditNoRefundNotice": "This invoice was unpaid. No refund — it will be voided on Stripe only.",
   "creditDeleteBookings": "Delete the bookings linked to this invoice",
   "creditAmount": "Amount to credit (€)",
-  "creditHalf": "Half",
-  "creditFull": "Full",
   "creditFullAmount": "Full invoice: {{amount}}",
   "invoiceCreated": "Invoice created",
   "invoiceCreateError": "Failed to create invoice",

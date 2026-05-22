@@ -1009,19 +1009,9 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
             fullWidth
             sx={{ mb: 0.5 }}
           />
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-            <Button size="small" variant="outlined"
-              onClick={() => setCreditDialog((c) => ({ ...c, amount: (Number(c.invoice?.total ?? 0) / 2).toFixed(2) }))}>
-              {t('creditHalf')}
-            </Button>
-            <Button size="small" variant="outlined"
-              onClick={() => setCreditDialog((c) => ({ ...c, amount: Number(c.invoice?.total ?? 0).toFixed(2) }))}>
-              {t('creditFull')}
-            </Button>
-            <Typography variant="caption" color="text.secondary">
-              {t('creditFullAmount', { amount: formatCurrency(Number(creditDialog.invoice?.total ?? 0)) })}
-            </Typography>
-          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+            {t('creditFullAmount', { amount: formatCurrency(Number(creditDialog.invoice?.total ?? 0)) })}
+          </Typography>
           <FormControlLabel
             control={
               <Switch
