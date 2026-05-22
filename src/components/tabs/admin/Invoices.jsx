@@ -127,7 +127,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
   const [exporting, setExporting] = useState(false);
   const [sortDir, setSortDir] = useState('desc');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null, deleteBookings: false });
+  const [creditDialog, setCreditDialog] = useState({ open: false, invoice: null, deleteBookings: false, amount: '' });
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   // In user mode, always filter by the logged-in user's email
@@ -860,7 +860,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                       size="small"
                       variant="outlined"
                       clickable
-                      onClick={() => setCreditDialog({ open: true, invoice: inv, deleteBookings: false })}
+                      onClick={() => setCreditDialog({ open: true, invoice: inv, deleteBookings: false, amount: Number(inv.total ?? 0).toFixed(2) })}
                       sx={{
                         borderColor: 'secondary.main',
                         color: 'secondary.main',
@@ -988,7 +988,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
       )}
       <Dialog
         open={creditDialog.open}
-        onClose={() => setCreditDialog({ open: false, invoice: null, deleteBookings: false })}
+        onClose={() => setCreditDialog({ open: false, invoice: null, deleteBookings: false, amount: '' })}
         PaperProps={{ sx: { borderRadius: 3, px: 1, minWidth: 420 } }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>{t('credit')}</DialogTitle>
@@ -1001,6 +1001,27 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           ) : (
             <Alert severity="info" sx={{ mb: 2 }}>{t('creditNoRefundNotice')}</Alert>
           )}
+          <TextField
+            label={t('creditAmount')}
+            value={creditDialog.amount}
+            onChange={(e) => setCreditDialog((c) => ({ ...c, amount: e.target.value }))}
+            size="small"
+            fullWidth
+            sx={{ mb: 0.5 }}
+          />
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+            <Button size="small" variant="outlined"
+              onClick={() => setCreditDialog((c) => ({ ...c, amount: (Number(c.invoice?.total ?? 0) / 2).toFixed(2) }))}>
+              {t('creditHalf')}
+            </Button>
+            <Button size="small" variant="outlined"
+              onClick={() => setCreditDialog((c) => ({ ...c, amount: Number(c.invoice?.total ?? 0).toFixed(2) }))}>
+              {t('creditFull')}
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              {t('creditFullAmount', { amount: formatCurrency(Number(creditDialog.invoice?.total ?? 0)) })}
+            </Typography>
+          </Stack>
           <FormControlLabel
             control={
               <Switch
@@ -1012,18 +1033,27 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setCreditDialog({ open: false, invoice: null, deleteBookings: false })} color="inherit">
+          <Button onClick={() => setCreditDialog({ open: false, invoice: null, deleteBookings: false, amount: '' })} color="inherit">
             {t('editor.close')}
           </Button>
           <Button
             variant="contained"
             color="success"
+            disabled={(() => {
+              const a = parseFloat(String(creditDialog.amount).replace(',', '.'));
+              return !(a > 0 && a <= Number(creditDialog.invoice?.total ?? 0) + 0.005);
+            })()}
             onClick={async () => {
               const inv = creditDialog.invoice;
               const deleteLinkedBookings = !!creditDialog.deleteBookings;
-              setCreditDialog({ open: false, invoice: null, deleteBookings: false });
+              const amt = parseFloat(String(creditDialog.amount).replace(',', '.'));
+              const full = Number(inv?.total ?? 0);
+              const payload = { deleteLinkedBookings };
+              // Partial credit only when the amount is below the invoice total.
+              if (amt > 0 && amt < full - 0.005) payload.creditAmount = amt;
+              setCreditDialog({ open: false, invoice: null, deleteBookings: false, amount: '' });
               try {
-                const result = await creditInvoice(inv.id, { deleteLinkedBookings });
+                const result = await creditInvoice(inv.id, payload);
                 const refundId = result?.holdedInvoiceNum || result?.idFactura || result?.id || '';
                 setSnackbar({ open: true, message: t('refundCreated', { refundId }), severity: 'success' });
                 await refreshList();
