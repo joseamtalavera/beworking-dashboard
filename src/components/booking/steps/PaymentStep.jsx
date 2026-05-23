@@ -273,7 +273,12 @@ function AdminPaymentOptions({ onCreated }) {
         bookingPayload.centroId = await resolveCentroId(state);
       }
       if (!bookingPayload.centroId || !bookingPayload.productoId) {
-        setError(t('steps.missingRoomCenter', 'Missing room or center — go back and re-select the space.'));
+        const missing = [];
+        if (!bookingPayload.productoId) missing.push('productoId');
+        if (!bookingPayload.centroId) missing.push('centroId');
+        const diag = `producto.name=${state.producto?.name || 'null'} producto.id=${state.producto?.id || 'null'} producto.centerCode=${state.producto?.centerCode || state.producto?.centroCodigo || 'null'} producto.deskProductoId=${state.producto?.deskProductoId || 'null'} centro.id=${state.centro?.id || 'null'} centro.code=${state.centro?.code || 'null'}`;
+        console.error('[booking] missing:', missing.join('+'), diag);
+        setError(`Missing ${missing.join(' + ')} — go back and re-select the space. [${diag}]`);
         setSubmitting(false);
         return;
       }
