@@ -38,13 +38,17 @@ export function buildDeskMap(occupancyData) {
   return map;
 }
 
-function DeskButton({ deskNumber, data, onClick, t }) {
+function DeskButton({ deskNumber, data, isBookedOverride, onClick, t }) {
   const { subscription } = data || {};
-  const isOccupied = Boolean(subscription);
+  // When the parent passes a date-aware bookedDeskNumbers set, isBookedOverride
+  // is the source of truth. Otherwise fall back to "has active subscription".
+  const isOccupied = isBookedOverride != null ? isBookedOverride : Boolean(subscription);
   const occupantName = subscription?.contactName || '';
 
   const tooltipContent = isOccupied
-    ? [occupantName, subscription?.productName, subscription?.description].filter(Boolean).join(' · ')
+    ? (subscription
+        ? [occupantName, subscription.productName, subscription.description].filter(Boolean).join(' · ')
+        : t('admin.deskBookedForDate'))
     : t('admin.deskAvailable');
 
   return (
@@ -128,10 +132,18 @@ export function DeskLegend() {
   );
 }
 
-export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
+export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDeskClick, loading }) {
   const { t } = useTranslation('booking');
+  const isDateAware = bookedDeskNumbers instanceof Set;
 
   const availableCount = useMemo(() => {
+    if (isDateAware) {
+      let count = 0;
+      for (let i = 1; i <= 16; i++) {
+        if (!bookedDeskNumbers.has(i)) count++;
+      }
+      return count;
+    }
     if (!deskData) return 16;
     let count = 0;
     for (let i = 1; i <= 16; i++) {
@@ -139,9 +151,10 @@ export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
       if (!entry || !entry.subscription) count++;
     }
     return count;
-  }, [deskData]);
+  }, [deskData, bookedDeskNumbers, isDateAware]);
 
   const getData = (n) => deskData?.get(n) || { subscription: null };
+  const isBooked = (n) => (isDateAware ? bookedDeskNumbers.has(n) : null);
 
   if (loading) {
     return (
@@ -179,7 +192,13 @@ export default function CoworkingFloorPlan({ deskData, onDeskClick, loading }) {
         >
           {GRID_DESKS.map(([deskNum, col, row]) => (
             <Box key={deskNum} sx={{ gridColumn: col, gridRow: row }}>
-              <DeskButton deskNumber={deskNum} data={getData(deskNum)} onClick={onDeskClick} t={t} />
+              <DeskButton
+                deskNumber={deskNum}
+                data={getData(deskNum)}
+                isBookedOverride={isBooked(deskNum)}
+                onClick={onDeskClick}
+                t={t}
+              />
             </Box>
           ))}
         </Box>

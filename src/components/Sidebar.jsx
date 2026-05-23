@@ -75,6 +75,10 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
+    // Notify deep views (e.g. Booking flow opened from a desk click) that the
+    // sidebar nav was clicked, so they can reset back to their root view even
+    // when the tab id hasn't changed.
+    window.dispatchEvent(new CustomEvent('dashboard:nav-click', { detail: { tabId } }));
     if (isMobile) onMobileClose?.();
   };
 
