@@ -27,7 +27,7 @@ import i18n from '../../../i18n/i18n.js';
 import esBooking from '../../../i18n/locales/es/booking.json';
 import enBooking from '../../../i18n/locales/en/booking.json';
 
-import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation } from '../../../api/bookings.js';
+import { createReserva, createPublicBooking, fetchBookingUsage, sendBookingConfirmation, fetchBookingCentros } from '../../../api/bookings.js';
 import { createInvoice, createManualInvoice } from '../../../api/invoices.js';
 import { createSubscription } from '../../../api/subscriptions.js';
 import UninvoicedBookings from '../UninvoicedBookings';
@@ -98,10 +98,16 @@ function buildSubscriptionPayload(state) {
   };
 }
 
+function isDeskByName(name) {
+  const n = (name || '').toUpperCase().replace(/[-_\s]/g, '');
+  return /^MA1O1\d{1,2}$/.test(n);
+}
+
 function buildBookingPayload(state) {
   const contactId = state.contact?.id;
   const normalizedType = (state.reservationType || '').toLowerCase();
   const isPerHour = normalizedType === 'por horas';
+  const isDesk = isDeskByName(state.producto?.name);
   const showWeekdays = normalizedType === 'por horas' || normalizedType === 'diaria';
   const orderedWeekdays = WEEKDAY_ORDER.filter((d) => state.weekdays.includes(d));
   const attendees = state.attendees === '' ? null : Number(state.attendees);
@@ -111,14 +117,26 @@ function buildBookingPayload(state) {
       ? Number(state.customPrice)
       : (state.producto?.priceFrom || null));
 
+  // Desk Pase de Día: the bookable product is the per-desk row
+  // (state.producto.deskProductoId), not the catalog parent (state.producto.id).
+  const productoId = isDesk
+    ? (state.producto?.deskProductoId || state.producto?.id)
+    : state.producto?.id;
+
+  // Backend requires @NotEmpty timeSlots. Day-pass bookings fill the full day.
+  const slotsRequired = isPerHour || isDesk;
+  const timeSlots = slotsRequired
+    ? [{ from: state.startTime || '00:00', to: state.endTime || '23:59' }]
+    : [];
+
   return {
     contactId,
     centroId: state.centro?.id,
-    productoId: state.producto?.id,
+    productoId,
     reservationType: state.reservationType,
     dateFrom: state.dateFrom,
     dateTo: state.dateTo,
-    timeSlots: isPerHour ? [{ from: state.startTime, to: state.endTime }] : [],
+    timeSlots,
     weekdays: showWeekdays ? orderedWeekdays : [],
     openEnded: state.openEnded,
     tarifa,
@@ -127,6 +145,21 @@ function buildBookingPayload(state) {
     note: state.note || null,
     status: state.status,
   };
+}
+
+async function resolveCentroId(state) {
+  if (state.centro?.id) return state.centro.id;
+  const code = state.producto?.centerCode || state.producto?.centroCodigo;
+  if (!code) return null;
+  try {
+    const centros = await fetchBookingCentros();
+    const match = (Array.isArray(centros) ? centros : []).find(
+      (c) => c.code && c.code.toLowerCase() === String(code).toLowerCase()
+    );
+    return match?.id || null;
+  } catch {
+    return null;
+  }
 }
 
 /* ─────────────────────────────────────
@@ -236,6 +269,14 @@ function AdminPaymentOptions({ onCreated }) {
 
       // ── Standard booking flow ──
       const bookingPayload = buildBookingPayload(state);
+      if (!bookingPayload.centroId) {
+        bookingPayload.centroId = await resolveCentroId(state);
+      }
+      if (!bookingPayload.centroId || !bookingPayload.productoId) {
+        setError(t('steps.missingRoomCenter', 'Missing room or center — go back and re-select the space.'));
+        setSubmitting(false);
+        return;
+      }
       const bookingCount = computeBookingCount(state);
       const grandTotal = +(pricing.total * bookingCount).toFixed(2);
       const grandSubtotal = +(pricing.subtotal * bookingCount).toFixed(2);
