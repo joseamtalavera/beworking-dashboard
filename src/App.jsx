@@ -82,11 +82,13 @@ const App = () => {
     );
   }
 
-  const path = window.location.pathname;
-  const isAdminRoute = path.startsWith('/admin');
+  // Defense-in-depth: only staff render the admin app, regardless of URL.
+  // The backend already blocks /api/admin/** for non-ADMIN tokens (SecurityConfig),
+  // but without this check a USER navigating to /admin would still see the admin
+  // shell render (empty, but visible).
   const role = (profile?.role || '').toUpperCase();
   const isStaff = role === 'ADMIN' || role === 'ACCOUNTANT';
-  const mainApp = (isAdminRoute || isStaff)
+  const mainApp = isStaff
     ? <AdminApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />
     : <UserApp userProfile={profile} refreshProfile={refreshProfile} logout={logout} />;
 
