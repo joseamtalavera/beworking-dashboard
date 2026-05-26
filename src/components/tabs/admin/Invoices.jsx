@@ -25,8 +25,10 @@ import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
@@ -855,24 +857,43 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   </TableCell>
                   {canEdit && (
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                    <Chip
-                      label={t('credit')}
-                      size="small"
-                      variant="outlined"
-                      clickable
-                      onClick={() => setCreditDialog({ open: true, invoice: inv, deleteBookings: false, amount: Number(inv.total ?? 0).toFixed(2) })}
-                      sx={{
-                        borderColor: 'secondary.main',
-                        color: 'secondary.main',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        height: 24,
-                        cursor: 'pointer',
-                        '&:hover': {
-                          backgroundColor: (theme) => alpha(theme.palette.secondary.main, 0.08),
-                        },
-                      }}
-                    />
+                    <Stack direction="row" spacing={0.75} alignItems="center">
+                      <Chip
+                        label={t('credit')}
+                        size="small"
+                        variant="outlined"
+                        clickable
+                        onClick={() => setCreditDialog({ open: true, invoice: inv, deleteBookings: false, amount: Number(inv.total ?? 0).toFixed(2) })}
+                        sx={{
+                          borderColor: 'secondary.main',
+                          color: 'secondary.main',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          height: 24,
+                          cursor: 'pointer',
+                          '&:hover': {
+                            backgroundColor: (theme) => alpha(theme.palette.secondary.main, 0.08),
+                          },
+                        }}
+                      />
+                      <Tooltip title="Enviar PDF por WhatsApp" placement="top" arrow>
+                        <IconButton
+                          size="small"
+                          aria-label="Send invoice PDF via WhatsApp"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const number = inv.holdedInvoiceNum || inv.idFactura || inv.id;
+                            const pdfUrl = `${window.location.origin}/api/invoices/${inv.id}/pdf`;
+                            const greeting = inv.clientName ? `Hola ${inv.clientName}, ` : 'Hola, ';
+                            const msg = `${greeting}aquí tienes tu factura #${number} de BeWorking: ${pdfUrl}`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                          }}
+                          sx={{ p: 0.5 }}
+                        >
+                          <WhatsAppIcon sx={{ fontSize: 18, color: '#25D366' }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
                   </TableCell>
                   )}
                 </TableRow>
