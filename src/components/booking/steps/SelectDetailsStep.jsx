@@ -28,11 +28,11 @@ import enBooking from '../../../i18n/locales/en/booking.json';
 
 import { useBookingFlow } from '../BookingFlowContext';
 import { fetchPublicAvailability, fetchBloqueos } from '../../../api/bookings';
-import { fetchDeskOccupancy } from '../../../api/subscriptions';
+import CoworkingFloorPlan from '../CoworkingFloorPlan';
+import CoworkingPeriodSelector from '../CoworkingPeriodSelector';
 import RoomCalendarGrid, { CalendarLegend } from '../RoomCalendarGrid';
 import TimeSlotSelect from '../TimeSlotSelect';
 import { addMinutesToTime, buildTimeSlots, getBookedSlotIds, getMaxEndTime } from '../../../utils/calendarUtils';
-import { GRID_DESKS, buildDeskMap } from '../CoworkingFloorPlan';
 
 if (!i18n.hasResourceBundle('es', 'booking')) {
   i18n.addResourceBundle('es', 'booking', esBooking);
@@ -171,39 +171,55 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
   const deskStartDate = deskBookingType === 'day' ? state.dateFrom : `${deskMonth}-01`;
   const deskEndDate = deskBookingType === 'day' ? state.dateFrom : getMonthEnd(deskStartDate, deskDuration);
 
-  // Desk floor plan: fetch subscription-based occupancy
-  const [deskOccupancy, setDeskOccupancy] = useState([]);
+  // Desk availability: date-aware, mirrors the admin Coworking view and the
+  // booking-app SelectDeskDetails flow. We query /public/availability for all
+  // 16 MA1O1-N products on the selected start date; every bloqueo (daily +
+  // subscription-derived) returned for that date becomes a "booked" desk.
+  const DESK_PRODUCT_NAMES = useMemo(() => {
+    const list = [];
+    for (let i = 1; i <= 16; i += 1) list.push(`MA1O1-${i}`);
+    return list;
+  }, []);
+
+  const [deskAvail, setDeskAvail] = useState([]);
   useEffect(() => {
-    if (!isDeskProduct) return;
+    if (!isDeskProduct || !deskStartDate) return;
     let cancelled = false;
     setAvailLoading(true);
-    fetchDeskOccupancy()
+    fetchPublicAvailability({
+      date: deskStartDate,
+      products: DESK_PRODUCT_NAMES,
+      centers: ['MA1'],
+    })
       .then((data) => {
-        if (!cancelled) setDeskOccupancy(Array.isArray(data) ? data : []);
+        if (!cancelled) setDeskAvail(Array.isArray(data) ? data : []);
       })
       .catch(() => {
-        if (!cancelled) setDeskOccupancy([]);
+        if (!cancelled) setDeskAvail([]);
       })
       .finally(() => {
         if (!cancelled) setAvailLoading(false);
       });
     return () => { cancelled = true; };
-  }, [isDeskProduct]);
+  }, [isDeskProduct, deskStartDate, DESK_PRODUCT_NAMES]);
 
-  const deskDataMap = useMemo(() => {
-    if (!isDeskProduct) return null;
-    return buildDeskMap(deskOccupancy);
-  }, [isDeskProduct, deskOccupancy]);
+  const bookedDeskNumbers = useMemo(() => {
+    const set = new Set();
+    deskAvail.forEach((item) => {
+      const name = (item?.producto?.nombre || '').toUpperCase().replace(/[-_\s]/g, '');
+      const m = name.match(/^MA1O1(\d{1,2})$/);
+      if (m) set.add(parseInt(m[1], 10));
+    });
+    return set;
+  }, [deskAvail]);
 
   const deskAvailableCount = useMemo(() => {
-    if (!deskDataMap) return 16;
     let count = 0;
-    for (let i = 1; i <= 16; i++) {
-      const entry = deskDataMap.get(i);
-      if (!entry || !entry.subscription) count++;
+    for (let i = 1; i <= 16; i += 1) {
+      if (!bookedDeskNumbers.has(i)) count += 1;
     }
     return count;
-  }, [deskDataMap]);
+  }, [bookedDeskNumbers]);
 
   const handleDeskSelect = (deskNum) => {
     setSelectedDesk(deskNum);
@@ -333,200 +349,32 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       {/* ── Desk flow (when product is a desk) ── */}
       {isDeskProduct ? (
         <>
-          {/* Period selection */}
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
-            <Stack spacing={2.5}>
-              <Stack spacing={0.5}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
-                  {t('steps.pickDateTime')}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {t('steps.pickDateTimeDesc')}
-                </Typography>
-              </Stack>
+          <CoworkingPeriodSelector
+            bookingType={deskBookingType}
+            onBookingTypeChange={(v) => {
+              setDeskBookingType(v);
+              if (v === 'day' && !state.dateFrom) {
+                const today = new Date().toISOString().slice(0, 10);
+                setFields({ dateFrom: today, dateTo: today });
+              }
+            }}
+            date={state.dateFrom || ''}
+            onDateChange={(v) => setFields({ dateFrom: v, dateTo: v })}
+            month={deskMonth}
+            onMonthChange={setDeskMonth}
+            duration={deskDuration}
+            onDurationChange={setDeskDuration}
+          />
 
-              {/* Booking type toggle */}
-              <Stack spacing={1}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {t('steps.reservationType')}
-                </Typography>
-                <Stack direction="row" spacing={1}>
-                  {DESK_BOOKING_TYPES.map((opt) => (
-                    <Button
-                      key={opt.value}
-                      variant={deskBookingType === opt.value ? 'contained' : 'outlined'}
-                      size="small"
-                      onClick={() => setDeskBookingType(opt.value)}
-                      sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, px: 2.5 }}
-                    >
-                      {opt.label}
-                    </Button>
-                  ))}
-                </Stack>
-              </Stack>
-
-              {deskBookingType === 'day' ? (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    border: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper',
-                    display: 'flex', alignItems: 'center', overflow: 'hidden',
-                    boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    borderRadius: { xs: 3, sm: 999 },
-                  }}
-                >
-                  <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                    <TextField
-                      variant="standard"
-                      type="date"
-                      label={t('admin.selectDate')}
-                      value={state.dateFrom || ''}
-                      onChange={(e) => {
-                        setField('dateFrom', e.target.value);
-                        setField('dateTo', e.target.value);
-                      }}
-                      fullWidth
-                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={pillFieldSx(state.dateFrom)}
-                    />
-                  </Box>
-                </Paper>
-              ) : (
-                <>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      border: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper',
-                      display: 'flex', alignItems: 'center', overflow: 'hidden',
-                      boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      borderRadius: { xs: 3, sm: 999 },
-                    }}
-                  >
-                    <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                      <TextField
-                        variant="standard"
-                        type="month"
-                        label={t('steps.dateFrom')}
-                        value={deskMonth}
-                        onChange={(e) => setDeskMonth(e.target.value)}
-                        fullWidth
-                        slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                        sx={pillFieldSx(deskMonth)}
-                      />
-                    </Box>
-                  </Paper>
-                  <Stack spacing={1}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {t('steps.duration')}
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {DESK_DURATION_OPTIONS.map((opt) => (
-                        <Button
-                          key={opt.months}
-                          variant={deskDuration === opt.months ? 'contained' : 'outlined'}
-                          size="small"
-                          onClick={() => setDeskDuration(opt.months)}
-                          sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, px: 2.5 }}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </Stack>
-                  </Stack>
-                </>
-              )}
-            </Stack>
-          </Paper>
-
-          {/* Choose your desk */}
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
-            <Stack spacing={2}>
-              <Stack spacing={0.5}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
-                  {t('admin.floorPlan')}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {t('admin.desksAvailableCount', { available: deskAvailableCount, total: 16 })}
-                </Typography>
-              </Stack>
-
-              <Stack direction="row" spacing={2}>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: 'success.light' }} />
-                  <Typography variant="caption">{t('admin.deskAvailable')}</Typography>
-                </Stack>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: 'action.disabled' }} />
-                  <Typography variant="caption">{t('admin.deskOccupied')}</Typography>
-                </Stack>
-              </Stack>
-
-              {availLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <CircularProgress size={28} />
-                </Box>
-              ) : (
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gridTemplateRows: 'repeat(6, auto)',
-                    gap: 1.5,
-                    py: 2,
-                  }}
-                >
-                  {GRID_DESKS.map(([deskNum, col, row]) => {
-                    const deskEntry = deskDataMap?.get(deskNum);
-                    const isBooked = Boolean(deskEntry?.subscription);
-                    const isSelected = selectedDesk === deskNum;
-
-                    return (
-                      <Box key={deskNum} sx={{ gridColumn: col, gridRow: row }}>
-                        <Button
-                          variant={isSelected ? 'contained' : 'outlined'}
-                          onClick={() => !isBooked && handleDeskSelect(deskNum)}
-                          disabled={isBooked}
-                          fullWidth
-                          sx={{
-                            py: 2,
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            fontWeight: 700,
-                            fontSize: '0.875rem',
-                            minWidth: 0,
-                            ...(!isSelected && !isBooked && {
-                              borderColor: 'success.light',
-                              color: 'success.dark',
-                              '&:hover': {
-                                borderColor: 'success.main',
-                                bgcolor: (theme) => alpha(theme.palette.success.main, 0.08),
-                              },
-                            }),
-                            ...(isBooked && {
-                              borderColor: 'action.disabled',
-                              color: 'text.disabled',
-                              bgcolor: (theme) => alpha(theme.palette.action.disabled, 0.08),
-                            }),
-                          }}
-                        >
-                          <Stack alignItems="center" spacing={0.25}>
-                            <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1 }}>
-                              {t('admin.deskNumber', { number: deskNum }).split(' ')[0]}
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 700, lineHeight: 1 }}>
-                              {deskNum}
-                            </Typography>
-                          </Stack>
-                        </Button>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              )}
-            </Stack>
-          </Paper>
+          <CoworkingFloorPlan
+            mode="user"
+            bookedDeskNumbers={bookedDeskNumbers}
+            selectedDeskNumber={selectedDesk}
+            onDeskClick={(deskNum) => {
+              if (!bookedDeskNumbers.has(deskNum)) handleDeskSelect(deskNum);
+            }}
+            loading={availLoading}
+          />
         </>
       ) : (
       /* ── Pick your date & time (meeting rooms) ── */

@@ -38,24 +38,25 @@ export function buildDeskMap(occupancyData) {
   return map;
 }
 
-function DeskButton({ deskNumber, data, isBookedOverride, onClick, t }) {
+function DeskButton({ deskNumber, data, isBookedOverride, onClick, t, showOccupantName, isSelected }) {
   const { subscription } = data || {};
   // When the parent passes a date-aware bookedDeskNumbers set, isBookedOverride
   // is the source of truth. Otherwise fall back to "has active subscription".
   const isOccupied = isBookedOverride != null ? isBookedOverride : Boolean(subscription);
-  const occupantName = subscription?.contactName || '';
+  const occupantName = showOccupantName ? (subscription?.contactName || '') : '';
 
   const tooltipContent = isOccupied
-    ? (subscription
-        ? [occupantName, subscription.productName, subscription.description].filter(Boolean).join(' · ')
+    ? (showOccupantName && subscription
+        ? [subscription.contactName, subscription.productName, subscription.description].filter(Boolean).join(' · ')
         : t('admin.deskBookedForDate'))
     : t('admin.deskAvailable');
 
   return (
     <Tooltip arrow title={tooltipContent}>
       <Button
-        variant="outlined"
+        variant={isSelected ? 'contained' : 'outlined'}
         onClick={() => onClick(deskNumber, subscription)}
+        disabled={isOccupied}
         sx={{
           py: 1.5,
           px: 1,
@@ -65,16 +66,19 @@ function DeskButton({ deskNumber, data, isBookedOverride, onClick, t }) {
           fontSize: '0.875rem',
           minWidth: 0,
           width: '100%',
-          borderColor: isOccupied ? 'action.disabled' : 'success.light',
-          color: isOccupied ? 'text.disabled' : 'success.dark',
-          bgcolor: (theme) => isOccupied
-            ? alpha(theme.palette.action.disabled, 0.08)
-            : 'transparent',
+          borderColor: isSelected ? 'success.main' : (isOccupied ? 'action.disabled' : 'success.light'),
+          color: isSelected ? 'background.paper' : (isOccupied ? 'text.disabled' : 'success.dark'),
+          backgroundColor: (theme) => isSelected
+            ? theme.palette.success.main
+            : (isOccupied ? alpha(theme.palette.action.disabled, 0.08) : 'transparent'),
           '&:hover': {
-            borderColor: isOccupied ? 'action.disabled' : 'success.main',
-            bgcolor: (theme) => isOccupied
-              ? alpha(theme.palette.action.disabled, 0.12)
-              : alpha(theme.palette.success.main, 0.08),
+            borderColor: isSelected ? 'success.dark' : (isOccupied ? 'action.disabled' : 'success.main'),
+            backgroundColor: (theme) => isSelected
+              ? theme.palette.success.dark
+              : (isOccupied ? alpha(theme.palette.action.disabled, 0.12) : alpha(theme.palette.success.main, 0.08)),
+          },
+          '&.Mui-disabled': {
+            color: 'text.disabled',
           },
         }}
       >
@@ -132,9 +136,10 @@ export function DeskLegend() {
   );
 }
 
-export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDeskClick, loading }) {
+export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDeskClick, loading, mode = 'admin', selectedDeskNumber = null }) {
   const { t } = useTranslation('booking');
   const isDateAware = bookedDeskNumbers instanceof Set;
+  const showOccupantName = mode === 'admin';
 
   const availableCount = useMemo(() => {
     if (isDateAware) {
@@ -198,6 +203,8 @@ export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDesk
                 isBookedOverride={isBooked(deskNum)}
                 onClick={onDeskClick}
                 t={t}
+                showOccupantName={showOccupantName}
+                isSelected={selectedDeskNumber === deskNum}
               />
             </Box>
           ))}

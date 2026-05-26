@@ -96,6 +96,7 @@ import {
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
 import CoworkingFloorPlan, { buildDeskMap } from '../booking/CoworkingFloorPlan';
+import CoworkingPeriodSelector from '../booking/CoworkingPeriodSelector';
 import { fetchDeskOccupancy } from '../../api/subscriptions.js';
 import UninvoicedBookings from '../booking/UninvoicedBookings';
 import { useTranslation } from 'react-i18next';
@@ -4936,109 +4937,18 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
 
       {view === 'coworking' ? (
         <Stack spacing={3}>
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
-            <Stack spacing={2.5}>
-              <Stack spacing={0.5}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
-                  {t('admin.coworkingPeriodTitle')}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {t('admin.coworkingPeriodSubtitle')}
-                </Typography>
-              </Stack>
-
-              <Stack spacing={1}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {t('admin.bookingType')}
-                </Typography>
-                <Stack direction="row" spacing={1}>
-                  {['day', 'month'].map((opt) => (
-                    <Button
-                      key={opt}
-                      variant={coworkingBookingType === opt ? 'contained' : 'outlined'}
-                      size="small"
-                      onClick={() => setCoworkingBookingType(opt)}
-                      sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, px: 2.5 }}
-                    >
-                      {t(opt === 'day' ? 'admin.day' : 'admin.month')}
-                    </Button>
-                  ))}
-                </Stack>
-              </Stack>
-
-              {coworkingBookingType === 'day' ? (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    border: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper',
-                    display: 'flex', alignItems: 'center', overflow: 'hidden',
-                    boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    borderRadius: { xs: 3, sm: 999 },
-                  }}
-                >
-                  <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                    <TextField
-                      variant="standard"
-                      type="date"
-                      label={t('admin.selectDate')}
-                      value={coworkingDate}
-                      onChange={(e) => setCoworkingDate(e.target.value)}
-                      fullWidth
-                      slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                      sx={pillFieldSx(coworkingDate)}
-                    />
-                  </Box>
-                </Paper>
-              ) : (
-                <Stack spacing={2}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      border: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper',
-                      display: 'flex', alignItems: 'center', overflow: 'hidden',
-                      boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      borderRadius: { xs: 3, sm: 999 },
-                    }}
-                  >
-                    <Box sx={{ flex: 1, px: 3, py: { xs: 1.5, sm: 2 }, minWidth: 0, width: { xs: '100%', sm: 'auto' } }}>
-                      <TextField
-                        variant="standard"
-                        type="month"
-                        label={t('admin.startMonth')}
-                        value={coworkingMonth}
-                        onChange={(e) => setCoworkingMonth(e.target.value)}
-                        fullWidth
-                        slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
-                        sx={pillFieldSx(coworkingMonth)}
-                      />
-                    </Box>
-                  </Paper>
-                  <Stack spacing={1}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {t('admin.duration')}
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                      {[1, 3, 6, 12].map((months) => (
-                        <Button
-                          key={months}
-                          variant={coworkingDuration === months ? 'contained' : 'outlined'}
-                          size="small"
-                          onClick={() => setCoworkingDuration(months)}
-                          sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, px: 2.5 }}
-                        >
-                          {t('admin.monthsCount', { count: months })}
-                        </Button>
-                      ))}
-                    </Stack>
-                  </Stack>
-                </Stack>
-              )}
-            </Stack>
-          </Paper>
-
+          <CoworkingPeriodSelector
+            bookingType={coworkingBookingType}
+            onBookingTypeChange={setCoworkingBookingType}
+            date={coworkingDate}
+            onDateChange={setCoworkingDate}
+            month={coworkingMonth}
+            onMonthChange={setCoworkingMonth}
+            duration={coworkingDuration}
+            onDurationChange={setCoworkingDuration}
+          />
           <CoworkingFloorPlan
+            mode="admin"
             deskData={deskDataMap}
             bookedDeskNumbers={coworkingBookedDesks}
             onDeskClick={handleDeskClick}

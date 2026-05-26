@@ -20,9 +20,7 @@ import esBooking from '../../i18n/locales/es/booking.json';
 import enBooking from '../../i18n/locales/en/booking.json';
 
 import { fetchPublicAvailability } from '../../api/bookings';
-import { fetchDeskOccupancy } from '../../api/subscriptions';
 import RoomCalendarGrid, { CalendarLegend } from './RoomCalendarGrid';
-import CoworkingFloorPlan, { buildDeskMap } from './CoworkingFloorPlan';
 import { tokens } from '../../theme/tokens.js';
 
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
@@ -138,19 +136,10 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
   const producto = space?._producto || {};
   const isDesk = space?.type === 'desk';
 
-  // Desk occupancy state (only for coworking/desk spaces)
-  const [deskOccupancy, setDeskOccupancy] = useState(null);
-  const [deskLoading, setDeskLoading] = useState(false);
-  const deskDataMap = useMemo(() => buildDeskMap(deskOccupancy), [deskOccupancy]);
-
-  useEffect(() => {
-    if (!isDesk) return;
-    setDeskLoading(true);
-    fetchDeskOccupancy()
-      .then(setDeskOccupancy)
-      .catch(() => setDeskOccupancy([]))
-      .finally(() => setDeskLoading(false));
-  }, [isDesk]);
+  // Desk preview floor plan removed — date-aware availability now lives in
+  // Phase 3 (SelectDetailsStep) after the user clicks "Comenzar reserva",
+  // mirroring the booking app's SelectDeskDetails flow. The room-detail page
+  // is info-only for desks.
 
   const name = space?.name || producto.name || '';
   const centroName = space?.centerName || space?._centro?.label || '';
@@ -524,34 +513,30 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
           {/* Availability + CTA — always full width below description */}
           <Grid size={{ xs: 12 }}>
             {isDesk ? (
-              <Stack spacing={3}>
-                <CoworkingFloorPlan
-                  deskData={deskDataMap}
-                  onDeskClick={() => {}}
-                  loading={deskLoading}
-                />
-                <Stack spacing={2} alignItems="center">
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    {`${capacity ? t('detail.capacityOnly', { capacity }) + ' · ' : ''}€ ${priceDay}/day · € ${priceMonth}/month`}
-                  </Typography>
-                  <Button
-                    onClick={onStartBooking}
-                    variant="contained"
-                    size="large"
-                    sx={{
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      fontSize: '0.95rem',
-                      backgroundColor: 'brand.green',
-                      '&:hover': { backgroundColor: 'brand.greenHover' },
-                      borderRadius: 999,
-                      px: 5,
-                      py: 1.25,
-                    }}
-                  >
-                    {t('detail.startBooking')}
-                  </Button>
-                </Stack>
+              // Desks: info-only here. Floor plan + date/period picker live in
+              // Phase 3 (SelectDetailsStep) after the user clicks below,
+              // mirroring the booking app's SelectDeskDetails flow.
+              <Stack spacing={2} alignItems="center" sx={{ py: { xs: 2, md: 3 } }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {`${capacity ? t('detail.capacityOnly', { capacity }) + ' · ' : ''}€ ${priceDay}/day · € ${priceMonth}/month`}
+                </Typography>
+                <Button
+                  onClick={onStartBooking}
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    backgroundColor: 'brand.green',
+                    '&:hover': { backgroundColor: 'brand.greenHover' },
+                    borderRadius: 999,
+                    px: 5,
+                    py: 1.25,
+                  }}
+                >
+                  {t('detail.startBooking')}
+                </Button>
               </Stack>
             ) : (
               // Meeting-room layer 2: layer 1 (catalog) is the source of truth
