@@ -857,7 +857,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   </TableCell>
                   {canEdit && (
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                    <Stack direction="row" spacing={0.75} alignItems="center">
+                    <Stack direction="column" spacing={0.5} alignItems="center">
                       <Chip
                         label={t('credit')}
                         size="small"

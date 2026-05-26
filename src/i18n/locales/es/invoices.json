@@ -42,7 +42,7 @@
     "total": "Total",
     "issued": "Emitida",
     "document": "Documento",
-    "actions": "Acciones"
+    "actions": "Enviar"
   },
   "credit": "Abono",
   "creditConfirm": "¿Crear una factura de abono para {{invoiceNum}}? Esta acción es irreversible.",
