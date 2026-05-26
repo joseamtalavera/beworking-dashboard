@@ -750,7 +750,8 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold', display: { xs: 'none', sm: 'table-cell' } }}>{t('table.document')}</TableCell>
-                {canEdit && <TableCell sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.actions')}</TableCell>}
+                {canEdit && <TableCell align="center" sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.actions')}</TableCell>}
+                {canEdit && <TableCell align="center" sx={{ fontWeight: 'bold', display: { xs: 'none', md: 'table-cell' } }}>{t('table.send')}</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -856,44 +857,46 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
                     />
                   </TableCell>
                   {canEdit && (
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                    <Stack direction="column" spacing={0.5} alignItems="center">
-                      <Chip
-                        label={t('credit')}
+                  <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                    <Chip
+                      label={t('credit')}
+                      size="small"
+                      variant="outlined"
+                      clickable
+                      onClick={() => setCreditDialog({ open: true, invoice: inv, deleteBookings: false, amount: Number(inv.total ?? 0).toFixed(2) })}
+                      sx={{
+                        borderColor: 'secondary.main',
+                        color: 'secondary.main',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        height: 24,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: (theme) => alpha(theme.palette.secondary.main, 0.08),
+                        },
+                      }}
+                    />
+                  </TableCell>
+                  )}
+                  {canEdit && (
+                  <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                    <Tooltip title="Enviar PDF por WhatsApp" placement="top" arrow>
+                      <IconButton
                         size="small"
-                        variant="outlined"
-                        clickable
-                        onClick={() => setCreditDialog({ open: true, invoice: inv, deleteBookings: false, amount: Number(inv.total ?? 0).toFixed(2) })}
-                        sx={{
-                          borderColor: 'secondary.main',
-                          color: 'secondary.main',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          height: 24,
-                          cursor: 'pointer',
-                          '&:hover': {
-                            backgroundColor: (theme) => alpha(theme.palette.secondary.main, 0.08),
-                          },
+                        aria-label="Send invoice PDF via WhatsApp"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const number = inv.holdedInvoiceNum || inv.idFactura || inv.id;
+                          const pdfUrl = `${window.location.origin}/api/invoices/${inv.id}/pdf`;
+                          const greeting = inv.clientName ? `Hola ${inv.clientName}, ` : 'Hola, ';
+                          const msg = `${greeting}aquí tienes tu factura #${number} de BeWorking: ${pdfUrl}`;
+                          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
                         }}
-                      />
-                      <Tooltip title="Enviar PDF por WhatsApp" placement="top" arrow>
-                        <IconButton
-                          size="small"
-                          aria-label="Send invoice PDF via WhatsApp"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const number = inv.holdedInvoiceNum || inv.idFactura || inv.id;
-                            const pdfUrl = `${window.location.origin}/api/invoices/${inv.id}/pdf`;
-                            const greeting = inv.clientName ? `Hola ${inv.clientName}, ` : 'Hola, ';
-                            const msg = `${greeting}aquí tienes tu factura #${number} de BeWorking: ${pdfUrl}`;
-                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
-                          }}
-                          sx={{ p: 0.5 }}
-                        >
-                          <WhatsAppIcon sx={{ fontSize: 18, color: '#25D366' }} />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
+                        sx={{ p: 0.5 }}
+                      >
+                        <WhatsAppIcon sx={{ fontSize: 20, color: '#25D366' }} />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                   )}
                 </TableRow>
@@ -901,7 +904,7 @@ const Invoices = ({ mode = 'admin', userProfile }) => {
               })}
               {paginatedRows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? (canEdit ? 9 : 8) : 7} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={isAdmin ? (canEdit ? 10 : 8) : 7} align="center" sx={{ py: 6 }}>
                     <Typography variant="body2" color="text.secondary">{t('noInvoices')}</Typography>
                   </TableCell>
                 </TableRow>

@@ -42,7 +42,8 @@
     "total": "Total",
     "issued": "Issued",
     "document": "Document",
-    "actions": "Send"
+    "actions": "Actions",
+    "send": "Send"
   },
   "credit": "Credit",
   "creditConfirm": "Create a refund invoice for {{invoiceNum}}? This action is irreversible.",
