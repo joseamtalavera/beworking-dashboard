@@ -1648,8 +1648,11 @@ const InfoRow = ({ label, value, pill, copyable, actionType }) => {
   const sanitizedPhone = actionType === 'phone' && value
     ? String(value).replace(/[^\d+]/g, '').replace(/^\+/, '')
     : null;
+  // Force Gmail web compose as info@be-working.com (avoids OS default mailto
+  // handler opening Outlook/Edge). If the user isn't logged into that account
+  // Gmail will show the account picker.
   const actionHref = actionType === 'email' && value
-    ? `mailto:${String(value).trim()}`
+    ? `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(String(value).trim())}&authuser=info@be-working.com`
     : actionType === 'phone' && sanitizedPhone
       ? `https://wa.me/${sanitizedPhone}`
       : null;
