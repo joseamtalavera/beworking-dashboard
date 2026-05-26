@@ -37,6 +37,19 @@ const App = () => {
     return () => window.removeEventListener('session-expired', handleSessionExpired);
   }, [handleSessionExpired]);
 
+  // Force logout when a non-staff user lands on /admin (typed URL, stale
+  // bookmark, etc). The backend already blocks /api/admin/** and the render
+  // gate below stops the AdminApp shell from showing — this kicks the user
+  // back to login so the URL trick stops returning ANY authenticated state.
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    const role = (profile?.role || '').toUpperCase();
+    const isStaff = role === 'ADMIN' || role === 'ACCOUNTANT';
+    if (!isStaff && window.location.pathname.startsWith('/admin')) {
+      logout();
+    }
+  }, [status, profile, logout]);
+
   const handleLogin = () => {
     const url = loginUrl || import.meta.env.VITE_LOGIN_URL || 'https://be-working.com/login';
     window.location.href = url;
