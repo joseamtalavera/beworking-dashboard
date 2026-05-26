@@ -18,6 +18,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
 import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
 import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
@@ -733,8 +734,8 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             <Stack spacing={2} sx={{ width: '100%' }}>
               <InfoRow label={t('profile.tenantId')} value={contact.id} pill />
               <InfoRow label={t('profile.name')} value={contact.name} copyable />
-              <InfoRow label={t('profile.email')} value={contact.contact?.email} copyable />
-              <InfoRow label={t('profile.phone')} value={contact.phone_primary} copyable />
+              <InfoRow label={t('profile.email')} value={contact.contact?.email} copyable actionType="email" />
+              <InfoRow label={t('profile.phone')} value={contact.phone_primary} copyable actionType="phone" />
               <InfoRow label={t('profile.userType')} value={contact.user_type} />
               <InfoRow label={t('profile.status')} value={contact.status ? t('status.' + contact.status, { defaultValue: contact.status }) : undefined} />
               <InfoRow label={t('profile.center')} value={contact.center} />
@@ -1635,7 +1636,7 @@ InfoCard.propTypes = {
   children: PropTypes.node
 };
 
-const InfoRow = ({ label, value, pill, copyable }) => {
+const InfoRow = ({ label, value, pill, copyable, actionType }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e) => {
     e.stopPropagation();
@@ -1644,6 +1645,16 @@ const InfoRow = ({ label, value, pill, copyable }) => {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+  const sanitizedPhone = actionType === 'phone' && value
+    ? String(value).replace(/[^\d+]/g, '').replace(/^\+/, '')
+    : null;
+  const actionHref = actionType === 'email' && value
+    ? `mailto:${String(value).trim()}`
+    : actionType === 'phone' && sanitizedPhone
+      ? `https://wa.me/${sanitizedPhone}`
+      : null;
+  const actionTitle = actionType === 'email' ? 'Escribir email' : actionType === 'phone' ? 'Enviar WhatsApp' : null;
+  const ActionIcon = actionType === 'email' ? MailOutlineRoundedIcon : actionType === 'phone' ? WhatsAppIcon : null;
   return (
     <Stack
       spacing={0.5}
@@ -1673,6 +1684,21 @@ const InfoRow = ({ label, value, pill, copyable }) => {
               </IconButton>
             </Tooltip>
           )}
+          {actionHref && ActionIcon && (
+            <Tooltip title={actionTitle} placement="top" arrow>
+              <IconButton
+                size="small"
+                component="a"
+                href={actionHref}
+                target={actionType === 'phone' ? '_blank' : undefined}
+                rel={actionType === 'phone' ? 'noopener noreferrer' : undefined}
+                onClick={(e) => e.stopPropagation()}
+                sx={{ p: 0.5 }}
+              >
+                <ActionIcon sx={{ fontSize: 16, color: actionType === 'phone' ? '#25D366' : 'text.secondary' }} />
+              </IconButton>
+            </Tooltip>
+          )}
         </Stack>
       )}
     </Stack>
@@ -1683,7 +1709,8 @@ InfoRow.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   pill: PropTypes.bool,
-  copyable: PropTypes.bool
+  copyable: PropTypes.bool,
+  actionType: PropTypes.oneOf(['email', 'phone'])
 };
 
 const HighlightCard = ({ label, value, trend }) => (
