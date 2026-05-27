@@ -90,6 +90,10 @@ const ReconciliationCard = () => {
 
   const pendingByAccount = useMemo(() => {
     const acc = {};
+    // Reconciliation card is sub-focused (Stripe / Scheduled / Bank / Deviation / Overdue
+    // are all sub metrics). Restrict Pendiente to subscription categories so meeting-room
+    // one-offs and extras don't muddy the count.
+    const SUB_CATEGORIES = new Set(['virtual_office', 'coworking']);
     invoices.forEach((invoice) => {
       const rawDate = invoice.createdAt || invoice.fechaFactura;
       if (!rawDate) return;
@@ -99,6 +103,7 @@ const ReconciliationCard = () => {
       const isPending = status.includes('pend') || status.includes('confir')
         || status.includes('fact') || status.includes('invoice') || status.includes('created');
       if (!isPending) return;
+      if (!SUB_CATEGORIES.has((invoice.category || '').toLowerCase())) return;
       const amount = parseFloat(invoice.total || invoice.importe || 0);
       const cuenta = (invoice.cuenta || 'PT').toUpperCase();
       if (!acc[cuenta]) acc[cuenta] = { count: 0, amount: 0, invoices: [] };
