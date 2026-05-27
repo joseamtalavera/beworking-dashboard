@@ -123,7 +123,8 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 // pillFieldSx imported from src/components/common/pillField.js
 
 export default function RoomDetail({ space, onBack, onStartBooking }) {
-  const { t } = useTranslation('booking');
+  const { t, i18n: i18nInstance } = useTranslation('booking');
+  const isEn = (i18nInstance.language || '').toLowerCase().startsWith('en');
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
@@ -143,11 +144,12 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
 
   const name = space?.name || producto.name || '';
   const centroName = space?.centerName || space?._centro?.label || '';
-  const subtitle = space?.subtitle || producto.subtitle || '';
-  const description =
-    space?.description ||
-    producto.description ||
-    'Nuestra Aula está equipada para reuniones, eventos y formaciones. Espacio luminoso con conexión de alta velocidad, pizarra y un ambiente profesional listo para tus clientes.';
+  const subtitle = (isEn && (space?.subtitleEn || producto.subtitleEn))
+    || space?.subtitle || producto.subtitle || '';
+  const description = (isEn && (space?.descriptionEn || producto.descriptionEn))
+    || space?.description
+    || producto.description
+    || 'Nuestra Aula está equipada para reuniones, eventos y formaciones. Espacio luminoso con conexión de alta velocidad, pizarra y un ambiente profesional listo para tus clientes.';
   const capacity = space?.capacity || (producto.capacity != null ? String(producto.capacity) : '');
   const priceFrom = producto.priceFrom ?? space?.priceFrom ?? null;
   const priceUnit = space?.priceUnit || producto.priceUnit || '';
