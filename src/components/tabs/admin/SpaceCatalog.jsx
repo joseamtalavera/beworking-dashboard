@@ -89,7 +89,9 @@ const EMPTY_FORM = {
   tags: '',
   amenities: [],
   subtitle: '',
+  subtitleEn: '',
   description: '',
+  descriptionEn: '',
   images: []
 };
 
@@ -426,7 +428,9 @@ const SpaceCatalog = () => {
       tags: toTagString(row.tags),
       amenities: Array.isArray(row.amenities) ? row.amenities : [],
       subtitle: row.subtitle ?? '',
+      subtitleEn: row.subtitleEn ?? '',
       description: row.description ?? '',
+      descriptionEn: row.descriptionEn ?? '',
       images: normaliseImages(row.images)
     });
     setEditingIndex(index);
@@ -1142,9 +1146,28 @@ const SpaceCatalog = () => {
                     sx={pillFieldSx(formValues.subtitle)}
                   />
                   <TextField
+                    label={`${t('dialog.titleField')} (EN)`}
+                    name="subtitleEn"
+                    value={formValues.subtitleEn}
+                    onChange={handleChange}
+                    fullWidth
+                    variant="standard"
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    sx={pillFieldSx(formValues.subtitleEn)}
+                  />
+                  <TextField
                     label={t('dialog.description')}
                     name="description"
                     value={formValues.description}
+                    onChange={handleChange}
+                    fullWidth
+                    minRows={4}
+                    multiline
+                  />
+                  <TextField
+                    label={`${t('dialog.description')} (EN)`}
+                    name="descriptionEn"
+                    value={formValues.descriptionEn}
                     onChange={handleChange}
                     fullWidth
                     minRows={4}
