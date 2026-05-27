@@ -106,18 +106,6 @@ const pickInstructionIcon = (text) => {
   return InfoOutlinedIcon;
 };
 
-const DEFAULT_CANCELLATION_POLICY = [
-  'La fecha de la reserva podrá modificarse hasta 24 h antes del inicio.',
-  'La modificación debe confirmarse por email.',
-  'No se realizará devolución en caso de no asistencia.',
-];
-
-const DEFAULT_BOOKING_INSTRUCTIONS = [
-  'Solicita el día de tu reserva.',
-  'Te confirmaremos disponibilidad y enviaremos la factura.',
-  'Tras el pago recibirás instrucciones de acceso.',
-];
-
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 // pillFieldSx imported from src/components/common/pillField.js
@@ -162,8 +150,15 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
     return [];
   })();
 
-  const cancellationPolicy = producto.cancellationPolicy || DEFAULT_CANCELLATION_POLICY;
-  const bookingInstructions = producto.bookingInstructions || DEFAULT_BOOKING_INSTRUCTIONS;
+  const cancellationPolicy = producto.cancellationPolicy || [
+    t('detail.cancellationPolicy2'),
+    t('detail.cancellationPolicy3'),
+  ];
+  const bookingInstructions = producto.bookingInstructions || [
+    t('detail.instruction1'),
+    t('detail.instruction2'),
+    t('detail.instruction3'),
+  ];
 
   const galleryImages = (() => {
     const fromProducto = Array.isArray(producto.images) ? producto.images.filter(Boolean) : [];
@@ -460,7 +455,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
                           >
                             <AmenityIcon sx={{ fontSize: 18, color: 'brand.green' }} />
                             <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 500 }}>
-                              {amenity}
+                              {t(`detail.amenityMap.${amenity}`, { defaultValue: amenity })}
                             </Typography>
                           </Box>
                         </Box>

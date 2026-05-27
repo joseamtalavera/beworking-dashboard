@@ -92,12 +92,23 @@
     "startBooking": "Start booking",
     "location": "Location",
     "capacityGuests": "Capacity {{capacity}} guests",
-    "cancellationPolicy1": "The booking date can be modified up to 24 hours before the start.",
-    "cancellationPolicy2": "The modification must be confirmed by email.",
-    "cancellationPolicy3": "No refund will be made in case of no-show.",
+    "cancellationPolicy2": "Modifications by email.",
+    "cancellationPolicy3": "No refund in case of no-show.",
     "instruction1": "Request your booking day.",
     "instruction2": "We will confirm availability and send you the invoice.",
-    "instruction3": "After payment you will receive access instructions."
+    "instruction3": "After payment you will receive access instructions.",
+    "amenityMap": {
+      "Pizarra": "Whiteboard",
+      "Acceso 24h": "24h access",
+      "Internet 600Mb": "Internet 600Mb",
+      "Proyector": "Projector",
+      "Aire acondicionado": "Air conditioning",
+      "Llave digital": "Digital key",
+      "Soporte 24h": "24h support",
+      "Sin permanencia": "No commitment",
+      "Alarma": "Alarm",
+      "Escaner e impresora": "Scanner & printer"
+    }
   },
   "steps": {
     "date": "Date",

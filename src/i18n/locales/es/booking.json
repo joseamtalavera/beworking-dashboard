@@ -92,12 +92,23 @@
     "startBooking": "Comenzar reserva",
     "location": "Ubicación",
     "capacityGuests": "Capacidad {{capacity}} invitados",
-    "cancellationPolicy1": "La fecha de la reserva podrá modificarse hasta 24 h antes del inicio.",
-    "cancellationPolicy2": "La modificación debe confirmarse por email.",
-    "cancellationPolicy3": "No se realizará devolución en caso de no asistencia.",
+    "cancellationPolicy2": "Modificaciones vía correo electrónico.",
+    "cancellationPolicy3": "No hay reembolso en caso de no asistencia.",
     "instruction1": "Solicita el día de tu reserva.",
     "instruction2": "Te confirmaremos disponibilidad y enviaremos la factura.",
-    "instruction3": "Tras el pago recibirás instrucciones de acceso."
+    "instruction3": "Tras el pago recibirás instrucciones de acceso.",
+    "amenityMap": {
+      "Pizarra": "Pizarra",
+      "Acceso 24h": "Acceso 24h",
+      "Internet 600Mb": "Internet 600Mb",
+      "Proyector": "Proyector",
+      "Aire acondicionado": "Aire acondicionado",
+      "Llave digital": "Llave digital",
+      "Soporte 24h": "Soporte 24h",
+      "Sin permanencia": "Sin permanencia",
+      "Alarma": "Alarma",
+      "Escaner e impresora": "Escáner e impresora"
+    }
   },
   "steps": {
     "date": "Fecha",
