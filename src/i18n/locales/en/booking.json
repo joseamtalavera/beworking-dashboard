@@ -49,7 +49,14 @@
     "desk": "Desk",
     "available": "available",
     "from": "From",
-    "bookNow": "Book now"
+    "bookNow": "Book now",
+    "typeMap": {
+      "Aula": "Meeting room",
+      "Mesa": "Desk",
+      "Despacho": "Office",
+      "Coworking": "Coworking",
+      "Sala": "Room"
+    }
   },
   "detail": {
     "backToCatalog": "Back to catalog",

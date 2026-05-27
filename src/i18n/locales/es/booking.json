@@ -49,7 +49,14 @@
     "desk": "Escritorio",
     "available": "disponibles",
     "from": "Desde",
-    "bookNow": "Reservar"
+    "bookNow": "Reservar",
+    "typeMap": {
+      "Aula": "Sala de reuniones",
+      "Mesa": "Escritorio",
+      "Despacho": "Despacho",
+      "Coworking": "Coworking",
+      "Sala": "Sala"
+    }
   },
   "detail": {
     "backToCatalog": "Volver al catálogo",
