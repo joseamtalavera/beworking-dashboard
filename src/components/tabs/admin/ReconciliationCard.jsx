@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n/i18n.js';
@@ -24,13 +24,42 @@ import TableRow from '@mui/material/TableRow';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { apiFetch } from '../../../api/client.js';
-import { fetchInvoices } from '../../../api/invoices.js';
 import { tokens } from '../../../theme/tokens.js';
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
   i18n.addResourceBundle('es', 'overview', esOverview);
   i18n.addResourceBundle('en', 'overview', enOverview);
 }
+
+const SubIdBlock = ({ title, subtitle, ids, color, onClick }) => (
+  <Box
+    onClick={onClick}
+    sx={{
+      cursor: onClick ? 'pointer' : 'default',
+      borderRadius: 1,
+      transition: 'background 0.15s',
+      '&:hover': onClick ? { bgcolor: alpha(color, 0.04) } : {},
+      px: 1,
+      py: 0.5,
+    }}
+  >
+    <Typography sx={{ color, fontWeight: 700, fontSize: '0.75rem', mb: 0.25 }}>{title}</Typography>
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>{subtitle}</Typography>
+    <Box sx={{
+      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+      fontSize: '0.7rem',
+      color: 'text.secondary',
+      bgcolor: 'action.hover',
+      borderRadius: 0.75,
+      px: 1,
+      py: 0.75,
+      lineHeight: 1.7,
+      wordBreak: 'break-all',
+    }}>
+      {ids.map((id) => <div key={id}>{id}</div>)}
+    </Box>
+  </Box>
+);
 
 const ReconciliationCard = () => {
   const { t } = useTranslation('overview');
@@ -41,7 +70,6 @@ const ReconciliationCard = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
-  const [invoices, setInvoices] = useState([]);
   const [detailDialog, setDetailDialog] = useState(null);
   const [breakdownCache, setBreakdownCache] = useState({});
   const [bdLoading, setBdLoading] = useState(false);
@@ -72,47 +100,9 @@ const ReconciliationCard = () => {
     }
   };
 
-  const fetchAllInvoices = async () => {
-    try {
-      const response = await fetchInvoices({ page: 0, size: 10000 });
-      if (response?.content) setInvoices(response.content);
-    } catch (e) {
-      console.error('Error fetching invoices:', e);
-    }
-  };
-
   useEffect(() => {
     fetchReconciliation();
-    fetchAllInvoices();
   }, []);
-
-  const selectedYear = new Date().getFullYear();
-
-  const pendingByAccount = useMemo(() => {
-    const acc = {};
-    // Reconciliation card is sub-focused (Stripe / Scheduled / Bank / Deviation / Overdue
-    // are all sub metrics). Restrict Pendiente to subscription categories so meeting-room
-    // one-offs and extras don't muddy the count.
-    const SUB_CATEGORIES = new Set(['virtual_office', 'coworking']);
-    invoices.forEach((invoice) => {
-      const rawDate = invoice.createdAt || invoice.fechaFactura;
-      if (!rawDate) return;
-      const invoiceDate = new Date(rawDate);
-      if (invoiceDate.getFullYear() !== selectedYear) return;
-      const status = (invoice.estado || '').toLowerCase();
-      const isPending = status.includes('pend') || status.includes('confir')
-        || status.includes('fact') || status.includes('invoice') || status.includes('created');
-      if (!isPending) return;
-      if (!SUB_CATEGORIES.has((invoice.category || '').toLowerCase())) return;
-      const amount = parseFloat(invoice.total || invoice.importe || 0);
-      const cuenta = (invoice.cuenta || 'PT').toUpperCase();
-      if (!acc[cuenta]) acc[cuenta] = { count: 0, amount: 0, invoices: [] };
-      acc[cuenta].count += 1;
-      acc[cuenta].amount += amount;
-      acc[cuenta].invoices.push(invoice);
-    });
-    return acc;
-  }, [invoices, selectedYear]);
 
   const fetchBreakdown = async (account) => {
     if (breakdownCache[account]) return breakdownCache[account];
@@ -142,7 +132,8 @@ const ReconciliationCard = () => {
       return;
     }
     if (type === 'pendingInvoices') {
-      const rows = pendingByAccount[account]?.invoices || [];
+      const row = data.find((r) => r.account === account);
+      const rows = parseMaybeJson(row?.pending_invoices);
       setDetailDialog({ account, type, title, rows });
       return;
     }
@@ -153,18 +144,38 @@ const ReconciliationCard = () => {
       : type === 'bankTransfer' ? bd.bankTransfer
       : type === 'pastDue' ? bd.pastDueSubs
       : type === 'stripeDeviation' ? bd.stripeDeviation
-      : type === 'pendingInvoices' ? (pendingByAccount[account]?.invoices || [])
       : [];
     setDetailDialog({ account, type, title, rows: Array.isArray(rows) ? rows : [] });
   };
 
+  // Mirror DailyReconciliationScheduler.AccountResult.hasIssues(): missing → alert,
+  // anything else off-normal (past-due / deviation / pendiente / stripe-only ghosts) → warning.
   const getStatus = (row) => {
-    if (row.missing_invoice_count > 0) return 'error';
-    if (row.stripe_past_due > 0) return 'warning';
-    return 'success';
+    if ((row.missing_invoice_count || 0) > 0) return 'error';
+    const dbOnly = parseMaybeJson(row.db_only_subs);
+    const stripeOnly = parseMaybeJson(row.stripe_only_subs);
+    const deviation = Math.max(0, (row.db_active || 0)
+      - ((row.stripe_active || 0) + (row.stripe_past_due || 0))
+      - (row.db_scheduled || 0) - (row.db_bank_transfer || 0));
+    const issues = (row.stripe_past_due || 0) > 0
+      || (row.pendiente_count || 0) > 0
+      || deviation > 0
+      || dbOnly.length > 0
+      || stripeOnly.length > 0;
+    return issues ? 'warning' : 'success';
   };
 
-  const statusColor = () => brand;
+  const statusColor = (status) => {
+    if (status === 'error') return errorRed;
+    if (status === 'warning') return theme.palette.warning?.main || '#ea580c';
+    return brand;
+  };
+
+  const statusLabel = (status) => {
+    if (status === 'error') return t('reconciliation.alert');
+    if (status === 'warning') return t('reconciliation.warning');
+    return t('reconciliation.ok');
+  };
 
   const Metric = ({ label, value, color, sub, onClick }) => (
     <Box onClick={onClick} sx={{ textAlign: 'center', px: 1, py: 1.5, cursor: onClick ? 'pointer' : 'default', borderRadius: 1, transition: 'background 0.15s', '&:hover': onClick ? { bgcolor: 'action.hover' } : {} }}>
@@ -188,7 +199,6 @@ const ReconciliationCard = () => {
     const dbActive = row.db_active || 0;
     const deviation = Math.max(0, dbActive - stripe - scheduled - bank);
     const total = stripe + scheduled + deviation + bank;
-    const pending = pendingByAccount[row.account] || { count: 0, amount: 0 };
     return {
       stripe,
       scheduled,
@@ -197,8 +207,8 @@ const ReconciliationCard = () => {
       total,
       overdue,
       overdueAmt: row.past_due_amount,
-      pendingCount: pending.count,
-      pendingAmount: pending.amount,
+      pendingCount: row.pendiente_count || 0,
+      pendingAmount: Number(row.pendiente_amount || 0),
     };
   };
 
@@ -235,18 +245,26 @@ const ReconciliationCard = () => {
               const status = getStatus(row);
               const color = statusColor(status);
               const m = metrics(row);
+              const dbOnlyIds = parseMaybeJson(row.db_only_subs);
+              const stripeOnlyIds = parseMaybeJson(row.stripe_only_subs);
+              const fullName = row.account === 'GT' ? 'GLOBALTECHNO OÜ'
+                : row.account === 'PT' ? 'BeWorking Partners'
+                : null;
               return (
                 <Box key={row.account} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5, bgcolor: alpha(color, 0.04), borderBottom: '1px solid', borderBottomColor: 'divider' }}>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                       <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color }} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{row.account}</Typography>
+                      {fullName && (
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>· {fullName}</Typography>
+                      )}
                       <Typography variant="caption" color="text.secondary">{m.total} total</Typography>
                     </Stack>
-                    <Chip label={t(`reconciliation.${status === 'error' ? 'alert' : status === 'warning' ? 'warning' : 'ok'}`)} size="small" sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }} />
+                    <Chip label={statusLabel(status)} size="small" sx={{ fontWeight: 600, fontSize: '0.65rem', height: 22, bgcolor: alpha(color, 0.1), color }} />
                   </Stack>
 
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, py: 1, borderBottom: (row.missing_invoice_count > 0) ? '1px solid' : 'none', borderBottomColor: 'divider' }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0, py: 1 }}>
                     <Metric label="Stripe" value={m.stripe} onClick={() => openDetail(row.account, 'stripeActive', `${row.account} — Stripe`)} />
                     <Metric label="Scheduled" value={m.scheduled} onClick={() => openDetail(row.account, 'stripeScheduled', `${row.account} — Scheduled`)} />
                     <Metric label="Bank" value={m.bank} onClick={() => openDetail(row.account, 'bankTransfer', `${row.account} — Bank`)} />
@@ -261,14 +279,35 @@ const ReconciliationCard = () => {
                     />
                   </Box>
 
-                  {row.missing_invoice_count > 0 && (
-                    <Box
-                      onClick={() => openDetail(row.account, 'missingInvoices', `${row.account} — Facturas sin registrar`, parseMaybeJson(row.missing_invoices))}
-                      sx={{ px: 2, py: 1.5, cursor: 'pointer', transition: `background ${tokens.motion.durationFast} ${tokens.motion.ease}`, '&:hover': { bgcolor: alpha(errorRed, 0.04) } }}
-                    >
-                      <Typography variant="body2" sx={{ color: errorRed, fontWeight: 600, fontSize: '0.8rem' }}>
-                        {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
-                      </Typography>
+                  {(dbOnlyIds.length > 0 || stripeOnlyIds.length > 0 || row.missing_invoice_count > 0) && (
+                    <Box sx={{ borderTop: '1px solid', borderTopColor: 'divider', px: 2, py: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {dbOnlyIds.length > 0 && (
+                        <SubIdBlock
+                          title="DB-only subs"
+                          subtitle="Cancelled in Stripe, still active in DB."
+                          ids={dbOnlyIds}
+                          color={theme.palette.warning?.main || '#ea580c'}
+                          onClick={() => openDetail(row.account, 'stripeDeviation', `${row.account} — Deviation`)}
+                        />
+                      )}
+                      {stripeOnlyIds.length > 0 && (
+                        <SubIdBlock
+                          title="Stripe-only subs"
+                          subtitle="Active in Stripe, no record in DB."
+                          ids={stripeOnlyIds}
+                          color={theme.palette.warning?.main || '#ea580c'}
+                        />
+                      )}
+                      {row.missing_invoice_count > 0 && (
+                        <Box
+                          onClick={() => openDetail(row.account, 'missingInvoices', `${row.account} — Facturas sin registrar`, parseMaybeJson(row.missing_invoices))}
+                          sx={{ cursor: 'pointer', transition: `background ${tokens.motion.durationFast} ${tokens.motion.ease}`, '&:hover': { bgcolor: alpha(errorRed, 0.04) }, borderRadius: 1, px: 1, py: 0.5 }}
+                        >
+                          <Typography variant="body2" sx={{ color: errorRed, fontWeight: 600, fontSize: '0.8rem' }}>
+                            {t('reconciliation.missingInvoices', { count: row.missing_invoice_count })}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                   )}
                 </Box>
