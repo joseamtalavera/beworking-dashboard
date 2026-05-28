@@ -123,6 +123,10 @@ const ReconciliationCard = () => {
   const parseMaybeJson = (v) => {
     if (Array.isArray(v)) return v;
     if (typeof v === 'string') { try { return JSON.parse(v); } catch { return []; } }
+    // Legacy Spring/Postgres JSONB shape: { type: 'jsonb', value: '[...]' }.
+    if (v && typeof v === 'object' && typeof v.value === 'string') {
+      try { return JSON.parse(v.value); } catch { return []; }
+    }
     return [];
   };
 
