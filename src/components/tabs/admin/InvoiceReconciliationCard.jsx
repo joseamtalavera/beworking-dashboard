@@ -212,6 +212,7 @@ const InvoiceReconciliationCard = () => {
                             {pendingInv.map((inv, i) => (
                               <div key={inv.id || i}>
                                 {(inv.cuenta || '') + (inv.idfactura || '')} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{inv.clientName || '—'}</span> · €{Number(inv.total || 0).toFixed(2)}
+                                {inv.stripeInvoiceId && <> · <span style={{ color: 'rgba(0,0,0,0.4)' }}>{inv.stripeInvoiceId}</span></>}
                               </div>
                             ))}
                           </Box>
@@ -309,6 +310,7 @@ const InvoiceReconciliationCard = () => {
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Nº</TableCell>
                     <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Cliente</TableCell>
+                    <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Stripe Invoice</TableCell>
                     <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Estado</TableCell>
                     <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }}>Fecha</TableCell>
                     <TableCell sx={{ fontWeight: 700, bgcolor: alpha(accent, 0.04) }} align="right">Total</TableCell>
@@ -318,10 +320,16 @@ const InvoiceReconciliationCard = () => {
                   {(detailDialog?.rows || []).map((inv, i) => {
                     const dateStr = inv.fechaFactura;
                     const dateFormatted = dateStr ? new Date(dateStr).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US') : '—';
+                    const stripeId = inv.stripeInvoiceId;
                     return (
                       <TableRow key={inv.id || i} hover>
                         <TableCell sx={{ fontWeight: 600 }}>{inv.idfactura ? `${inv.cuenta || 'PT'}${inv.idfactura}` : '—'}</TableCell>
                         <TableCell>{inv.clientName || '—'}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                          {stripeId
+                            ? <a href={`https://dashboard.stripe.com/invoices/${stripeId}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>{stripeId}</a>
+                            : <span style={{ color: 'rgba(0,0,0,0.4)' }}>—</span>}
+                        </TableCell>
                         <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{inv.estado || '—'}</TableCell>
                         <TableCell sx={{ color: 'text.secondary' }}>{dateFormatted}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700, color: accent }}>€{Number(inv.total || 0).toFixed(2)}</TableCell>
