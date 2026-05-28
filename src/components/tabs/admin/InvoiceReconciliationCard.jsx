@@ -84,8 +84,9 @@ const InvoiceReconciliationCard = () => {
     const unpaidAmt = Number(row.pendiente_amount || 0);
     const missing = parseMaybeJson(row.missing_invoices);
     const stuckPending = parseMaybeJson(row.stripe_paid_db_pending);
-    const deviationCount = missing.length + stuckPending.length;
-    return { overdueCount, overdueAmt, unpaidCount, unpaidAmt, deviationCount, missing, stuckPending };
+    const closedPending = parseMaybeJson(row.stripe_closed_db_pending);
+    const deviationCount = missing.length + stuckPending.length + closedPending.length;
+    return { overdueCount, overdueAmt, unpaidCount, unpaidAmt, deviationCount, missing, stuckPending, closedPending };
   };
 
   const getStatus = (row, m) => {
@@ -115,7 +116,8 @@ const InvoiceReconciliationCard = () => {
     else if (type === 'deviation') {
       const missing = parseMaybeJson(row.missing_invoices).map((m) => ({ ...m, _kind: 'missing' }));
       const stuck   = parseMaybeJson(row.stripe_paid_db_pending).map((m) => ({ ...m, _kind: 'stuck' }));
-      rows = [...missing, ...stuck];
+      const closed  = parseMaybeJson(row.stripe_closed_db_pending).map((m) => ({ ...m, _kind: 'closed' }));
+      rows = [...missing, ...stuck, ...closed];
     }
     setDetailDialog({ account, type, title, rows });
   };
@@ -227,6 +229,9 @@ const InvoiceReconciliationCard = () => {
                             ))}
                             {m.stuckPending.map((inv, i) => (
                               <div key={'s' + i}>{inv.stripeInvoiceId} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{inv.clientName || '—'} — DB still Pendiente</span></div>
+                            ))}
+                            {m.closedPending.map((inv, i) => (
+                              <div key={'c' + i}>{inv.stripeInvoiceId} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{inv.clientName || '—'} — Stripe void, DB {(inv.cuenta || '') + (inv.idfactura || '')} still Pendiente</span></div>
                             ))}
                           </Box>
                         </Box>
@@ -353,12 +358,14 @@ const InvoiceReconciliationCard = () => {
                 <TableBody>
                   {(detailDialog?.rows || []).map((inv, i) => {
                     const invId = inv.stripeInvoiceId;
-                    const isMissing = inv._kind === 'missing';
+                    const mismatch = inv._kind === 'missing' ? 'Paid in Stripe, missing in DB'
+                      : inv._kind === 'closed' ? 'Stripe void, DB still Pendiente'
+                      : 'Paid in Stripe, DB still Pendiente';
                     return (
                       <TableRow key={i} hover>
                         <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{invId}</TableCell>
                         <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-                          {isMissing ? 'Paid in Stripe, missing in DB' : 'Paid in Stripe, DB still Pendiente'}
+                          {mismatch}
                         </TableCell>
                         <TableCell>{inv.clientName || '—'}</TableCell>
                         <TableCell align="right">
