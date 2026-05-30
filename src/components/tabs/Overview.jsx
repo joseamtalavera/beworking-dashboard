@@ -320,54 +320,89 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear, co
           {plotPoints.map((p, idx) => {
             const isHovered = hoveredIdx === idx;
             const hasDot = p.value > 0;
+            const lastYearVal = hasCompare ? Number(compareData[idx] || 0) : null;
+            // Vertical position of the dashed line at this month, for the marker.
+            const compareTop = hasCompare && chartMax > 0
+              ? ((1 - lastYearVal / chartMax) * plotH + padding.top) / svgH * 100
+              : null;
+            const showTooltip = isHovered && (p.value > 0 || (lastYearVal != null && lastYearVal > 0));
             return (
-              <Box
-                key={idx}
-                onMouseEnter={() => setHoveredIdx(idx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-                sx={{
-                  position: 'absolute',
-                  left: `${p.pctX}%`,
-                  top: `${p.pctY}%`,
-                  transform: 'translate(-50%, -50%)',
-                  width: 32,
-                  height: 32,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                {hasDot && (
-                  <Box sx={{
-                    width: isHovered ? 12 : 8,
-                    height: isHovered ? 12 : 8,
-                    borderRadius: '50%',
-                    bgcolor: color,
-                    border: '2px solid #fff',
-                    boxShadow: isHovered ? `0 0 0 3px ${color}30` : 'none',
-                    transition: 'all 0.15s',
-                  }} />
+              <Box key={idx}>
+                {/* Comparison-line marker dot on hover */}
+                {hasCompare && lastYearVal > 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: `${p.pctX}%`,
+                      top: `${compareTop}%`,
+                      transform: 'translate(-50%, -50%)',
+                      width: isHovered ? 9 : 6,
+                      height: isHovered ? 9 : 6,
+                      borderRadius: '50%',
+                      bgcolor: theme.palette.text.disabled,
+                      border: '2px solid #fff',
+                      pointerEvents: 'none',
+                      transition: 'all 0.15s',
+                    }}
+                  />
                 )}
-                {/* Tooltip */}
-                {isHovered && p.value > 0 && (
-                  <Typography sx={{
+                {/* Hover hotspot (covers the month column) */}
+                <Box
+                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                  sx={{
                     position: 'absolute',
-                    bottom: '100%',
-                    mb: 0.5,
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    color,
-                    whiteSpace: 'nowrap',
-                    bgcolor: 'background.paper',
-                    px: 0.75,
-                    py: 0.25,
-                    borderRadius: 1,
-                    boxShadow: 1,
-                  }}>
-                    {formatCurrency(p.value)}
-                  </Typography>
-                )}
+                    left: `${p.pctX}%`,
+                    top: `${p.pctY}%`,
+                    transform: 'translate(-50%, -50%)',
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {hasDot && (
+                    <Box sx={{
+                      width: isHovered ? 12 : 8,
+                      height: isHovered ? 12 : 8,
+                      borderRadius: '50%',
+                      bgcolor: color,
+                      border: '2px solid #fff',
+                      boxShadow: isHovered ? `0 0 0 3px ${color}30` : 'none',
+                      transition: 'all 0.15s',
+                    }} />
+                  )}
+                  {/* Tooltip — current year + (optionally) last year */}
+                  {showTooltip && (
+                    <Box sx={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      mb: 0.5,
+                      whiteSpace: 'nowrap',
+                      bgcolor: 'background.paper',
+                      px: 0.75,
+                      py: 0.5,
+                      borderRadius: 1,
+                      boxShadow: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 0.25,
+                    }}>
+                      {p.value > 0 && (
+                        <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color, lineHeight: 1.2 }}>
+                          {currentLabel || ''} {formatCurrency(p.value)}
+                        </Typography>
+                      )}
+                      {hasCompare && lastYearVal > 0 && (
+                        <Typography sx={{ fontSize: '0.65rem', fontWeight: 600, color: 'text.disabled', lineHeight: 1.2 }}>
+                          {compareLabel || ''} {formatCurrency(lastYearVal)}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                </Box>
               </Box>
             );
           })}
