@@ -1680,13 +1680,6 @@ const InfoRow = ({ label, value, pill, copyable, actionType }) => {
           <Typography variant="body2" fontWeight={600} sx={{ flex: 1, wordBreak: 'break-word' }}>
             {value || '—'}
           </Typography>
-          {copyable && value && (
-            <Tooltip title={copied ? 'Copiado' : 'Copiar'} placement="top" arrow>
-              <IconButton size="small" onClick={handleCopy} sx={{ p: 0.5 }}>
-                {copied ? <CheckRoundedIcon sx={{ fontSize: 16, color: 'success.main' }} /> : <ContentCopyRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />}
-              </IconButton>
-            </Tooltip>
-          )}
           {actionHref && ActionIcon && (
             <Tooltip title={actionTitle} placement="top" arrow>
               <IconButton
@@ -1699,6 +1692,13 @@ const InfoRow = ({ label, value, pill, copyable, actionType }) => {
                 sx={{ p: 0.5 }}
               >
                 <ActionIcon sx={{ fontSize: 16, color: actionType === 'phone' ? '#25D366' : 'text.secondary' }} />
+              </IconButton>
+            </Tooltip>
+          )}
+          {copyable && value && (
+            <Tooltip title={copied ? 'Copiado' : 'Copiar'} placement="top" arrow>
+              <IconButton size="small" onClick={handleCopy} sx={{ p: 0.5 }}>
+                {copied ? <CheckRoundedIcon sx={{ fontSize: 16, color: 'success.main' }} /> : <ContentCopyRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />}
               </IconButton>
             </Tooltip>
           )}
