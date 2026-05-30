@@ -23,6 +23,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -175,7 +177,7 @@ const MetricCard = ({ label, value, change, trend, color, loading, theme }) => {
 };
 
 // Monthly Bar Chart
-const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) => {
+const LineChart = ({ data, loading, title, total, color, theme, selectedYear, compareData, compareLabel, currentLabel }) => {
   const [hoveredIdx, setHoveredIdx] = useState(null);
 
   if (loading) {
@@ -196,7 +198,12 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
 
   const chartHeight = 140;
   const padding = { left: 50, right: 8, top: 12, bottom: 4 };
-  const maxValue = Math.max(...data.map(d => d.value || 0), 100);
+  const hasCompare = Array.isArray(compareData) && compareData.some(v => Number(v) > 0);
+  const maxValue = Math.max(
+    ...data.map(d => d.value || 0),
+    ...(hasCompare ? compareData.map(v => Number(v) || 0) : []),
+    100
+  );
   const activeCount = data.length;
 
   // Y-axis ticks (4 ticks) — round to nice numbers
@@ -243,12 +250,38 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
     ? `${linePath2} L${realPoints[realPoints.length - 1].svgX},${baselineY} L${realPoints[0].svgX},${baselineY} Z`
     : '';
 
+  // Last-year comparison line — full 12 months, dashed, no fill.
+  const comparePath = hasCompare
+    ? compareData.map((v, idx) => {
+        const centerFrac = (idx + 0.5) / data.length;
+        const x = centerFrac * plotW;
+        const y = chartMax > 0
+          ? padding.top + plotH - ((Number(v) || 0) / chartMax) * plotH
+          : padding.top + plotH;
+        return `${idx === 0 ? 'M' : 'L'}${x},${y}`;
+      }).join(' ')
+    : '';
+
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1.5 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-          {title}
-        </Typography>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+            {title}
+          </Typography>
+          {hasCompare && (
+            <Stack direction="row" spacing={1.25} alignItems="center">
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Box sx={{ width: 14, height: 2, bgcolor: color, borderRadius: 1 }} />
+                <Typography variant="caption" sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>{currentLabel}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Box sx={{ width: 14, height: 0, borderTop: '1.5px dashed', borderColor: 'text.disabled' }} />
+                <Typography variant="caption" sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>{compareLabel}</Typography>
+              </Stack>
+            </Stack>
+          )}
+        </Stack>
         <Typography variant="h6" sx={{ fontWeight: 700, color }}>
           {formatCurrency(total)}
         </Typography>
@@ -275,6 +308,9 @@ const LineChart = ({ data, loading, title, total, color, theme, selectedYear }) 
 
             {/* Area fill */}
             {areaPath2 && <path d={areaPath2} fill={`${color}15`} />}
+
+            {/* Last-year comparison line (dashed, behind current year) */}
+            {comparePath && <path d={comparePath} fill="none" stroke={theme.palette.text.disabled} strokeWidth={1.5} strokeDasharray="4 3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />}
 
             {/* Line */}
             {linePath2 && <path d={linePath2} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />}
@@ -665,6 +701,7 @@ const AdminOverview = () => {
   const dataColors = getDataColors(theme);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [compareEnabled, setCompareEnabled] = useState(false);
 
   // Server-computed metrics (single source of truth — see OverviewMetricsService.java).
   // All headline numbers, the 5 revenue cards, and the chart series come from
@@ -719,20 +756,23 @@ const AdminOverview = () => {
   // Chart series — server returns 12 cells, future months get value=null
   // so the line stops cleanly instead of plotting a €0 cliff.
   const chartData = useMemo(() => {
-    const cells = serverMetrics?.byMonth || Array.from({ length: 12 }, (_, i) => ({
-      month: i + 1, revenue: 0, pending: 0, overdue: 0,
-    }));
+    const blank = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, revenue: 0, pending: 0, overdue: 0 }));
+    const cells = serverMetrics?.byMonth || blank;
+    const lastYearCells = serverMetrics?.byMonthLastYear || blank;
     const now = new Date();
     const futureFrom = selectedYear === now.getFullYear() ? now.getMonth() + 1 : 12;
     const series = (key) => cells.map((cell, i) => ({
       month: new Date(selectedYear, i, 1).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { month: 'short' }),
       value: i >= futureFrom ? null : Number(cell[key] || 0),
     }));
+    // Last-year comparison line spans the full 12 months (last year is complete).
+    const lastYearRevenue = lastYearCells.map((cell) => Number(cell.revenue || 0));
     const sum = (key) => cells.reduce((s, c) => s + Number(c[key] || 0), 0);
     return {
       revenue: series('revenue'),
       pending: series('pending'),
       overdue: series('overdue'),
+      revenueLastYear: lastYearRevenue,
       revenueTotal: sum('revenue'),
       pendingTotal: sum('pending'),
       overdueTotal: sum('overdue'),
@@ -927,6 +967,12 @@ const AdminOverview = () => {
             {t('charts.financialOverview')}
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
+            <FormControlLabel
+              control={<Switch size="small" checked={compareEnabled} onChange={(e) => setCompareEnabled(e.target.checked)} />}
+              label={t('charts.compareYear', { year: selectedYear - 1, defaultValue: `vs ${selectedYear - 1}` })}
+              slotProps={{ typography: { variant: 'caption', sx: { color: 'text.secondary', fontWeight: 500 } } }}
+              sx={{ mr: 0 }}
+            />
             <FormControl size="small" sx={{ minWidth: 90 }}>
               <InputLabel>{t('charts.year')}</InputLabel>
               <Select value={selectedYear} label={t('charts.year')} onChange={(e) => setSelectedYear(e.target.value)}>
@@ -942,6 +988,9 @@ const AdminOverview = () => {
         <Box sx={{ display: 'grid', gap: 4, gridTemplateColumns: '1fr' }}>
           <LineChart
             data={chartData.revenue}
+            compareData={compareEnabled ? chartData.revenueLastYear : null}
+            compareLabel={String(selectedYear - 1)}
+            currentLabel={String(selectedYear)}
             loading={loading}
             title={t('charts.revenue')}
             total={chartData.revenueTotal}

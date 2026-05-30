@@ -22,7 +22,8 @@
     "pending": "Pendiente",
     "overdue": "Vencido",
     "noData": "Sin datos",
-    "cumulative": "Acumulado"
+    "cumulative": "Acumulado",
+    "compareYear": "vs {{year}}"
   },
   "occupancy": {
     "title": "Ocupación del Espacio",

@@ -22,7 +22,8 @@
     "pending": "Pending",
     "overdue": "Overdue",
     "noData": "No data",
-    "cumulative": "Cumulative"
+    "cumulative": "Cumulative",
+    "compareYear": "vs {{year}}"
   },
   "occupancy": {
     "title": "Workspace Occupancy",
