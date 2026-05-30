@@ -927,11 +927,17 @@ const AdminOverview = () => {
     }
   };
 
-  // Fetch invoices
+  // Fetch invoices — pin date range to current + last year so YoY
+  // comparisons always have a complete denominator. Without `from`, the
+  // backend returns the most-recent 10k rows ordered by creacionfecha DESC,
+  // which can truncate older years and inflate %change badges.
   const fetchAllInvoices = async () => {
     setLoading(true);
     try {
-      const response = await fetchInvoices({ page: 0, size: 10000 });
+      const thisYear = new Date().getFullYear();
+      const from = `${thisYear - 1}-01-01`;
+      const to = `${thisYear}-12-31`;
+      const response = await fetchInvoices({ page: 0, size: 10000, from, to });
       if (response?.content) setInvoices(response.content);
     } catch (error) {
       console.error('Error fetching invoices:', error);
@@ -946,6 +952,9 @@ const AdminOverview = () => {
   }, []);
 
   const getChange = (current, previous) => {
+    // Hide noisy badges when the prior-period base is too small —
+    // a comparison vs €0 or €50 produces meaningless +259%/+208% deltas.
+    if (!previous || Math.abs(previous) < 1000) return undefined;
     const pct = calcChange(current, previous);
     return `${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%`;
   };
