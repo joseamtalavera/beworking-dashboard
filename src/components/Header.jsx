@@ -98,15 +98,21 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
   }, [t]);
 
 
-  // Search functionality
+  // Search functionality — admin-only. The global search queries
+  // /contact-profiles (all tenants), centros and productos; a non-admin
+  // must never enumerate other contacts or reach admin-only automations
+  // (issue #215). The bar itself is hidden for users below, this is the
+  // belt-and-suspenders guard.
   const performSearch = useCallback(async (query) => {
+    if (!isAdmin) {
+      setSearchResults([]);
+      return;
+    }
     if (!query.trim()) {
       setSearchResults([]);
       return;
     }
 
-    console.log('Searching for:', query);
-    console.log('Current token:', localStorage.getItem('beworking_token'));
     setIsSearching(true);
     try {
       // Search multiple endpoints in parallel
@@ -179,7 +185,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
     } finally {
       setIsSearching(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   // Debounced search
   useEffect(() => {
@@ -247,6 +253,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ width: { xs: '100%', md: 'auto' } }}>
+            {isAdmin && (
             <Box sx={{ position: 'relative', width: { xs: '100%', md: 280, lg: 320 }, flex: { sm: 1, md: 'none' }, order: { xs: 1, sm: 0 } }}>
             <TextField
               placeholder={t('header.search')}
@@ -406,6 +413,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 </Box>
               )}
             </Box>
+            )}
 
             <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, justifyContent: 'flex-end', display: { xs: 'none', md: 'flex' } }}>
               <IconButton
