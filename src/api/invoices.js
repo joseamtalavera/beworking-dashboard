@@ -86,6 +86,13 @@ export const fetchPaymentInfo = (contactId, cuenta, options = {}) => {
   return apiFetch(`/invoices/payment-info?${params.toString()}`, options);
 };
 
+export const fetchOverviewMetrics = (year, options = {}) => {
+  const params = new URLSearchParams();
+  if (year != null) params.set('year', String(year));
+  const qs = params.toString();
+  return apiFetch(`/admin/overview/metrics${qs ? `?${qs}` : ''}`, options);
+};
+
 export const fetchTotalRevenue = (
   { name, email, idFactura, status, tenantType, product, startDate, endDate, from, to } = {},
   options = {}

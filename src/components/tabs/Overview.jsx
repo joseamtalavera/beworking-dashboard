@@ -31,7 +31,7 @@ import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
 import { useEffect, useState, useMemo } from 'react';
-import { fetchInvoices } from '../../api/invoices.js';
+import { fetchInvoices, fetchOverviewMetrics } from '../../api/invoices.js';
 import { fetchBloqueos, fetchBookingProductos, fetchBookingStats, cancelBloqueo } from '../../api/bookings.js';
 import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
@@ -663,141 +663,38 @@ const AdminOverview = () => {
   const theme = useTheme();
   const { t } = useTranslation('overview');
   const dataColors = getDataColors(theme);
-  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  // Server-computed metrics (single source of truth — see OverviewMetricsService.java).
+  // All headline numbers, the 5 revenue cards, and the chart series come from
+  // one /api/admin/overview/metrics?year=N call. The frontend no longer
+  // reduces invoice arrays — that was the source of YoY drift.
+  const [serverMetrics, setServerMetrics] = useState(null);
 
   // Occupancy
   const [occupancyData, setOccupancyData] = useState([]);
   const [occupancyLoading, setOccupancyLoading] = useState(true);
 
-  // Calculate metrics from invoice data
+  // Headline metric cards
   const metrics = useMemo(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const lastYear = currentYear - 1;
-    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-    // Same point in last year — for apples-to-apples YTD comparison
-    const samePointLastYear = new Date(now);
-    samePointLastYear.setFullYear(lastYear);
-
-    let incomeYTD = 0, incomeLastYTD = 0;
-    let pendingYTD = 0, pendingLastYTD = 0;
-    let incomeMonth = 0, incomeLastMonth = 0;
-    let pendingMonth = 0, pendingLastMonth = 0;
-    let overdueTotal = 0, overdueCount = 0;
-
-    invoices.forEach(invoice => {
-      const rawDate = invoice.createdAt || invoice.fechaFactura;
-      if (!rawDate) return;
-
-      const invoiceDate = new Date(rawDate);
-      const invoiceYear = invoiceDate.getFullYear();
-      const invoiceMonth = invoiceDate.getMonth();
-      const amount = parseFloat(invoice.total || invoice.importe || 0);
-      const status = (invoice.estado || '').toLowerCase();
-
-      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
-      const isOverdue = status.includes('venc') || status.includes('overdue');
-      const isPending = status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice') || status.includes('created');
-      // Billed revenue = all non-voided invoices. A 'Rectificado' original stays
-      // counted — its 'Rectificativa' credit note nets it back out.
-      const isBilled = !isCancelled;
-
-      if (invoiceYear === currentYear) {
-        if (isBilled) incomeYTD += amount;
-        if (isPending) pendingYTD += amount;
-        if (invoiceMonth === currentMonth) {
-          if (isBilled) incomeMonth += amount;
-          if (isPending) pendingMonth += amount;
-        }
-      }
-
-      // Compare same period last year (Jan 1 → same day last year), not full last year
-      if (invoiceYear === lastYear && invoiceDate <= samePointLastYear) {
-        if (isBilled) incomeLastYTD += amount;
-        if (isPending) pendingLastYTD += amount;
-      }
-
-      if (invoiceYear === lastMonthYear && invoiceMonth === lastMonth) {
-        if (isBilled) incomeLastMonth += amount;
-        if (isPending) pendingLastMonth += amount;
-      }
-
-      if (isOverdue) {
-        overdueTotal += amount;
-        overdueCount++;
-      }
-    });
-
+    const r = serverMetrics?.revenue || {};
+    const p = serverMetrics?.pending || {};
+    const o = serverMetrics?.overdue || {};
     return {
-      incomeYTD, incomeLastYTD, pendingYTD, pendingLastYTD,
-      incomeMonth, incomeLastMonth, pendingMonth, pendingLastMonth,
-      overdueTotal, overdueCount
+      incomeYTD: Number(r.ytd || 0),
+      incomeLastYTD: Number(r.lastYtd || 0),
+      incomeMonth: Number(r.month || 0),
+      incomeLastMonth: Number(r.prevMonth || 0),
+      pendingYTD: Number(p.ytd || 0),
+      pendingMonth: Number(p.month || 0),
+      overdueTotal: Number(o.total || 0),
+      overdueCount: Number(o.count || 0),
     };
-  }, [invoices]);
+  }, [serverMetrics]);
 
-  // Chart data
-  const chartData = useMemo(() => {
-    const months = Array(12).fill(null).map((_, i) => ({
-      month: new Date(selectedYear, i, 1).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { month: 'short' }),
-      revenue: 0,
-      pending: 0,
-      overdue: 0
-    }));
-
-    invoices.forEach(invoice => {
-      const rawDate = invoice.createdAt || invoice.fechaFactura;
-      if (!rawDate) return;
-      const invoiceDate = new Date(rawDate);
-      if (invoiceDate.getFullYear() !== selectedYear) return;
-
-      const month = invoiceDate.getMonth();
-      const amount = parseFloat(invoice.total || invoice.importe || 0);
-      const status = (invoice.estado || '').toLowerCase();
-
-      const isCancelled = status.includes('cancel') || status.includes('void') || status.includes('anula');
-      if (!isCancelled) {
-        months[month].revenue += amount;
-      }
-      if (status.includes('pend') || status.includes('confir') || status.includes('fact') || status.includes('invoice') || status.includes('created')) {
-        months[month].pending += amount;
-      }
-    });
-
-    // Months that haven't happened yet get value null — the chart keeps the
-    // x-axis slot but stops the line there instead of plotting a €0 cliff.
-    const now = new Date();
-    const futureFrom = selectedYear === now.getFullYear() ? now.getMonth() + 1 : 12;
-    const series = (key) => months.map((m, i) => ({
-      month: m.month,
-      value: i >= futureFrom ? null : m[key]
-    }));
-
-    const revenueTotal = months.reduce((s, m) => s + m.revenue, 0);
-    const pendingTotal = months.reduce((s, m) => s + m.pending, 0);
-
-    return {
-      revenue: series('revenue'),
-      pending: series('pending'),
-      overdue: series('overdue'),
-      revenueTotal,
-      pendingTotal,
-      overdueTotal: months.reduce((s, m) => s + m.overdue, 0)
-    };
-  }, [invoices, selectedYear, i18n.language]);
-
-  // Revenue per business line, grouped by the customer's tenant_type — which
-  // the invoice list API already returns on every row as `tenantType`.
+  // 5 revenue cards by tenant_type bucket
   const lineRevenue = useMemo(() => {
-    const now = new Date();
-    const curYear = now.getFullYear();
-    const curMonth = now.getMonth();
-    const lastMonth = curMonth === 0 ? 11 : curMonth - 1;
-    const lastMonthYear = curMonth === 0 ? curYear - 1 : curYear;
-
     const blank = () => ({ mtd: 0, ytd: 0, lastMonth: 0 });
     const acc = {
       meeting_room: blank(),
@@ -806,42 +703,43 @@ const AdminOverview = () => {
       app: blank(),
       extra: blank(),
     };
-
-    // Map the customer's tenant_type onto a revenue line.
-    const bucketOf = (inv) => {
-      const t = (inv.tenantType || '').toLowerCase();
-      if (t.includes('aula')) return 'meeting_room';                            // Usuario Aulas
-      if (t.includes('mesa') || t.includes('nóma') || t.includes('noma')) return 'coworking'; // Mesa / Nómada
-      if (t.includes('virtual')) return 'virtual_office';                       // Usuario Virtual
-      if (t.includes('portal') || t.includes('servicio')) return 'app';         // Portal + Servicios
-      return 'extra';                                                           // Proveedor, Distribuidor, Free, untyped
-    };
-
-    invoices.forEach(inv => {
-      const status = (inv.estado || '').toLowerCase();
-      // Skip only truly-voided invoices. A 'Rectificado' original stays counted —
-      // its 'Rectificativa' credit note nets it out (full credit -> 0, partial
-      // credit -> the amount actually kept).
-      if (status.includes('cancel') || status.includes('void') || status.includes('anula')) return;
-      const raw = inv.createdAt || inv.fechaFactura;
-      if (!raw) return;
-      const d = new Date(raw);
-      if (isNaN(d.getTime())) return;
-      const amount = parseFloat(inv.total || inv.importe || 0);
-      if (!amount) return;
-
-      const bucket = acc[bucketOf(inv)];
-      const y = d.getFullYear();
-      const m = d.getMonth();
-      if (y === curYear) {
-        bucket.ytd += amount;
-        if (m === curMonth) bucket.mtd += amount;
+    (serverMetrics?.byCategory || []).forEach(row => {
+      const k = (row.category || 'extra').toLowerCase();
+      if (acc[k]) {
+        acc[k] = {
+          mtd: Number(row.mtd || 0),
+          ytd: Number(row.ytd || 0),
+          lastMonth: Number(row.prev_month || row.prevMonth || 0),
+        };
       }
-      if (y === lastMonthYear && m === lastMonth) bucket.lastMonth += amount;
     });
-
     return acc;
-  }, [invoices]);
+  }, [serverMetrics]);
+
+  // Chart series — server returns 12 cells, future months get value=null
+  // so the line stops cleanly instead of plotting a €0 cliff.
+  const chartData = useMemo(() => {
+    const cells = serverMetrics?.byMonth || Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1, revenue: 0, pending: 0, overdue: 0,
+    }));
+    const now = new Date();
+    const futureFrom = selectedYear === now.getFullYear() ? now.getMonth() + 1 : 12;
+    const series = (key) => cells.map((cell, i) => ({
+      month: new Date(selectedYear, i, 1).toLocaleDateString(i18n.language === 'es' ? 'es-ES' : 'en-US', { month: 'short' }),
+      value: i >= futureFrom ? null : Number(cell[key] || 0),
+    }));
+    const sum = (key) => cells.reduce((s, c) => s + Number(c[key] || 0), 0);
+    return {
+      revenue: series('revenue'),
+      pending: series('pending'),
+      overdue: series('overdue'),
+      revenueTotal: sum('revenue'),
+      pendingTotal: sum('pending'),
+      overdueTotal: sum('overdue'),
+    };
+  }, [serverMetrics, selectedYear, i18n.language]);
+
+  const totalInvoicesForYear = Number(serverMetrics?.totalInvoices || 0);
 
   // Fetch occupancy
   const fetchOccupancy = async () => {
@@ -927,27 +825,26 @@ const AdminOverview = () => {
     }
   };
 
-  // Fetch invoices — pin date range to current + last year so YoY
-  // comparisons always have a complete denominator. Without `from`, the
-  // backend returns the most-recent 10k rows ordered by creacionfecha DESC,
-  // which can truncate older years and inflate %change badges.
-  const fetchAllInvoices = async () => {
+  // Server-computed metrics — one query, applies to selected year.
+  // Refetches when the chart's year selector changes so the cards and
+  // the chart always agree.
+  const fetchMetrics = async (year) => {
     setLoading(true);
     try {
-      const thisYear = new Date().getFullYear();
-      const from = `${thisYear - 1}-01-01`;
-      const to = `${thisYear}-12-31`;
-      const response = await fetchInvoices({ page: 0, size: 10000, from, to });
-      if (response?.content) setInvoices(response.content);
+      const data = await fetchOverviewMetrics(year);
+      setServerMetrics(data || null);
     } catch (error) {
-      console.error('Error fetching invoices:', error);
+      console.error('Error fetching overview metrics:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAllInvoices();
+    fetchMetrics(selectedYear);
+  }, [selectedYear]);
+
+  useEffect(() => {
     fetchOccupancy();
   }, []);
 
@@ -1010,8 +907,6 @@ const AdminOverview = () => {
         <MetricCard
           label={t('metrics.pendingYTD')}
           value={metrics.pendingYTD}
-          change={getChange(metrics.pendingYTD, metrics.pendingLastYTD)}
-          trend={metrics.pendingYTD >= metrics.pendingLastYTD ? 'up' : 'down'}
           color={dataColors.pending}
           loading={loading}
           theme={theme}
@@ -1019,8 +914,6 @@ const AdminOverview = () => {
         <MetricCard
           label={t('metrics.pendingMonth')}
           value={metrics.pendingMonth}
-          change={getChange(metrics.pendingMonth, metrics.pendingLastMonth)}
-          trend={metrics.pendingMonth >= metrics.pendingLastMonth ? 'up' : 'down'}
           color={dataColors.pending}
           loading={loading}
           theme={theme}
@@ -1042,7 +935,7 @@ const AdminOverview = () => {
                 ))}
               </Select>
             </FormControl>
-            <Chip label={t('charts.invoicesCount', { count: invoices.filter(inv => new Date(inv.fechaFactura || inv.createdAt).getFullYear() === selectedYear).length })} size="small" sx={{ fontWeight: 600 }} />
+            <Chip label={t('charts.invoicesCount', { count: totalInvoicesForYear })} size="small" sx={{ fontWeight: 600 }} />
           </Stack>
         </Stack>
 
