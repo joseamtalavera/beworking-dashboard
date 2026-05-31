@@ -247,8 +247,13 @@ const MailboxAdmin = () => {
   }, [refreshDocuments]);
 
   const summary = useMemo(() => {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const scanned = documents.filter((doc) => doc.status === 'scanned').length;
-    const notified = documents.filter((doc) => doc.status === 'notified').length;
+    // "Emails delivered in the last 7 days": count notifications actually sent
+    // (by lastNotifiedAt), regardless of whether the doc has since been viewed.
+    const notified = documents.filter(
+      (doc) => doc.lastNotifiedAt && new Date(doc.lastNotifiedAt).getTime() >= sevenDaysAgo
+    ).length;
     const viewed = documents.filter((doc) => doc.status === 'viewed').length;
     const pendingPackages = documents.filter(
       (doc) => doc.type === 'package' && doc.status !== 'picked_up'
@@ -1144,23 +1149,6 @@ const MailboxAdmin = () => {
                                   </IconButton>
                                 </span>
                               </Tooltip>
-                            {docIsPackage && (
-                              <Tooltip title={t('admin.tooltips.markPickedUp')} arrow>
-                                <span>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => doc.id && handleMarkPickedUp(doc.id)}
-                                    disabled={!doc.id || doc.status === 'picked_up'}
-                                    sx={{
-                                      color: doc.status === 'picked_up' ? 'brand.green' : '#f97316',
-                                      '&.Mui-disabled': doc.status === 'picked_up' ? { color: 'brand.green' } : {}
-                                    }}
-                                  >
-                                    <InventoryOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            )}
                             <Tooltip title={t('admin.tooltips.delete')} arrow>
                               <span>
                                 <IconButton

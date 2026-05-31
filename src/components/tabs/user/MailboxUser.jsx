@@ -176,8 +176,13 @@ const MailboxUser = ({ userProfile, hasActiveSubscription = true, onUpgraded }) 
   }, [profileEmail]);
 
   const summary = useMemo(() => {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const scanned = documents.filter((doc) => doc.status === 'scanned').length;
-    const notified = documents.filter((doc) => doc.status === 'notified').length;
+    // Count notifications actually sent (by lastNotifiedAt), not current status —
+    // a doc that's since been viewed was still notified.
+    const notified = documents.filter(
+      (doc) => doc.lastNotifiedAt && new Date(doc.lastNotifiedAt).getTime() >= sevenDaysAgo
+    ).length;
     const viewed = documents.filter((doc) => doc.status === 'viewed').length;
     const pendingPackages = documents.filter(
       (doc) => doc.type === 'package' && doc.status !== 'picked_up'
