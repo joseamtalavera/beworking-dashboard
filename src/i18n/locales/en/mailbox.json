@@ -40,6 +40,7 @@
     "tooltips": {
       "preview": "Preview document",
       "sendEmail": "Send notification email",
+      "sendWhatsApp": "Send WhatsApp",
       "markViewed": "Mark as viewed",
       "markPickedUp": "Mark as picked up",
       "delete": "Delete document"
@@ -55,6 +56,7 @@
       "pickupError": "Unable to mark package as picked up.",
       "deleteError": "Unable to delete document.",
       "previewError": "Unable to open document preview.",
+      "noPhone": "This contact has no phone number on file.",
       "uploadSuccess": "{{count}} {{type}} uploaded successfully",
       "uploadPartial": "{{uploaded}} uploaded, {{failed}} failed",
       "uploadFieldsRequired": "Please fill in all fields and select at least one document",
@@ -64,6 +66,9 @@
       "pickupFailed": "Pickup verification failed.",
       "enterPickupCode": "Please enter a pickup code",
       "cameraError": "Unable to access camera. Please enter the code manually."
+    },
+    "whatsapp": {
+      "message": "Hello, you have a new document in your BeWorking digital mailbox: «{{title}}». Sign in to your account to view and download it."
     },
     "deleteConfirm": "Are you sure you want to delete this document? This action cannot be undone.",
     "deleteDialogTitle": "Delete document",

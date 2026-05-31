@@ -56,6 +56,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
@@ -469,6 +470,19 @@ const MailboxAdmin = () => {
       showSnackbar(t('admin.snackbar.previewError'), 'error');
     }
   };
+  const handleWhatsAppNotify = (docData) => {
+      const sanitizedPhone = docData?.recipientPhone
+        ? String(docData.recipientPhone).replace(/[^\d+]/g, '').replace(/^\+/, '')
+        : null;
+      if (!sanitizedPhone) {
+        showSnackbar(t('admin.snackbar.noPhone'), 'error');
+        return;
+      } 
+      const docTitle = docData?.title || docData?.originalFileName || 'documento';
+      const message = t('admin.whatsapp.message', { title: docTitle });
+      const url = `https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank', 'noopener');
+    };
 
   const handleFilterChange = (_, value) => {
     if (value !== null) {
@@ -1116,6 +1130,18 @@ const MailboxAdmin = () => {
                                 </IconButton>
                               </span>
                             </Tooltip>
+                             <Tooltip title={t('admin.tooltips.sendWhatsApp')} arrow>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleWhatsAppNotify(doc)}
+                                    disabled={!doc.recipientPhone}
+                                    sx={{ color: doc.recipientPhone ? '#25D366' : 'secondary.main' }}
+                                  >
+                                    <WhatsAppIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
                             {docIsPackage ? (
                               <Tooltip title={t('admin.tooltips.markPickedUp')} arrow>
                                 <span>

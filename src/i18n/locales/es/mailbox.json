@@ -40,6 +40,7 @@
     "tooltips": {
       "preview": "Previsualizar documento",
       "sendEmail": "Enviar email de notificación",
+      "sendWhatsApp": "Enviar WhatsApp",
       "markViewed": "Marcar como visto",
       "markPickedUp": "Marcar como recogido",
       "delete": "Eliminar documento"
@@ -55,6 +56,7 @@
       "pickupError": "No se pudo marcar el paquete como recogido.",
       "deleteError": "No se pudo eliminar el documento.",
       "previewError": "No se pudo abrir la previsualización.",
+      "noPhone": "Este contacto no tiene teléfono registrado.",
       "uploadSuccess": "{{count}} {{type}} subido(s) correctamente",
       "uploadPartial": "{{uploaded}} subido(s), {{failed}} fallido(s)",
       "uploadFieldsRequired": "Rellena todos los campos y selecciona al menos un documento",
@@ -64,6 +66,9 @@
       "pickupFailed": "Error en la verificación de recogida.",
       "enterPickupCode": "Introduce un código de recogida",
       "cameraError": "No se pudo acceder a la cámara. Introduce el código manualmente."
+    },
+    "whatsapp": {
+      "message": "Hola, tienes un nuevo documento en tu buzón digital de BeWorking: «{{title}}». Accede a tu cuenta para verlo y descargarlo."
     },
     "deleteConfirm": "¿Seguro que quieres eliminar este documento? Esta acción no se puede deshacer.",
     "deleteDialogTitle": "Eliminar documento",

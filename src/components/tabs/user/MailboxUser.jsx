@@ -43,7 +43,7 @@ if (!i18n.hasResourceBundle('es', 'mailbox')) {
   i18n.addResourceBundle('en', 'mailbox', enMailbox);
 }
 
-import { getMailboxDocumentDownloadUrl, listMailboxDocuments } from '../../../api/mailbox.js';
+import { getMailboxDocumentDownloadUrl, listMailboxDocuments, markMailboxDocumentViewed } from '../../../api/mailbox.js';
 import SubscriptionGate from '../../SubscriptionGate.jsx';
 
 // accentColor and accentHover are defined inside component using theme.palette.brand
@@ -197,12 +197,24 @@ const MailboxUser = ({ userProfile, hasActiveSubscription = true, onUpgraded }) 
   };
 
   const handlePreviewDocument = (docId) => {
-    guardAction(() => {
-      const downloadUrl = getMailboxDocumentDownloadUrl(docId);
-      if (!downloadUrl) return;
-      window.open(downloadUrl, '_blank', 'noopener');
-    });
-  };
+      guardAction(() => {
+        const downloadUrl = getMailboxDocumentDownloadUrl(docId);
+        if (!downloadUrl) return;
+        window.open(downloadUrl, '_blank', 'noopener');
+
+        // Opening a mail document marks it as viewed (best-effort; ignore failures).
+        const doc = documents.find((d) => d.id === docId);
+        if (doc && doc.type !== 'package' && doc.status !== 'viewed' && doc.status !== 'picked_up') {
+          markMailboxDocumentViewed(docId)
+            .then((updated) => {
+              setDocuments((prev) =>
+                prev.map((d) => (d.id === docId ? { ...d, ...(updated || { status: 'viewed' }) } : d))
+              );
+            })
+            .catch(() => { /* preview already opened; status update is non-critical */ });
+        }   
+      });
+    };
 
   const handleShowQr = (doc) => {
     guardAction(() => {
