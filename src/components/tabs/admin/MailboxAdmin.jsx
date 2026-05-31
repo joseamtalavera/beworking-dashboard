@@ -1040,9 +1040,11 @@ const MailboxAdmin = () => {
                               badgeContent={<Typography variant="caption">{pageCountLabel}</Typography>}
                               sx={{ '& .MuiBadge-badge': { bgcolor: 'secondary.main', color: 'secondary.contrastText' } }}
                             >
-                              <Avatar sx={{ bgcolor: doc.avatarColor || accentHover, color: 'grey.900', fontWeight: 600 }}>
-                                {avatarSeed}
-                              </Avatar>
+                              <Avatar
+                                src="/brand/mark-light.svg"
+                                alt="BeWorking"
+                                sx={{ bgcolor: '#ffffff', border: '1px solid', borderColor: 'divider', '& img': { objectFit: 'contain', p: '7px' } }}
+                              />
                             </Badge>
                             <Box>
                               <Typography fontWeight="medium" color="text.primary">
