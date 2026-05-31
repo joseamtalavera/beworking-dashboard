@@ -1144,7 +1144,7 @@ const MailboxAdmin = () => {
                                   </IconButton>
                                 </span>
                               </Tooltip>
-                            {docIsPackage ? (
+                            {docIsPackage && (
                               <Tooltip title={t('admin.tooltips.markPickedUp')} arrow>
                                 <span>
                                   <IconButton
@@ -1157,22 +1157,6 @@ const MailboxAdmin = () => {
                                     }}
                                   >
                                     <InventoryOutlinedIcon fontSize="small" />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            ) : (
-                              <Tooltip title={t('admin.tooltips.markViewed')} arrow>
-                                <span>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => doc.id && handleMarkViewed(doc.id)}
-                                    disabled={!doc.id || doc.status === 'viewed'}
-                                    sx={{
-                                      color: doc.status === 'viewed' ? 'brand.green' : 'secondary.main',
-                                      '&.Mui-disabled': doc.status === 'viewed' ? { color: 'brand.green' } : {}
-                                    }}
-                                  >
-                                    <CheckCircleOutlineOutlinedIcon fontSize="small" />
                                   </IconButton>
                                 </span>
                               </Tooltip>
