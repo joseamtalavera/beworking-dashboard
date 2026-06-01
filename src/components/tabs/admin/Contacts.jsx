@@ -907,6 +907,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const [funnelCounts, setFunnelCounts] = useState({ Activo: 0, Potencial: 0, Inactivo: 0 });
   const [recoverySendingId, setRecoverySendingId] = useState(null);
   const [recoveryToast, setRecoveryToast] = useState(null);
@@ -1337,6 +1339,8 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
   };
 
   const handleDeleteUser = async (userId) => {
+    setDeleting(true);
+    setDeleteError('');
     try {
       await apiFetch(`/contact-profiles/${userId}`, {
         method: 'DELETE'
@@ -1347,14 +1351,26 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[Contacts] Error deleting user:', error);
-      // You could add error handling here, like showing a toast notification
+      // Backend returns 409 JSON { error:'contact_has_invoices', invoiceCount } when
+      // the contact has invoices linked. Surface a friendly message instead of failing silently.
+      let msg = t('deleteDialog.genericError');
+      try {
+        const parsed = JSON.parse(error?.message || '{}');
+        if (parsed?.error === 'contact_has_invoices') {
+          msg = t('deleteDialog.blocked', { count: parsed.invoiceCount });
+        } else if (parsed?.message) {
+          msg = parsed.message;
+        }
+      } catch { /* not JSON — keep generic message */ }
+      setDeleteError(msg);
+    } finally {
+      setDeleting(false);
     }
   };
 
   const openDeleteDialog = (user) => {
     setUserToDelete(user);
+    setDeleteError('');
     setDeleteDialogOpen(true);
   };
 
@@ -2004,6 +2020,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
                 </Typography>
               </Box>
             )}
+            {deleteError && <Alert severity="error">{deleteError}</Alert>}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ 
@@ -2011,8 +2028,9 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
           borderRadius: '0 0 12px 12px'
         }}>
-          <Button 
+          <Button
             onClick={() => setDeleteDialogOpen(false)}
+            disabled={deleting}
             sx={{
               borderRadius: 2,
               textTransform: 'none',
@@ -2032,6 +2050,7 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           </Button>
           <Button
             variant="contained"
+            disabled={deleting}
             startIcon={<DeleteRoundedIcon sx={{ color: 'text.secondary' }} />}
             onClick={() => handleDeleteUser(userToDelete?.id)}
             sx={{
