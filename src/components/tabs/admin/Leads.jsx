@@ -150,13 +150,14 @@ const Leads = () => {
   };
 
   const headerCells = useMemo(() => ([
-    { key: 'name', label: t('leads.table.name'), width: '18%' },
-    { key: 'email', label: t('leads.table.email'), width: '20%' },
-    { key: 'phone', label: t('leads.table.phone'), width: '12%' },
-    { key: 'subject', label: t('leads.table.subject'), width: '15%' },
-    { key: 'status', label: t('leads.table.status'), width: '10%' },
-    { key: 'source', label: t('leads.table.source'), width: '11%' },
-    { key: 'createdAt', label: t('leads.table.createdAt'), width: '14%' },
+    { key: 'name', label: t('leads.table.name'), width: '17%' },
+    { key: 'email', label: t('leads.table.email'), width: '19%' },
+    { key: 'phone', label: t('leads.table.phone'), width: '11%' },
+    { key: 'subject', label: t('leads.table.subject'), width: '14%' },
+    { key: 'status', label: t('leads.table.status'), width: '9%' },
+    { key: 'source', label: t('leads.table.source'), width: '10%' },
+    { key: 'createdAt', label: t('leads.table.createdAt'), width: '13%' },
+    { key: 'actions', label: '', width: '7%' },
   ]), [t, i18n.language]);
 
   return (
@@ -259,6 +260,17 @@ const Leads = () => {
                 ) : <Typography sx={{ fontSize: '0.85rem', color: 'text.disabled' }}>—</Typography>}
               </Box>
               <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>{formatDate(lead.createdAt)}</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <Tooltip title={t('leads.actions.delete')}>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(lead); }}
+                  >
+                    <DeleteOutlineRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
           ))
         )}

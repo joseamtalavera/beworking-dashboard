@@ -30,7 +30,10 @@
     "id": "ID",
     "status": "Estado",
     "cancel": "Cancelar",
-    "delete": "Eliminar Contacto"
+    "delete": "Eliminar Contacto",
+    "deleting": "Eliminando…",
+    "blocked": "No se puede eliminar: este contacto tiene {{count}} factura(s) vinculada(s). Las facturas son registros contables y no pueden quedar huérfanas.",
+    "genericError": "No se pudo eliminar el contacto."
   },
   "table": {
     "user": "Usuario",

@@ -30,7 +30,10 @@
     "id": "ID",
     "status": "Status",
     "cancel": "Cancel",
-    "delete": "Delete Contact"
+    "delete": "Delete Contact",
+    "deleting": "Deleting…",
+    "blocked": "Cannot delete: this contact has {{count}} linked invoice(s). Invoices are accounting records and cannot be orphaned.",
+    "genericError": "Could not delete the contact."
   },
   "table": {
     "user": "User",

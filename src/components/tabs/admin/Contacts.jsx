@@ -1376,6 +1376,11 @@ const Contacts = ({ userType = 'admin', refreshProfile, userProfile }) => {
           setViewMode('list');
           setSelectedContact(null);
         }}
+        onDeleted={() => {
+          setViewMode('list');
+          setSelectedContact(null);
+          fetchContacts();
+        }}
         onSave={handleSaveProfile}
         userTypeOptions={userTypeOptions}
         refreshProfile={refreshProfile}

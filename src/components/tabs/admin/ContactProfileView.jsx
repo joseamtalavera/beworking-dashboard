@@ -156,7 +156,7 @@ const SetupForm = ({ onSuccess, onCancel }) => {
   );
 };
 
-const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile, mode = 'admin' }) => {
+const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshProfile, mode = 'admin', onDeleted }) => {
   const { t, i18n: i18nInstance } = useTranslation('contacts');
   const lang = i18nInstance.language?.startsWith('en') ? 'en' : 'es';
   const theme = useTheme();
@@ -178,6 +178,37 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   const [draft, setDraft] = useState(() => mapContactToDraft(contact));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  // Delete contact (admin only). Backend blocks with 409 if invoices are linked.
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const handleDeleteContact = async () => {
+    if (!contact?.id) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await apiFetch(`/contact-profiles/${contact.id}`, { method: 'DELETE' });
+      setConfirmDeleteOpen(false);
+      if (onDeleted) onDeleted(contact.id);
+      else if (onBack) onBack();
+    } catch (e) {
+      // 409 body is JSON: { error:'contact_has_invoices', invoiceCount, message }
+      let msg = t('deleteDialog.genericError');
+      try {
+        const parsed = JSON.parse(e?.message || '{}');
+        if (parsed?.error === 'contact_has_invoices') {
+          msg = t('deleteDialog.blocked', { count: parsed.invoiceCount });
+        } else if (parsed?.message) {
+          msg = parsed.message;
+        }
+      } catch { /* not JSON — keep generic message */ }
+      setDeleteError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // VAT validation
   const [vatStatus, setVatStatus] = useState('idle'); // idle | loading | valid | invalid | error
@@ -630,29 +661,42 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
             {t('profile.backToContacts')}
           </Button>
         )}
-        <Button
-          variant="outlined"
-          startIcon={<EditRoundedIcon sx={{ color: 'brand.green' }} />}
-          onClick={() => setEditorOpen(true)}
-          sx={{
-            minWidth: 120,
-            height: 36,
-            textTransform: 'none',
-            fontWeight: 600,
-            borderColor: 'brand.green',
-            color: 'brand.green',
-            '&:hover': {
-              borderColor: 'brand.greenHover',
-              color: 'brand.greenHover',
-              backgroundColor: alpha(theme.palette.brand.green, 0.08),
-              transform: 'translateY(-1px)',
-              boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
-            },
-            transition: 'all 0.2s ease-in-out'
-          }}
-        >
-          {t('profile.editProfile')}
-        </Button>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Button
+            variant="outlined"
+            startIcon={<EditRoundedIcon sx={{ color: 'brand.green' }} />}
+            onClick={() => setEditorOpen(true)}
+            sx={{
+              minWidth: 120,
+              height: 36,
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: 'brand.green',
+              color: 'brand.green',
+              '&:hover': {
+                borderColor: 'brand.greenHover',
+                color: 'brand.greenHover',
+                backgroundColor: alpha(theme.palette.brand.green, 0.08),
+                transform: 'translateY(-1px)',
+                boxShadow: `0 4px 12px ${alpha(theme.palette.brand.green, 0.2)}`
+              },
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
+            {t('profile.editProfile')}
+          </Button>
+          {mode !== 'user' && (
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteOutlineRoundedIcon />}
+              onClick={() => { setDeleteError(''); setConfirmDeleteOpen(true); }}
+              sx={{ minWidth: 120, height: 36, textTransform: 'none', fontWeight: 600 }}
+            >
+              {t('deleteDialog.delete')}
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
       <Paper
@@ -966,10 +1010,40 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
       </Box>
 
 
-      <Dialog 
-        open={editorOpen} 
-        onClose={() => setEditorOpen(false)} 
-        maxWidth="lg" 
+      {/* Delete confirmation */}
+      <Dialog open={confirmDeleteOpen} onClose={() => !deleting && setConfirmDeleteOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>{t('deleteDialog.title')}</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.9rem', mb: 1 }}>
+            {t('deleteDialog.confirm')} <strong>{contact?.name}</strong>
+            {contact?.contact?.email ? ` (${contact.contact.email})` : ''}?
+          </Typography>
+          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+            {t('deleteDialog.warning')}
+          </Typography>
+          {deleteError && <Alert severity="error" sx={{ mt: 2 }}>{deleteError}</Alert>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteOpen(false)} disabled={deleting}>
+            {t('deleteDialog.cancel')}
+          </Button>
+          <Button
+            onClick={handleDeleteContact}
+            color="error"
+            variant="contained"
+            disableElevation
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={14} /> : <DeleteOutlineRoundedIcon />}
+          >
+            {deleting ? t('deleteDialog.deleting') : t('deleteDialog.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        maxWidth="lg"
         fullWidth
         PaperProps={{
           sx: {
