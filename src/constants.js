@@ -37,7 +37,7 @@ export const DEPT_TABS = [
   { id: 'Platform', label: 'Platform', icon: OverviewIcon, subtabs: [
     { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon, adminOnly: true },
     { id: 'Overview', label: 'Overview', icon: OverviewIcon },
-    { id: 'Booking', label: 'Spaces', icon: BookingIcon },
+    { id: 'Booking', label: 'Spaces', icon: SpaceCatalogIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
     { id: 'BeKey', label: 'Access', icon: PasswordManagementIcon },
