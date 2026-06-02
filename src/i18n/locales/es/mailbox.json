@@ -68,7 +68,8 @@
       "cameraError": "No se pudo acceder a la cámara. Introduce el código manualmente."
     },
     "whatsapp": {
-      "message": "Hola, tienes un nuevo documento en tu buzón digital de BeWorking: «{{title}}». Accede a tu cuenta para verlo y descargarlo."
+      "message": "Hola, tienes un nuevo documento en tu buzón digital de BeWorking: «{{title}}». Accede a tu cuenta para verlo y descargarlo.",
+      "packageMessage": "Hola, tienes un paquete listo para recoger en BeWorking: «{{title}}». Tu código de recogida es {{code}}. Horario de recogida: lunes a viernes de 8:00 a 14:00 h."
     },
     "deleteConfirm": "¿Seguro que quieres eliminar este documento? Esta acción no se puede deshacer.",
     "deleteDialogTitle": "Eliminar documento",

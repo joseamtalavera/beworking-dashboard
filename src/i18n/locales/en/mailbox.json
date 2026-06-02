@@ -68,7 +68,8 @@
       "cameraError": "Unable to access camera. Please enter the code manually."
     },
     "whatsapp": {
-      "message": "Hello, you have a new document in your BeWorking digital mailbox: «{{title}}». Sign in to your account to view and download it."
+      "message": "Hello, you have a new document in your BeWorking digital mailbox: «{{title}}». Sign in to your account to view and download it.",
+      "packageMessage": "Hello, you have a package ready for pickup at BeWorking: «{{title}}». Your pickup code is {{code}}. Pickup hours: Monday to Friday, 8:00–14:00."
     },
     "deleteConfirm": "Are you sure you want to delete this document? This action cannot be undone.",
     "deleteDialogTitle": "Delete document",

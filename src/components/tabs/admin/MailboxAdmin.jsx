@@ -484,7 +484,10 @@ const MailboxAdmin = () => {
         return;
       } 
       const docTitle = docData?.title || docData?.originalFileName || 'documento';
-      const message = t('admin.whatsapp.message', { title: docTitle });
+      const isPackage = docData?.type === 'package';
+      const message = isPackage
+        ? t('admin.whatsapp.packageMessage', { title: docTitle, code: docData?.pickupCode || '' })
+        : t('admin.whatsapp.message', { title: docTitle });
       const url = `https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank', 'noopener');
     };
