@@ -15,6 +15,7 @@ import {
   BankReconciliationIcon,
   CryptWalletIcon,
   PasswordManagementIcon,
+  BeKeyIcon,
   DigitalSignatureIcon,
   SpaceCatalogIcon,
   DomicilioFiscalIcon,
@@ -40,7 +41,7 @@ export const DEPT_TABS = [
     { id: 'Booking', label: 'Spaces', icon: SpaceCatalogIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
-    { id: 'BeKey', label: 'BeKey', icon: PasswordManagementIcon },
+    { id: 'BeKey', label: 'BeKey', icon: BeKeyIcon },
     { id: 'Services', label: 'Services', icon: ServicesIcon, adminOnly: true },
     { id: 'Integrations', label: 'Integration', icon: IntegrationsIcon, soon: true, adminOnly: true },
     { id: 'Reports', label: 'Reports', icon: ReportsIcon, adminOnly: true, subtabs: [

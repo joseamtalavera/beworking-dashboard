@@ -20,6 +20,7 @@ import ExpensesIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import BankReconciliationIcon from '@mui/icons-material/AccountBalanceOutlined';
 import CryptWalletIcon from '@mui/icons-material/CurrencyBitcoinOutlined';
 import PasswordManagementIcon from '@mui/icons-material/LockOutlined';
+import BeKeyIcon from '@mui/icons-material/VpnKeyOutlined';
 import DigitalSignatureIcon from '@mui/icons-material/EditOutlined';
 import SpaceCatalogIcon from '@mui/icons-material/WorkspacesOutlined';
 import DomicilioFiscalIcon from '@mui/icons-material/BusinessOutlined';
@@ -62,6 +63,7 @@ export {
   BankReconciliationIcon,
   CryptWalletIcon,
   PasswordManagementIcon,
+  BeKeyIcon,
   DigitalSignatureIcon,
   SpaceCatalogIcon,
   DomicilioFiscalIcon,
