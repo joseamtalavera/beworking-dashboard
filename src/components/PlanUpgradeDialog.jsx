@@ -152,6 +152,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
         body: {
           plan: paymentStep.plan.key,
           stripeCustomerId: paymentStep.customerId,
+          paymentMethodId: setupIntent?.payment_method,
         },
       });
 
