@@ -221,7 +221,7 @@ const Leads = () => {
 
       {/* Table */}
       <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: `${tokens.radius.md}px`, overflow: 'hidden' }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: headerCells.map(c => c.width).join(' '), alignItems: 'center', columnGap: 1, bgcolor: alpha(theme.palette.background.default, 0.6), px: 2, py: 1.75, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: headerCells.map(c => c.width).join(' '), alignItems: 'center', bgcolor: alpha(theme.palette.background.default, 0.6), px: 2, py: 1.75, borderBottom: '1px solid', borderColor: 'divider' }}>
           {headerCells.map((c) => (
             <Typography key={c.key} sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               {c.label}
@@ -242,7 +242,7 @@ const Leads = () => {
               sx={{
                 display: 'grid',
                 gridTemplateColumns: headerCells.map(c => c.width).join(' '),
-                alignItems: 'center', columnGap: 1,
+                alignItems: 'center',
                 px: 2, py: 1.75,
                 borderBottom: '1px solid', borderColor: 'divider',
                 cursor: 'pointer',
