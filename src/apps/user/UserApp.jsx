@@ -26,6 +26,7 @@ const Tickets = React.lazy(() => import('../../components/tabs/admin/Tickets.jsx
 const Reports = React.lazy(() => import('../../components/tabs/admin/Reports.jsx'));
 import Marketplace from '../../components/tabs/Marketplace.jsx';
 const DeptComingSoon = React.lazy(() => import('../../components/tabs/DeptComingSoon.jsx'));
+const BeKey = React.lazy(() => import('../../components/tabs/BeKey.jsx'));
 
 const TAB_COMPONENTS = {
   Overview,
@@ -41,6 +42,7 @@ const TAB_COMPONENTS = {
   Marketplace,
   MariaAI,
   ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
+  BeKey,
   DomicilioFiscal: VirtualOffice,
   Integrations,
   Automation,
