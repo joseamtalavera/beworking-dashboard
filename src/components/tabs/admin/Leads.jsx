@@ -12,11 +12,11 @@ import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import { useTranslation } from 'react-i18next';
 import { tokens } from '../../../theme/tokens.js';
 import { fetchLeads, fetchLead, deleteLead, updateLead, convertLeadToContact } from '../../../api/leads.js';
+import { pillFieldSx } from '../../common/pillField.js';
 
 const PAGE_SIZE = 25;
 
 const LEAD_STATUSES = ['Nuevo', 'Contactado', 'Calificado', 'Convertido', 'No-go'];
-
 const STATUS_COLOR = {
   Nuevo:      'info',
   Contactado: 'primary',
@@ -161,9 +161,18 @@ const Leads = () => {
   ]), [t, i18n.language]);
 
   return (
-    <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, p: 3, border: '1px solid', borderColor: 'divider' }}>
+    <Paper
+      elevation={0}
+      sx={{
+        borderRadius: `${tokens.radius.lg}px`,
+        p: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        background: `linear-gradient(140deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[100]} 50%, ${theme.palette.background.paper} 100%)`,
+      }}
+    >
       <Stack spacing={0.5} sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>
+        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
           {t('leads.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -191,12 +200,11 @@ const Leads = () => {
             variant="standard"
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            label={t('leads.searchPlaceholder')}
             placeholder={t('leads.searchPlaceholder')}
             fullWidth
-            slotProps={{ input: { disableUnderline: true } }}
-            sx={{
-              '& .MuiInput-input': { fontSize: '0.875rem', py: 0.25 },
-            }}
+            slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+            sx={pillFieldSx(q)}
           />
         </Box>
         <Box sx={{ px: 1.5 }}>
@@ -213,7 +221,7 @@ const Leads = () => {
 
       {/* Table */}
       <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: `${tokens.radius.md}px`, overflow: 'hidden' }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: headerCells.map(c => c.width).join(' '), bgcolor: 'background.default', px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: headerCells.map(c => c.width).join(' '), alignItems: 'center', columnGap: 1, bgcolor: alpha(theme.palette.background.default, 0.6), px: 2, py: 1.75, borderBottom: '1px solid', borderColor: 'divider' }}>
           {headerCells.map((c) => (
             <Typography key={c.key} sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               {c.label}
@@ -234,32 +242,34 @@ const Leads = () => {
               sx={{
                 display: 'grid',
                 gridTemplateColumns: headerCells.map(c => c.width).join(' '),
-                px: 2, py: 1.5,
+                alignItems: 'center', columnGap: 1,
+                px: 2, py: 1.75,
                 borderBottom: '1px solid', borderColor: 'divider',
                 cursor: 'pointer',
+                transition: 'background-color 0.15s',
                 '&:hover': { bgcolor: 'action.hover' },
                 '&:last-child': { borderBottom: 'none' },
               }}
             >
-              <Typography sx={{ fontSize: '0.9rem', fontWeight: 500 }}>{lead.name || '—'}</Typography>
-              <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>{lead.email || '—'}</Typography>
-              <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>{lead.phone || '—'}</Typography>
-              <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>{lead.subject || '—'}</Typography>
+              <Typography noWrap sx={{ fontSize: '0.9rem', fontWeight: 500, pr: 1 }}>{lead.name || '—'}</Typography>
+              <Typography noWrap sx={{ fontSize: '0.875rem', color: 'text.secondary', pr: 1 }}>{lead.email || '—'}</Typography>
+              <Typography noWrap sx={{ fontSize: '0.875rem', color: 'text.secondary', pr: 1 }}>{lead.phone || '—'}</Typography>
+              <Typography noWrap sx={{ fontSize: '0.875rem', color: 'text.secondary', pr: 1 }}>{lead.subject || '—'}</Typography>
               <Box>
                 <Chip
                   size="small"
                   label={lead.status || 'Nuevo'}
                   color={STATUS_COLOR[lead.status] || 'default'}
                   variant="outlined"
-                  sx={{ fontSize: '0.7rem', height: 22, fontWeight: 600 }}
+                  sx={{ fontSize: '0.7rem', height: 24, fontWeight: 600, borderRadius: 1.5 }}
                 />
               </Box>
               <Box>
                 {lead.source ? (
-                  <Chip size="small" label={lead.source} color={sourceColor(lead.source)} sx={{ fontSize: '0.7rem', height: 22 }} />
+                  <Chip size="small" label={lead.source} color={sourceColor(lead.source)} variant="outlined" sx={{ fontSize: '0.7rem', height: 24, fontWeight: 600, borderRadius: 1.5 }} />
                 ) : <Typography sx={{ fontSize: '0.85rem', color: 'text.disabled' }}>—</Typography>}
               </Box>
-              <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>{formatDate(lead.createdAt)}</Typography>
+              <Typography noWrap sx={{ fontSize: '0.85rem', color: 'text.secondary', pr: 1 }}>{formatDate(lead.createdAt)}</Typography>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                 <Tooltip title={t('leads.actions.delete')}>
                   <IconButton
