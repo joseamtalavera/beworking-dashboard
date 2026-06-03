@@ -93,6 +93,8 @@
     "contactNamePlaceholder": "Introduce el nombre del contacto",
     "contactEmail": "Email del contacto",
     "contactEmailPlaceholder": "Introduce el email del contacto",
+    "documentName": "Nombre del documento",
+    "documentNamePlaceholder": "Introduce un nombre para este documento",
     "selectDocuments": "Seleccionar documentos",
     "photoOfPackage": "Foto del paquete",
     "dragDrop": "Arrastra y suelta archivos aquí",

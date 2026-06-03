@@ -150,6 +150,7 @@ const MailboxAdmin = () => {
   const [uploadForm, setUploadForm] = useState({
     contactName: '',
     contactEmail: '',
+    documentName: '',
     documents: [],
     autoNotify: true,
     documentType: 'mail'
@@ -504,6 +505,7 @@ const MailboxAdmin = () => {
     setUploadForm({
       contactName: '',
       contactEmail: '',
+      documentName: '',
       documents: [],
       autoNotify: true,
       documentType: 'mail'
@@ -639,10 +641,13 @@ const MailboxAdmin = () => {
     for (let i = 0; i < total; i++) {
       setUploadProgress(prev => ({ ...prev, current: i + 1 }));
       try {
+        const docName = uploadForm.documentName.trim();
         const metadata = {
           contactEmail: uploadForm.contactEmail,
           autoNotify: uploadForm.autoNotify ? 'true' : 'false',
-          documentType: uploadForm.documentType
+          documentType: uploadForm.documentType,
+          // Manual display name; when several files share one name, suffix an index. Blank → backend falls back to file name.
+          ...(docName ? { title: total > 1 ? `${docName} (${i + 1})` : docName } : {})
         };
         const createdDocument = await uploadMailboxDocument(uploadForm.documents[i], metadata);
         const payloadAsList = normalizeDocuments(createdDocument);
@@ -1480,6 +1485,27 @@ const MailboxAdmin = () => {
                   </Typography>
                 </Stack>
               )}
+            </Box>
+
+            {/* Document Name (manual display name) */}
+            <Box>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 2 }}>
+                {t('uploadDialog.documentName')}
+              </Typography>
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', borderRadius: 999 }}>
+                <Box sx={{ flex: 1, px: 3, py: 2, minWidth: 0 }}>
+                  <TextField
+                    variant="standard"
+                    label={t('uploadDialog.documentName')}
+                    value={uploadForm.documentName}
+                    onChange={(e) => handleFormChange('documentName', e.target.value)}
+                    fullWidth
+                    placeholder={t('uploadDialog.documentNamePlaceholder')}
+                    slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                    sx={pillFieldSx(uploadForm.documentName)}
+                  />
+                </Box>
+              </Paper>
             </Box>
 
             {/* Auto-notify toggle */}

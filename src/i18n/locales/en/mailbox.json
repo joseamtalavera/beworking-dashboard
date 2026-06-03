@@ -93,6 +93,8 @@
     "contactNamePlaceholder": "Enter contact name",
     "contactEmail": "Contact Email",
     "contactEmailPlaceholder": "Enter contact email",
+    "documentName": "Document Name",
+    "documentNamePlaceholder": "Enter a name for this document",
     "selectDocuments": "Select Documents",
     "photoOfPackage": "Photo of Package",
     "dragDrop": "Drag & drop files here",
