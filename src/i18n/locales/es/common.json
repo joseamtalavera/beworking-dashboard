@@ -396,7 +396,28 @@
       "saved": "Concesión actualizada",
       "saveError": "No se pudo actualizar",
       "close": "Cerrar",
-      "revokeAutoNote": "Aviso: es una concesión automática; la reconciliación podría restaurarla."
+      "revokeAutoNote": "Aviso: es una concesión automática; la reconciliación podría restaurarla.",
+      "grantAction": "Conceder acceso",
+      "searchLabel": "Buscar",
+      "colSource": "Origen",
+      "colWindow": "Periodo",
+      "colStatus": "Estado",
+      "colActions": "Acciones",
+      "colTime": "Fecha",
+      "colEvent": "Evento",
+      "colDoor": "Puerta",
+      "reset": "Restablecer",
+      "showing": "Mostrando",
+      "of": "de",
+      "grantsWord": "concesiones",
+      "sourceAll": "Todos los orígenes",
+      "statusAll": "Todos los estados",
+      "contactNo": "Contacto {{id}}",
+      "source": {
+        "booking": "Reserva",
+        "subscription": "Suscripción",
+        "manual": "Manual"
+      }
     },
     "user": {
       "eyebrow": "Acceso",

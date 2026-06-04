@@ -396,7 +396,28 @@
       "saved": "Grant updated",
       "saveError": "Couldn't update",
       "close": "Close",
-      "revokeAutoNote": "Note: this is an automatic grant; reconciliation may restore it."
+      "revokeAutoNote": "Note: this is an automatic grant; reconciliation may restore it.",
+      "grantAction": "Grant access",
+      "searchLabel": "Search",
+      "colSource": "Source",
+      "colWindow": "Window",
+      "colStatus": "Status",
+      "colActions": "Actions",
+      "colTime": "Time",
+      "colEvent": "Event",
+      "colDoor": "Door",
+      "reset": "Reset",
+      "showing": "Showing",
+      "of": "of",
+      "grantsWord": "grants",
+      "sourceAll": "All sources",
+      "statusAll": "All statuses",
+      "contactNo": "Contact {{id}}",
+      "source": {
+        "booking": "Booking",
+        "subscription": "Subscription",
+        "manual": "Manual"
+      }
     },
     "user": {
       "eyebrow": "Access",
