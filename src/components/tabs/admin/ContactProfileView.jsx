@@ -1764,14 +1764,15 @@ const InfoRow = ({ label, value, pill, copyable, actionType }) => {
                 rel={actionType === 'phone' ? 'noopener noreferrer' : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Open Gmail compose in a script-opened window so Gmail can
-                  // close it itself after Send (a plain link/new tab isn't
-                  // "script-closable" → "Scripts may close only the windows
-                  // that were opened by them"). No noopener: keep it an
-                  // auxiliary context so window.close() is allowed.
+                  // Open Gmail compose as a sized POPUP (not a full tab). In
+                  // popup form Gmail serves its standalone compose UI and
+                  // closes the window itself after Send. A plain `_blank` tab
+                  // loads the whole Gmail app (mail/u/0/…) which returns to
+                  // the inbox and stays open → "Scripts may close only the
+                  // windows that were opened by them".
                   if (actionType === 'email') {
                     e.preventDefault();
-                    window.open(actionHref, '_blank');
+                    window.open(actionHref, 'bw-gmail-compose', 'width=720,height=760');
                   }
                 }}
                 sx={{ p: 0.5 }}
