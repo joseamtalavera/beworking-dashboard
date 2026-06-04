@@ -12,15 +12,22 @@ export const openDoor = (deviceId, options = {}) =>
 // GET /api/admin/bekey/devices -> BeKeyDevice[]
 export const fetchDevices = (options = {}) => apiFetch('/admin/bekey/devices', options);
 
+// GET /api/admin/bekey/member-groups -> BeKeyMemberGroup[] ({ id, label, scope, ... })
+export const fetchMemberGroups = (options = {}) => apiFetch('/admin/bekey/member-groups', options);
+
 // GET /api/admin/bekey/access[?contactId=] -> BeKeyAccess[]
 export const fetchAccessGrants = (contactId, options = {}) => {
   const qs = contactId ? `?contactId=${contactId}` : '';
   return apiFetch(`/admin/bekey/access${qs}`, options);
 };
 
-// POST /api/admin/bekey/access { contactId, memberGroupId, expiresAt } -> created BeKeyAccess
+// POST /api/admin/bekey/access { contactId, memberGroupId, startsAt, expiresAt } -> created BeKeyAccess
 export const grantAccess = (body, options = {}) =>
   apiFetch('/admin/bekey/access', { method: 'POST', body, ...options });
+
+// PATCH /api/admin/bekey/access/{id} { startsAt, expiresAt } -> updated BeKeyAccess (manual grants only)
+export const updateAccess = (id, body, options = {}) =>
+  apiFetch(`/admin/bekey/access/${id}`, { method: 'PATCH', body, ...options });
 
 // DELETE /api/admin/bekey/access/{id}[?reason=] -> revoked BeKeyAccess
 export const revokeAccess = (id, reason, options = {}) => {
