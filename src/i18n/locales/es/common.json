@@ -344,5 +344,55 @@
   "services": {
     "title": "Servicios",
     "subtitle": "Activa los servicios que quieres ver en el menú lateral."
+  },
+  "bekey": {
+    "online": "En línea",
+    "offline": "Sin conexión",
+    "reload": "Recargar",
+    "cancel": "Cancelar",
+    "admin": {
+      "eyebrow": "BeKey",
+      "title": "Control de acceso",
+      "subtitle": "Gestiona puertas, accesos y eventos.",
+      "loadError": "No se pudo cargar BeKey",
+      "grantRequired": "contactId y memberGroupId son obligatorios",
+      "granted": "Acceso concedido",
+      "grantError": "No se pudo conceder el acceso",
+      "revoked": "Acceso revocado",
+      "revokeError": "No se pudo revocar",
+      "devicesEyebrow": "Puertas",
+      "devicesTitle": "Dispositivos ({{count}})",
+      "noDevices": "Sin dispositivos.",
+      "grantsEyebrow": "Accesos",
+      "grantsTitle": "Concesiones ({{count}})",
+      "contactId": "Contact ID",
+      "memberGroupId": "Member Group ID",
+      "expires": "Expira (opcional)",
+      "grant": "Conceder",
+      "grantRow": "Contacto {{contact}} · Grupo {{group}}",
+      "from": "desde",
+      "until": "hasta",
+      "revokedLabel": "revocado",
+      "revoke": "Revocar",
+      "noGrants": "Sin concesiones.",
+      "eventsEyebrow": "Actividad",
+      "eventsTitle": "Eventos ({{count}})",
+      "eventContact": "contacto",
+      "eventDoor": "puerta",
+      "noEvents": "Sin eventos.",
+      "revokeTitle": "Revocar acceso",
+      "revokeConfirm": "¿Revocar el acceso del contacto {{contact}} al grupo {{group}}? La persona dejará de poder abrir esa puerta de inmediato."
+    },
+    "user": {
+      "eyebrow": "Acceso",
+      "title": "Mis puertas",
+      "subtitle": "Abre las puertas a las que tienes acceso. Tu PIN sirve como alternativa en el teclado.",
+      "pinLabel": "PIN de teclado",
+      "noDoors": "No tienes puertas asignadas.",
+      "open": "Abrir",
+      "opened": "{{name}} abierta",
+      "loadError": "No se pudo cargar el acceso",
+      "openError": "No se pudo abrir la puerta"
+    }
   }
 }

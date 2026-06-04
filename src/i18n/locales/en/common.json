@@ -344,5 +344,55 @@
   "services": {
     "title": "Services",
     "subtitle": "Activate the services you want to see in the side menu."
+  },
+  "bekey": {
+    "online": "Online",
+    "offline": "Offline",
+    "reload": "Reload",
+    "cancel": "Cancel",
+    "admin": {
+      "eyebrow": "BeKey",
+      "title": "Access control",
+      "subtitle": "Manage doors, access and events.",
+      "loadError": "Couldn't load BeKey",
+      "grantRequired": "contactId and memberGroupId are required",
+      "granted": "Access granted",
+      "grantError": "Couldn't grant access",
+      "revoked": "Access revoked",
+      "revokeError": "Couldn't revoke",
+      "devicesEyebrow": "Doors",
+      "devicesTitle": "Devices ({{count}})",
+      "noDevices": "No devices.",
+      "grantsEyebrow": "Access",
+      "grantsTitle": "Grants ({{count}})",
+      "contactId": "Contact ID",
+      "memberGroupId": "Member Group ID",
+      "expires": "Expires (optional)",
+      "grant": "Grant",
+      "grantRow": "Contact {{contact}} · Group {{group}}",
+      "from": "from",
+      "until": "until",
+      "revokedLabel": "revoked",
+      "revoke": "Revoke",
+      "noGrants": "No grants.",
+      "eventsEyebrow": "Activity",
+      "eventsTitle": "Events ({{count}})",
+      "eventContact": "contact",
+      "eventDoor": "door",
+      "noEvents": "No events.",
+      "revokeTitle": "Revoke access",
+      "revokeConfirm": "Revoke contact {{contact}}'s access to group {{group}}? They will immediately lose the ability to open that door."
+    },
+    "user": {
+      "eyebrow": "Access",
+      "title": "My doors",
+      "subtitle": "Open the doors you have access to. Your PIN works as a keypad alternative.",
+      "pinLabel": "Keypad PIN",
+      "noDoors": "You have no doors assigned.",
+      "open": "Open",
+      "opened": "{{name}} opened",
+      "loadError": "Couldn't load access",
+      "openError": "Couldn't open the door"
+    }
   }
 }
