@@ -1760,9 +1760,20 @@ const InfoRow = ({ label, value, pill, copyable, actionType }) => {
                 size="small"
                 component="a"
                 href={actionHref}
-                target={actionType === 'phone' ? '_blank' : undefined}
+                target="_blank"
                 rel={actionType === 'phone' ? 'noopener noreferrer' : undefined}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Open Gmail compose in a script-opened window so Gmail can
+                  // close it itself after Send (a plain link/new tab isn't
+                  // "script-closable" → "Scripts may close only the windows
+                  // that were opened by them"). No noopener: keep it an
+                  // auxiliary context so window.close() is allowed.
+                  if (actionType === 'email') {
+                    e.preventDefault();
+                    window.open(actionHref, '_blank');
+                  }
+                }}
                 sx={{ p: 0.5 }}
               >
                 <ActionIcon sx={{ fontSize: 16, color: actionType === 'phone' ? '#25D366' : 'text.secondary' }} />
