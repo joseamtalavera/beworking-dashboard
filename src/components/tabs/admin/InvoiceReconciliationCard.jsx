@@ -281,7 +281,15 @@ const InvoiceReconciliationCard = () => {
                 <TableBody>
                   {(detailDialog?.rows || []).map((row, i) => {
                     const phone = row.customerPhone;
-                    const wa = phone ? `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}` : null;
+                    // Prefill the WhatsApp message with a greeting, the amount
+                    // and the customer-facing Stripe payment link (hostedInvoiceUrl
+                    // — NOT the admin dashboard.stripe.com URL). Falls back to a
+                    // link-less message if the hosted URL is missing.
+                    const payUrl = row.hostedInvoiceUrl || null;
+                    const greeting = row.customerName ? `Hola ${row.customerName}, ` : 'Hola, ';
+                    const amountStr = `€${Number(row.amountDue || 0).toFixed(2)}`;
+                    const waText = `${greeting}tu recibo de BeWorking por ${amountStr} está pendiente de pago.${payUrl ? ` Puedes regularizarlo aquí: ${payUrl}` : ''}`;
+                    const wa = phone ? `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waText)}` : null;
                     const invUrl = row.latestInvoiceId ? `https://dashboard.stripe.com/invoices/${row.latestInvoiceId}` : null;
                     return (
                       <TableRow key={row.subscriptionId || i} hover>
