@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
-  Box, Paper, Stack, Typography, Button, CircularProgress, Alert, Snackbar,
+  Box, Paper, Stack, Typography, CircularProgress, Alert, Snackbar, Avatar, Tooltip,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
-import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded';
-import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
+import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import { tokens } from '../../theme/tokens.js';
 import { fetchMyAccess, openDoor } from '../../api/bekey.js';
 
@@ -36,6 +35,7 @@ const BeKey = () => {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   const handleOpen = async (device) => {
+    if (!device.online) return;
     setOpeningId(device.id);
     try {
       await openDoor(device.id);
@@ -62,7 +62,7 @@ const BeKey = () => {
         <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'brand.green', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           {t('bekey.user.eyebrow', { defaultValue: 'Acceso' })}
         </Typography>
-        <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '-0.02em', color: 'common.black' }}>
           {t('bekey.user.title', { defaultValue: 'Mis puertas' })}
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -78,7 +78,7 @@ const BeKey = () => {
           <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             {t('bekey.user.pinLabel', { defaultValue: 'PIN de teclado' })}
           </Typography>
-          <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.2em', fontFamily: 'monospace' }}>
+          <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '0.2em', fontFamily: 'monospace', color: 'common.black' }}>
             {pin}
           </Typography>
         </Paper>
@@ -93,34 +93,67 @@ const BeKey = () => {
           {t('bekey.user.noDoors', { defaultValue: 'No tienes puertas asignadas.' })}
         </Box>
       ) : (
-        <Stack spacing={1.5}>
-          {devices.map((d) => (
-            <Paper
-              key={d.id}
-              elevation={0}
-              sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid', borderColor: 'divider', borderRadius: `${tokens.radius.md}px` }}
-            >
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <MeetingRoomRoundedIcon sx={{ color: 'brand.green' }} />
-                <Box>
-                  <Typography sx={{ fontWeight: 600 }}>{d.name}</Typography>
-                  <Typography sx={{ fontSize: '0.75rem', color: d.online ? 'success.main' : 'text.disabled' }}>
-                    {d.online ? t('bekey.online', { defaultValue: 'En línea' }) : t('bekey.offline', { defaultValue: 'Sin conexión' })}
-                  </Typography>
-                </Box>
-              </Stack>
-              <Button
-                variant="contained"
-                disableElevation
-                startIcon={openingId === d.id ? <CircularProgress size={16} color="inherit" /> : <LockOpenRoundedIcon />}
-                disabled={openingId === d.id}
-                onClick={() => handleOpen(d)}
-                sx={{ textTransform: 'none', fontWeight: 600, bgcolor: 'brand.green', '&:hover': { bgcolor: 'brand.greenHover' } }}
+        <Stack spacing={2}>
+          {devices.map((d) => {
+            const opening = openingId === d.id;
+            const offline = !d.online;
+            return (
+              <Paper
+                key={d.id}
+                elevation={0}
+                sx={{
+                  px: 3,
+                  py: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: `${tokens.radius.lg}px`,
+                  bgcolor: 'background.paper',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                }}
               >
-                {t('bekey.user.open', { defaultValue: 'Abrir' })}
-              </Button>
-            </Paper>
-          ))}
+                <Box>
+                  <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', color: 'common.black' }}>{d.name}</Typography>
+                  {offline && (
+                    <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', fontWeight: 600 }}>
+                      {t('bekey.offline', { defaultValue: 'Sin conexión' })}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Tooltip title={offline ? t('bekey.offline', { defaultValue: 'Sin conexión' }) : t('bekey.user.open', { defaultValue: 'Abrir' })}>
+                  <Box
+                    role="button"
+                    aria-label={t('bekey.user.open', { defaultValue: 'Abrir' })}
+                    aria-disabled={offline}
+                    onClick={() => !offline && !opening && handleOpen(d)}
+                    sx={{
+                      position: 'relative',
+                      width: 116,
+                      height: 56,
+                      borderRadius: 999,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      px: 0.75,
+                      cursor: offline ? 'not-allowed' : 'pointer',
+                      opacity: offline ? 0.4 : 1,
+                      background: `linear-gradient(90deg, ${alpha(theme.palette.brand.green, 0.45)} 0%, ${alpha(theme.palette.brand.green, 0.04)} 100%)`,
+                      transition: 'transform .15s, box-shadow .15s',
+                      '&:hover': offline ? {} : { boxShadow: `0 6px 22px ${alpha(theme.palette.brand.green, 0.45)}`, transform: 'translateY(-1px)' },
+                      '&:active': offline ? {} : { transform: 'scale(0.97)' },
+                    }}
+                  >
+                    <Avatar sx={{ bgcolor: 'brand.green', width: 44, height: 44, boxShadow: `0 2px 8px ${alpha(theme.palette.brand.green, 0.5)}` }}>
+                      {opening ? <CircularProgress size={18} sx={{ color: 'common.white' }} /> : <LockRoundedIcon sx={{ color: 'common.white' }} />}
+                    </Avatar>
+                  </Box>
+                </Tooltip>
+              </Paper>
+            );
+          })}
         </Stack>
       )}
 
