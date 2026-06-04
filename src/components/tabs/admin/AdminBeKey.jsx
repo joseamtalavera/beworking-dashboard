@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Box, Paper, Stack, Typography, Button, TextField, IconButton, Chip,
   CircularProgress, Alert, Snackbar, Tooltip, Divider,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
@@ -31,6 +32,8 @@ const AdminBeKey = () => {
   const [toast, setToast] = useState(null);
   const [form, setForm] = useState({ contactId: '', memberGroupId: '', expiresAt: '' });
   const [saving, setSaving] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null);
+  const [revoking, setRevoking] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -72,12 +75,16 @@ const AdminBeKey = () => {
   };
 
   const handleRevoke = async (id) => {
+    setRevoking(true);
     try {
       await revokeAccess(id, 'admin manual revoke');
       setToast({ severity: 'success', message: 'Acceso revocado' });
+      setConfirmTarget(null);
       load();
     } catch (err) {
       setToast({ severity: 'error', message: err?.message || 'No se pudo revocar' });
+    } finally {
+      setRevoking(false);
     }
   };
 
@@ -137,7 +144,7 @@ const AdminBeKey = () => {
                   </Box>
                   {!g.revokedAt && (
                     <Tooltip title="Revocar">
-                      <IconButton size="small" color="error" onClick={() => handleRevoke(g.id)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>
+                      <IconButton size="small" color="error" onClick={() => setConfirmTarget(g)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>
                     </Tooltip>
                   )}
                 </Paper>
@@ -164,6 +171,29 @@ const AdminBeKey = () => {
           </Box>
         </Stack>
       )}
+
+      <Dialog open={!!confirmTarget} onClose={() => { if (!revoking) setConfirmTarget(null); }}>
+        <DialogTitle sx={{ fontWeight: 600 }}>Revocar acceso</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmTarget && `¿Revocar el acceso del contacto ${confirmTarget.contactId} al grupo ${confirmTarget.memberGroupId}? La persona dejará de poder abrir esa puerta de inmediato.`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setConfirmTarget(null)} disabled={revoking} sx={{ textTransform: 'none' }}>Cancelar</Button>
+          <Button
+            onClick={() => confirmTarget && handleRevoke(confirmTarget.id)}
+            color="error"
+            variant="contained"
+            disableElevation
+            disabled={revoking}
+            startIcon={revoking ? <CircularProgress size={14} color="inherit" /> : <DeleteOutlineRoundedIcon />}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Revocar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar open={!!toast} autoHideDuration={4000} onClose={() => setToast(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         {toast && <Alert onClose={() => setToast(null)} severity={toast.severity} variant="filled" sx={{ width: '100%' }}>{toast.message}</Alert>}
