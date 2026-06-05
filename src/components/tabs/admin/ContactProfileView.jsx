@@ -1217,6 +1217,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                         size="small"
                         sx={fieldSx}
                         SelectProps={{ displayEmpty: true }}
+                        slotProps={{ inputLabel: { shrink: true } }}
                         disabled={mode === 'user'}
                       >
                         <MenuItem value="">

@@ -10,9 +10,20 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n/i18n.js';
+import esContacts from '../../../i18n/locales/es/contacts.json';
+import enContacts from '../../../i18n/locales/en/contacts.json';
 import { tokens } from '../../../theme/tokens.js';
 import { fetchLeads, fetchLead, deleteLead, updateLead, convertLeadToContact } from '../../../api/leads.js';
 import { pillFieldSx } from '../../common/pillField.js';
+
+// Leads.jsx renders the 'contacts' namespace but can be mounted before any
+// other tab that registers it, leaving labels as raw keys. Self-register the
+// bundle (guarded), exactly like Contacts.jsx / ContactProfileView.jsx.
+if (!i18n.hasResourceBundle('es', 'contacts')) {
+  i18n.addResourceBundle('es', 'contacts', esContacts);
+  i18n.addResourceBundle('en', 'contacts', enContacts);
+}
 
 const PAGE_SIZE = 25;
 
