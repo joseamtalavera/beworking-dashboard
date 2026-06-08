@@ -39,7 +39,7 @@ const TAB_COMPONENTS = {
   Contacts,
   Leads,
   Analytics,
-  EmailAutomationContacts: EmailAutomation,
+  EmailAutomation,
   EmailAutomationBilling: EmailAutomation,
   Booking,
   Invoices,
@@ -101,7 +101,7 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
     if (activeTab === 'MariaAI') {
       return <Component userProfile={userProfile} />;
     }
-    if (activeTab === 'EmailAutomationContacts') {
+    if (activeTab === 'EmailAutomation') {
       return <Component domain="contacts" title="Contactos y Leads" />;
     }
     if (activeTab === 'EmailAutomationBilling') {

@@ -14,12 +14,14 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { tokens } from '../../../theme/tokens.js';
 import { pillFieldSx } from '../../common/pillField.js';
 import {
   fetchDevices, fetchMemberGroups, fetchAccessGrants, grantAccess, updateAccess, revokeAccess, fetchEvents,
 } from '../../../api/bekey.js';
 import { fetchBookingContacts } from '../../../api/bookings.js';
+import BeKey from '../BeKey.jsx';
 
 const GRANTS_PER_PAGE = 10;
 const EVENTS_PER_PAGE = 15;
@@ -35,6 +37,16 @@ const toLocalInput = (iso) => {
 const AdminBeKey = () => {
   const theme = useTheme();
   const { t } = useTranslation();
+  // Outlined white field styling, matching Contacts' AddUserDialog (contactFieldSx).
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
+      backgroundColor: theme.palette.common.white,
+      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.grey[400] },
+    },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.grey[300] },
+    '& .MuiInputLabel-root': { color: theme.palette.text.secondary },
+  };
   const [devices, setDevices] = useState([]);
   const [groups, setGroups] = useState([]);
   const [grants, setGrants] = useState([]);
@@ -181,7 +193,7 @@ const AdminBeKey = () => {
       if (sourceFilter !== 'all' && g.source !== sourceFilter) return false;
       if (!q) return true;
       const label = groupLabel[g.memberGroupId] || '';
-      return [g.contactId, g.memberGroupId, label, g.source].some((v) => String(v ?? '').toLowerCase().includes(q));
+      return [g.contactName, g.contactId, g.memberGroupId, label, g.source].some((v) => String(v ?? '').toLowerCase().includes(q));
     });
   }, [grants, search, sourceFilter, statusFilter, groupLabel]);
 
@@ -195,7 +207,11 @@ const AdminBeKey = () => {
   const resetFilters = () => { setSearch(''); setSourceFilter('all'); setStatusFilter('active'); };
 
   return (
-    <Paper
+    <Stack spacing={3}>
+      {/* Admin master key — same "Mis puertas" panel as the user, but the
+          backend returns every door (no booking/grant dependency). */}
+      <BeKey />
+      <Paper
       elevation={0}
       sx={{
         borderRadius: `${tokens.radius.lg}px`,
@@ -357,12 +373,7 @@ const AdminBeKey = () => {
             {!loading && pagedGrants.map((g) => (
               <TableRow key={g.id} hover sx={{ '& td': { borderBottomColor: 'divider' }, cursor: 'pointer', opacity: g.revokedAt ? 0.6 : 1 }} onClick={() => openDetail(g)}>
                 <TableCell sx={{ pl: 3 }}>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36, border: '3px solid', borderColor: alpha(theme.palette.brand.green, 0.5) }}>
-                      <VpnKeyRoundedIcon fontSize="small" />
-                    </Avatar>
-                    <Typography fontWeight={600}>{t('bekey.admin.contactNo', { id: g.contactId, defaultValue: 'Contacto {{id}}' })}</Typography>
-                  </Stack>
+                  <Typography fontWeight={600}>{g.contactName || t('bekey.admin.contactNo', { id: g.contactId, defaultValue: 'Contacto {{id}}' })}</Typography>
                 </TableCell>
                 <TableCell><Typography fontWeight={500}>{groupLabel[g.memberGroupId] || g.memberGroupId}</Typography></TableCell>
                 <TableCell><Typography variant="body2" color="text.secondary">{sourceLabel(g.source)}</Typography></TableCell>
@@ -441,46 +452,97 @@ const AdminBeKey = () => {
         </Box>
       )}
 
-      {/* Grant dialog */}
-      <Dialog open={grantOpen} onClose={() => { if (!saving) { setGrantOpen(false); resetGrantForm(); } }} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 600 }}>{t('bekey.admin.grantAction', { defaultValue: 'Conceder acceso' })}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2.5} sx={{ mt: 0.5 }}>
-            <Autocomplete
-              size="small"
-              options={contactOptions}
-              loading={contactsLoading}
-              value={selectedContact}
-              onChange={(e, v) => setSelectedContact(v)}
-              inputValue={contactInput}
-              onInputChange={(e, v) => setContactInput(v)}
-              getOptionLabel={(o) => (o ? `${o.name || ''}${o.email ? ` · ${o.email}` : ''}` : '')}
-              isOptionEqualToValue={(o, v) => o.id === v.id}
-              filterOptions={(x) => x}
-              renderInput={(params) => (
-                <TextField {...params} variant="standard" label={t('bekey.admin.contact', { defaultValue: 'Contacto' })} sx={pillFieldSx(!!selectedContact)} slotProps={{ inputLabel: { shrink: true } }} />
-              )}
-            />
-            <Autocomplete
-              size="small"
-              options={groups}
-              value={selectedGroup}
-              onChange={(e, v) => setSelectedGroup(v)}
-              getOptionLabel={(o) => (o ? `${o.label}${o.scope ? ` (${o.scope})` : ''}` : '')}
-              isOptionEqualToValue={(o, v) => o.id === v.id}
-              renderInput={(params) => (
-                <TextField {...params} variant="standard" label={t('bekey.admin.group', { defaultValue: 'Grupo' })} sx={pillFieldSx(!!selectedGroup)} slotProps={{ inputLabel: { shrink: true } }} />
-              )}
-            />
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField variant="standard" fullWidth type="datetime-local" label={t('bekey.admin.startsAt', { defaultValue: 'Inicio (opcional)' })} value={startsAt} onChange={(e) => setStartsAt(e.target.value)} sx={pillFieldSx(!!startsAt)} slotProps={{ inputLabel: { shrink: true } }} />
-              <TextField variant="standard" fullWidth type="datetime-local" label={t('bekey.admin.expires', { defaultValue: 'Expira (opcional)' })} value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} sx={pillFieldSx(!!expiresAt)} slotProps={{ inputLabel: { shrink: true } }} />
-            </Stack>
+      {/* Grant dialog — styled to match Contacts' AddUserDialog */}
+      <Dialog
+        open={grantOpen}
+        onClose={() => { if (!saving) { setGrantOpen(false); resetGrantForm(); } }}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: {
+          borderRadius: 3,
+          background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
+          boxShadow: theme.shadows[6],
+        } }}
+      >
+        <DialogTitle sx={{
+          p: 3,
+          background: `linear-gradient(135deg, ${theme.palette.brand.green} 0%, ${theme.palette.brand.greenHover} 100%)`,
+          color: 'common.white',
+          borderRadius: '12px 12px 0 0',
+        }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar sx={{ bgcolor: alpha(theme.palette.common.white, 0.2), width: 40, height: 40 }}>
+              <VpnKeyRoundedIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+                {t('bekey.admin.grantAction', { defaultValue: 'Conceder acceso' })}
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                {t('bekey.admin.grantSubtitle', { defaultValue: 'Da acceso manual a un contacto a una puerta del centro' })}
+              </Typography>
+            </Box>
           </Stack>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 4 }}>
+            <Stack spacing={3}>
+              <Autocomplete
+                size="small"
+                options={contactOptions}
+                loading={contactsLoading}
+                value={selectedContact}
+                onChange={(e, v) => setSelectedContact(v)}
+                inputValue={contactInput}
+                onInputChange={(e, v) => setContactInput(v)}
+                getOptionLabel={(o) => (o ? `${o.name || ''}${o.email ? ` · ${o.email}` : ''}` : '')}
+                isOptionEqualToValue={(o, v) => o.id === v.id}
+                filterOptions={(x) => x}
+                renderInput={(params) => (
+                  <TextField {...params} variant="outlined" size="small" label={t('bekey.admin.contact', { defaultValue: 'Contacto' })} sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+                )}
+              />
+              <Autocomplete
+                size="small"
+                options={groups}
+                value={selectedGroup}
+                onChange={(e, v) => setSelectedGroup(v)}
+                getOptionLabel={(o) => (o ? `${o.label}${o.scope ? ` (${o.scope})` : ''}` : '')}
+                isOptionEqualToValue={(o, v) => o.id === v.id}
+                renderInput={(params) => (
+                  <TextField {...params} variant="outlined" size="small" label={t('bekey.admin.group', { defaultValue: 'Grupo' })} sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+                )}
+              />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField variant="outlined" size="small" fullWidth type="datetime-local" label={t('bekey.admin.startsAt', { defaultValue: 'Inicio (opcional)' })} value={startsAt} onChange={(e) => setStartsAt(e.target.value)} sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+                <TextField variant="outlined" size="small" fullWidth type="datetime-local" label={t('bekey.admin.expires', { defaultValue: 'Expira (opcional)' })} value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+              </Stack>
+            </Stack>
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => { setGrantOpen(false); resetGrantForm(); }} disabled={saving} sx={{ textTransform: 'none' }}>{t('bekey.cancel', { defaultValue: 'Cancelar' })}</Button>
-          <Button onClick={handleGrant} variant="contained" disableElevation disabled={saving} startIcon={saving ? <CircularProgress size={14} color="inherit" /> : <AddRoundedIcon />} sx={{ textTransform: 'none', fontWeight: 600, bgcolor: 'brand.green', '&:hover': { bgcolor: 'brand.greenHover' } }}>{t('bekey.admin.grant', { defaultValue: 'Conceder' })}</Button>
+        <DialogActions sx={{
+          p: 3,
+          background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[200]} 100%)`,
+          borderRadius: '0 0 12px 12px',
+        }}>
+          <Button
+            variant="outlined"
+            startIcon={<CloseRoundedIcon />}
+            onClick={() => { setGrantOpen(false); resetGrantForm(); }}
+            disabled={saving}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3, py: 1, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: theme.palette.grey[300], backgroundColor: 'background.default' } }}
+          >
+            {t('bekey.cancel', { defaultValue: 'Cancelar' })}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleGrant}
+            disabled={saving}
+            startIcon={saving ? <CircularProgress size={14} color="inherit" /> : <AddRoundedIcon />}
+            sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, px: 3, py: 1, boxShadow: 'none', bgcolor: 'brand.green', transition: `background-color ${tokens.motion.duration} ${tokens.motion.ease}`, '&:hover': { bgcolor: 'brand.greenHover', boxShadow: 'none' } }}
+          >
+            {t('bekey.admin.grant', { defaultValue: 'Conceder' })}
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -491,7 +553,7 @@ const AdminBeKey = () => {
           {detailTarget && (
             <Stack spacing={1.5} sx={{ mt: 0.5 }}>
               <Stack spacing={0.25}>
-                <Typography sx={{ fontWeight: 600 }}>{t('bekey.admin.grantRow', { contact: detailTarget.contactId, group: groupLabel[detailTarget.memberGroupId] || detailTarget.memberGroupId, defaultValue: 'Contacto {{contact}} · {{group}}' })}</Typography>
+                <Typography sx={{ fontWeight: 600 }}>{t('bekey.admin.grantRow', { contact: detailTarget.contactName || t('bekey.admin.contactNo', { id: detailTarget.contactId, defaultValue: 'Contacto {{id}}' }), group: groupLabel[detailTarget.memberGroupId] || detailTarget.memberGroupId, defaultValue: '{{contact}} · {{group}}' })}</Typography>
                 <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
                   {sourceLabel(detailTarget.source)} · {detailTarget.revokedAt ? t('bekey.admin.revokedStatus', { defaultValue: 'Revocada' }) : t('bekey.admin.activeStatus', { defaultValue: 'Activa' })}
                 </Typography>
@@ -535,7 +597,7 @@ const AdminBeKey = () => {
         <DialogTitle sx={{ fontWeight: 600 }}>{t('bekey.admin.revokeTitle', { defaultValue: 'Revocar acceso' })}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {confirmTarget && t('bekey.admin.revokeConfirm', { contact: confirmTarget.contactId, group: groupLabel[confirmTarget.memberGroupId] || confirmTarget.memberGroupId, defaultValue: '¿Revocar el acceso del contacto {{contact}} al grupo {{group}}? La persona dejará de poder abrir esa puerta de inmediato.' })}
+            {confirmTarget && t('bekey.admin.revokeConfirm', { contact: confirmTarget.contactName || t('bekey.admin.contactNo', { id: confirmTarget.contactId, defaultValue: 'Contacto {{id}}' }), group: groupLabel[confirmTarget.memberGroupId] || confirmTarget.memberGroupId, defaultValue: '¿Revocar el acceso de {{contact}} al grupo {{group}}? La persona dejará de poder abrir esa puerta de inmediato.' })}
             {confirmTarget && confirmTarget.source !== 'manual' && ` ${t('bekey.admin.revokeAutoNote', { defaultValue: 'Aviso: es una concesión automática; la reconciliación podría restaurarla.' })}`}
           </DialogContentText>
         </DialogContent>
@@ -548,7 +610,8 @@ const AdminBeKey = () => {
       <Snackbar open={!!toast} autoHideDuration={4000} onClose={() => setToast(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         {toast && <Alert onClose={() => setToast(null)} severity={toast.severity} variant="filled" sx={{ width: '100%' }}>{toast.message}</Alert>}
       </Snackbar>
-    </Paper>
+      </Paper>
+    </Stack>
   );
 };
 
