@@ -95,7 +95,17 @@ const MeetingRoomReconciliationCard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.rows.map((r) => (
+              {data.rows.map((r) => {
+                // Prefill the WhatsApp message with greeting + amount + the
+                // customer-facing Stripe payment link (hostedInvoiceUrl). Falls
+                // back to a link-less message when the hosted URL is missing.
+                const payUrl = r.hostedInvoiceUrl || null;
+                const greeting = r.customerName ? `Hola ${r.customerName}, ` : 'Hola, ';
+                const waText = `${greeting}tu recibo de BeWorking por ${formatEur(r.total)} está pendiente de pago.${payUrl ? ` Puedes regularizarlo aquí: ${payUrl}` : ''}`;
+                const waHref = r.customerPhone
+                  ? `https://wa.me/${String(r.customerPhone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waText)}`
+                  : null;
+                return (
                 <TableRow key={r.facturaId} hover>
                   <TableCell>
                     <Typography sx={{ fontWeight: 500 }}>{r.customerName || '—'}</Typography>
@@ -108,7 +118,7 @@ const MeetingRoomReconciliationCard = () => {
                       <Button
                         size="small"
                         component="a"
-                        href={`https://wa.me/${String(r.customerPhone).replace(/[^0-9]/g, '')}`}
+                        href={waHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         sx={{
@@ -140,7 +150,8 @@ const MeetingRoomReconciliationCard = () => {
                     {r.daysPastDue}
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </>
