@@ -215,7 +215,7 @@ const normalizeContact = (entry = {}) => {
   return {
     ...entry,
     id: entry.id != null ? String(entry.id) : Math.random().toString(36).slice(2),
-    name: (entry.billing?.company?.trim() || entry.billing_name?.trim() || entry.billingName?.trim() || entry.name?.trim() || entry.contact_name?.trim() || entry.contactName?.trim() || '—'),
+    name: (entry.name?.trim() || entry.billing?.company?.trim() || entry.billing_name?.trim() || entry.billingName?.trim() || entry.contact_name?.trim() || entry.contactName?.trim() || '—'),
     plan: entry.plan ?? 'Custom',
     center: entry.center != null ? String(entry.center) : null,
     user_type: normalizedUserType,
