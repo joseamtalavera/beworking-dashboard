@@ -103,9 +103,16 @@ const AdminBeKey = () => {
 
   useEffect(() => {
     if (!grantOpen) return undefined;
+    const q = contactInput.trim();
+    // Search-as-you-type: don't list everyone — wait for at least 2 chars.
+    if (q.length < 2) {
+      setContactOptions([]);
+      setContactsLoading(false);
+      return undefined;
+    }
     const id = setTimeout(() => {
       setContactsLoading(true);
-      fetchBookingContacts({ search: contactInput.trim() })
+      fetchBookingContacts({ search: q })
         .then((list) => setContactOptions(Array.isArray(list) ? list : []))
         .catch(() => setContactOptions([]))
         .finally(() => setContactsLoading(false));
@@ -487,21 +494,36 @@ const AdminBeKey = () => {
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 4 }}>
             <Stack spacing={3}>
-              <Autocomplete
-                size="small"
-                options={contactOptions}
-                loading={contactsLoading}
-                value={selectedContact}
-                onChange={(e, v) => setSelectedContact(v)}
-                inputValue={contactInput}
-                onInputChange={(e, v) => setContactInput(v)}
-                getOptionLabel={(o) => (o ? `${o.name || ''}${o.email ? ` · ${o.email}` : ''}` : '')}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-                filterOptions={(x) => x}
-                renderInput={(params) => (
-                  <TextField {...params} variant="outlined" size="small" label={t('bekey.admin.contact', { defaultValue: 'Contacto' })} sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} />
-                )}
-              />
+              {/* Contact search — booking-flow pill style (search-as-you-type) */}
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', boxShadow: '0 1px 6px rgba(0,0,0,0.08)', borderRadius: { xs: 3, sm: 999 }, px: 3, py: { xs: 1, sm: 1.25 } }}>
+                <Autocomplete
+                  fullWidth
+                  options={contactOptions}
+                  loading={contactsLoading}
+                  noOptionsText={contactInput.trim().length < 2
+                    ? t('bekey.admin.typeToSearch', { defaultValue: 'Escribe para buscar…' })
+                    : t('bekey.admin.noContacts', { defaultValue: 'Sin resultados' })}
+                  value={selectedContact}
+                  onChange={(e, v) => setSelectedContact(v)}
+                  inputValue={contactInput}
+                  onInputChange={(e, v) => setContactInput(v)}
+                  getOptionLabel={(o) => (o ? `${o.name || ''}${o.email ? ` · ${o.email}` : ''}` : '')}
+                  isOptionEqualToValue={(o, v) => o.id === v.id}
+                  filterOptions={(x) => x}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="standard"
+                      fullWidth
+                      label={t('bekey.admin.searchContact', { defaultValue: 'Buscar contacto…' })}
+                      placeholder={t('bekey.admin.searchByName', { defaultValue: 'Buscar por nombre' })}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      sx={pillFieldSx(!!selectedContact || contactInput.trim().length > 0)}
+                      InputProps={{ ...params.InputProps, disableUnderline: true }}
+                    />
+                  )}
+                />
+              </Paper>
               <Autocomplete
                 size="small"
                 options={groups}

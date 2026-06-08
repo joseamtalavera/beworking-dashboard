@@ -219,22 +219,22 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
       <Stack spacing={2}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
           <Stack spacing={0.75} sx={{ width: { xs: '100%', md: 'auto' } }}>
-            <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
-              <Stack direction="row" spacing={{ xs: 1.5, md: 0 }} alignItems="center">
+            <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ minWidth: 0, width: '100%' }}>
+              <Stack direction="row" spacing={{ xs: 1.5, md: 0 }} alignItems="center" sx={{ minWidth: 0, flexShrink: 1 }}>
                 {/* Hamburger menu — mobile only */}
                 <IconButton
                   onClick={onMenuToggle}
-                  sx={{ display: { xs: 'inline-flex', md: 'none' }, color: 'text.primary', ml: -1 }}
+                  sx={{ display: { xs: 'inline-flex', md: 'none' }, color: 'text.primary', ml: -1, flexShrink: 0 }}
                   aria-label={t('header.openNav')}
                 >
                   <MenuRoundedIcon />
                 </IconButton>
-                <Typography variant="h4" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' }, fontWeight: 600, letterSpacing: '-0.025em', color: 'text.primary' }}>
+                <Typography variant="h4" noWrap sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' }, fontWeight: 600, letterSpacing: '-0.025em', color: 'text.primary', minWidth: 0 }}>
                   {t('tabs.' + activeTab, { defaultValue: activeTab })}
                 </Typography>
               </Stack>
               {/* Icons — inline next to title on mobile */}
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'flex', md: 'none' } }}>
+              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ display: { xs: 'flex', md: 'none' }, flexShrink: 0 }}>
                 <IconButton onClick={toggleColorMode} size="small" sx={{ color: accentColor, width: 32, height: 32 }} aria-label="Toggle dark mode">
                   {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
                 </IconButton>

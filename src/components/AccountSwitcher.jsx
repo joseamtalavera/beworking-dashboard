@@ -67,7 +67,7 @@ const AccountSwitcher = ({ currentTenantId }) => {
           px: { xs: 1, sm: 1.5 },
           py: 0.75,
           height: 36,
-          maxWidth: { xs: 140, sm: 180 },
+          maxWidth: { xs: 104, sm: 180 },
           borderColor: accentColor,
           color: accentColor,
           '&:hover': {
