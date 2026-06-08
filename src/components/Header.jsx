@@ -229,7 +229,7 @@ const Header = ({ activeTab, userProfile, onOpenHelp, onOpenChat, onOpenSettings
                 >
                   <MenuRoundedIcon />
                 </IconButton>
-                <Typography variant="h4" noWrap sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' }, fontWeight: 600, letterSpacing: '-0.025em', color: 'text.primary', minWidth: 0 }}>
+                <Typography variant="h4" noWrap sx={{ display: { xs: 'none', sm: 'block' }, fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' }, fontWeight: 600, letterSpacing: '-0.025em', color: 'text.primary', minWidth: 0 }}>
                   {t('tabs.' + activeTab, { defaultValue: activeTab })}
                 </Typography>
               </Stack>

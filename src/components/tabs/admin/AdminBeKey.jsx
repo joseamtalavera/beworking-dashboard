@@ -21,7 +21,6 @@ import {
   fetchDevices, fetchMemberGroups, fetchAccessGrants, grantAccess, updateAccess, revokeAccess, fetchEvents,
 } from '../../../api/bekey.js';
 import { fetchBookingContacts } from '../../../api/bookings.js';
-import BeKey from '../BeKey.jsx';
 
 const GRANTS_PER_PAGE = 10;
 const EVENTS_PER_PAGE = 15;
@@ -214,11 +213,7 @@ const AdminBeKey = () => {
   const resetFilters = () => { setSearch(''); setSourceFilter('all'); setStatusFilter('active'); };
 
   return (
-    <Stack spacing={3}>
-      {/* Admin master key — same "Mis puertas" panel as the user, but the
-          backend returns every door (no booking/grant dependency). */}
-      <BeKey />
-      <Paper
+    <Paper
       elevation={0}
       sx={{
         borderRadius: `${tokens.radius.lg}px`,
@@ -632,8 +627,7 @@ const AdminBeKey = () => {
       <Snackbar open={!!toast} autoHideDuration={4000} onClose={() => setToast(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         {toast && <Alert onClose={() => setToast(null)} severity={toast.severity} variant="filled" sx={{ width: '100%' }}>{toast.message}</Alert>}
       </Snackbar>
-      </Paper>
-    </Stack>
+    </Paper>
   );
 };
 
