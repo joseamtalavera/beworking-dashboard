@@ -14,20 +14,34 @@ import { fetchMyAccess, openDoor } from '../../api/bekey.js';
 // events cover both mouse and touch. While opening, the knob locks at the end
 // and shows a spinner; offline doors are dimmed and non-draggable.
 const SlideToOpen = ({ onOpen, opening, offline, theme, labelOpen, labelOffline, slideHint }) => {
-  const TRACK_W = 208;
-  const KNOB = 44;
+  const KNOB = 52;
   const PAD = 6;
-  const maxX = TRACK_W - KNOB - PAD * 2;
-  const threshold = maxX * 0.75;
+  const trackRef = useRef(null);
+  const [trackW, setTrackW] = useState(0);
   const [x, setX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startRef = useRef(0);
+
+  // The track fills the card (flex:1), so its width is dynamic — measure it to
+  // compute the knob's travel. ResizeObserver keeps it correct on rotate/resize.
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return undefined;
+    const update = () => setTrackW(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const maxX = Math.max(0, trackW - KNOB - PAD * 2);
+  const threshold = maxX * 0.75;
 
   useEffect(() => {
     if (opening) setX(maxX);
     else if (!dragging) setX(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opening]);
+  }, [opening, maxX]);
 
   const disabled = offline || opening;
   const onDown = (e) => {
@@ -51,31 +65,32 @@ const SlideToOpen = ({ onOpen, opening, offline, theme, labelOpen, labelOffline,
   return (
     <Tooltip title={offline ? labelOffline : labelOpen}>
       <Box
+        ref={trackRef}
         aria-label={labelOpen}
         aria-disabled={offline}
         sx={{
           position: 'relative',
-          width: TRACK_W,
-          height: 56,
+          flex: 1,
+          minWidth: 0,
+          height: 64,
           borderRadius: 999,
           display: 'flex',
           alignItems: 'center',
           px: `${PAD}px`,
           overflow: 'hidden',
-          flexShrink: 0,
           cursor: disabled ? 'not-allowed' : 'grab',
           opacity: offline ? 0.4 : 1,
-          background: `linear-gradient(90deg, ${alpha(theme.palette.brand.green, 0.45)} 0%, ${alpha(theme.palette.brand.green, 0.04)} 100%)`,
+          background: `linear-gradient(90deg, ${alpha(theme.palette.brand.green, 0.5)} 0%, ${alpha(theme.palette.brand.green, 0.06)} 55%, ${alpha(theme.palette.brand.green, 0.03)} 100%)`,
         }}
       >
         <Typography
           sx={{
             position: 'absolute',
-            left: KNOB,
-            right: 0,
+            left: KNOB + PAD,
+            right: 16,
             textAlign: 'center',
-            fontSize: '0.8rem',
-            fontWeight: 600,
+            fontSize: '0.95rem',
+            fontWeight: 700,
             color: 'brand.green',
             pointerEvents: 'none',
             opacity: offline ? 0.7 : Math.max(0, 1 - progress * 1.6),
@@ -94,7 +109,7 @@ const SlideToOpen = ({ onOpen, opening, offline, theme, labelOpen, labelOffline,
             width: KNOB,
             height: KNOB,
             zIndex: 1,
-            boxShadow: `0 2px 8px ${alpha(theme.palette.brand.green, 0.5)}`,
+            boxShadow: `0 2px 10px ${alpha(theme.palette.brand.green, 0.5)}`,
             transform: `translateX(${x}px)`,
             transition: dragging ? 'none' : 'transform .25s',
             touchAction: 'none',
@@ -103,7 +118,7 @@ const SlideToOpen = ({ onOpen, opening, offline, theme, labelOpen, labelOffline,
           }}
         >
           {opening
-            ? <CircularProgress size={18} sx={{ color: 'common.white' }} />
+            ? <CircularProgress size={20} sx={{ color: 'common.white' }} />
             : (progress >= 0.75
               ? <LockOpenRoundedIcon sx={{ color: 'common.white' }} />
               : <LockRoundedIcon sx={{ color: 'common.white' }} />)}
@@ -212,10 +227,10 @@ const BeKey = () => {
                 elevation={0}
                 sx={{
                   px: 3,
-                  py: 2,
+                  py: 2.5,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
+                  gap: 2,
                   border: '1px solid',
                   borderColor: 'divider',
                   borderRadius: `${tokens.radius.lg}px`,
@@ -223,8 +238,8 @@ const BeKey = () => {
                   boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
                 }}
               >
-                <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: '1.05rem', color: 'common.black' }}>{d.name}</Typography>
+                <Box sx={{ width: { xs: '36%', sm: '34%' }, flexShrink: 0, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', lineHeight: 1.15, color: 'common.black' }}>{d.name}</Typography>
                   {offline && (
                     <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', fontWeight: 600 }}>
                       {t('bekey.offline', { defaultValue: 'Sin conexión' })}
