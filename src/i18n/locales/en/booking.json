@@ -104,6 +104,7 @@
     "instruction1": "Request your booking day.",
     "instruction2": "We will confirm availability and send you the invoice.",
     "instruction3": "After payment you will receive access instructions.",
+    "instruction4": "Open the doors from the app, under 'My doors' (BeKey).",
     "amenityMap": {
       "Pizarra": "Whiteboard",
       "Acceso 24h": "24h access",

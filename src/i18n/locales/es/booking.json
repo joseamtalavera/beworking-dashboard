@@ -104,6 +104,7 @@
     "instruction1": "Solicita el día de tu reserva.",
     "instruction2": "Te confirmaremos disponibilidad y enviaremos la factura.",
     "instruction3": "Tras el pago recibirás instrucciones de acceso.",
+    "instruction4": "Abre las puertas desde la app, en «Mis puertas» (BeKey).",
     "amenityMap": {
       "Pizarra": "Pizarra",
       "Acceso 24h": "Acceso 24h",

@@ -101,8 +101,11 @@ const pickInstructionIcon = (text) => {
   if (!text) return InfoOutlinedIcon;
   const n = text.toLowerCase();
   if (n.includes('solicita') || n.includes('reserva') || n.includes('día')) return EventAvailableRoundedIcon;
-  if (n.includes('factura') || n.includes('pago') || n.includes('enlace')) return ReceiptLongRoundedIcon;
+  // BeKey door-access bullet — check before payment/access so a sentence that
+  // also mentions "pago"/"acceso" still gets the door icon.
+  if (n.includes('bekey') || n.includes('puerta') || n.includes('mis puertas') || n.includes('door')) return MeetingRoomRoundedIcon;
   if (n.includes('instruccion') || n.includes('acceso') || n.includes('llave')) return VpnKeyRoundedIcon;
+  if (n.includes('factura') || n.includes('pago') || n.includes('enlace')) return ReceiptLongRoundedIcon;
   return InfoOutlinedIcon;
 };
 
@@ -158,6 +161,7 @@ export default function RoomDetail({ space, onBack, onStartBooking }) {
     t('detail.instruction1'),
     t('detail.instruction2'),
     t('detail.instruction3'),
+    t('detail.instruction4'),
   ];
 
   const galleryImages = (() => {
