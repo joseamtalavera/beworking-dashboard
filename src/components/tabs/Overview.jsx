@@ -39,7 +39,7 @@ import { listMailboxDocuments } from '../../api/mailbox.js';
 import { apiFetch } from '../../api/client.js';
 import { fetchSubscriptions, fetchDeskOccupancySummary } from '../../api/subscriptions.js';
 import PlanUpgradeDialog from '../PlanUpgradeDialog.jsx';
-import WebsiteAdBanner from '../WebsiteAdBanner.jsx';
+import { NewsSection, BookingsCalendar, InterviewsSection } from './user/UserHomeSections.jsx';
 import { tokens } from '../../theme/tokens.js';
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
@@ -662,8 +662,14 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
         <StatCard label={t('user.stats.pendingMail')} value={pendingMailCount} sublabel={t('user.stats.documentsWaiting')} loading={loading.mail} theme={theme} />
       </Box>
 
-      {/* PRO Upgrade Banner with device mockups */}
-      <WebsiteAdBanner onViewPlans={() => setPlanDialogOpen(true)} />
+      {/* News — BeKey, the new app, and BeWorking ideas */}
+      <NewsSection setActiveTab={setActiveTab} onViewPlans={() => setPlanDialogOpen(true)} />
+
+      {/* Calendar — the user's upcoming bookings */}
+      <BookingsCalendar bookings={bookings} setActiveTab={setActiveTab} />
+
+      {/* Interviews — community member spotlight */}
+      <InterviewsSection />
 
       {/* Cancel booking confirm dialog */}
       <Dialog
