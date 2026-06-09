@@ -51,7 +51,7 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
-import { fetchBookingStats, fetchBookingProductos } from '../../../api/bookings';
+import { fetchBookingStats, fetchPublicProductos } from '../../../api/bookings';
 import { fetchSubscriptions, createSubscription, updateSubscription, linkStripeSubscription } from '../../../api/subscriptions';
 import AddSubscriptionDialog from './AddSubscriptionDialog';
 import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
@@ -390,9 +390,15 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
   // Desk product options for subscription linking
   const [deskProducts, setDeskProducts] = useState([]);
   useEffect(() => {
-    fetchBookingProductos()
+    // Desk slots (MA1O1-1..16) live only in the productos table, and the
+    // lookup endpoint returns each row's name under `name`. Scope to MA1 so the
+    // rooms-first branch (no MA1 rooms) falls through to productos, then
+    // normalise name -> nombre so the filter/sort/render downstream all work.
+    fetchPublicProductos({ centerCode: 'MA1' })
       .then((productos) => {
-        const desks = (productos || []).filter(p => DESK_PRODUCT_RE.test(p.nombre));
+        const desks = (productos || [])
+          .map(p => ({ ...p, nombre: p.nombre ?? p.name ?? '' }))
+          .filter(p => DESK_PRODUCT_RE.test(p.nombre));
         desks.sort((a, b) => {
           const numA = parseInt(a.nombre.match(/(\d+)$/)?.[1] || '0', 10);
           const numB = parseInt(b.nombre.match(/(\d+)$/)?.[1] || '0', 10);
