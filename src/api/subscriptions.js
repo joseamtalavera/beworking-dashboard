@@ -39,3 +39,7 @@ export const fetchDeskOccupancy = (options = {}) =>
 
 export const fetchDeskOccupancySummary = (options = {}) =>
   apiFetch('/subscriptions/desk-occupancy/summary', options);
+
+// All desk-slot products (MA1O1-N) for the Add-Subscription desk picker.
+export const fetchDeskProducts = (options = {}) =>
+  apiFetch('/subscriptions/desk-products', options);
