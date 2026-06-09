@@ -210,6 +210,56 @@ const BeKey = () => {
         </Typography>
       </Stack>
 
+      {!loading && devices.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            justifyContent="space-between"
+            spacing={1.5}
+            sx={{ mb: 1.5 }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <PlaceRoundedIcon sx={{ fontSize: 18, color: 'brand.green' }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, color: 'common.black', lineHeight: 1.2 }}>
+                  {t('bekey.user.locationTitle', { defaultValue: 'Ubicación' })}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">{MAP_ADDRESS}</Typography>
+              </Box>
+            </Stack>
+            <Button
+              variant="contained"
+              startIcon={<DirectionsRoundedIcon />}
+              onClick={handleGetDirections}
+              sx={{
+                bgcolor: 'brand.green',
+                '&:hover': { bgcolor: 'brand.greenHover' },
+                borderRadius: 999,
+                textTransform: 'none',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {t('bekey.user.getDirections', { defaultValue: 'Cómo llegar' })}
+            </Button>
+          </Stack>
+          <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+            <Box sx={{ position: 'relative', height: { xs: 220, sm: 300 } }}>
+              <iframe
+                title={t('bekey.user.locationTitle', { defaultValue: 'Ubicación' })}
+                src={MAP_SRC}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </Box>
+          </Paper>
+        </Box>
+      )}
+
       {pin && (
         <Paper
           elevation={0}
@@ -279,56 +329,6 @@ const BeKey = () => {
             );
           })}
         </Stack>
-      )}
-
-      {!loading && devices.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
-            justifyContent="space-between"
-            spacing={1.5}
-            sx={{ mb: 1.5 }}
-          >
-            <Stack direction="row" spacing={1} alignItems="center">
-              <PlaceRoundedIcon sx={{ fontSize: 18, color: 'brand.green' }} />
-              <Box>
-                <Typography sx={{ fontWeight: 700, color: 'common.black', lineHeight: 1.2 }}>
-                  {t('bekey.user.locationTitle', { defaultValue: 'Ubicación' })}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">{MAP_ADDRESS}</Typography>
-              </Box>
-            </Stack>
-            <Button
-              variant="contained"
-              startIcon={<DirectionsRoundedIcon />}
-              onClick={handleGetDirections}
-              sx={{
-                bgcolor: 'brand.green',
-                '&:hover': { bgcolor: 'brand.greenHover' },
-                borderRadius: 999,
-                textTransform: 'none',
-                fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              {t('bekey.user.getDirections', { defaultValue: 'Cómo llegar' })}
-            </Button>
-          </Stack>
-          <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-            <Box sx={{ position: 'relative', height: { xs: 220, sm: 300 } }}>
-              <iframe
-                title={t('bekey.user.locationTitle', { defaultValue: 'Ubicación' })}
-                src={MAP_SRC}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </Box>
-          </Paper>
-        </Box>
       )}
 
       <Snackbar
