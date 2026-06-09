@@ -7,6 +7,19 @@ export const fetchMyAccess = (options = {}) => apiFetch('/bekey/me', options);
 export const openDoor = (deviceId, options = {}) =>
   apiFetch(`/bekey/open/${deviceId}`, { method: 'POST', ...options });
 
+// --- Share my access (#243) ---
+
+// GET /api/bekey/shares -> BeKeyShare[] (the caller's active shares)
+export const fetchMyShares = (options = {}) => apiFetch('/bekey/shares', options);
+
+// POST /api/bekey/shares { guestName, guestEmail, startsAt, endsAt } -> created BeKeyShare
+export const createShare = (body, options = {}) =>
+  apiFetch('/bekey/shares', { method: 'POST', body, ...options });
+
+// DELETE /api/bekey/shares/{id} -> { revoked: true }
+export const revokeShare = (id, options = {}) =>
+  apiFetch(`/bekey/shares/${id}`, { method: 'DELETE', ...options });
+
 // --- Admin endpoints (ROLE_ADMIN) -> AdminBeKeyController ---
 
 // GET /api/admin/bekey/devices -> BeKeyDevice[]

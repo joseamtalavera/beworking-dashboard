@@ -10,6 +10,7 @@ import DirectionsRoundedIcon from '@mui/icons-material/DirectionsRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import { tokens } from '../../theme/tokens.js';
 import { fetchMyAccess, openDoor } from '../../api/bekey.js';
+import ShareAccessPanel from './user/ShareAccessPanel.jsx';
 
 // All BeKey doors are at the single MA1 center (BeWorking Málaga). Borrowed from
 // the Business Address tab so the opener shows where the building is.
@@ -330,6 +331,9 @@ const BeKey = () => {
           })}
         </Stack>
       )}
+
+      {/* Share my access — members only (admins hold a master key, nothing to share) */}
+      {!loading && !admin && devices.length > 0 && <ShareAccessPanel />}
 
       <Snackbar
         open={!!toast}
