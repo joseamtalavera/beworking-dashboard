@@ -21,6 +21,8 @@
     "Reports": "Informes",
     "Reconciliation": "Reconciliación",
     "InvoiceAudit": "Auditorías",
+    "BeKeyAccess": "Acceso",
+    "BeKeyCron": "Cron Jobs",
     "EmailAutomation": "Cron Jobs",
     "EmailAutomationContacts": "Contactos y Leads",
     "EmailAutomationBilling": "Facturación",

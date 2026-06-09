@@ -31,6 +31,7 @@ const Reconciliation = React.lazy(() => import('../../components/tabs/admin/Reco
 const InvoiceAudit = React.lazy(() => import('../../components/tabs/admin/InvoiceAudit.jsx'));
 const SpaceCatalog = React.lazy(() => import('../../components/tabs/admin/SpaceCatalog.jsx'));
 const AdminBeKey = React.lazy(() => import('../../components/tabs/admin/AdminBeKey.jsx'));
+const BeKeyOpener = React.lazy(() => import('../../components/tabs/BeKey.jsx'));
 import Marketplace from '../../components/tabs/Marketplace.jsx';
 const DeptComingSoon = React.lazy(() => import('../../components/tabs/DeptComingSoon.jsx'));
 
@@ -54,7 +55,9 @@ const TAB_COMPONENTS = {
   Marketplace,
   MariaAI,
   ...Object.fromEntries(DEPT_TABS.map(d => [d.id, DeptComingSoon])),
-  BeKey: AdminBeKey,
+  BeKey: BeKeyOpener,
+  BeKeyAccess: AdminBeKey,
+  BeKeyCron: EmailAutomation,
   DomicilioFiscal: VirtualOffice,
   Integrations,
   Automation,
@@ -106,6 +109,9 @@ const AdminApp = ({ userProfile, refreshProfile, logout }) => {
     }
     if (activeTab === 'EmailAutomationBilling') {
       return <Component domain="billing" title="Facturación" />;
+    }
+    if (activeTab === 'BeKeyCron') {
+      return <Component domain="access" title="BeKey" />;
     }
     return <Component deptId={activeTab} />;
   }, [activeTab, contactsKey]);

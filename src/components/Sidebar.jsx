@@ -197,6 +197,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                         if (hasSubtabs && canExpand) {
                           setPopoverAnchor(e.currentTarget);
                           setPopoverDept(dept);
+                          // landingView depts (BeKey) also have their own default view
+                          if (dept.landingView) handleTabClick(dept.id);
                         } else {
                           handleTabClick(dept.id);
                         }
@@ -218,6 +220,8 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                     onClick={() => {
                       if (hasSubtabs && canExpand) {
                         toggleGroup(dept.id);
+                        // landingView depts (BeKey) render their own default view too
+                        if (dept.landingView) handleTabClick(dept.id);
                       } else {
                         handleTabClick(dept.id);
                       }
