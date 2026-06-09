@@ -148,6 +148,7 @@ const BeKey = () => {
   const [openingId, setOpeningId] = useState(null);
   const [toast, setToast] = useState(null);
   const [admin, setAdmin] = useState(false);
+  const [canShare, setCanShare] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -157,6 +158,7 @@ const BeKey = () => {
       setDevices(res?.devices || []);
       setPin(res?.pin || null);
       setAdmin(!!res?.admin);
+      setCanShare(!!res?.canShare);
     } catch (e) {
       setError(e?.message || t('bekey.user.loadError', { defaultValue: 'No se pudo cargar el acceso' }));
     } finally {
@@ -332,8 +334,9 @@ const BeKey = () => {
         </Stack>
       )}
 
-      {/* Share my access — members only (admins hold a master key, nothing to share) */}
-      {!loading && !admin && devices.length > 0 && <ShareAccessPanel />}
+      {/* Share my access — members holding their OWN access only. Guests (shared
+          grant) and admins (master key) can't re-share. */}
+      {!loading && canShare && <ShareAccessPanel />}
 
       <Snackbar
         open={!!toast}
