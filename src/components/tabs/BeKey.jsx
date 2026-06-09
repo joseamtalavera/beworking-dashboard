@@ -213,7 +213,7 @@ const BeKey = () => {
         </Typography>
       </Stack>
 
-      {!loading && devices.length > 0 && (
+      {!loading && !admin && devices.length > 0 && (
         <Box sx={{ mb: 3 }}>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
