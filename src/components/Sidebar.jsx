@@ -274,7 +274,11 @@ const Sidebar = ({ activeTab, setActiveTab, tabs, onOpenSettings, onLogout, mobi
                           return (
                             <Box key={sub.id}>
                               <ButtonBase
-                                onClick={() => toggleGroup(sub.id)}
+                                onClick={() => {
+                                  toggleGroup(sub.id);
+                                  // landingView subtabs (BeKey) render their own default view
+                                  if (sub.landingView) handleTabClick(sub.id);
+                                }}
                                 sx={{
                                   display: 'flex',
                                   alignItems: 'center',
