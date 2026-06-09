@@ -1,13 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Box, Paper, Stack, Typography, CircularProgress, Alert, Snackbar, Avatar, Tooltip,
+  Box, Paper, Stack, Typography, CircularProgress, Alert, Snackbar, Avatar, Tooltip, Button,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded';
+import DirectionsRoundedIcon from '@mui/icons-material/DirectionsRounded';
+import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import { tokens } from '../../theme/tokens.js';
 import { fetchMyAccess, openDoor } from '../../api/bekey.js';
+
+// All BeKey doors are at the single MA1 center (BeWorking Málaga). Borrowed from
+// the Business Address tab so the opener shows where the building is.
+const MAP_SRC = 'https://maps.google.com/maps?q=BeWorking+Coworking+M%C3%A1laga+Calle+Alejandro+Dumas+17&t=&z=16&ie=UTF8&iwloc=&output=embed';
+const MAP_ADDRESS = 'Calle Alejandro Dumas 17, 29004 Málaga, Spain';
 
 // Slide-to-unlock control: drag the green knob to the right past ~75% of the
 // track to trigger the open; release before that and it snaps back. Pointer
@@ -72,6 +79,8 @@ const SlideToOpen = ({ onOpen, opening, offline, theme, labelOpen, labelOffline,
           position: 'relative',
           flex: 1,
           minWidth: 0,
+          width: '100%',
+          maxWidth: { sm: 460 },
           height: 64,
           borderRadius: 999,
           display: 'flex',
@@ -156,6 +165,13 @@ const BeKey = () => {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
+  const handleGetDirections = () => {
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(MAP_ADDRESS)}`,
+      '_blank', 'noopener',
+    );
+  };
+
   const handleOpen = async (device) => {
     if (!device.online) return;
     setOpeningId(device.id);
@@ -226,11 +242,12 @@ const BeKey = () => {
                 key={d.id}
                 elevation={0}
                 sx={{
-                  px: 3,
+                  px: { xs: 2.5, sm: 3 },
                   py: 2.5,
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  gap: { xs: 1.5, sm: 2 },
                   border: '1px solid',
                   borderColor: 'divider',
                   borderRadius: `${tokens.radius.lg}px`,
@@ -238,8 +255,8 @@ const BeKey = () => {
                   boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
                 }}
               >
-                <Box sx={{ width: { xs: '36%', sm: '34%' }, flexShrink: 0, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', lineHeight: 1.15, color: 'common.black' }}>{d.name}</Typography>
+                <Box sx={{ width: { xs: '100%', sm: 200 }, flexShrink: 0, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', lineHeight: 1.15, color: 'common.black' }}>{d.name}</Typography>
                   {offline && (
                     <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', fontWeight: 600 }}>
                       {t('bekey.offline', { defaultValue: 'Sin conexión' })}
@@ -247,19 +264,71 @@ const BeKey = () => {
                   )}
                 </Box>
 
-                <SlideToOpen
-                  onOpen={() => handleOpen(d)}
-                  opening={opening}
-                  offline={offline}
-                  theme={theme}
-                  labelOpen={t('bekey.user.open', { defaultValue: 'Abrir' })}
-                  labelOffline={t('bekey.offline', { defaultValue: 'Sin conexión' })}
-                  slideHint={t('bekey.user.slideToOpen', { defaultValue: 'Desliza para abrir' })}
-                />
+                <Box sx={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: { sm: 'flex-end' } }}>
+                  <SlideToOpen
+                    onOpen={() => handleOpen(d)}
+                    opening={opening}
+                    offline={offline}
+                    theme={theme}
+                    labelOpen={t('bekey.user.open', { defaultValue: 'Abrir' })}
+                    labelOffline={t('bekey.offline', { defaultValue: 'Sin conexión' })}
+                    slideHint={t('bekey.user.slideToOpen', { defaultValue: 'Desliza para abrir' })}
+                  />
+                </Box>
               </Paper>
             );
           })}
         </Stack>
+      )}
+
+      {!loading && devices.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            justifyContent="space-between"
+            spacing={1.5}
+            sx={{ mb: 1.5 }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <PlaceRoundedIcon sx={{ fontSize: 18, color: 'brand.green' }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, color: 'common.black', lineHeight: 1.2 }}>
+                  {t('bekey.user.locationTitle', { defaultValue: 'Ubicación' })}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">{MAP_ADDRESS}</Typography>
+              </Box>
+            </Stack>
+            <Button
+              variant="contained"
+              startIcon={<DirectionsRoundedIcon />}
+              onClick={handleGetDirections}
+              sx={{
+                bgcolor: 'brand.green',
+                '&:hover': { bgcolor: 'brand.greenHover' },
+                borderRadius: 999,
+                textTransform: 'none',
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {t('bekey.user.getDirections', { defaultValue: 'Cómo llegar' })}
+            </Button>
+          </Stack>
+          <Paper elevation={0} sx={{ borderRadius: `${tokens.radius.lg}px`, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+            <Box sx={{ position: 'relative', height: { xs: 220, sm: 300 } }}>
+              <iframe
+                title={t('bekey.user.locationTitle', { defaultValue: 'Ubicación' })}
+                src={MAP_SRC}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </Box>
+          </Paper>
+        </Box>
       )}
 
       <Snackbar
