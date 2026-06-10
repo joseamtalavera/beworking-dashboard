@@ -483,12 +483,39 @@ const MailboxAdmin = () => {
       if (!sanitizedPhone) {
         showSnackbar(t('admin.snackbar.noPhone'), 'error');
         return;
-      } 
+      }
       const docTitle = docData?.title || docData?.originalFileName || 'documento';
       const isPackage = docData?.type === 'package';
+      const loginUrl = `${window.location.origin}/login`;
+      // Always bilingual ES + EN regardless of the admin's UI language — the
+      // recipient is the customer, not the admin. WhatsApp uses *bold*.
       const message = isPackage
-        ? t('admin.whatsapp.packageMessage', { title: docTitle, code: docData?.pickupCode || '' })
-        : t('admin.whatsapp.message', { title: docTitle });
+        ? [
+            `📦 *BeWorking* — Paquete listo para recoger`,
+            `Tienes un paquete a tu nombre: «${docTitle}».`,
+            `Código de recogida: *${docData?.pickupCode || '—'}*`,
+            `Enseña el código o el QR en recepción. Horario: L–V 8:00–14:00 h.`,
+            `Ver el QR en tu cuenta: ${loginUrl}`,
+            ``,
+            `— — —`,
+            ``,
+            `📦 *BeWorking* — Package ready for pickup`,
+            `You have a package addressed to you: «${docTitle}».`,
+            `Pickup code: *${docData?.pickupCode || '—'}*`,
+            `Show the code or QR at reception. Hours: Mon–Fri 8:00–14:00.`,
+            `View the QR in your account: ${loginUrl}`,
+          ].join('\n')
+        : [
+            `📬 *BeWorking* — Nuevo correo en tu buzón`,
+            `Hemos escaneado correo a tu nombre: «${docTitle}».`,
+            `Entra para verlo y descargarlo: ${loginUrl}`,
+            ``,
+            `— — —`,
+            ``,
+            `📬 *BeWorking* — New mail in your mailbox`,
+            `We've scanned mail addressed to you: «${docTitle}».`,
+            `Sign in to view and download it: ${loginUrl}`,
+          ].join('\n');
       const url = `https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank', 'noopener');
     };
