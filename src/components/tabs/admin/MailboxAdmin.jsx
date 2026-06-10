@@ -72,7 +72,7 @@ if (!i18n.hasResourceBundle('es', 'mailbox')) {
 }
 
 import {
-  getMailboxDocumentDownloadUrl,
+  getDocumentViewerUrl,
   deleteMailboxDocument,
   listMailboxDocuments,
   markMailboxDocumentViewed,
@@ -458,11 +458,15 @@ const MailboxAdmin = () => {
 
   const handlePreviewDocument = (docId) => {
     try {
-      const downloadUrl = getMailboxDocumentDownloadUrl(docId);
-      if (!downloadUrl) {
-        throw new Error('Missing download URL');
+      const doc = documents.find((d) => d.id === docId) || searchResults.find((d) => d.id === docId);
+      const viewerUrl = getDocumentViewerUrl(docId, {
+        title: doc?.title || doc?.originalFileName || '',
+        lang: i18n.language,
+      });
+      if (!viewerUrl) {
+        throw new Error('Missing document URL');
       }
-      window.open(downloadUrl, '_blank', 'noopener');
+      window.open(viewerUrl, '_blank', 'noopener');
 
       setActionStates(prev => ({
         ...prev,

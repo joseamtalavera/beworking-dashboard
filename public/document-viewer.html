@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/brand/mark-light.svg" />
+    <link rel="apple-touch-icon" href="/brand/mark-light.svg" />
+    <title>BeWorking · Documento</title>
+    <style>
+      :root { --green: #009624; --green-hover: #007a1d; --ink: #0e0e0c; --line: #eaeaea; --bg: #f7f7f8; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body { display: flex; flex-direction: column; background: var(--bg);
+             font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--ink); }
+      header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #fff;
+               border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+      .brand { display: flex; align-items: center; gap: 8px; }
+      .brand img { width: 26px; height: 26px; }
+      .brand span { font-weight: 700; font-size: 17px; letter-spacing: -0.5px; }
+      .brand span b { color: var(--green); }
+      .meta { min-width: 0; flex: 1; }
+      .meta .title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .meta .sub { font-size: 12px; color: #888; }
+      .actions { display: flex; gap: 8px; }
+      a.btn, button.btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; cursor: pointer;
+            font-family: inherit; font-weight: 700; font-size: 13px; border-radius: 999px; padding: 9px 18px; border: 1px solid transparent; }
+      .btn-primary { background: var(--green); color: #fff; }
+      .btn-primary:hover { background: var(--green-hover); }
+      .btn-ghost { background: #fff; color: #444; border-color: var(--line); }
+      .btn-ghost:hover { background: #f2f2f2; }
+      main { flex: 1; min-height: 0; }
+      iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+      .error { margin: auto; padding: 48px 24px; text-align: center; color: #888; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <img src="/brand/mark-light.svg" alt="BeWorking" />
+        <span>be<b>working</b></span>
+      </div>
+      <div class="meta">
+        <div class="title" id="docTitle"></div>
+        <div class="sub" id="docSub"></div>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" id="downloadBtn" download>⬇ <span id="downloadLabel">Descargar</span></a>
+        <button class="btn btn-ghost" id="closeBtn"></button>
+      </div>
+    </header>
+    <main id="main"></main>
+
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var src = params.get('src') || '';
+        var title = params.get('title') || '';
+        var lang = (params.get('lang') || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+
+        var L = {
+          es: { title: 'Documento', sub: 'Tu buzón de BeWorking', download: 'Descargar', close: 'Cerrar', error: 'No se pudo cargar el documento.' },
+          en: { title: 'Document', sub: 'Your BeWorking mailbox', download: 'Download', close: 'Close', error: 'Could not load the document.' }
+        }[lang];
+
+        document.documentElement.lang = lang;
+        document.getElementById('docTitle').textContent = title || L.title;
+        document.getElementById('docSub').textContent = L.sub;
+        document.getElementById('downloadLabel').textContent = L.download;
+        document.getElementById('closeBtn').textContent = L.close;
+        document.title = 'BeWorking · ' + (title || L.title);
+
+        // Only embed our own mailroom download URLs — never an arbitrary URL.
+        var ok = false;
+        try {
+          var u = new URL(src, window.location.origin);
+          ok = /\/mailroom\/documents\/[^/]+\/download$/.test(u.pathname) &&
+               (u.origin === window.location.origin || /(^|\.)be-working\.com$/.test(u.hostname) || u.hostname === 'localhost');
+        } catch (e) { ok = false; }
+
+        var main = document.getElementById('main');
+        if (!ok) {
+          main.innerHTML = '';
+          var div = document.createElement('div');
+          div.className = 'error';
+          div.textContent = L.error;
+          main.appendChild(div);
+          document.getElementById('downloadBtn').style.display = 'none';
+          return;
+        }
+
+        document.getElementById('downloadBtn').setAttribute('href', src);
+
+        var frame = document.createElement('iframe');
+        frame.setAttribute('title', title || L.title);
+        frame.src = src;            // inline content-disposition -> renders PDF/image in-frame
+        main.appendChild(frame);
+
+        document.getElementById('closeBtn').addEventListener('click', function () {
+          window.close();
+          // If the tab wasn't script-opened, window.close() is a no-op — go back instead.
+          window.history.length > 1 ? window.history.back() : (window.location.href = '/');
+        });
+      })();
+    </script>
+  </body>
+</html>

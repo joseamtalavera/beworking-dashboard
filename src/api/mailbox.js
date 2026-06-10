@@ -37,6 +37,17 @@ export const markMailboxDocumentViewed = (documentId) =>
 export const getMailboxDocumentDownloadUrl = (documentId) =>
   resolveApiUrl(documentPath(documentId, '/download'));
 
+// Branded BeWorking viewer page that embeds the document (inline) instead of
+// opening the raw file — carries the favicon/title and a Download button.
+export const getDocumentViewerUrl = (documentId, { title = '', lang = 'es' } = {}) => {
+  const qs = new URLSearchParams({
+    src: getMailboxDocumentDownloadUrl(documentId),
+    title: title || '',
+    lang: lang || 'es',
+  });
+  return `/document-viewer.html?${qs.toString()}`;
+};
+
 export const verifyPickupByCode = (code) => {
   const params = new URLSearchParams({ code });
   return apiFetch(`${MAILROOM_BASE_PATH}/verify-pickup?${params}`, { method: 'POST' });

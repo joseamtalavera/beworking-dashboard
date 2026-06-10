@@ -43,7 +43,7 @@ if (!i18n.hasResourceBundle('es', 'mailbox')) {
   i18n.addResourceBundle('en', 'mailbox', enMailbox);
 }
 
-import { getMailboxDocumentDownloadUrl, listMailboxDocuments, markMailboxDocumentViewed } from '../../../api/mailbox.js';
+import { getDocumentViewerUrl, listMailboxDocuments, markMailboxDocumentViewed } from '../../../api/mailbox.js';
 import SubscriptionGate from '../../SubscriptionGate.jsx';
 
 // accentColor and accentHover are defined inside component using theme.palette.brand
@@ -203,12 +203,15 @@ const MailboxUser = ({ userProfile, hasActiveSubscription = true, onUpgraded }) 
 
   const handlePreviewDocument = (docId) => {
       guardAction(() => {
-        const downloadUrl = getMailboxDocumentDownloadUrl(docId);
-        if (!downloadUrl) return;
-        window.open(downloadUrl, '_blank', 'noopener');
+        const doc = documents.find((d) => d.id === docId);
+        const viewerUrl = getDocumentViewerUrl(docId, {
+          title: doc?.title || doc?.originalFileName || '',
+          lang: i18n.language,
+        });
+        if (!viewerUrl) return;
+        window.open(viewerUrl, '_blank', 'noopener');
 
         // Opening a mail document marks it as viewed (best-effort; ignore failures).
-        const doc = documents.find((d) => d.id === docId);
         if (doc && doc.type !== 'package' && doc.status !== 'viewed' && doc.status !== 'picked_up') {
           markMailboxDocumentViewed(docId)
             .then((updated) => {
