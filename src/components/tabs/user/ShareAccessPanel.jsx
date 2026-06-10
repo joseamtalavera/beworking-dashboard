@@ -7,13 +7,14 @@ import {
 import PersonAddRoundedIcon from '@mui/icons-material/PersonAddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import i18n from '../../../i18n/i18n.js';
 import { tokens } from '../../../theme/tokens.js';
 import { fetchMyShares, createShare, revokeShare } from '../../../api/bekey.js';
 
 const isEN = () => (i18n.language || 'es').toLowerCase().startsWith('en');
 const L = (es, en) => (isEN() ? en : es);
-const MAX_HOURS = 24;
 
 // Date <-> datetime-local input string (local time, no seconds).
 const toLocalInput = (d) => {
@@ -21,11 +22,12 @@ const toLocalInput = (d) => {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 };
 
-// Default window: now .. now + 4h.
+// Default window: now .. now + 4h. The upper bound is the sharer's own access
+// expiry (enforced server-side), so no fixed cap here.
 const defaultForm = () => {
   const start = new Date();
   const end = new Date(start.getTime() + 4 * 3600 * 1000);
-  return { guestName: '', guestEmail: '', start: toLocalInput(start), end: toLocalInput(end) };
+  return { guestName: '', guestEmail: '', guestPhone: '', start: toLocalInput(start), end: toLocalInput(end) };
 };
 
 const ShareAccessPanel = () => {
@@ -54,7 +56,9 @@ const ShareAccessPanel = () => {
 
   const handleOpen = () => { setForm(defaultForm()); setError(''); setOpen(true); };
 
-  const handleSubmit = async () => {
+  // channel: 'email' sends the invite by email; 'whatsapp' creates the share
+  // and opens WhatsApp prefilled so the sharer sends the entry link themselves.
+  const handleSubmit = async (channel) => {
     setError('');
     if (!form.guestEmail.trim()) { setError(L('Indica el email del invitado.', 'Enter the guest email.')); return; }
     const start = new Date(form.start);
@@ -62,20 +66,38 @@ const ShareAccessPanel = () => {
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) { setError(L('Fechas no válidas.', 'Invalid dates.')); return; }
     if (end <= start) { setError(L('El fin debe ser posterior al inicio.', 'End must be after start.')); return; }
     if (end <= new Date()) { setError(L('El fin está en el pasado.', 'End is in the past.')); return; }
-    if ((end - start) / 3600000 > MAX_HOURS) { setError(L(`Máximo ${MAX_HOURS} horas.`, `Up to ${MAX_HOURS} hours.`)); return; }
+
+    // WhatsApp deep links must be opened synchronously inside the click to avoid
+    // popup blockers; we pre-open a blank tab and point it at the wa.me URL once
+    // the share is created.
+    const waWindow = channel === 'whatsapp' ? window.open('', '_blank') : null;
 
     setSubmitting(true);
     try {
-      await createShare({
+      const res = await createShare({
         guestName: form.guestName.trim() || null,
         guestEmail: form.guestEmail.trim(),
+        guestPhone: form.guestPhone.trim() || null,
         startsAt: start.toISOString(),
         endsAt: end.toISOString(),
+        channel,
       });
+      if (channel === 'whatsapp') {
+        const url = res?.whatsappUrl;
+        if (url && waWindow) { waWindow.location.href = url; }
+        else if (url) { window.open(url, '_blank'); }
+        else if (waWindow) { waWindow.close(); }
+      }
       setOpen(false);
-      setToast({ severity: 'success', message: L('Acceso compartido', 'Access shared') });
+      setToast({
+        severity: 'success',
+        message: channel === 'whatsapp'
+          ? L('Acceso creado — abre WhatsApp para enviarlo', 'Access created — opening WhatsApp to send it')
+          : L('Acceso compartido por email', 'Access shared by email'),
+      });
       load();
     } catch (e) {
+      if (waWindow) waWindow.close();
       setError(e?.message || L('No se pudo compartir el acceso', "Couldn't share access"));
     } finally {
       setSubmitting(false);
@@ -169,21 +191,32 @@ const ShareAccessPanel = () => {
           <Stack spacing={2} sx={{ mt: 0.5 }}>
             <TextField label={L('Nombre del invitado', 'Guest name')} value={form.guestName} onChange={setField('guestName')} fullWidth sx={fieldSx} />
             <TextField label={L('Email del invitado', 'Guest email')} type="email" value={form.guestEmail} onChange={setField('guestEmail')} fullWidth required sx={fieldSx} />
+            <TextField label={L('WhatsApp del invitado (opcional)', 'Guest WhatsApp (optional)')} type="tel" value={form.guestPhone} onChange={setField('guestPhone')} fullWidth sx={fieldSx} helperText={L('Con prefijo, ej. +34… (solo para enviar por WhatsApp)', 'With country code, e.g. +34… (only to send via WhatsApp)')} />
             <TextField label={L('Desde', 'From')} type="datetime-local" value={form.start} onChange={setField('start')} fullWidth slotProps={{ inputLabel: { shrink: true } }} sx={fieldSx} />
-            <TextField label={L('Hasta', 'Until')} type="datetime-local" value={form.end} onChange={setField('end')} fullWidth slotProps={{ inputLabel: { shrink: true } }} sx={fieldSx} helperText={L(`Máximo ${MAX_HOURS} horas.`, `Up to ${MAX_HOURS} hours.`)} />
+            <TextField label={L('Hasta', 'Until')} type="datetime-local" value={form.end} onChange={setField('end')} fullWidth slotProps={{ inputLabel: { shrink: true } }} sx={fieldSx} helperText={L('Como máximo, hasta que caduque tu propio acceso.', 'At most until your own access expires.')} />
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-          <Button onClick={() => setOpen(false)} disabled={submitting} sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1, flexWrap: 'wrap' }}>
+          <Button onClick={() => setOpen(false)} disabled={submitting} sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, color: 'text.secondary', mr: 'auto' }}>
             {L('Cancelar', 'Cancel')}
           </Button>
           <Button
-            variant="contained"
-            onClick={handleSubmit}
+            variant="outlined"
+            startIcon={<EmailRoundedIcon />}
+            onClick={() => handleSubmit('email')}
             disabled={submitting}
-            sx={{ bgcolor: green, '&:hover': { bgcolor: theme.palette.brand?.greenHover || green }, borderRadius: 999, textTransform: 'none', fontWeight: 700 }}
+            sx={{ borderColor: green, color: green, '&:hover': { borderColor: green, bgcolor: alpha(green, 0.06) }, borderRadius: 999, textTransform: 'none', fontWeight: 700 }}
           >
-            {submitting ? <CircularProgress size={18} sx={{ color: 'common.white' }} /> : L('Compartir', 'Share')}
+            {L('Email', 'Email')}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={!submitting && <WhatsAppIcon />}
+            onClick={() => handleSubmit('whatsapp')}
+            disabled={submitting}
+            sx={{ bgcolor: '#25D366', '&:hover': { bgcolor: '#1da851' }, borderRadius: 999, textTransform: 'none', fontWeight: 700 }}
+          >
+            {submitting ? <CircularProgress size={18} sx={{ color: 'common.white' }} /> : L('WhatsApp', 'WhatsApp')}
           </Button>
         </DialogActions>
       </Dialog>

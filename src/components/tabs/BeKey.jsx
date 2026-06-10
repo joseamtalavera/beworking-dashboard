@@ -182,7 +182,14 @@ const BeKey = () => {
       await openDoor(device.id);
       setToast({ severity: 'success', message: t('bekey.user.opened', { name: device.name, defaultValue: '{{name}} abierta' }) });
     } catch (e) {
-      setToast({ severity: 'error', message: e?.message || t('bekey.user.openError', { defaultValue: 'No se pudo abrir la puerta' }) });
+      // The backend returns a JSON body; for an unreachable door it's
+      // { error: 'hardware_offline', ... } — show a clear, transient message.
+      let offline = false;
+      try { offline = JSON.parse(e?.message || '{}')?.error === 'hardware_offline'; } catch (_) { /* not JSON */ }
+      const message = offline
+        ? t('bekey.user.offlineOnOpen', { name: device.name, defaultValue: '{{name}} no responde ahora mismo. Inténtalo de nuevo en un momento o usa tu PIN.' })
+        : (e?.message || t('bekey.user.openError', { defaultValue: 'No se pudo abrir la puerta' }));
+      setToast({ severity: offline ? 'warning' : 'error', message });
     } finally {
       setOpeningId(null);
     }

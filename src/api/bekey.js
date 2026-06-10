@@ -12,7 +12,9 @@ export const openDoor = (deviceId, options = {}) =>
 // GET /api/bekey/shares -> BeKeyShare[] (the caller's active shares)
 export const fetchMyShares = (options = {}) => apiFetch('/bekey/shares', options);
 
-// POST /api/bekey/shares { guestName, guestEmail, startsAt, endsAt } -> created BeKeyShare
+// POST /api/bekey/shares { guestName, guestEmail, guestPhone?, startsAt, endsAt, channel }
+//   channel: 'email' | 'whatsapp' | 'both'
+//   -> { share, inviteUrl, whatsappText, whatsappUrl }
 export const createShare = (body, options = {}) =>
   apiFetch('/bekey/shares', { method: 'POST', body, ...options });
 
