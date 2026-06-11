@@ -364,6 +364,8 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             onMonthChange={setDeskMonth}
             duration={deskDuration}
             onDurationChange={setDeskDuration}
+            minDate={mode === 'admin' ? undefined : new Date().toISOString().slice(0, 10)}
+            maxDate={mode === 'admin' ? undefined : new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)}
           />
 
           <CoworkingFloorPlan
