@@ -322,6 +322,10 @@
       "name": "Plataforma",
       "description": "Resumen, espacios, integraciones y herramientas de la plataforma."
     },
+    "Booking": {
+      "name": "Espacios",
+      "description": "Reserva salas, mesas y espacios de trabajo."
+    },
     "Tools": {
       "name": "Herramientas",
       "description": "Almacenamiento, firma digital, contraseñas y tickets."

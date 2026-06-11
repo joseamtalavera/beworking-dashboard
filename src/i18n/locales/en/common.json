@@ -322,6 +322,10 @@
       "name": "Platform",
       "description": "Overview, spaces, integrations, and platform tools."
     },
+    "Booking": {
+      "name": "Spaces",
+      "description": "Book rooms, desks, and workspaces."
+    },
     "Tools": {
       "name": "Tools",
       "description": "Storage, digital signature, passwords, and tickets."
