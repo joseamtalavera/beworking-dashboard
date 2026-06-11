@@ -12,6 +12,9 @@ import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { useTheme, alpha } from '@mui/material/styles';
 import { tokens } from '../../../theme/tokens.js';
 import { fetchMeetingRoomPastDue } from '../../../api/reports.js';
@@ -96,14 +99,17 @@ const MeetingRoomReconciliationCard = () => {
             </TableHead>
             <TableBody>
               {data.rows.map((r) => {
-                // Prefill the WhatsApp message with greeting + amount + the
-                // customer-facing Stripe payment link (hostedInvoiceUrl). Falls
-                // back to a link-less message when the hosted URL is missing.
+                // Bilingual (ES + EN) reminder + the customer-facing Stripe
+                // payment link (hostedInvoiceUrl). Falls back to a link-less
+                // message when the hosted URL is missing.
                 const payUrl = r.hostedInvoiceUrl || null;
-                const greeting = r.customerName ? `Hola ${r.customerName}, ` : 'Hola, ';
-                const waText = `${greeting}tu recibo de BeWorking por ${formatEur(r.total)} está pendiente de pago.${payUrl ? ` Puedes regularizarlo aquí: ${payUrl}` : ''}`;
+                const amountStr = formatEur(r.total);
+                const esName = r.customerName ? `Hola ${r.customerName}, ` : 'Hola, ';
+                const enName = r.customerName ? `Hi ${r.customerName}, ` : 'Hi, ';
+                const waEs = `${esName}tu recibo de BeWorking por ${amountStr} está pendiente de pago.${payUrl ? ` Puedes pagarlo aquí: ${payUrl}` : ''}`;
+                const waEn = `${enName}your BeWorking invoice for ${amountStr} is pending payment.${payUrl ? ` You can pay it here: ${payUrl}` : ''}`;
                 const waHref = r.customerPhone
-                  ? `https://wa.me/${String(r.customerPhone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waText)}`
+                  ? `https://wa.me/${String(r.customerPhone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`${waEs}\n\n${waEn}`)}`
                   : null;
                 return (
                 <TableRow key={r.facturaId} hover>
@@ -115,27 +121,18 @@ const MeetingRoomReconciliationCard = () => {
                   </TableCell>
                   <TableCell>
                     {r.customerPhone ? (
-                      <Button
-                        size="small"
-                        component="a"
-                        href={waHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          textTransform: 'none',
-                          bgcolor: '#25D366',
-                          color: '#fff',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          borderRadius: 999,
-                          px: 1.5,
-                          py: 0.25,
-                          minWidth: 0,
-                          '&:hover': { bgcolor: '#1ebe5a' },
-                        }}
-                      >
-                        WhatsApp
-                      </Button>
+                      <Tooltip title="WhatsApp">
+                        <IconButton
+                          size="small"
+                          component="a"
+                          href={waHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ color: '#fff', bgcolor: '#25D366', '&:hover': { bgcolor: '#1ebe5a' } }}
+                        >
+                          <WhatsAppIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
                     ) : (
                       <Typography variant="caption" color="text.secondary">—</Typography>
                     )}

@@ -20,9 +20,25 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import CloseIcon from '@mui/icons-material/Close';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { apiFetch } from '../../../api/client.js';
 import { tokens } from '../../../theme/tokens.js';
+
+// Bilingual (ES + EN) payment-reminder message for WhatsApp outreach, with the
+// customer-facing Stripe hosted-invoice link when available. Returns null when
+// there is no phone to reach.
+const buildWaHref = ({ phone, name, amount, payUrl }) => {
+  if (!phone) return null;
+  const amountStr = `€${Number(amount || 0).toFixed(2)}`;
+  const esName = name ? `Hola ${name}, ` : 'Hola, ';
+  const enName = name ? `Hi ${name}, ` : 'Hi, ';
+  const es = `${esName}tu recibo de BeWorking por ${amountStr} está pendiente de pago.${payUrl ? ` Puedes pagarlo aquí: ${payUrl}` : ''}`;
+  const en = `${enName}your BeWorking invoice for ${amountStr} is pending payment.${payUrl ? ` You can pay it here: ${payUrl}` : ''}`;
+  const text = `${es}\n\n${en}`;
+  return `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`;
+};
 
 if (!i18n.hasResourceBundle('es', 'overview')) {
   i18n.addResourceBundle('es', 'overview', esOverview);
@@ -130,6 +146,27 @@ const InvoiceReconciliationCard = () => {
     </Box>
   );
 
+  // Small green WhatsApp icon button for a single past-due / unpaid row. Stops
+  // propagation so it doesn't trigger the row's open-detail click.
+  const WaIconButton = ({ href }) => {
+    if (!href) return null;
+    return (
+      <Tooltip title="WhatsApp">
+        <IconButton size="small" component="a" href={href} target="_blank" rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          sx={{ color: '#25D366', p: 0.25, ml: 0.5, '&:hover': { bgcolor: alpha('#25D366', 0.12) } }}>
+          <WhatsAppIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Tooltip>
+    );
+  };
+
+  // PT first, then GT, then anything else — single stacked column (no split).
+  const orderedData = [...data].sort((a, b) => {
+    const rank = (acc) => (acc === 'PT' ? 0 : acc === 'GT' ? 1 : 2);
+    return rank(a.account) - rank(b.account);
+  });
+
   const runDate = data.length > 0 ? data[0].run_date : null;
   const type = detailDialog?.type;
   const accent = brand;
@@ -157,8 +194,8 @@ const InvoiceReconciliationCard = () => {
         ) : data.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>{t('reconciliation.noData')}</Typography>
         ) : (
-          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
-            {data.map((row) => {
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {orderedData.map((row) => {
               const m = metrics(row);
               const status = getStatus(row, m);
               const color = statusColor(status);
@@ -199,11 +236,17 @@ const InvoiceReconciliationCard = () => {
                         <Box onClick={() => openDetail(row.account, 'overdue', `${row.account} — Overdue`)} sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: alpha(errorRed, 0.04) }, px: 1, py: 0.5 }}>
                           <Typography sx={{ color: errorRed, fontWeight: 700, fontSize: '0.75rem', mb: 0.5 }}>Overdue — Stripe past_due</Typography>
                           <Box sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.7rem', color: 'text.secondary', bgcolor: 'action.hover', borderRadius: 0.75, px: 1, py: 0.75, lineHeight: 1.7 }}>
-                            {pastDueSubs.map((s, i) => (
-                              <div key={s.subscriptionId || i}>
-                                {s.latestInvoiceId || '—'} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{s.customerName || '—'}</span> · {s.subscriptionId}
-                              </div>
-                            ))}
+                            {pastDueSubs.map((s, i) => {
+                              const wa = buildWaHref({ phone: s.customerPhone, name: s.customerName, amount: s.amountDue, payUrl: s.hostedInvoiceUrl });
+                              return (
+                                <div key={s.subscriptionId || i} style={{ display: 'flex', alignItems: 'center' }}>
+                                  <span style={{ flex: 1, minWidth: 0 }}>
+                                    {s.latestInvoiceId || '—'} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{s.customerName || '—'}</span> · {s.subscriptionId}
+                                  </span>
+                                  <WaIconButton href={wa} />
+                                </div>
+                              );
+                            })}
                           </Box>
                         </Box>
                       )}
@@ -211,12 +254,18 @@ const InvoiceReconciliationCard = () => {
                         <Box onClick={() => openDetail(row.account, 'unpaid', `${row.account} — Unpaid`)} sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: alpha(errorRed, 0.04) }, px: 1, py: 0.5 }}>
                           <Typography sx={{ color: errorRed, fontWeight: 700, fontSize: '0.75rem', mb: 0.5 }}>Unpaid — DB Pendiente (subs)</Typography>
                           <Box sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.7rem', color: 'text.secondary', bgcolor: 'action.hover', borderRadius: 0.75, px: 1, py: 0.75, lineHeight: 1.7 }}>
-                            {pendingInv.map((inv, i) => (
-                              <div key={inv.id || i}>
-                                {(inv.cuenta || '') + (inv.idfactura || '')} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{inv.clientName || '—'}</span> · €{Number(inv.total || 0).toFixed(2)}
-                                {inv.stripeInvoiceId && <> · <span style={{ color: 'rgba(0,0,0,0.4)' }}>{inv.stripeInvoiceId}</span></>}
-                              </div>
-                            ))}
+                            {pendingInv.map((inv, i) => {
+                              const wa = buildWaHref({ phone: inv.customerPhone, name: inv.clientName, amount: inv.total, payUrl: inv.hostedInvoiceUrl });
+                              return (
+                                <div key={inv.id || i} style={{ display: 'flex', alignItems: 'center' }}>
+                                  <span style={{ flex: 1, minWidth: 0 }}>
+                                    {(inv.cuenta || '') + (inv.idfactura || '')} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{inv.clientName || '—'}</span> · €{Number(inv.total || 0).toFixed(2)}
+                                    {inv.stripeInvoiceId && <> · <span style={{ color: 'rgba(0,0,0,0.4)' }}>{inv.stripeInvoiceId}</span></>}
+                                  </span>
+                                  <WaIconButton href={wa} />
+                                </div>
+                              );
+                            })}
                           </Box>
                         </Box>
                       )}
@@ -280,16 +329,9 @@ const InvoiceReconciliationCard = () => {
                 </TableHead>
                 <TableBody>
                   {(detailDialog?.rows || []).map((row, i) => {
-                    const phone = row.customerPhone;
-                    // Prefill the WhatsApp message with a greeting, the amount
-                    // and the customer-facing Stripe payment link (hostedInvoiceUrl
-                    // — NOT the admin dashboard.stripe.com URL). Falls back to a
-                    // link-less message if the hosted URL is missing.
-                    const payUrl = row.hostedInvoiceUrl || null;
-                    const greeting = row.customerName ? `Hola ${row.customerName}, ` : 'Hola, ';
-                    const amountStr = `€${Number(row.amountDue || 0).toFixed(2)}`;
-                    const waText = `${greeting}tu recibo de BeWorking por ${amountStr} está pendiente de pago.${payUrl ? ` Puedes regularizarlo aquí: ${payUrl}` : ''}`;
-                    const wa = phone ? `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waText)}` : null;
+                    // Bilingual (ES + EN) reminder with the customer-facing Stripe
+                    // hosted payment link (hostedInvoiceUrl — NOT the admin URL).
+                    const wa = buildWaHref({ phone: row.customerPhone, name: row.customerName, amount: row.amountDue, payUrl: row.hostedInvoiceUrl });
                     const invUrl = row.latestInvoiceId ? `https://dashboard.stripe.com/invoices/${row.latestInvoiceId}` : null;
                     return (
                       <TableRow key={row.subscriptionId || i} hover>
@@ -304,10 +346,12 @@ const InvoiceReconciliationCard = () => {
                         <TableCell align="right" sx={{ fontWeight: 700, color: accent }}>€{Number(row.amountDue || 0).toFixed(2)}</TableCell>
                         <TableCell>
                           {wa ? (
-                            <Button size="small" component="a" href={wa} target="_blank" rel="noopener noreferrer"
-                              sx={{ textTransform: 'none', bgcolor: '#25D366', color: '#fff', fontSize: '0.75rem', fontWeight: 600, borderRadius: 999, px: 1.5, py: 0.25, minWidth: 0, '&:hover': { bgcolor: '#1ebe5a' } }}>
-                              WhatsApp
-                            </Button>
+                            <Tooltip title="WhatsApp">
+                              <IconButton size="small" component="a" href={wa} target="_blank" rel="noopener noreferrer"
+                                sx={{ color: '#fff', bgcolor: '#25D366', '&:hover': { bgcolor: '#1ebe5a' } }}>
+                                <WhatsAppIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            </Tooltip>
                           ) : <Typography variant="caption" color="text.secondary">—</Typography>}
                         </TableCell>
                       </TableRow>
