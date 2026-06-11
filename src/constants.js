@@ -38,7 +38,6 @@ export const DEPT_TABS = [
   { id: 'Platform', label: 'Platform', icon: OverviewIcon, subtabs: [
     { id: 'MariaAI', label: 'MariaAI', icon: MariaAIIcon, adminOnly: true },
     { id: 'Overview', label: 'Overview', icon: OverviewIcon },
-    { id: 'Booking', label: 'Spaces', icon: SpaceCatalogIcon },
     { id: 'MyBookings', label: 'My Bookings', icon: BookingIcon, userOnly: true },
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
     { id: 'BeKey', label: 'BeKey', icon: BeKeyIcon, landingView: true, subtabs: [
@@ -52,6 +51,7 @@ export const DEPT_TABS = [
       { id: 'InvoiceAudit', label: 'Invoice Audit', icon: ReportsIcon, adminOnly: true },
     ]},
   ]},
+  { id: 'Booking', label: 'Spaces', icon: SpaceCatalogIcon },
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
   { id: 'CRM', label: 'CRM', icon: CrmAIIcon, subtabs: [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
