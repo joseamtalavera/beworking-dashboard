@@ -128,7 +128,7 @@ const MeetingRoomReconciliationCard = () => {
                           href={waHref}
                           target="_blank"
                           rel="noopener noreferrer"
-                          sx={{ color: '#fff', bgcolor: '#25D366', '&:hover': { bgcolor: '#1ebe5a' } }}
+                          sx={{ color: '#25D366', border: '1px solid', borderColor: '#25D366', '&:hover': { bgcolor: alpha('#25D366', 0.12) } }}
                         >
                           <WhatsAppIcon sx={{ fontSize: 18 }} />
                         </IconButton>
