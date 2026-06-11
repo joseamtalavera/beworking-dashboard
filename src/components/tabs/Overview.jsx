@@ -69,7 +69,7 @@ const calcChange = (current, previous) => {
 };
 
 // Clean Stat Card - minimal design with optional MTD/YTD
-const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, change, trend, loading, theme }) => {
+const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, change, trend, loading, theme, onClick }) => {
   const TrendIcon = trend === 'down' ? TrendingDownRoundedIcon
                   : trend === 'up' ? TrendingUpRoundedIcon
                   : TrendingFlatRoundedIcon;
@@ -77,13 +77,15 @@ const StatCard = ({ label, value, sublabel, mtd, ytd, mtdLabel, ytdLabel, change
   return (
   <Paper
     elevation={0}
+    onClick={onClick}
     sx={{
       borderRadius: `${tokens.radius.md}px`,
       p: 3,
       border: '1px solid',
       borderColor: 'divider',
-      transition: `border-color ${tokens.motion.durationFast} ${tokens.motion.ease}`,
-      '&:hover': { borderColor: 'brand.green' }
+      cursor: onClick ? 'pointer' : 'default',
+      transition: `border-color ${tokens.motion.durationFast} ${tokens.motion.ease}, box-shadow ${tokens.motion.durationFast} ${tokens.motion.ease}`,
+      '&:hover': { borderColor: 'brand.green', ...(onClick ? { boxShadow: 1 } : {}) }
     }}
   >
     {loading ? (
@@ -652,14 +654,14 @@ const UserOverview = ({ userProfile, setActiveTab }) => {
     <Stack spacing={3} sx={{ width: '100%', px: { xs: 2, md: 3 }, pb: 4 }}>
       {/* Row 1: Quick Stats */}
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' } }}>
-        <StatCard label={t('user.stats.upcomingBookings')} value={upcomingCount} sublabel={t('user.stats.next30days')} loading={loading.bookings} theme={theme} />
-        <StatCard label={t('user.stats.bookingsThisMonth')} value={bookingStats?.totalBookingsMonth ?? 0} sublabel={t('user.stats.thisMonth')} loading={loading.stats} theme={theme} />
+        <StatCard label={t('user.stats.upcomingBookings')} value={upcomingCount} sublabel={t('user.stats.next30days')} loading={loading.bookings} theme={theme} onClick={() => setActiveTab?.('MyBookings')} />
+        <StatCard label={t('user.stats.bookingsThisMonth')} value={bookingStats?.totalBookingsMonth ?? 0} sublabel={t('user.stats.thisMonth')} loading={loading.stats} theme={theme} onClick={() => setActiveTab?.('MyBookings')} />
         {isVirtualUser ? (
-          <StatCard label={t('user.stats.freeBookingsLeft')} value={bookingStats?.freeBookingsLeft ?? 0} sublabel={t('user.stats.remaining', { limit: bookingStats?.freeBookingsLimit ?? 5 })} loading={loading.stats} theme={theme} />
+          <StatCard label={t('user.stats.freeBookingsLeft')} value={bookingStats?.freeBookingsLeft ?? 0} sublabel={t('user.stats.remaining', { limit: bookingStats?.freeBookingsLimit ?? 5 })} loading={loading.stats} theme={theme} onClick={() => setActiveTab?.('Booking')} />
         ) : (
-          <StatCard label={t('user.stats.bookingsYTD')} value={bookingStats?.totalBookingsYTD ?? 0} sublabel={t('user.stats.yearToDate')} loading={loading.stats} theme={theme} />
+          <StatCard label={t('user.stats.bookingsYTD')} value={bookingStats?.totalBookingsYTD ?? 0} sublabel={t('user.stats.yearToDate')} loading={loading.stats} theme={theme} onClick={() => setActiveTab?.('MyBookings')} />
         )}
-        <StatCard label={t('user.stats.pendingMail')} value={pendingMailCount} sublabel={t('user.stats.documentsWaiting')} loading={loading.mail} theme={theme} />
+        <StatCard label={t('user.stats.pendingMail')} value={pendingMailCount} sublabel={t('user.stats.documentsWaiting')} loading={loading.mail} theme={theme} onClick={() => setActiveTab?.('DomicilioFiscal')} />
       </Box>
 
       {/* News — BeKey, the new app, and BeWorking ideas */}
