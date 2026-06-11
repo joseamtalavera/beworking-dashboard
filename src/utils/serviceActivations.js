@@ -5,7 +5,7 @@ const STORAGE_KEY = 'bw_activated_services';
 const EVENT_NAME = 'bw:activations-change';
 
 // Top-level tabs that are always visible to admin and not toggleable.
-export const ALWAYS_VISIBLE_ADMIN = new Set(['Platform', 'Booking', 'Tools', 'CommunityAI']);
+export const ALWAYS_VISIBLE_ADMIN = new Set(['Platform', 'Booking', 'Tools', 'CommunityAI', 'Reports', 'CronJobs']);
 
 // All top-level dept ids that can be toggled on/off via the Services page.
 export function getActivatableServiceIds() {

@@ -42,14 +42,8 @@ export const DEPT_TABS = [
     { id: 'MyInvoices', label: 'My Invoices', icon: InvoicesIcon, userOnly: true },
     { id: 'BeKey', label: 'BeKey', icon: BeKeyIcon, landingView: true, subtabs: [
       { id: 'BeKeyAccess', label: 'Access', icon: BeKeyIcon, adminOnly: true },
-      { id: 'BeKeyCron', label: 'Cron Jobs', icon: AutomationIcon, adminOnly: true },
     ]},
     { id: 'Services', label: 'Services', icon: ServicesIcon, adminOnly: true },
-    { id: 'Integrations', label: 'Integration', icon: IntegrationsIcon, soon: true, adminOnly: true },
-    { id: 'Reports', label: 'Reports', icon: ReportsIcon, adminOnly: true, subtabs: [
-      { id: 'Reconciliation', label: 'Reconciliation', icon: ReportsIcon, adminOnly: true },
-      { id: 'InvoiceAudit', label: 'Invoice Audit', icon: ReportsIcon, adminOnly: true },
-    ]},
   ]},
   { id: 'Booking', label: 'Spaces', icon: SpaceCatalogIcon },
   { id: 'DomicilioFiscal', label: 'Domicilio Fiscal', icon: DomicilioFiscalIcon },
@@ -57,14 +51,21 @@ export const DEPT_TABS = [
     { id: 'Contacts', label: 'Contacts', icon: ContactsIcon },
     { id: 'Leads', label: 'Leads', icon: MarketingAIIcon, adminOnly: true },
     { id: 'Analytics', label: 'Analytics', icon: ReportsIcon, adminOnly: true },
-    { id: 'EmailAutomation', label: 'Cron Jobs', icon: AutomationIcon, adminOnly: true },
-    { id: 'EmailAutomationBilling', label: 'Billing', icon: AutomationIcon, adminOnly: true },
   ]},
   { id: 'AccountsAI', label: 'Accounts', icon: AccountsAIIcon, subtabs: [
     { id: 'Invoices', label: 'Invoices', icon: InvoicesIcon },
     { id: 'Expenses', label: 'Expenses', icon: ExpensesIcon, soon: true },
     { id: 'BankReconciliation', label: 'Banks', icon: BankReconciliationIcon, soon: true },
     { id: 'CryptWallet', label: 'Crypto Wallet', icon: CryptWalletIcon, soon: true },
+  ]},
+  { id: 'Reports', label: 'Reports', icon: ReportsIcon, subtabs: [
+    { id: 'Reconciliation', label: 'Reconciliation', icon: ReportsIcon, adminOnly: true },
+    { id: 'InvoiceAudit', label: 'Invoice Audit', icon: ReportsIcon, adminOnly: true },
+  ]},
+  { id: 'CronJobs', label: 'Cron Jobs', icon: AutomationIcon, subtabs: [
+    { id: 'EmailAutomation', label: 'Contacts & Leads', icon: AutomationIcon, adminOnly: true },
+    { id: 'EmailAutomationBilling', label: 'Billing', icon: AutomationIcon, adminOnly: true },
+    { id: 'BeKeyCron', label: 'Access (BeKey)', icon: AutomationIcon, adminOnly: true },
   ]},
   { id: 'Legal', label: 'Legal', icon: LegalIcon, soon: true },
   { id: 'Automation', label: 'Automation', icon: AutomationIcon, soon: true },
