@@ -54,6 +54,7 @@ import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, fil
 import { fetchBookingStats } from '../../../api/bookings';
 import { fetchSubscriptions, createSubscription, updateSubscription, linkStripeSubscription, fetchDeskProducts } from '../../../api/subscriptions';
 import AddSubscriptionDialog from './AddSubscriptionDialog';
+import ContactCommunicationsCard from './ContactCommunicationsCard.jsx';
 import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
 import { fetchInvoices } from '../../../api/invoices';
 import { loadStripe } from '@stripe/stripe-js';
@@ -959,20 +960,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         </Box>
         )}
 
-        {mode !== 'user' && (
         <Box sx={{ gridColumn: { xs: '1 / -1', lg: '7 / -1' }, display: 'flex', alignItems: 'stretch', flex: 1 }}>
-          <SectionCard icon={ChatBubbleOutlineRoundedIcon} title={t('profile.communications')}>
-            <SectionList
-              description={t('profile.communicationsDesc')}
-              items={[
-                { label: t('profile.successManager'), value: contact.contact?.name },
-                { label: t('profile.lastOutreach'), value: 'Oct 04 · Quarterly review' },
-                { label: t('profile.primaryChannel'), value: contact.channel }
-              ]}
-            />
-          </SectionCard>
+          <ContactCommunicationsCard contactEmail={contact.contact?.email} mode={mode} />
         </Box>
-        )}
 
         {/* Payment Method (user mode) */}
         {mode === 'user' && (

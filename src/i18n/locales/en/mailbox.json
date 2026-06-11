@@ -193,6 +193,7 @@
     "title": "Your Professional Business Address",
     "subtitle": "Manage your Business Address services including mail handling and office address information.",
     "mailboxTab": "Mailbox",
+    "notificationsTab": "Notifications",
     "addressTab": "Office Address"
   },
   "address": {

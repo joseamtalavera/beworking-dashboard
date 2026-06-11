@@ -8,6 +8,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import SpiralLoader from '../SpiralLoader.jsx';
 import SubscriptionGate, { useSubscriptionGate } from '../SubscriptionGate.jsx';
 import { useTranslation } from 'react-i18next';
@@ -23,20 +24,12 @@ if (!i18n.hasResourceBundle('es', 'mailbox')) {
 const MailboxUser = React.lazy(() => import('./user/MailboxUser.jsx'));
 const MailboxAdmin = React.lazy(() => import('./admin/MailboxAdmin.jsx'));
 const VirtualOfficeAddress = React.lazy(() => import('./VirtualOfficeAddress.jsx'));
+const NotificationsTab = React.lazy(() => import('./user/NotificationsTab.jsx'));
 
 const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription = true, onUpgraded }) => {
   const { t } = useTranslation('mailbox');
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [gateOpen, triggerGate, gateProps] = useSubscriptionGate(hasActiveSubscription);
-
-  const handleSubTabChange = (event, newValue) => {
-    // Gate the "Office Address" subtab (index 1) for non-subscribers
-    if (newValue === 1) {
-      triggerGate(() => setActiveSubTab(newValue));
-    } else {
-      setActiveSubTab(newValue);
-    }
-  };
 
   const subtabs = [
     {
@@ -46,12 +39,30 @@ const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription =
       component: userType === 'admin' ? MailboxAdmin : MailboxUser
     },
     {
+      id: 'notifications',
+      label: t('virtualOffice.notificationsTab', {
+        defaultValue: (i18n.language || 'es').toLowerCase().startsWith('en') ? 'Notifications' : 'Notificaciones'
+      }),
+      icon: <NotificationsNoneRoundedIcon />,
+      component: NotificationsTab
+    },
+    {
       id: 'address',
       label: t('virtualOffice.addressTab'),
       icon: <LocationOnOutlinedIcon />,
       component: VirtualOfficeAddress
     }
   ];
+
+  const handleSubTabChange = (event, newValue) => {
+    // Gate the "Office Address" subtab for non-subscribers (tracked by id, not
+    // index, so reordering tabs can't accidentally gate the wrong one).
+    if (subtabs[newValue]?.id === 'address') {
+      triggerGate(() => setActiveSubTab(newValue));
+    } else {
+      setActiveSubTab(newValue);
+    }
+  };
 
   const ActiveComponent = subtabs[activeSubTab]?.component;
 

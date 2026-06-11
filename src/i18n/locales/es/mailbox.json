@@ -193,6 +193,7 @@
     "title": "Tu dirección profesional de empresa",
     "subtitle": "Gestiona tus servicios de domicilio fiscal incluyendo gestión de correo e información de dirección de oficina.",
     "mailboxTab": "Buzón",
+    "notificationsTab": "Notificaciones",
     "addressTab": "Dirección de oficina"
   },
   "address": {
