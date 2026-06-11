@@ -239,12 +239,12 @@ const InvoiceReconciliationCard = () => {
                             {pastDueSubs.map((s, i) => {
                               const wa = buildWaHref({ phone: s.customerPhone, name: s.customerName, amount: s.amountDue, payUrl: s.hostedInvoiceUrl });
                               return (
-                                <div key={s.subscriptionId || i} style={{ display: 'flex', alignItems: 'center' }}>
+                                <Box key={s.subscriptionId || i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5, borderBottom: i < pastDueSubs.length - 1 ? '1px solid' : 'none', borderColor: 'divider', '&:hover': { bgcolor: alpha(errorRed, 0.06) } }}>
                                   <span style={{ flex: 1, minWidth: 0 }}>
                                     {s.latestInvoiceId || '—'} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{s.customerName || '—'}</span> · {s.subscriptionId}
                                   </span>
                                   <WaIconButton href={wa} />
-                                </div>
+                                </Box>
                               );
                             })}
                           </Box>
@@ -257,13 +257,13 @@ const InvoiceReconciliationCard = () => {
                             {pendingInv.map((inv, i) => {
                               const wa = buildWaHref({ phone: inv.customerPhone, name: inv.clientName, amount: inv.total, payUrl: inv.hostedInvoiceUrl });
                               return (
-                                <div key={inv.id || i} style={{ display: 'flex', alignItems: 'center' }}>
+                                <Box key={inv.id || i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5, borderBottom: i < pendingInv.length - 1 ? '1px solid' : 'none', borderColor: 'divider', '&:hover': { bgcolor: alpha(errorRed, 0.06) } }}>
                                   <span style={{ flex: 1, minWidth: 0 }}>
                                     {(inv.cuenta || '') + (inv.idfactura || '')} · <span style={{ color: 'rgba(0,0,0,0.55)' }}>{inv.clientName || '—'}</span> · €{Number(inv.total || 0).toFixed(2)}
                                     {inv.stripeInvoiceId && <> · <span style={{ color: 'rgba(0,0,0,0.4)' }}>{inv.stripeInvoiceId}</span></>}
                                   </span>
                                   <WaIconButton href={wa} />
-                                </div>
+                                </Box>
                               );
                             })}
                           </Box>
