@@ -29,6 +29,8 @@ export default function CoworkingPeriodSelector({
   durations = [1, 3, 6, 12],
   minDate,
   maxDate,
+  minMonth,
+  maxMonth,
 }) {
   const { t } = useTranslation('booking');
 
@@ -119,7 +121,11 @@ export default function CoworkingPeriodSelector({
                   value={month || ''}
                   onChange={(e) => onMonthChange(e.target.value)}
                   fullWidth
-                  slotProps={{ input: { disableUnderline: true }, inputLabel: { shrink: true } }}
+                  slotProps={{
+                    input: { disableUnderline: true },
+                    inputLabel: { shrink: true },
+                    htmlInput: { ...(minMonth ? { min: minMonth } : {}), ...(maxMonth ? { max: maxMonth } : {}) },
+                  }}
                   sx={pillFieldSx(month)}
                 />
               </Box>
@@ -161,4 +167,6 @@ CoworkingPeriodSelector.propTypes = {
   durations: PropTypes.arrayOf(PropTypes.number),
   minDate: PropTypes.string,
   maxDate: PropTypes.string,
+  minMonth: PropTypes.string,
+  maxMonth: PropTypes.string,
 };
