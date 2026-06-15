@@ -98,6 +98,9 @@ export const fetchPublicAvailability = (params = {}, options = {}) => {
   if (params.date) {
     search.set('date', params.date);
   }
+  if (params.dateTo) {
+    search.set('dateTo', params.dateTo);
+  }
   if (Array.isArray(params.products)) {
     params.products.forEach((product) => {
       if (product) {

@@ -56,20 +56,12 @@ const pillSx = {
   fontSize: '0.95rem',
 };
 
-const DESK_BOOKING_TYPES = [
-  { label: 'Day', value: 'day' },
-  { label: 'Month', value: 'month' },
-];
-const DESK_DURATION_OPTIONS = [
-  { label: '1 month', months: 1 },
-  { label: '3 months', months: 3 },
-  { label: '6 months', months: 6 },
-  { label: '12 months', months: 12 },
-];
-const getMonthEnd = (startDate, months) => {
+// Open-ended monthly subscription: the first billing period runs from the
+// chosen start date to the same day next month (e.g. 13th → 13th). Used to
+// scope the floor-plan occupancy range.
+const addMonths = (startDate, months) => {
   const d = new Date(startDate + 'T00:00:00');
   d.setMonth(d.getMonth() + months);
-  d.setDate(d.getDate() - 1);
   return d.toISOString().split('T')[0];
 };
 
@@ -92,11 +84,6 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
   const [selectedDesk, setSelectedDesk] = useState(null);
   const [deskBookingType, setDeskBookingType] = useState('day');
-  const [deskDuration, setDeskDuration] = useState(1);
-  const today = new Date();
-  const [deskMonth, setDeskMonth] = useState(
-    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  );
 
   // Availability calendar state
   const [bloqueos, setBloqueos] = useState([]);
@@ -167,9 +154,13 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookedSlotIds]);
 
-  // Compute desk date range based on booking type
-  const deskStartDate = deskBookingType === 'day' ? state.dateFrom : `${deskMonth}-01`;
-  const deskEndDate = deskBookingType === 'day' ? state.dateFrom : getMonthEnd(deskStartDate, deskDuration);
+  // Compute desk date range based on booking type. Both Day and Subscription
+  // now use a single start date (state.dateFrom). For a subscription the first
+  // period runs to the same day next month (e.g. 13th → 13th).
+  const deskStartDate = state.dateFrom;
+  const deskEndDate = deskBookingType === 'day'
+    ? state.dateFrom
+    : (state.dateFrom ? addMonths(state.dateFrom, 1) : state.dateFrom);
 
   // Desk availability: date-aware, mirrors the admin Coworking view and the
   // booking-app SelectDeskDetails flow. We query /public/availability for all
@@ -188,6 +179,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
     setAvailLoading(true);
     fetchPublicAvailability({
       date: deskStartDate,
+      dateTo: deskEndDate || deskStartDate,
       products: DESK_PRODUCT_NAMES,
       centers: ['MA1'],
     })
@@ -201,7 +193,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
         if (!cancelled) setAvailLoading(false);
       });
     return () => { cancelled = true; };
-  }, [isDeskProduct, deskStartDate, DESK_PRODUCT_NAMES]);
+  }, [isDeskProduct, deskStartDate, deskEndDate, DESK_PRODUCT_NAMES]);
 
   const bookedDeskNumbers = useMemo(() => {
     const set = new Set();
@@ -245,14 +237,13 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       attendees: 1,
       reservationType: deskBookingType === 'month' ? 'Mensual' : 'Diaria',
       deskBookingType,
-      deskDuration,
     });
   };
 
   // Reset desk selection when date/booking type changes
   useEffect(() => {
     setSelectedDesk(null);
-  }, [state.dateFrom, deskBookingType, deskDuration, deskMonth]);
+  }, [state.dateFrom, deskBookingType]);
 
   const selectedSlotKey = useMemo(() => {
     if (state.startTime) {
@@ -353,21 +344,20 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             bookingType={deskBookingType}
             onBookingTypeChange={(v) => {
               setDeskBookingType(v);
-              if (v === 'day' && !state.dateFrom) {
-                const today = new Date().toISOString().slice(0, 10);
-                setFields({ dateFrom: today, dateTo: today });
-              }
+              const start = state.dateFrom || new Date().toISOString().slice(0, 10);
+              setFields({ dateFrom: start, dateTo: v === 'day' ? start : addMonths(start, 1) });
             }}
             date={state.dateFrom || ''}
-            onDateChange={(v) => setFields({ dateFrom: v, dateTo: v })}
-            month={deskMonth}
-            onMonthChange={setDeskMonth}
-            duration={deskDuration}
-            onDurationChange={setDeskDuration}
+            onDateChange={(v) => setFields({
+              dateFrom: v,
+              dateTo: deskBookingType === 'day' ? v : addMonths(v, 1),
+            })}
             minDate={mode === 'admin' ? undefined : new Date().toISOString().slice(0, 10)}
-            maxDate={mode === 'admin' ? undefined : new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)}
-            minMonth={mode === 'admin' ? undefined : new Date().toISOString().slice(0, 7)}
-            maxMonth={mode === 'admin' ? undefined : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().slice(0, 7)}
+            maxDate={mode === 'admin'
+              ? undefined
+              : (deskBookingType === 'day'
+                ? new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)
+                : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().slice(0, 10))}
           />
 
           <CoworkingFloorPlan

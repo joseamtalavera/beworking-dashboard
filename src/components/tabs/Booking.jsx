@@ -4645,33 +4645,33 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
 
   // Date-aware Coworking period selection (parity with public site)
   const todayISO = () => new Date().toISOString().split('T')[0];
-  const [coworkingBookingType, setCoworkingBookingType] = useState('day'); // 'day' | 'month'
+  const [coworkingBookingType, setCoworkingBookingType] = useState('day'); // 'day' | 'month' (subscription)
   const [coworkingDate, setCoworkingDate] = useState(todayISO);
-  const [coworkingMonth, setCoworkingMonth] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  });
-  const [coworkingDuration, setCoworkingDuration] = useState(1);
   const [coworkingAvail, setCoworkingAvail] = useState([]);
   const [coworkingAvailLoading, setCoworkingAvailLoading] = useState(false);
 
-  // For Mes mode we query the start day; the backend treats active subscriptions
-  // as full-day occupancy, so subs covering that day surface every desk they hold.
-  const coworkingQueryDate =
-    coworkingBookingType === 'day' ? coworkingDate : `${coworkingMonth}-01`;
+  // Day → query the single date. Subscription → query [start … start+1 month)
+  // so day-bookings anywhere in the first period also surface as occupied.
+  // The backend treats active subscriptions as full-day occupancy.
+  const coworkingQueryDateTo = useMemo(() => {
+    if (coworkingBookingType === 'day' || !coworkingDate) return coworkingDate;
+    const d = new Date(coworkingDate + 'T00:00:00');
+    d.setMonth(d.getMonth() + 1);
+    return d.toISOString().split('T')[0];
+  }, [coworkingBookingType, coworkingDate]);
 
   useEffect(() => {
-    if (view !== 'coworking' || !isAdmin || !coworkingQueryDate) return;
+    if (view !== 'coworking' || !isAdmin || !coworkingDate) return;
     let cancelled = false;
     setCoworkingAvailLoading(true);
     const products = [];
     for (let i = 1; i <= 16; i += 1) products.push(`MA1O1-${i}`);
-    fetchPublicAvailability({ date: coworkingQueryDate, products, centers: ['MA1'] })
+    fetchPublicAvailability({ date: coworkingDate, dateTo: coworkingQueryDateTo, products, centers: ['MA1'] })
       .then((data) => { if (!cancelled) setCoworkingAvail(Array.isArray(data) ? data : []); })
       .catch(() => { if (!cancelled) setCoworkingAvail([]); })
       .finally(() => { if (!cancelled) setCoworkingAvailLoading(false); });
     return () => { cancelled = true; };
-  }, [view, isAdmin, coworkingQueryDate]);
+  }, [view, isAdmin, coworkingDate, coworkingQueryDateTo]);
 
   const coworkingBookedDesks = useMemo(() => {
     const set = new Set();
@@ -4942,10 +4942,6 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
             onBookingTypeChange={setCoworkingBookingType}
             date={coworkingDate}
             onDateChange={setCoworkingDate}
-            month={coworkingMonth}
-            onMonthChange={setCoworkingMonth}
-            duration={coworkingDuration}
-            onDurationChange={setCoworkingDuration}
           />
           <CoworkingFloorPlan
             mode="admin"

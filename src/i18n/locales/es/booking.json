@@ -435,6 +435,8 @@
     "month": "Mes",
     "subscription": "Suscripción",
     "startMonth": "Mes de inicio",
+    "startDate": "Fecha de inicio",
+    "subscriptionHelper": "Suscripción mensual que se renueva automáticamente. Cancela cuando quieras desde tu cuenta.",
     "duration": "Duración",
     "monthsCount_one": "{{count}} mes",
     "monthsCount_other": "{{count}} meses",

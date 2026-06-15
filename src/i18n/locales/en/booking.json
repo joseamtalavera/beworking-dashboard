@@ -435,6 +435,8 @@
     "month": "Month",
     "subscription": "Subscription",
     "startMonth": "Start month",
+    "startDate": "Start date",
+    "subscriptionHelper": "Monthly subscription that renews automatically. Cancel anytime from your account.",
     "duration": "Duration",
     "monthsCount_one": "{{count}} month",
     "monthsCount_other": "{{count}} months",
