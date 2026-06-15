@@ -433,6 +433,7 @@
     "bookingType": "Booking type",
     "day": "Day",
     "month": "Month",
+    "subscription": "Subscription",
     "startMonth": "Start month",
     "duration": "Duration",
     "monthsCount_one": "{{count}} month",

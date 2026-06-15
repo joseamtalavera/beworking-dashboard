@@ -59,7 +59,7 @@ export default function CoworkingPeriodSelector({
                 onClick={() => onBookingTypeChange(opt)}
                 sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 600, px: 2.5 }}
               >
-                {t(opt === 'day' ? 'admin.day' : 'admin.month')}
+                {t(opt === 'day' ? 'admin.day' : 'admin.subscription')}
               </Button>
             ))}
           </Stack>

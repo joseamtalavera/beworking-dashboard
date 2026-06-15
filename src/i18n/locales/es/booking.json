@@ -433,6 +433,7 @@
     "bookingType": "Tipo de reserva",
     "day": "Día",
     "month": "Mes",
+    "subscription": "Suscripción",
     "startMonth": "Mes de inicio",
     "duration": "Duración",
     "monthsCount_one": "{{count}} mes",
