@@ -33,6 +33,8 @@ import { createSubscription } from '../../../api/subscriptions.js';
 import UninvoicedBookings from '../UninvoicedBookings';
 import {
   createPaymentIntent,
+  createSetupIntent,
+  createSubscriptionFromSetupIntent,
   fetchCustomerPaymentMethods,
   chargeCustomer,
   createStripeInvoice,
@@ -879,6 +881,131 @@ function UserPaymentFormInner({ onCreated }) {
 }
 
 /* ─────────────────────────────────────
+   User: Desk Subscription Form (SetupIntent flow) — mirrors the canonical
+   booking app. Collects a card via a SetupIntent, creates an open-ended
+   monthly Stripe subscription, then records the booking with its sub id.
+   ───────────────────────────────────── */
+const SUB_MONTHLY_BASE = 90;
+const SUB_MONTHLY_WITH_VAT = +(SUB_MONTHLY_BASE * 1.21).toFixed(2);
+
+function UserSubscriptionFormInner({ onCreated }) {
+  const { t } = useTranslation('booking');
+  const stripe = useStripe();
+  const elements = useElements();
+  const { state, prevStep } = useBookingFlow();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!stripe || !elements) return;
+    setError('');
+    setSubmitting(true);
+    try {
+      const result = await stripe.confirmSetup({ elements, redirect: 'if_required' });
+      if (result.error) {
+        setError(result.error.message || t('steps.somethingWentWrong'));
+        setSubmitting(false);
+        return;
+      }
+      // Open-ended monthly sub: renews until cancelled from the account.
+      const subRes = await createSubscriptionFromSetupIntent({
+        setupIntentId: result.setupIntent.id,
+        monthlyAmount: Math.round(SUB_MONTHLY_WITH_VAT * 100),
+        currency: 'eur',
+        durationMonths: 1,
+        tenant: state.cuenta || 'PT',
+        reference: String(state.producto?.deskProductoId || state.producto?.id || 'booking'),
+        deskName: state.producto?.name || '',
+      });
+      await createPublicBooking(
+        buildPublicPayload(state, { stripeSubscriptionId: subRes.subscriptionId }),
+      );
+      setSuccess(true);
+      onCreated?.({});
+    } catch (err) {
+      setError(err.message || t('steps.somethingWentWrong'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          borderRadius: '14px',
+          textAlign: 'center',
+          bgcolor: 'brand.accentSoft',
+          border: '1px solid',
+          borderColor: 'brand.green',
+        }}
+      >
+        <Stack spacing={3} alignItems="center">
+          <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'brand.green' }} />
+          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{t('steps.bookingConfirmed')}</Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+            {t('admin.subscriptionHelper')}
+          </Typography>
+        </Stack>
+      </Paper>
+    );
+  }
+
+  return (
+    <Stack spacing={3}>
+      {error && <Alert severity="error">{error}</Alert>}
+      <ReviewSummary state={state} />
+
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: '22px' }}>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <LockRoundedIcon sx={{ fontSize: 18, color: '#6e6e73' }} />
+            <Typography variant="body2" sx={{ color: '#424245' }}>
+              {t('steps.securePaymentStripe')}
+            </Typography>
+          </Stack>
+          <PaymentElement />
+        </Stack>
+      </Paper>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.5,
+          p: 1.75,
+          borderRadius: '14px',
+          bgcolor: '#f5f5f7',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Typography sx={{ fontSize: '0.78rem', color: '#424245', lineHeight: 1.55 }}>
+          {t('admin.subscriptionHelper')}
+        </Typography>
+      </Box>
+
+      <Stack direction="row" spacing={2} justifyContent="space-between">
+        <Button onClick={prevStep} disabled={submitting} sx={backButtonSx}>
+          {t('steps.back')}
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={submitting || !stripe}
+          sx={pillButtonSx}
+        >
+          {submitting ? t('steps.processing') : t('steps.payAmount', { amount: SUB_MONTHLY_WITH_VAT.toFixed(2) })}
+        </Button>
+      </Stack>
+    </Stack>
+  );
+}
+
+/* ─────────────────────────────────────
    User Payment Form (checks free eligibility first)
    ───────────────────────────────────── */
 function UserPaymentForm({ onCreated }) {
@@ -892,6 +1019,9 @@ function UserPaymentForm({ onCreated }) {
 
   const contactEmail = state.contact?.email || '';
   const productName = state.producto?.name || '';
+  // Desk subscriptions use the SetupIntent → Stripe subscription flow (never
+  // free, never a one-off PaymentIntent).
+  const isSubscription = isMonthlyDeskBooking(state);
 
   // Check if returning from a 3DS redirect (URL contains payment_intent_client_secret)
   const redirectClientSecret = useMemo(() => {
@@ -901,6 +1031,11 @@ function UserPaymentForm({ onCreated }) {
 
   // Check free booking eligibility on mount
   useEffect(() => {
+    if (isSubscription) {
+      // Subscriptions are never free — skip the usage check.
+      setUsageLoading(false);
+      return;
+    }
     if (redirectClientSecret) {
       // Skip eligibility check — we're returning from 3DS redirect
       setUsageLoading(false);
@@ -915,20 +1050,31 @@ function UserPaymentForm({ onCreated }) {
       .then((res) => setUsage(res))
       .catch(() => setUsage(null))
       .finally(() => setUsageLoading(false));
-  }, [contactEmail, productName, redirectClientSecret]);
+  }, [contactEmail, productName, redirectClientSecret, isSubscription]);
 
-  // Only create Stripe intent if NOT free (and not returning from redirect)
+  // Initialize the Stripe intent: a SetupIntent for subscriptions, otherwise a
+  // one-off PaymentIntent (skipped when free or returning from a 3DS redirect).
   useEffect(() => {
+    if (usageLoading) return;
+    const contactName = [state.contact?.firstName, state.contact?.lastName].filter(Boolean).join(' ')
+      || state.contact?.name || '';
+    if (isSubscription) {
+      createSetupIntent({
+        customerEmail: contactEmail,
+        customerName: contactName,
+        tenant: state.cuenta || 'PT',
+      })
+        .then((res) => setClientSecret(res.clientSecret))
+        .catch((err) => setError(err.message || 'Failed to initialize payment.'));
+      return;
+    }
     if (redirectClientSecret) {
       setClientSecret(redirectClientSecret);
       return;
     }
-    if (usageLoading) return;
     if (usage?.isFree) return; // skip Stripe for free bookings
     const amountCents = Math.round(pricing.total * 100);
     if (amountCents <= 0) return;
-    const contactName = [state.contact?.firstName, state.contact?.lastName].filter(Boolean).join(' ')
-      || state.contact?.name || '';
     createPaymentIntent({
       amount: amountCents,
       currency: 'eur',
@@ -939,7 +1085,7 @@ function UserPaymentForm({ onCreated }) {
     })
       .then((res) => setClientSecret(res.clientSecret))
       .catch((err) => setError(err.message || 'Failed to initialize payment.'));
-  }, [usageLoading, usage, pricing.total, state.producto, state.dateFrom, contactEmail, redirectClientSecret]);
+  }, [usageLoading, usage, pricing.total, state.producto, state.dateFrom, contactEmail, redirectClientSecret, isSubscription, state.cuenta]);
 
   // Loading state
   if (usageLoading) {
@@ -998,7 +1144,9 @@ function UserPaymentForm({ onCreated }) {
 
   return (
     <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <UserPaymentFormInner onCreated={onCreated} />
+      {isSubscription
+        ? <UserSubscriptionFormInner onCreated={onCreated} />
+        : <UserPaymentFormInner onCreated={onCreated} />}
     </Elements>
   );
 }

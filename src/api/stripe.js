@@ -54,6 +54,24 @@ export const createSetupIntent = ({ customerEmail, customerName, customerId, ten
     body: { customer_email: customerEmail, customer_name: customerName, customer_id: customerId || undefined, tenant: tenant || undefined },
   });
 
+// Create an open-ended monthly desk subscription from a confirmed SetupIntent
+// — mirrors the canonical booking-app flow. `tenant` maps gt→GT, else PT.
+export const createSubscriptionFromSetupIntent = ({
+  setupIntentId, monthlyAmount, currency, durationMonths, tenant, reference, deskName,
+}) =>
+  stripeRequest('/api/subscriptions', {
+    method: 'POST',
+    body: {
+      setup_intent_id: setupIntentId,
+      monthly_amount: monthlyAmount,
+      currency: (currency || 'eur').toLowerCase(),
+      duration_months: durationMonths || 1,
+      tenant: tenant || undefined,
+      reference: reference || 'booking',
+      desk_name: deskName || undefined,
+    },
+  });
+
 export const setDefaultPaymentMethod = ({ customerEmail, paymentMethodId, tenant, customerId }) =>
   stripeRequest('/api/customers/default-payment-method', {
     method: 'POST',
