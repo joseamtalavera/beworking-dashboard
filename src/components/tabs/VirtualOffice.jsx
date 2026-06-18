@@ -93,6 +93,11 @@ const VirtualOffice = ({ userType = 'user', userProfile, hasActiveSubscription =
                 color: 'secondary.main'
               }
             },
+            // Light grey vertical divider between tabs (not after the last one).
+            '& .MuiTab-root:not(:last-of-type)': {
+              borderRight: '1px solid',
+              borderRightColor: 'divider'
+            },
             '& .MuiTabs-indicator': {
               backgroundColor: 'secondary.main',
               height: 3
