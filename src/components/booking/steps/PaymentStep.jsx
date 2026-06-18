@@ -86,16 +86,23 @@ function isMonthlyDeskBooking(state) {
   return isDesk && state.deskBookingType === 'month';
 }
 
+// Mirrors the contact-section "Create Subscription" dialog payload
+// (AddSubscriptionDialog → createSubscription) so an admin Spaces monthly-desk
+// booking produces an identical subscription: server-side Stripe sub when
+// billingMethod='stripe', or DB sub + immediate Pendiente factura when
+// 'bank_transfer'. monthlyAmount is the pre-tax base (90); the backend layers
+// VAT (Stripe default_tax_rates / local invoice vat_percent).
 function buildSubscriptionPayload(state) {
   return {
     contactId: state.contact?.id,
     monthlyAmount: 90,
+    billingInterval: 'month',
     currency: 'EUR',
     cuenta: state.cuenta || 'PT',
     description: `${state.producto?.name} — Coworking desk subscription`,
     startDate: state.dateFrom,
     endDate: state.dateTo,
-    billingMethod: 'bank_transfer',
+    billingMethod: 'stripe',
     productoId: state.producto?.deskProductoId || null,
   };
 }
@@ -172,6 +179,10 @@ function AdminPaymentOptions({ onCreated }) {
   const theme = useTheme();
   const { state, prevStep } = useBookingFlow();
   const [paymentOption, setPaymentOption] = useState('free'); // 'free' | 'charge' | 'invoice' | 'no_invoice' | 'book_only'
+  // Monthly desk = subscription, not a one-off booking. Mirror the contact-section
+  // "Create Subscription" dialog: only a billing-method choice (Stripe / bank transfer).
+  const isSubscriptionBooking = useMemo(() => isMonthlyDeskBooking(state), [state]);
+  const [subBillingMethod, setSubBillingMethod] = useState('stripe'); // 'stripe' | 'bank_transfer'
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState('');
   const [cardsLoading, setCardsLoading] = useState(false);
@@ -259,12 +270,12 @@ function AdminPaymentOptions({ onCreated }) {
     setSubmitting(true);
 
     try {
-      // ── Monthly desk subscription flow ──
-      if (isMonthlyDeskBooking(state)) {
+      // ── Monthly desk subscription flow (same as contact "Create Subscription") ──
+      if (isSubscriptionBooking) {
         const subPayload = buildSubscriptionPayload(state);
-        subPayload.billingMethod = paymentOption === 'charge' ? 'stripe' : 'bank_transfer';
-        await createSubscription(subPayload);
-        setCreatedResponse({});
+        subPayload.billingMethod = subBillingMethod;
+        const created = await createSubscription(subPayload);
+        setCreatedResponse(created || {});
         setSuccess(true);
         return;
       }
@@ -416,9 +427,13 @@ function AdminPaymentOptions({ onCreated }) {
         <DialogContent sx={{ textAlign: 'center' }}>
           <Stack spacing={3} alignItems="center">
             <CheckCircleRoundedIcon sx={{ fontSize: 56, color: 'success.main' }} />
-            <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{t('steps.reservaCreated')}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+              {isSubscriptionBooking ? t('steps.subscriptionCreated') : t('steps.reservaCreated')}
+            </Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {t('steps.bookingSuccessDesc')}
+              {isSubscriptionBooking
+                ? (subBillingMethod === 'stripe' ? t('steps.subBillingStripeHelper') : t('steps.subBillingBankHelper'))
+                : t('steps.bookingSuccessDesc')}
             </Typography>
             <Button variant="contained" sx={pillButtonSx} onClick={() => onCreated?.(createdResponse)}>
               {t('steps.close')}
@@ -456,8 +471,10 @@ function AdminPaymentOptions({ onCreated }) {
         </Paper>
       )}
 
-      {/* Extra line items (water, coffee, day pass, etc.) */}
-      <ExtraLineItems lines={extraLines} onChange={setExtraLines} />
+      {/* Extra line items (water, coffee, day pass, etc.) — one-off bookings only */}
+      {!isSubscriptionBooking && (
+        <ExtraLineItems lines={extraLines} onChange={setExtraLines} />
+      )}
 
       {/* Payment option selection */}
       <Paper
@@ -466,8 +483,33 @@ function AdminPaymentOptions({ onCreated }) {
         sx={{ p: { xs: 2, md: 3 }, borderRadius: '14px', border: '1px solid', borderColor: 'divider' }}
       >
         <Stack spacing={2}>
-          <Typography variant="subtitle1" fontWeight={700}>{t('steps.payment')}</Typography>
+          <Typography variant="subtitle1" fontWeight={700}>
+            {isSubscriptionBooking ? t('admin.subscription') : t('steps.payment')}
+          </Typography>
 
+          {/* Monthly desk = subscription: only choose billing method (mirrors contact dialog) */}
+          {isSubscriptionBooking && (
+            <>
+              <RadioGroup value={subBillingMethod} onChange={(e) => setSubBillingMethod(e.target.value)}>
+                <FormControlLabel
+                  value="stripe"
+                  control={<Radio size="small" />}
+                  label={t('steps.subBillingStripe')}
+                />
+                <FormControlLabel
+                  value="bank_transfer"
+                  control={<Radio size="small" />}
+                  label={t('steps.subBillingBank')}
+                />
+              </RadioGroup>
+              <Typography variant="caption" sx={{ pl: 4, color: 'text.secondary' }}>
+                {subBillingMethod === 'stripe' ? t('steps.subBillingStripeHelper') : t('steps.subBillingBankHelper')}
+              </Typography>
+            </>
+          )}
+
+          {!isSubscriptionBooking && (
+          <>
           {cardsLoading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
               <CircularProgress size={24} />
@@ -560,11 +602,13 @@ function AdminPaymentOptions({ onCreated }) {
               </Grid>
             </Box>
           )}
+          </>
+          )}
         </Stack>
       </Paper>
 
       {/* Uninvoiced bookings — show when invoicing with or without Stripe */}
-      {(paymentOption === 'invoice' || paymentOption === 'no_invoice') && state.contact?.id && (
+      {!isSubscriptionBooking && (paymentOption === 'invoice' || paymentOption === 'no_invoice') && state.contact?.id && (
         <UninvoicedBookings
           contactId={state.contact?.id}
           currentBloqueoId={null}
@@ -584,12 +628,12 @@ function AdminPaymentOptions({ onCreated }) {
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={submitting || (paymentOption === 'charge' && !selectedCard)}
+          disabled={submitting || (!isSubscriptionBooking && paymentOption === 'charge' && !selectedCard)}
           sx={pillButtonSx}
         >
           {submitting
             ? <CircularProgress size={22} color="inherit" />
-            : t('steps.confirmBooking')}
+            : (isSubscriptionBooking ? t('steps.createSubscription') : t('steps.confirmBooking'))}
         </Button>
       </Stack>
     </Stack>
