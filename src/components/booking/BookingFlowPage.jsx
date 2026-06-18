@@ -71,10 +71,16 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
 
     const producto = selectedRoom._producto || null;
     const centro = selectedRoom._centro || null;
+    // Desk-slot product list (MA1O1-N → id) lives on the catalog card, not on
+    // _producto. Carry it onto state.producto so the desk picker can resolve the
+    // specific productoId — otherwise desk subscriptions persist with
+    // productoId=null and never occupy the floor plan (PublicAvailabilityController
+    // skips subs with no productoId).
+    const deskProducts = selectedRoom._deskProducts || null;
 
     const fields = {};
     if (producto) {
-      fields.producto = producto;
+      fields.producto = deskProducts ? { ...producto, _deskProducts: deskProducts } : producto;
     }
     if (centro) {
       fields.centro = centro;
@@ -101,7 +107,9 @@ function BookingFlowInner({ onClose, onCreated, defaultDate, mode, selectedRoom,
               (p) => p.id === producto.id || (p.name && producto.name && p.name.toLowerCase() === producto.name.toLowerCase())
             );
             if (match) {
-              updates.producto = { ...producto, ...match };
+              updates.producto = deskProducts
+                ? { ...producto, ...match, _deskProducts: deskProducts }
+                : { ...producto, ...match };
               // Resolve centro from product's centerCode
               if (!centro && match.centerCode && Array.isArray(centros)) {
                 const matchingCentro = centros.find(
