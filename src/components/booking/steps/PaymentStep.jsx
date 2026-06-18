@@ -107,11 +107,12 @@ function buildSubscriptionPayload(state) {
     startDate: state.dateFrom,
     endDate: state.dateTo,
     billingMethod: 'stripe',
-    // Prefer the resolved desk-slot id; fall back to producto.id (set by the
-    // enrichment effect when entering via the Coworking floor-plan desk-click,
-    // which has no _deskProducts list). Without the fallback the sub persists
-    // productoId=null and never occupies the floor plan. Mirrors buildBookingPayload.
-    productoId: state.producto?.deskProductoId || state.producto?.id || null,
+    // Send the resolved desk-slot id when we have it, plus the desk NAME so the
+    // backend can resolve productoId by name (findByNombreIgnoreCase) when the
+    // frontend couldn't — mirrors the booking app's createPublicBooking. This is
+    // what makes admin-created desk subs occupy the floor plan.
+    productoId: state.producto?.deskProductoId || null,
+    productName: state.producto?.name || null,
   };
 }
 
