@@ -425,6 +425,8 @@
     "meetingRoomsTab": "Salas de reuniones",
     "coworkingTab": "Coworking",
     "deskAvailable": "Disponible",
+    "deskSelected": "Seleccionado",
+    "deskBooked": "Reservado",
     "deskOccupied": "Ocupado",
     "deskBookedForDate": "Reservado para esta fecha",
     "deskNumber": "Mesa {{number}}",

@@ -425,6 +425,8 @@
     "meetingRoomsTab": "Meeting Rooms",
     "coworkingTab": "Coworking",
     "deskAvailable": "Available",
+    "deskSelected": "Selected",
+    "deskBooked": "Booked",
     "deskOccupied": "Occupied",
     "deskBookedForDate": "Booked for this date",
     "deskNumber": "Desk {{number}}",

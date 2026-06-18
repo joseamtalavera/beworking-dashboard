@@ -70,7 +70,7 @@ function DeskButton({ deskNumber, data, isBookedOverride, onClick, t, showOccupa
           color: isSelected ? 'background.paper' : (isOccupied ? 'text.disabled' : 'success.dark'),
           backgroundColor: (theme) => isSelected
             ? theme.palette.success.main
-            : (isOccupied ? alpha(theme.palette.action.disabled, 0.08) : 'transparent'),
+            : (isOccupied ? alpha(theme.palette.action.disabled, 0.08) : alpha(theme.palette.success.main, 0.12)),
           '&:hover': {
             borderColor: isSelected ? 'success.dark' : (isOccupied ? 'action.disabled' : 'success.main'),
             backgroundColor: (theme) => isSelected
@@ -125,12 +125,16 @@ export function DeskLegend() {
   return (
     <Stack direction="row" spacing={3} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap>
       <Stack direction="row" spacing={1} alignItems="center">
-        <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: 'success.light' }} />
+        <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: (theme) => alpha(theme.palette.success.main, 0.12), border: '1px solid', borderColor: 'success.light' }} />
         <Typography variant="caption" color="text.secondary">{t('admin.deskAvailable')}</Typography>
       </Stack>
       <Stack direction="row" spacing={1} alignItems="center">
-        <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: 'action.disabled' }} />
-        <Typography variant="caption" color="text.secondary">{t('admin.deskOccupied')}</Typography>
+        <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: 'success.main' }} />
+        <Typography variant="caption" color="text.secondary">{t('admin.deskSelected')}</Typography>
+      </Stack>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: (theme) => alpha(theme.palette.action.disabled, 0.08), border: '1px solid', borderColor: 'action.disabled' }} />
+        <Typography variant="caption" color="text.secondary">{t('admin.deskBooked')}</Typography>
       </Stack>
     </Stack>
   );
