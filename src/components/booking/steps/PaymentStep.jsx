@@ -972,7 +972,14 @@ function UserSubscriptionFormInner({ onCreated }) {
         deskName: state.producto?.name || '',
       });
       await createPublicBooking(
-        buildPublicPayload(state, { stripeSubscriptionId: subRes.subscriptionId }),
+        // monthlyAmount (pre-tax base) is required: the backend persists a
+        // subscription row whose monthly_amount column is NOT NULL. Mirror the
+        // booking app, which sends the base amount here.
+        buildPublicPayload(state, {
+          stripeSubscriptionId: subRes.subscriptionId,
+          stripeCustomerId: subRes.customerId,
+          monthlyAmount: SUB_MONTHLY_BASE,
+        }),
       );
       setSuccess(true);
       onCreated?.({});
