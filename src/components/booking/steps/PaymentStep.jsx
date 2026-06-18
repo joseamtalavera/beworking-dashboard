@@ -83,7 +83,11 @@ const backButtonSx = {
 function isMonthlyDeskBooking(state) {
   const name = (state.producto?.name || '').toUpperCase().replace(/[-_\s]/g, '');
   const isDesk = name === 'MA1DESK' || name === 'MA1DESKS' || /^MA1O1\d{1,2}$/.test(name);
-  return isDesk && state.deskBookingType === 'month';
+  // 'month' is the period-selector value; 'Mensual' is the reservationType that
+  // drives the "MONTHLY" summary label. Accept either so detection can't miss a
+  // monthly sub on a stale deskBookingType.
+  const isMonthly = state.deskBookingType === 'month' || state.reservationType === 'Mensual';
+  return isDesk && isMonthly;
 }
 
 // Mirrors the contact-section "Create Subscription" dialog payload
