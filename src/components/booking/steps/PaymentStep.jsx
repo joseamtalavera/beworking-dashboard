@@ -107,7 +107,11 @@ function buildSubscriptionPayload(state) {
     startDate: state.dateFrom,
     endDate: state.dateTo,
     billingMethod: 'stripe',
-    productoId: state.producto?.deskProductoId || null,
+    // Prefer the resolved desk-slot id; fall back to producto.id (set by the
+    // enrichment effect when entering via the Coworking floor-plan desk-click,
+    // which has no _deskProducts list). Without the fallback the sub persists
+    // productoId=null and never occupies the floor plan. Mirrors buildBookingPayload.
+    productoId: state.producto?.deskProductoId || state.producto?.id || null,
   };
 }
 
