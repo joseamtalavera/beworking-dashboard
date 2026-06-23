@@ -97,6 +97,7 @@ import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
 import CoworkingFloorPlan, { buildDeskMap } from '../booking/CoworkingFloorPlan';
 import CoworkingPeriodSelector from '../booking/CoworkingPeriodSelector';
+import { activeZonesToday, allDeskProductNames } from '../../config/coworkZones';
 import { fetchDeskOccupancy } from '../../api/subscriptions.js';
 import UninvoicedBookings from '../booking/UninvoicedBookings';
 import { useTranslation } from 'react-i18next';
@@ -668,9 +669,8 @@ const describeBloqueo = (bloqueo) => {
 };
 
 const ALLOWED_PRODUCT_NAMES = new Set(['MA1A1', 'MA1A2', 'MA1A3', 'MA1A4', 'MA1A5']);
-const DESK_PRODUCT_NAMES = new Set(
-  Array.from({ length: 16 }, (_, i) => `MA1O1-${i + 1}`)
-);
+// All desk products across every coworking zone (MA1O1-N, summer MA1O5-N…).
+const DESK_PRODUCT_NAMES = new Set(allDeskProductNames());
 const ALL_PRODUCT_NAMES = new Set([...ALLOWED_PRODUCT_NAMES, ...DESK_PRODUCT_NAMES]);
 
 const isAulaProduct = (bloqueo) => {
@@ -4650,6 +4650,16 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
   const [coworkingAvail, setCoworkingAvail] = useState([]);
   const [coworkingAvailLoading, setCoworkingAvailLoading] = useState(false);
 
+  // Coworking zone selector — the permanent MA1O1 desks plus any seasonal zone
+  // bookable today (e.g. the summer MA1A5 pop-up). Drives the product prefix,
+  // desk count, floor-plan size and the pre-selected product on desk click.
+  const coworkingZones = useMemo(() => activeZonesToday(), []);
+  const [coworkingZonePrefix, setCoworkingZonePrefix] = useState(() => activeZonesToday()[0]?.prefix || 'MA1O1');
+  const coworkingZone = useMemo(
+    () => coworkingZones.find((z) => z.prefix === coworkingZonePrefix) || coworkingZones[0] || { prefix: 'MA1O1', deskCount: 16 },
+    [coworkingZones, coworkingZonePrefix],
+  );
+
   // Day → query the single date. Subscription → query [start … start+1 month)
   // so day-bookings anywhere in the first period also surface as occupied.
   // The backend treats active subscriptions as full-day occupancy.
@@ -4665,27 +4675,28 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
     let cancelled = false;
     setCoworkingAvailLoading(true);
     const products = [];
-    for (let i = 1; i <= 16; i += 1) products.push(`MA1O1-${i}`);
+    for (let i = 1; i <= (coworkingZone?.deskCount || 16); i += 1) products.push(`${coworkingZone?.prefix || 'MA1O1'}-${i}`);
     fetchPublicAvailability({ date: coworkingDate, dateTo: coworkingQueryDateTo, products, centers: ['MA1'] })
       .then((data) => { if (!cancelled) setCoworkingAvail(Array.isArray(data) ? data : []); })
       .catch(() => { if (!cancelled) setCoworkingAvail([]); })
       .finally(() => { if (!cancelled) setCoworkingAvailLoading(false); });
     return () => { cancelled = true; };
-  }, [view, isAdmin, coworkingDate, coworkingQueryDateTo]);
+  }, [view, isAdmin, coworkingDate, coworkingQueryDateTo, coworkingZone]);
 
   const coworkingBookedDesks = useMemo(() => {
     const set = new Set();
+    const re = new RegExp(`^${coworkingZone?.prefix || 'MA1O1'}(\\d{1,2})$`);
     coworkingAvail.forEach((item) => {
       const name = (item?.producto?.nombre || '').toUpperCase().replace(/[-_\s]/g, '');
-      const m = name.match(/^MA1O1(\d{1,2})$/);
+      const m = name.match(re);
       if (m) set.add(parseInt(m[1], 10));
     });
     return set;
-  }, [coworkingAvail]);
+  }, [coworkingAvail, coworkingZone]);
 
   const deskDataMap = useMemo(() => {
-    return buildDeskMap(deskOccupancy);
-  }, [deskOccupancy]);
+    return buildDeskMap(deskOccupancy, { prefix: coworkingZone?.prefix, deskCount: coworkingZone?.deskCount });
+  }, [deskOccupancy, coworkingZone]);
 
   // Convert desk subscriptions to bloqueo-shaped rows for the bookings table
   const deskSubscriptionRows = useMemo(() => {
@@ -4817,15 +4828,15 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
 
   const handleDeskClick = useCallback((deskNumber, subscription) => {
     if (!subscription) {
-      // Pre-select the desk product for the booking flow
-      const productName = `MA1O1-${deskNumber}`;
+      // Pre-select the desk product (zone-aware) for the booking flow
+      const productName = `${coworkingZone?.prefix || 'MA1O1'}-${deskNumber}`;
       setSlotBookingRoom({
         _producto: { name: productName },
         _centro: { name: 'MA1 MALAGA DUMAS', label: 'MA1 MALAGA DUMAS' }
       });
       setBookingFlowActive(true);
     }
-  }, []);
+  }, [coworkingZone]);
 
   const handleAvailableSlotClick = useCallback((room, slot) => {
     const sample = (calendarBloqueos || []).find(b => b?.producto?.id === room.productId);
@@ -4937,6 +4948,17 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
 
       {view === 'coworking' ? (
         <Stack spacing={3}>
+          {coworkingZones.length > 1 && (
+            <Tabs
+              value={coworkingZonePrefix}
+              onChange={(e, v) => setCoworkingZonePrefix(v)}
+              sx={getViewToggleTabsStyle(theme)}
+            >
+              {coworkingZones.map((z) => (
+                <Tab key={z.prefix} label={z.displayName} value={z.prefix} />
+              ))}
+            </Tabs>
+          )}
           <CoworkingPeriodSelector
             bookingType={coworkingBookingType}
             onBookingTypeChange={setCoworkingBookingType}
@@ -4949,6 +4971,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
             bookedDeskNumbers={coworkingBookedDesks}
             onDeskClick={handleDeskClick}
             loading={deskOccupancyLoading || coworkingAvailLoading}
+            deskCount={coworkingZone?.deskCount}
           />
         </Stack>
       ) : view === 'calendar' ? (
