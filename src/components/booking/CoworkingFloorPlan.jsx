@@ -220,7 +220,9 @@ export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDesk
             {t('admin.floorPlan')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('admin.desksAvailableCount', { available: availableCount, total: deskCount })}
+            {availableCount > 0
+              ? t('admin.desksAvailableCount', { available: availableCount, total: deskCount })
+              : t('admin.noDesksForPeriod')}
           </Typography>
         </Stack>
 

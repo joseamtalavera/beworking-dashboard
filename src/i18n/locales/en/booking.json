@@ -449,8 +449,9 @@
     "monthsCount_one": "{{count}} month",
     "monthsCount_other": "{{count}} months",
     "occupiedBy": "{{name}}",
-    "desksAvailableCount": "{{available}} of {{total}} desks available",
-    "floorPlan": "Floor Plan"
+    "desksAvailableCount": "{{available}} of {{total}} desks available for this period.",
+    "noDesksForPeriod": "No desks available for this period. Try a different date.",
+    "floorPlan": "Choose your desk"
   },
   "form": {
     "yourName": "Your name",

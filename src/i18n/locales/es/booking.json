@@ -449,8 +449,9 @@
     "monthsCount_one": "{{count}} mes",
     "monthsCount_other": "{{count}} meses",
     "occupiedBy": "{{name}}",
-    "desksAvailableCount": "{{available}} de {{total}} mesas disponibles",
-    "floorPlan": "Plano"
+    "desksAvailableCount": "{{available}} de {{total}} escritorios disponibles para este periodo.",
+    "noDesksForPeriod": "No hay escritorios disponibles para este periodo. Prueba otra fecha.",
+    "floorPlan": "Elige tu escritorio"
   },
   "form": {
     "yourName": "Tu nombre",
