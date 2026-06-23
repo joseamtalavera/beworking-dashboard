@@ -885,21 +885,31 @@ const AdminOverview = () => {
 
       // Desks: backend summary counts MA1O* products as total capacity and
       // active subs with producto_id as occupied. Each active sub = full month.
-      const totalDesks = Number(deskSummary?.totalDesks) || 0;
-      const occupiedDesks = Number(deskSummary?.occupiedDesks) || 0;
+      // `zones` carries one entry per coworking zone bookable today (so the
+      // summer A5 pop-up appears only during its window). Older payloads without
+      // `zones` fall back to the single totalDesks/occupiedDesks pair.
+      const zones = Array.isArray(deskSummary?.zones) && deskSummary.zones.length > 0
+        ? deskSummary.zones
+        : [{ roomCode: 'MA1-DESKS', total: deskSummary?.totalDesks, occupied: deskSummary?.occupiedDesks }];
 
-      const deskRow = totalDesks > 0
-        ? [{
-            name: 'MA1-DESKS',
-            occupancy: Math.min(100, Math.round((occupiedDesks / totalDesks) * 100)),
-            bookedHours: occupiedDesks * totalHours,
-            totalHours: totalDesks * totalHours,
-            subtitleKey: 'occupancy.desksSubtitle',
-            subtitleVars: { occupied: occupiedDesks, total: totalDesks }
-          }]
-        : [];
+      const deskRows = zones
+        .map((z) => {
+          const total = Number(z.total) || 0;
+          const occupied = Number(z.occupied) || 0;
+          return total > 0
+            ? {
+                name: z.roomCode || 'MA1-DESKS',
+                occupancy: Math.min(100, Math.round((occupied / total) * 100)),
+                bookedHours: occupied * totalHours,
+                totalHours: total * totalHours,
+                subtitleKey: 'occupancy.desksSubtitle',
+                subtitleVars: { occupied, total }
+              }
+            : null;
+        })
+        .filter(Boolean);
 
-      setOccupancyData([...meetingRoomResults, ...deskRow].slice(0, 6));
+      setOccupancyData([...meetingRoomResults, ...deskRows].slice(0, 6));
     } catch (error) {
       console.error('Error fetching occupancy:', error);
       setOccupancyData([]);

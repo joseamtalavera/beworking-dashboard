@@ -9,7 +9,13 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 
-const DESK_RE = /^MA1O1[-_ ]?(\d{1,2})$/i;
+// Default zone (the original 16-desk room) — keeps existing callers working
+// when no deskPrefix/deskCount is supplied.
+const DEFAULT_PREFIX = 'MA1O1';
+const DEFAULT_DESK_COUNT = 16;
+
+/** Regex matching "<prefix>-7" / "<prefix>_7" / "<prefix> 7" -> desk number. */
+const deskRegex = (prefix) => new RegExp(`^${prefix}[-_ ]?(\\d{1,2})$`, 'i');
 
 // Consistent with booking flow: occupied = gray, available = green
 const OCCUPIED_COLORS = { border: 'action.disabled', text: 'text.disabled', bg: 'action.disabled' };
@@ -17,20 +23,22 @@ const OCCUPIED_COLORS = { border: 'action.disabled', text: 'text.disabled', bg: 
 /**
  * Build a Map<deskNumber, { subscription }> from desk-occupancy API data.
  * Each entry in `occupancyData` has: { subscriptionId, contactId, contactName, productoId, productName, ... }
+ * `prefix`/`deskCount` scope the map to one coworking zone (default: MA1O1, 16).
  */
-export function buildDeskMap(occupancyData) {
+export function buildDeskMap(occupancyData, { prefix = DEFAULT_PREFIX, deskCount = DEFAULT_DESK_COUNT } = {}) {
   const map = new Map();
-  for (let i = 1; i <= 16; i++) map.set(i, { subscription: null });
+  for (let i = 1; i <= deskCount; i++) map.set(i, { subscription: null });
 
   if (!Array.isArray(occupancyData)) return map;
 
+  const re = deskRegex(prefix);
   occupancyData.forEach((entry) => {
     const productName = (entry.productName || '').toUpperCase();
-    const match = productName.match(DESK_RE);
+    const match = productName.match(re);
     if (!match) return;
 
     const deskNum = parseInt(match[1], 10);
-    if (deskNum < 1 || deskNum > 16) return;
+    if (deskNum < 1 || deskNum > deskCount) return;
 
     map.set(deskNum, { subscription: entry });
   });
@@ -140,27 +148,30 @@ export function DeskLegend() {
   );
 }
 
-export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDeskClick, loading, mode = 'admin', selectedDeskNumber = null }) {
+export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDeskClick, loading, mode = 'admin', selectedDeskNumber = null, deskCount = DEFAULT_DESK_COUNT }) {
   const { t } = useTranslation('booking');
   const isDateAware = bookedDeskNumbers instanceof Set;
   const showOccupantName = mode === 'admin';
 
+  // Render only the desks this zone has (the grid is laid out for up to 16).
+  const visibleDesks = useMemo(() => GRID_DESKS.filter(([n]) => n <= deskCount), [deskCount]);
+
   const availableCount = useMemo(() => {
     if (isDateAware) {
       let count = 0;
-      for (let i = 1; i <= 16; i++) {
+      for (let i = 1; i <= deskCount; i++) {
         if (!bookedDeskNumbers.has(i)) count++;
       }
       return count;
     }
-    if (!deskData) return 16;
+    if (!deskData) return deskCount;
     let count = 0;
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= deskCount; i++) {
       const entry = deskData.get(i);
       if (!entry || !entry.subscription) count++;
     }
     return count;
-  }, [deskData, bookedDeskNumbers, isDateAware]);
+  }, [deskData, bookedDeskNumbers, isDateAware, deskCount]);
 
   const getData = (n) => deskData?.get(n) || { subscription: null };
   const isBooked = (n) => (isDateAware ? bookedDeskNumbers.has(n) : null);
@@ -183,7 +194,7 @@ export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDesk
             {t('admin.floorPlan')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {t('admin.desksAvailableCount', { available: availableCount, total: 16 })}
+            {t('admin.desksAvailableCount', { available: availableCount, total: deskCount })}
           </Typography>
         </Stack>
 
@@ -199,7 +210,7 @@ export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDesk
             py: 2,
           }}
         >
-          {GRID_DESKS.map(([deskNum, col, row]) => (
+          {visibleDesks.map(([deskNum, col, row]) => (
             <Box key={deskNum} sx={{ gridColumn: col, gridRow: row }}>
               <DeskButton
                 deskNumber={deskNum}
