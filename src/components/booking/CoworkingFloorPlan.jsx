@@ -7,6 +7,8 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import DeskRoundedIcon from '@mui/icons-material/DeskRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import { useTranslation } from 'react-i18next';
 
 // Default zone (the original 16-desk room) — keeps existing callers working
@@ -91,6 +93,10 @@ function DeskButton({ deskNumber, data, isBookedOverride, onClick, t, showOccupa
         }}
       >
         <Stack alignItems="center" spacing={0.25}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'inherit' }}>
+            <PersonRoundedIcon sx={{ fontSize: 15, mb: '-4px', color: 'inherit' }} />
+            <DeskRoundedIcon sx={{ fontSize: 24, color: 'inherit' }} />
+          </Box>
           <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1, color: 'inherit' }}>
             {t('admin.deskNumber', { number: deskNumber }).split(' ')[0]}
           </Typography>
