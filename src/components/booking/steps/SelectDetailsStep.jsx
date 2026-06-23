@@ -12,6 +12,8 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import { alpha } from '@mui/material/styles';
 import Switch from '@mui/material/Switch';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TextField from '../../common/ClearableTextField';
 import { pillFieldSx } from '../../common/pillField.js';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -30,6 +32,7 @@ import { useBookingFlow } from '../BookingFlowContext';
 import { fetchPublicAvailability, fetchBloqueos } from '../../../api/bookings';
 import CoworkingFloorPlan from '../CoworkingFloorPlan';
 import CoworkingPeriodSelector from '../CoworkingPeriodSelector';
+import { activeZonesToday } from '../../../config/coworkZones.js';
 import RoomCalendarGrid, { CalendarLegend } from '../RoomCalendarGrid';
 import TimeSlotSelect from '../TimeSlotSelect';
 import { addMinutesToTime, buildTimeSlots, getBookedSlotIds, getMaxEndTime } from '../../../utils/calendarUtils';
@@ -84,6 +87,15 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
   const [selectedDesk, setSelectedDesk] = useState(null);
   const [deskBookingType, setDeskBookingType] = useState('day');
+
+  // Coworking zones → Coworking 1 / Coworking 2 tabs (mirrors admin + booking app).
+  const deskZones = useMemo(() => activeZonesToday(), []);
+  const [zonePrefix, setZonePrefix] = useState(() => activeZonesToday()[0]?.prefix || 'MA1O1');
+  const activeZone = useMemo(
+    () => deskZones.find((z) => z.prefix === zonePrefix) || deskZones[0] || { prefix: 'MA1O1', deskCount: 16 },
+    [deskZones, zonePrefix],
+  );
+  useEffect(() => { setSelectedDesk(null); }, [zonePrefix]);
 
   // Availability calendar state
   const [bloqueos, setBloqueos] = useState([]);
@@ -168,9 +180,9 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
   // subscription-derived) returned for that date becomes a "booked" desk.
   const DESK_PRODUCT_NAMES = useMemo(() => {
     const list = [];
-    for (let i = 1; i <= 16; i += 1) list.push(`MA1O1-${i}`);
+    for (let i = 1; i <= activeZone.deskCount; i += 1) list.push(`${activeZone.prefix}-${i}`);
     return list;
-  }, []);
+  }, [activeZone.prefix, activeZone.deskCount]);
 
   const [deskAvail, setDeskAvail] = useState([]);
   useEffect(() => {
@@ -197,30 +209,31 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
 
   const bookedDeskNumbers = useMemo(() => {
     const set = new Set();
+    const re = new RegExp(`^${activeZone.prefix}(\\d{1,2})$`);
     deskAvail.forEach((item) => {
       const name = (item?.producto?.nombre || '').toUpperCase().replace(/[-_\s]/g, '');
-      const m = name.match(/^MA1O1(\d{1,2})$/);
+      const m = name.match(re);
       if (m) set.add(parseInt(m[1], 10));
     });
     return set;
-  }, [deskAvail]);
+  }, [deskAvail, activeZone.prefix]);
 
   const deskAvailableCount = useMemo(() => {
     let count = 0;
-    for (let i = 1; i <= 16; i += 1) {
+    for (let i = 1; i <= activeZone.deskCount; i += 1) {
       if (!bookedDeskNumbers.has(i)) count += 1;
     }
     return count;
-  }, [bookedDeskNumbers]);
+  }, [bookedDeskNumbers, activeZone.deskCount]);
 
   const handleDeskSelect = (deskNum) => {
     setSelectedDesk(deskNum);
-    const deskName = `MA1O1-${deskNum}`;
+    const deskName = `${activeZone.prefix}-${deskNum}`;
     // Look up the actual productoId from the desk products list
     const deskProducts = state.producto?._deskProducts || [];
     const match = deskProducts.find((p) => {
       const n = (p.name || '').toUpperCase().replace(/[-_\s]/g, '');
-      return n === `MA1O1${deskNum}`;
+      return n === `${activeZone.prefix}${deskNum}`;
     });
     setField('producto', {
       ...state.producto,
@@ -340,30 +353,68 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       {/* ── Desk flow (when product is a desk) ── */}
       {isDeskProduct ? (
         <>
-          <CoworkingPeriodSelector
-            bookingType={deskBookingType}
-            onBookingTypeChange={(v) => {
-              setDeskBookingType(v);
-              const start = state.dateFrom || new Date().toISOString().slice(0, 10);
-              setFields({ dateFrom: start, dateTo: v === 'day' ? start : addMonths(start, 1) });
-            }}
-            date={state.dateFrom || ''}
-            onDateChange={(v) => setFields({
-              dateFrom: v,
-              dateTo: deskBookingType === 'day' ? v : addMonths(v, 1),
-            })}
-            minDate={mode === 'admin' ? undefined : new Date().toISOString().slice(0, 10)}
-            maxDate={mode === 'admin'
-              ? undefined
-              : (deskBookingType === 'day'
-                ? new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)
-                : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().slice(0, 10))}
-          />
+          {deskZones.length > 1 && (
+            <Tabs
+              value={zonePrefix}
+              onChange={(e, v) => setZonePrefix(v)}
+              sx={(theme) => ({
+                minHeight: 40,
+                alignSelf: 'flex-start',
+                bgcolor: alpha(theme.palette.common.black, 0.04),
+                borderRadius: 2,
+                p: 0.5,
+                '& .MuiTabs-indicator': { display: 'none' },
+                '& .MuiTabs-flexContainer': { gap: 0.5 },
+                '& .MuiTab-root': {
+                  minHeight: 32, minWidth: 'auto', textTransform: 'none', fontWeight: 600,
+                  fontSize: '0.85rem', borderRadius: 1.5, px: 2, py: 0.5, color: 'text.secondary',
+                },
+                '& .Mui-selected': {
+                  color: `${theme.palette.brand.green} !important`,
+                  bgcolor: theme.palette.background.paper,
+                  boxShadow: 1,
+                },
+              })}
+            >
+              {deskZones.map((z) => (
+                <Tab key={z.prefix} value={z.prefix} label={z.shortLabel || z.displayName} />
+              ))}
+            </Tabs>
+          )}
+
+          {(() => {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const plus30 = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+            const firstNextMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().slice(0, 10);
+            const zoneMin = activeZone.activeFrom && activeZone.activeFrom > todayStr ? activeZone.activeFrom : todayStr;
+            const zoneDayMax = activeZone.activeTo && activeZone.activeTo < plus30 ? activeZone.activeTo : plus30;
+            const zoneSubMax = activeZone.activeTo && activeZone.activeTo < firstNextMonth ? activeZone.activeTo : firstNextMonth;
+            return (
+              <CoworkingPeriodSelector
+                bookingType={deskBookingType}
+                onBookingTypeChange={(v) => {
+                  setDeskBookingType(v);
+                  const start = state.dateFrom || zoneMin;
+                  setFields({ dateFrom: start, dateTo: v === 'day' ? start : addMonths(start, 1) });
+                }}
+                date={state.dateFrom || ''}
+                onDateChange={(v) => setFields({
+                  dateFrom: v,
+                  dateTo: deskBookingType === 'day' ? v : addMonths(v, 1),
+                })}
+                minDate={mode === 'admin' ? (activeZone.activeFrom || undefined) : zoneMin}
+                maxDate={mode === 'admin'
+                  ? (activeZone.activeTo || undefined)
+                  : (deskBookingType === 'day' ? zoneDayMax : zoneSubMax)}
+              />
+            );
+          })()}
 
           <CoworkingFloorPlan
             mode="user"
             bookedDeskNumbers={bookedDeskNumbers}
             selectedDeskNumber={selectedDesk}
+            deskCount={activeZone.deskCount}
             onDeskClick={(deskNum) => {
               if (!bookedDeskNumbers.has(deskNum)) handleDeskSelect(deskNum);
             }}
