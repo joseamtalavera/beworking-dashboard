@@ -96,6 +96,7 @@ import {
 import { CANONICAL_USER_TYPES } from './admin/contactConstants.js';
 import BookingFlowPage from '../booking/BookingFlowPage';
 import CoworkingFloorPlan, { buildDeskMap } from '../booking/CoworkingFloorPlan';
+import ZoneFloorPlan from '../booking/ZoneFloorPlan';
 import CoworkingPeriodSelector from '../booking/CoworkingPeriodSelector';
 import { activeZonesToday, allDeskProductNames } from '../../config/coworkZones';
 import { fetchDeskOccupancy } from '../../api/subscriptions.js';
@@ -4826,17 +4827,17 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
     }
   };
 
-  const handleDeskClick = useCallback((deskNumber, subscription) => {
+  const handleDeskClick = useCallback((prefix, deskNumber, subscription) => {
     if (!subscription) {
       // Pre-select the desk product (zone-aware) for the booking flow
-      const productName = `${coworkingZone?.prefix || 'MA1O1'}-${deskNumber}`;
+      const productName = `${prefix || 'MA1O1'}-${deskNumber}`;
       setSlotBookingRoom({
         _producto: { name: productName },
         _centro: { name: 'MA1 MALAGA DUMAS', label: 'MA1 MALAGA DUMAS' }
       });
       setBookingFlowActive(true);
     }
-  }, [coworkingZone]);
+  }, []);
 
   const handleAvailableSlotClick = useCallback((room, slot) => {
     const sample = (calendarBloqueos || []).find(b => b?.producto?.id === room.productId);
@@ -4948,31 +4949,23 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
 
       {view === 'coworking' ? (
         <Stack spacing={3}>
-          {coworkingZones.length > 1 && (
-            <Tabs
-              value={coworkingZonePrefix}
-              onChange={(e, v) => setCoworkingZonePrefix(v)}
-              sx={getViewToggleTabsStyle(theme)}
-            >
-              {coworkingZones.map((z) => (
-                <Tab key={z.prefix} label={z.displayName} value={z.prefix} />
-              ))}
-            </Tabs>
-          )}
           <CoworkingPeriodSelector
             bookingType={coworkingBookingType}
             onBookingTypeChange={setCoworkingBookingType}
             date={coworkingDate}
             onDateChange={setCoworkingDate}
           />
-          <CoworkingFloorPlan
-            mode="admin"
-            deskData={deskDataMap}
-            bookedDeskNumbers={coworkingBookedDesks}
-            onDeskClick={handleDeskClick}
-            loading={deskOccupancyLoading || coworkingAvailLoading}
-            deskCount={coworkingZone?.deskCount}
-          />
+          {coworkingZones.map((z) => (
+            <ZoneFloorPlan
+              key={z.prefix}
+              zone={z}
+              date={coworkingDate}
+              dateTo={coworkingQueryDateTo}
+              deskOccupancy={deskOccupancy}
+              onDeskClick={handleDeskClick}
+              mode="admin"
+            />
+          ))}
         </Stack>
       ) : view === 'calendar' ? (
         <Stack spacing={3}>

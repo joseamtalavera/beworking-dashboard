@@ -128,6 +128,26 @@ export const GRID_DESKS = [
   [5, 1, 6],                           [1, 4, 6],
 ];
 
+// Distinct physical layouts per zone size. 16 = original U-shaped room
+// (4 cols × 6 rows); 14 = summer A5 room, two facing rows of 7 (2 cols × 7 rows)
+// so the two rooms read as visually different floor plans.
+const DESK_LAYOUTS = {
+  16: { cols: 4, rows: 6, desks: GRID_DESKS },
+  14: {
+    cols: 2,
+    rows: 7,
+    desks: [
+      [1, 1, 1], [2, 2, 1],
+      [3, 1, 2], [4, 2, 2],
+      [5, 1, 3], [6, 2, 3],
+      [7, 1, 4], [8, 2, 4],
+      [9, 1, 5], [10, 2, 5],
+      [11, 1, 6], [12, 2, 6],
+      [13, 1, 7], [14, 2, 7],
+    ],
+  },
+};
+
 export function DeskLegend() {
   const { t } = useTranslation('booking');
   return (
@@ -153,8 +173,14 @@ export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDesk
   const isDateAware = bookedDeskNumbers instanceof Set;
   const showOccupantName = mode === 'admin';
 
-  // Render only the desks this zone has (the grid is laid out for up to 16).
-  const visibleDesks = useMemo(() => GRID_DESKS.filter(([n]) => n <= deskCount), [deskCount]);
+  // Pick this zone's layout; fall back to the 16-grid filtered to the count.
+  const layout = DESK_LAYOUTS[deskCount];
+  const gridCols = layout ? layout.cols : 4;
+  const gridRows = layout ? layout.rows : 6;
+  const visibleDesks = useMemo(
+    () => (layout ? layout.desks : GRID_DESKS.filter(([n]) => n <= deskCount)),
+    [layout, deskCount],
+  );
 
   const availableCount = useMemo(() => {
     if (isDateAware) {
@@ -204,8 +230,8 @@ export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDesk
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gridTemplateRows: 'repeat(6, auto)',
+            gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+            gridTemplateRows: `repeat(${gridRows}, auto)`,
             gap: 1.5,
             py: 2,
           }}
