@@ -3,9 +3,9 @@
 // product names share a prefix (MA1O1-1..16), with an optional active window.
 
 export const COWORK_ZONES = [
-  { prefix: 'MA1O1', shortLabel: 'Desk 1', displayName: 'MA1 Desks', deskCount: 16, activeFrom: null, activeTo: null },
+  { prefix: 'MA1O1', shortLabel: 'Coworking 1', displayName: 'MA1 Desks', deskCount: 16, activeFrom: null, activeTo: null },
   // Second desk room (MA1A5). Permanent fixture; bookable only within its window.
-  { prefix: 'MA1O5', shortLabel: 'Desk 2', displayName: 'MA1A5 Coworking', deskCount: 14, activeFrom: '2026-07-01', activeTo: '2026-08-31' },
+  { prefix: 'MA1O5', shortLabel: 'Coworking 2', displayName: 'MA1A5 Coworking', deskCount: 14, activeFrom: '2026-07-01', activeTo: '2026-08-31' },
 ];
 
 // Zones are permanent fixtures and always shown; the date window governs booking.
