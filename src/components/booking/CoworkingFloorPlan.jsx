@@ -103,9 +103,13 @@ function DeskButton({ deskNumber, data, isBookedOverride, onClick, t, showOccupa
           <Typography variant="body1" sx={{ fontWeight: 700, lineHeight: 1, color: 'inherit' }}>
             {deskNumber}
           </Typography>
-          {isOccupied && occupantName && (
-            <Typography variant="caption" noWrap sx={{ fontSize: '0.6rem', maxWidth: 80, color: 'inherit', lineHeight: 1.2 }}>
-              {occupantName.length > 12 ? occupantName.slice(0, 10) + '...' : occupantName}
+          {showOccupantName && (
+            <Typography variant="caption" noWrap sx={{ fontSize: '0.6rem', maxWidth: 90, color: 'inherit', lineHeight: 1.2, opacity: 0.85 }}>
+              {isOccupied
+                ? (occupantName
+                    ? (occupantName.length > 12 ? occupantName.slice(0, 10) + '...' : occupantName)
+                    : t('admin.deskOccupied', { defaultValue: 'Ocupada' }))
+                : t('admin.deskFree', { defaultValue: 'Libre' })}
             </Typography>
           )}
         </Stack>
@@ -157,7 +161,7 @@ const DESK_LAYOUTS = {
 export function DeskLegend() {
   const { t } = useTranslation('booking');
   return (
-    <Stack direction="row" spacing={3} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap>
+    <Stack direction="row" spacing={3} alignItems="center" flexWrap="wrap" useFlexGap>
       <Stack direction="row" spacing={1} alignItems="center">
         <Box sx={{ width: 14, height: 14, borderRadius: '3px', bgcolor: (theme) => alpha(theme.palette.success.main, 0.12), border: '1px solid', borderColor: 'success.light' }} />
         <Typography variant="caption" color="text.secondary">{t('admin.deskAvailable')}</Typography>

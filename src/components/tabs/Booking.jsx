@@ -4949,23 +4949,32 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
 
       {view === 'coworking' ? (
         <Stack spacing={3}>
+          {coworkingZones.length > 1 && (
+            <Tabs
+              value={coworkingZonePrefix}
+              onChange={(e, v) => setCoworkingZonePrefix(v)}
+              sx={getViewToggleTabsStyle(theme)}
+            >
+              {coworkingZones.map((z) => (
+                <Tab key={z.prefix} label={z.shortLabel || z.displayName} value={z.prefix} />
+              ))}
+            </Tabs>
+          )}
           <CoworkingPeriodSelector
             bookingType={coworkingBookingType}
             onBookingTypeChange={setCoworkingBookingType}
             date={coworkingDate}
             onDateChange={setCoworkingDate}
           />
-          {coworkingZones.map((z) => (
-            <ZoneFloorPlan
-              key={z.prefix}
-              zone={z}
-              date={coworkingDate}
-              dateTo={coworkingQueryDateTo}
-              deskOccupancy={deskOccupancy}
-              onDeskClick={handleDeskClick}
-              mode="admin"
-            />
-          ))}
+          <ZoneFloorPlan
+            key={coworkingZone.prefix}
+            zone={coworkingZone}
+            date={coworkingDate}
+            dateTo={coworkingQueryDateTo}
+            deskOccupancy={deskOccupancy}
+            onDeskClick={handleDeskClick}
+            mode="admin"
+          />
         </Stack>
       ) : view === 'calendar' ? (
         <Stack spacing={3}>

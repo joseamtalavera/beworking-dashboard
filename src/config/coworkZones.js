@@ -4,19 +4,12 @@
 
 export const COWORK_ZONES = [
   { prefix: 'MA1O1', shortLabel: 'Desk 1', displayName: 'MA1 Desks', deskCount: 16, activeFrom: null, activeTo: null },
-  // Summer pop-up: Sala MA1A5 -> 14 desks, Jul–Aug 2026.
-  { prefix: 'MA1O5', shortLabel: 'Desk 2', displayName: 'MA1A5 (verano)', deskCount: 14, activeFrom: '2026-07-01', activeTo: '2026-08-31' },
+  // Second desk room (MA1A5). Permanent fixture; bookable only within its window.
+  { prefix: 'MA1O5', shortLabel: 'Desk 2', displayName: 'MA1A5 Coworking', deskCount: 14, activeFrom: '2026-07-01', activeTo: '2026-08-31' },
 ];
 
-const todayIso = () => new Date().toISOString().split('T')[0];
-
-// A zone is VISIBLE/sellable until its season ends; the date picker still clamps
-// selectable dates to [activeFrom, activeTo].
-export const isZoneActiveToday = (zone) => {
-  if (!zone) return false;
-  if (zone.activeTo && todayIso() > zone.activeTo) return false;
-  return true;
-};
+// Zones are permanent fixtures and always shown; the date window governs booking.
+export const isZoneActiveToday = (zone) => Boolean(zone);
 
 /** Zones bookable today (the permanent zone plus any in-window seasonal zones). */
 export const activeZonesToday = () => COWORK_ZONES.filter(isZoneActiveToday);
