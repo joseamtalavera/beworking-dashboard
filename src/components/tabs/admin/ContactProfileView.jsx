@@ -904,7 +904,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                             />
                           </Box>
                           <Typography variant="caption" color="text.secondary">
-                            {sub.cuenta} · €{Number(sub.monthlyAmount).toFixed(2)}/{t(`profile.interval_${sub.billingInterval || 'month'}`)} · {t('profile.since')} {sub.startDate}
+                            {sub.cuenta} · €{(Number(sub.monthlyAmount) * ({ year: 12, half_year: 6, quarter: 3 }[sub.billingInterval] || 1)).toFixed(2)}/{t(`profile.interval_${sub.billingInterval || 'month'}`)} · {t('profile.since')} {sub.startDate}
                             {sub.billingMethod === 'bank_transfer' && sub.lastInvoicedMonth && ` · ${t('profile.lastInvoiced')}: ${sub.lastInvoicedMonth}`}
                             {sub.productoId && (() => {
                               const dp = deskProducts.find(p => p.id === sub.productoId);
