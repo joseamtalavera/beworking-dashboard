@@ -60,7 +60,7 @@ const AdminBeKey = () => {
   const [contactInput, setContactInput] = useState('');
   const [contactOptions, setContactOptions] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const [startsAt, setStartsAt] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [saving, setSaving] = useState(false);
@@ -133,20 +133,32 @@ const AdminBeKey = () => {
   }, [grants]);
 
   const resetGrantForm = () => {
-    setSelectedContact(null); setContactInput(''); setSelectedGroup(null); setStartsAt(''); setExpiresAt('');
+    setSelectedContact(null); setContactInput(''); setSelectedGroups([]); setStartsAt(''); setExpiresAt('');
   };
 
   const handleGrant = async () => {
-    if (!selectedContact || !selectedGroup) {
-      setToast({ severity: 'error', message: t('bekey.admin.grantRequired', { defaultValue: 'Selecciona un contacto y un grupo' }) });
+    if (!selectedContact || selectedGroups.length === 0) {
+      setToast({ severity: 'error', message: t('bekey.admin.grantRequired', { defaultValue: 'Selecciona un contacto y al menos un grupo' }) });
       return;
     }
     setSaving(true);
     try {
-      await grantAccess({ contactId: selectedContact.id, memberGroupId: selectedGroup.id, startsAt: toIso(startsAt), expiresAt: toIso(expiresAt) });
-      setToast({ severity: 'success', message: t('bekey.admin.granted', { defaultValue: 'Acceso concedido' }) });
-      resetGrantForm();
-      setGrantOpen(false);
+      // One grant per selected group; collect per-group outcomes so a single
+      // failure doesn't hide the ones that succeeded.
+      const results = await Promise.allSettled(
+        selectedGroups.map((g) => grantAccess({
+          contactId: selectedContact.id, memberGroupId: g.id,
+          startsAt: toIso(startsAt), expiresAt: toIso(expiresAt),
+        }))
+      );
+      const failed = results.filter((r) => r.status === 'rejected').length;
+      if (failed === 0) {
+        setToast({ severity: 'success', message: t('bekey.admin.granted', { defaultValue: 'Acceso concedido' }) });
+        resetGrantForm();
+        setGrantOpen(false);
+      } else {
+        setToast({ severity: 'error', message: t('bekey.admin.grantPartial', { ok: results.length - failed, total: results.length, defaultValue: `${results.length - failed}/${results.length} accesos concedidos; ${failed} fallaron` }) });
+      }
       load();
     } catch (err) {
       setToast({ severity: 'error', message: err?.message || t('bekey.admin.grantError', { defaultValue: 'No se pudo conceder el acceso' }) });
@@ -520,14 +532,16 @@ const AdminBeKey = () => {
                 />
               </Paper>
               <Autocomplete
+                multiple
+                disableCloseOnSelect
                 size="small"
                 options={groups}
-                value={selectedGroup}
-                onChange={(e, v) => setSelectedGroup(v)}
+                value={selectedGroups}
+                onChange={(e, v) => setSelectedGroups(v)}
                 getOptionLabel={(o) => (o ? `${o.label}${o.scope ? ` (${o.scope})` : ''}` : '')}
                 isOptionEqualToValue={(o, v) => o.id === v.id}
                 renderInput={(params) => (
-                  <TextField {...params} variant="outlined" size="small" label={t('bekey.admin.group', { defaultValue: 'Grupo' })} sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} />
+                  <TextField {...params} variant="outlined" size="small" label={t('bekey.admin.groups', { defaultValue: 'Grupos (uno o varios)' })} sx={fieldSx} slotProps={{ inputLabel: { shrink: true } }} />
                 )}
               />
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
