@@ -30,6 +30,28 @@ const PLANS = [
       en: ['Legal & fiscal address', 'Mail & parcel reception', 'Logo at reception', '5 office days per month', 'Full access to BeWorkingApp'],
     },
   },
+  {
+    key: 'max',
+    name: 'BeWorkingVirtual Pro',
+    price: 90,
+    description: {
+      es: 'Todo lo del plan Virtual, con acceso ampliado, salas de reuniones y atención prioritaria.',
+      en: 'Everything in Virtual, plus extended access, meeting rooms and priority support.',
+    },
+    features: {
+      es: ['Todo lo del plan Virtual', 'Pases de coworking ilimitados', 'Salas de reuniones', 'Atención de llamadas', 'Prioridad en soporte'],
+      en: ['Everything in Virtual', 'Unlimited coworking passes', 'Meeting rooms', 'Call handling', 'Priority support'],
+    },
+  },
+];
+
+// Billing intervals. `months` drives the per-cycle total (price × months). The
+// backend bills the monthly rate × months and never prorates; interval changes
+// take effect at the next renewal.
+const INTERVALS = [
+  { key: 'month',     months: 1,  label: { es: 'Mensual',   en: 'Monthly' },  suffix: { es: '/mes',      en: '/mo' } },
+  { key: 'half_year', months: 6,  label: { es: 'Semestral', en: 'Biannual' }, suffix: { es: '/semestre', en: '/6 mo' } },
+  { key: 'year',      months: 12, label: { es: 'Anual',     en: 'Annual' },   suffix: { es: '/año',      en: '/yr' } },
 ];
 
 /* ── Inline payment form for free → paid ── */
@@ -83,8 +105,9 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   // Payment setup state (for free → paid)
-  const [paymentStep, setPaymentStep] = useState(null); // null = plan selection, { plan, clientSecret, customerId }
+  const [paymentStep, setPaymentStep] = useState(null); // null = plan selection, { plan, clientSecret, customerId, billingInterval }
   const [creatingSubscription, setCreatingSubscription] = useState(false);
+  const [billingInterval, setBillingInterval] = useState('month'); // month | half_year | year
 
   const currentKey = currentPlan?.toLowerCase() || 'free';
 
@@ -96,6 +119,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
       setSuccess('');
       setLoading(null);
       setCreatingSubscription(false);
+      setBillingInterval('month');
     }
   }, [open]);
 
@@ -115,7 +139,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
           return;
         }
         const data = await createSetupIntent({ customerEmail: email, customerName: name, tenant: 'beworking' });
-        setPaymentStep({ plan, clientSecret: data.clientSecret, customerId: data.customerId });
+        setPaymentStep({ plan, clientSecret: data.clientSecret, customerId: data.customerId, billingInterval });
         setLoading(null);
         return;
       }
@@ -127,6 +151,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
           body: {
             monthlyAmount: plan.price,
             description: `Oficina Virtual ${plan.name}`,
+            billingInterval,
           },
         });
         setSuccess(lang === 'es'
@@ -153,6 +178,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
           plan: paymentStep.plan.key,
           stripeCustomerId: paymentStep.customerId,
           paymentMethodId: setupIntent?.payment_method,
+          billingInterval: paymentStep.billingInterval,
         },
       });
 
@@ -171,6 +197,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
 
   // Payment step: show Stripe form
   if (paymentStep) {
+    const pIv = INTERVALS.find((i) => i.key === paymentStep.billingInterval) || INTERVALS[0];
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
@@ -179,7 +206,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
               {lang === 'es' ? `Activar plan ${paymentStep.plan.name}` : `Activate ${paymentStep.plan.name} plan`}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {paymentStep.plan.price}€/mes · {paymentStep.plan.description[lang]}
+              {paymentStep.plan.price * pIv.months}€{pIv.suffix[lang]} · {paymentStep.plan.description[lang]}
             </Typography>
           </Stack>
           <IconButton onClick={onClose} size="small"><CloseRoundedIcon /></IconButton>
@@ -200,9 +227,8 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
     );
   }
 
-  // Plan selection step — single BeWorkingVirtual card
-  const plan = PLANS[0];
-  const isCurrent = currentKey === plan.key;
+  // Plan selection step — plan cards + billing-interval toggle
+  const activeInterval = INTERVALS.find((i) => i.key === billingInterval) || INTERVALS[0];
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>
@@ -216,64 +242,90 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-        <Box
-          sx={{
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 3,
-            p: { xs: 3, sm: 4 },
-            mt: 1,
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: { xs: '1.75rem', sm: '2rem' },
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
-              mb: 1.5,
-            }}
-          >
-            BeWorking
-            <Box component="span" sx={{ color: 'brand.green' }}>Virtual</Box>
-          </Typography>
+        {/* Billing interval toggle: Mensual / Semestral / Anual */}
+        <Stack direction="row" spacing={0.5} sx={{ mt: 1, mb: 2.5, p: 0.5, bgcolor: 'action.hover', borderRadius: '999px' }}>
+          {INTERVALS.map((iv) => {
+            const selected = iv.key === billingInterval;
+            return (
+              <Button
+                key={iv.key}
+                onClick={() => setBillingInterval(iv.key)}
+                disableElevation
+                sx={{
+                  flex: 1,
+                  borderRadius: '999px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 0.7,
+                  color: selected ? 'common.white' : 'text.secondary',
+                  bgcolor: selected ? 'brand.green' : 'transparent',
+                  '&:hover': { bgcolor: selected ? 'brand.green' : 'action.selected' },
+                }}
+              >
+                {iv.label[lang]}
+              </Button>
+            );
+          })}
+        </Stack>
 
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2.5, lineHeight: 1.55 }}>
-            {plan.description[lang]}
-          </Typography>
-
-          <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 2.5 }}>
-            <Typography sx={{ fontSize: '2.5rem', fontWeight: 800, color: 'brand.green', lineHeight: 1, letterSpacing: '-0.02em' }}>{plan.price}€</Typography>
-            <Typography variant="body2" color="text.secondary">/{lang === 'es' ? 'mes' : 'month'}</Typography>
-          </Stack>
-
-          <Stack spacing={1.25} sx={{ mb: 3 }}>
-            {(plan.features[lang] || plan.features.en).map((f) => (
-              <Stack key={f} direction="row" spacing={1} alignItems="center">
-                <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: 'brand.green' }} />
-                <Typography variant="body2">{f}</Typography>
-              </Stack>
-            ))}
-          </Stack>
-
-          {isCurrent ? (
-            <Button variant="outlined" fullWidth disabled sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1.4 }}>
-              {lang === 'es' ? 'Plan actual' : 'Current plan'}
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={() => handleSelect(plan)}
-              disabled={loading !== null}
-              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.4, fontSize: '1rem' }}
-            >
-              {loading === plan.key
-                ? <CircularProgress size={20} color="inherit" />
-                : (lang === 'es' ? 'Registrarse online →' : 'Register online →')}
-            </Button>
-          )}
-        </Box>
+        {/* Plan cards */}
+        <Stack spacing={2}>
+          {PLANS.map((plan) => {
+            const isCurrent = currentKey === plan.key && billingInterval === 'month';
+            const cycleTotal = plan.price * activeInterval.months;
+            return (
+              <Box
+                key={plan.key}
+                sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3, p: { xs: 2.5, sm: 3 } }}
+              >
+                <Typography sx={{ fontSize: { xs: '1.4rem', sm: '1.6rem' }, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
+                  {plan.name}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, lineHeight: 1.55 }}>
+                  {plan.description[lang]}
+                </Typography>
+                <Stack direction="row" alignItems="baseline" spacing={0.5}>
+                  <Typography sx={{ fontSize: '2.2rem', fontWeight: 800, color: 'brand.green', lineHeight: 1, letterSpacing: '-0.02em' }}>{cycleTotal}€</Typography>
+                  <Typography variant="body2" color="text.secondary">{activeInterval.suffix[lang]}</Typography>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 18, mb: 2 }}>
+                  {activeInterval.months > 1
+                    ? (lang === 'es'
+                        ? `${plan.price}€/mes · facturado cada ${activeInterval.months} meses`
+                        : `€${plan.price}/mo · billed every ${activeInterval.months} months`)
+                    : ''}
+                </Typography>
+                <Stack spacing={1} sx={{ mb: 2.5 }}>
+                  {(plan.features[lang] || plan.features.en).map((f) => (
+                    <Stack key={f} direction="row" spacing={1} alignItems="center">
+                      <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: 'brand.green' }} />
+                      <Typography variant="body2">{f}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+                {isCurrent ? (
+                  <Button variant="outlined" fullWidth disabled sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 600, py: 1.2 }}>
+                    {lang === 'es' ? 'Plan actual' : 'Current plan'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => handleSelect(plan)}
+                    disabled={loading !== null}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.2, fontSize: '0.95rem' }}
+                  >
+                    {loading === plan.key
+                      ? <CircularProgress size={20} color="inherit" />
+                      : (subscriptionId
+                          ? (lang === 'es' ? 'Cambiar a este plan' : 'Switch to this plan')
+                          : (lang === 'es' ? 'Registrarse online →' : 'Register online →'))}
+                  </Button>
+                )}
+              </Box>
+            );
+          })}
+        </Stack>
 
         <Typography variant="body2" sx={{ textAlign: 'center', mt: 2, fontWeight: 600, color: 'brand.green' }}>
           {lang === 'es' ? 'Precio + IVA. Sin permanencia.' : 'Price + VAT. No commitment.'}
