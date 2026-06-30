@@ -9,9 +9,11 @@ import {
   MenuItem,
   Button,
   InputAdornment,
+  Typography,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import TextField from '../../common/ClearableTextField';
+import BillingIntervalToggle from '../../common/BillingIntervalToggle';
 
 const todayIso = () => new Date().toISOString().split('T')[0];
 
@@ -36,7 +38,8 @@ const amountSlotProps = {
 };
 
 function AddSubscriptionDialog({ open, onClose, onSubmit, deskProducts = [] }) {
-  const { t } = useTranslation('contacts');
+  const { t, i18n } = useTranslation('contacts');
+  const lang = i18n.language?.startsWith('es') ? 'es' : 'en';
   const [newSub, setNewSub] = useState(initialNewSub);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -112,6 +115,19 @@ function AddSubscriptionDialog({ open, onClose, onSubmit, deskProducts = [] }) {
               fullWidth
             />
           )}
+          <Stack direction="row" spacing={1}>
+            {[15, 90].map((p) => (
+              <Button
+                key={p}
+                size="small"
+                variant={Number(newSub.monthlyAmount) === p ? 'contained' : 'outlined'}
+                onClick={() => setNewSub((f) => ({ ...f, monthlyAmount: String(p) }))}
+                sx={{ borderRadius: '999px', textTransform: 'none' }}
+              >
+                {p}€{lang === 'es' ? '/mes' : '/mo'}
+              </Button>
+            ))}
+          </Stack>
           <TextField
             size="small"
             label={t('profile.amount')}
@@ -121,19 +137,17 @@ function AddSubscriptionDialog({ open, onClose, onSubmit, deskProducts = [] }) {
             slotProps={amountSlotProps}
             fullWidth
           />
-          <TextField
-            size="small"
-            label={t('profile.billingInterval')}
-            value={newSub.billingInterval}
-            onChange={setField('billingInterval')}
-            select
-            fullWidth
-          >
-            <MenuItem value="month">{t('profile.monthly')}</MenuItem>
-            <MenuItem value="quarter">{t('profile.quarterly')}</MenuItem>
-            <MenuItem value="half_year">{t('profile.halfYearly')}</MenuItem>
-            <MenuItem value="year">{t('profile.yearly')}</MenuItem>
-          </TextField>
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
+              {t('profile.billingInterval')}
+            </Typography>
+            <BillingIntervalToggle
+              value={newSub.billingInterval}
+              onChange={(v) => setNewSub((f) => ({ ...f, billingInterval: v }))}
+              lang={lang}
+              size="small"
+            />
+          </Stack>
           <TextField
             size="small"
             label={t('profile.startDate')}

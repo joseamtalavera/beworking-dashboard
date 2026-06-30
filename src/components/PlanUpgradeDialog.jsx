@@ -4,6 +4,7 @@ import {
   Box, Button, Stack, Typography, CircularProgress, Alert,
 } from '@mui/material';
 import { tokens } from '../theme/tokens.js';
+import BillingIntervalToggle from './common/BillingIntervalToggle.jsx';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import IconButton from '@mui/material/IconButton';
@@ -32,15 +33,15 @@ const PLANS = [
   },
   {
     key: 'max',
-    name: 'BeWorkingVirtual Pro',
+    name: 'BeWorkingDesk',
     price: 90,
     description: {
-      es: 'Todo lo del plan Virtual, con acceso ampliado, salas de reuniones y atención prioritaria.',
-      en: 'Everything in Virtual, plus extended access, meeting rooms and priority support.',
+      es: 'Tu escritorio fijo en BeWorking: puesto reservado, acceso con BeKey y todas las ventajas de la comunidad.',
+      en: 'Your dedicated desk at BeWorking: a reserved spot, BeKey access and all community perks.',
     },
     features: {
-      es: ['Todo lo del plan Virtual', 'Pases de coworking ilimitados', 'Salas de reuniones', 'Atención de llamadas', 'Prioridad en soporte'],
-      en: ['Everything in Virtual', 'Unlimited coworking passes', 'Meeting rooms', 'Call handling', 'Priority support'],
+      es: ['Escritorio fijo reservado', 'Acceso 24/7 con BeKey', 'Salas de reuniones', 'Recepción de correo', 'Acceso completo a BeWorkingApp'],
+      en: ['Reserved dedicated desk', '24/7 access with BeKey', 'Meeting rooms', 'Mail reception', 'Full access to BeWorkingApp'],
     },
   },
 ];
@@ -243,30 +244,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
         {/* Billing interval toggle: Mensual / Semestral / Anual */}
-        <Stack direction="row" spacing={0.5} sx={{ mt: 1, mb: 2.5, p: 0.5, bgcolor: 'action.hover', borderRadius: '999px' }}>
-          {INTERVALS.map((iv) => {
-            const selected = iv.key === billingInterval;
-            return (
-              <Button
-                key={iv.key}
-                onClick={() => setBillingInterval(iv.key)}
-                disableElevation
-                sx={{
-                  flex: 1,
-                  borderRadius: '999px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  py: 0.7,
-                  color: selected ? 'common.white' : 'text.secondary',
-                  bgcolor: selected ? 'brand.green' : 'transparent',
-                  '&:hover': { bgcolor: selected ? 'brand.green' : 'action.selected' },
-                }}
-              >
-                {iv.label[lang]}
-              </Button>
-            );
-          })}
-        </Stack>
+        <BillingIntervalToggle value={billingInterval} onChange={setBillingInterval} lang={lang} sx={{ mt: 1, mb: 2.5 }} />
 
         {/* Plan cards */}
         <Stack spacing={2}>

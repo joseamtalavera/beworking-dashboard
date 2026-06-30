@@ -6,12 +6,23 @@ import {
   DialogActions,
   Stack,
   Alert,
-  MenuItem,
+  Typography,
   Button,
   InputAdornment,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import TextField from '../../common/ClearableTextField';
+import BillingIntervalToggle from '../../common/BillingIntervalToggle';
+
+const TXT = {
+  title:    { es: 'Editar suscripción', en: 'Edit subscription' },
+  interval: { es: 'Intervalo de facturación', en: 'Billing interval' },
+  nextDate: { es: 'Próxima fecha de facturación (opcional)', en: 'Next billing date (optional)' },
+  nextHelp: { es: 'Mueve el día de cobro. Sin prorrateo; aplica desde esa fecha.', en: 'Moves the billing day. No proration; applies from that date.' },
+  cancel:   { es: 'Cancelar', en: 'Cancel' },
+  save:     { es: 'Guardar', en: 'Save' },
+  amount:   { es: 'Importe', en: 'Amount' },
+};
 
 const dateInputSlotProps = {
   inputLabel: { shrink: true },
@@ -28,7 +39,8 @@ const MONTHS = { year: 12, half_year: 6, quarter: 3 };
 // Calls onSubmit(id, { monthlyAmount, billingInterval, billingDate?, description }).
 // monthlyAmount is the MONTHLY net rate; the per-cycle total shown = rate × months.
 function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
-  const { t } = useTranslation('contacts');
+  const { t, i18n } = useTranslation('contacts');
+  const lang = i18n.language?.startsWith('es') ? 'es' : 'en';
   const [form, setForm] = useState({ monthlyAmount: '', billingInterval: 'month', billingDate: '' });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -67,13 +79,13 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
       });
       onClose();
     } catch (err) {
-      let msg = err?.message || t('profile.editSubscriptionError', { defaultValue: 'No se pudo actualizar la suscripción.' });
+      let msg = err?.message || (lang === 'es' ? 'No se pudo actualizar la suscripción.' : 'Could not update the subscription.');
       try { const parsed = JSON.parse(msg); if (parsed.error) msg = parsed.error; } catch (_) {}
       setError(msg);
     } finally {
       setSaving(false);
     }
-  }, [form, sub, onSubmit, onClose, t]);
+  }, [form, sub, onSubmit, onClose, lang]);
 
   if (!sub) return null;
   const months = MONTHS[form.billingInterval] || 1;
@@ -81,7 +93,7 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('profile.editSubscription', { defaultValue: 'Editar suscripción' })}</DialogTitle>
+      <DialogTitle>{TXT.title[lang]}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
@@ -96,7 +108,7 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
                 onClick={() => setForm((f) => ({ ...f, monthlyAmount: String(p) }))}
                 sx={{ borderRadius: '999px', textTransform: 'none' }}
               >
-                {p}€/mes
+                {p}€{lang === 'es' ? '/mes' : '/mo'}
               </Button>
             ))}
           </Stack>
@@ -109,42 +121,41 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
             onChange={setField('monthlyAmount')}
             slotProps={amountSlotProps}
             helperText={months > 1
-              ? `${cycleTotal}€ / ${t(`profile.interval_${form.billingInterval}`)} (sin IVA)`
+              ? `${cycleTotal}€ / ${t(`profile.interval_${form.billingInterval}`)} (${lang === 'es' ? 'sin IVA' : 'excl. VAT'})`
               : undefined}
           />
 
-          <TextField
-            select
-            fullWidth
-            label={t('profile.billingInterval')}
-            value={form.billingInterval}
-            onChange={setField('billingInterval')}
-          >
-            <MenuItem value="month">{t('profile.monthly')}</MenuItem>
-            <MenuItem value="quarter">{t('profile.quarterly')}</MenuItem>
-            <MenuItem value="half_year">{t('profile.halfYearly')}</MenuItem>
-            <MenuItem value="year">{t('profile.yearly')}</MenuItem>
-          </TextField>
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
+              {TXT.interval[lang]}
+            </Typography>
+            <BillingIntervalToggle
+              value={form.billingInterval}
+              onChange={(v) => setForm((f) => ({ ...f, billingInterval: v }))}
+              lang={lang}
+              size="small"
+            />
+          </Stack>
 
           <TextField
             fullWidth
             type="date"
             inputRef={dateRef}
             onClick={handleDateClick}
-            label={t('profile.nextBillingDate', { defaultValue: 'Próxima fecha de facturación (opcional)' })}
+            label={TXT.nextDate[lang]}
             value={form.billingDate}
             onChange={setField('billingDate')}
             slotProps={dateInputSlotProps}
-            helperText={t('profile.nextBillingDateHelp', { defaultValue: 'Mueve el día de cobro. Sin prorrateo; aplica desde esa fecha.' })}
+            helperText={TXT.nextHelp[lang]}
           />
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} disabled={saving}>
-          {t('profile.cancel', { defaultValue: 'Cancelar' })}
+          {TXT.cancel[lang]}
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={saving || !form.monthlyAmount}>
-          {t('profile.save', { defaultValue: 'Guardar' })}
+          {TXT.save[lang]}
         </Button>
       </DialogActions>
     </Dialog>
