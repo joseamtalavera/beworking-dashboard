@@ -150,6 +150,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
         await apiFetch(`/subscriptions/${subscriptionId}/upgrade`, {
           method: 'POST',
           body: {
+            plan: plan.key,
             monthlyAmount: plan.price,
             description: `Oficina Virtual ${plan.name}`,
             billingInterval,
