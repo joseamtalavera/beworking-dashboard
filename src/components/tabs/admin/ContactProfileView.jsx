@@ -52,8 +52,9 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { fetchBookingStats } from '../../../api/bookings';
-import { fetchSubscriptions, createSubscription, updateSubscription, linkStripeSubscription, fetchDeskProducts } from '../../../api/subscriptions';
+import { fetchSubscriptions, createSubscription, updateSubscription, upgradeSubscription, linkStripeSubscription, fetchDeskProducts } from '../../../api/subscriptions';
 import AddSubscriptionDialog from './AddSubscriptionDialog';
+import EditSubscriptionDialog from './EditSubscriptionDialog';
 import ContactCommunicationsCard from './ContactCommunicationsCard.jsx';
 import { fetchCustomerPaymentMethods, createSetupIntent } from '../../../api/stripe';
 import { fetchInvoices } from '../../../api/invoices';
@@ -469,6 +470,13 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     setPmDialogOpen(false);
     setSetupClientSecret(null);
     loadPaymentMethods();
+  };
+
+  const [editAmtSub, setEditAmtSub] = useState(null);
+
+  const handleEditAmountSubmit = async (id, payload) => {
+    await upgradeSubscription(id, payload);
+    loadSubscriptions();
   };
 
   const handleAddSubscriptionSubmit = async (formData) => {
@@ -924,6 +932,9 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
                               <LinkRoundedIcon fontSize="small" color={sub.stripeSubscriptionId ? 'primary' : 'warning'} />
                             </IconButton>
                           </Tooltip>
+                          <Button size="small" onClick={() => setEditAmtSub(sub)}>
+                            {t('profile.editSubscription', { defaultValue: 'Editar' })}
+                          </Button>
                           <Button size="small" color="error" onClick={() => handleCancelSubscription(sub.id)}>
                             {t('profile.cancelSubscription')}
                           </Button>
@@ -1548,6 +1559,13 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         onClose={() => setSubDialogOpen(false)}
         onSubmit={handleAddSubscriptionSubmit}
         deskProducts={deskProducts}
+      />
+
+      <EditSubscriptionDialog
+        open={!!editAmtSub}
+        sub={editAmtSub}
+        onClose={() => setEditAmtSub(null)}
+        onSubmit={handleEditAmountSubmit}
       />
 
       {/* Edit Stripe Link Dialog */}

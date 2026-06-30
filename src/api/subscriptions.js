@@ -27,6 +27,16 @@ export const deleteSubscription = (id, options = {}) =>
     ...options
   });
 
+// Admin edit of an existing sub: amount + interval + billing date. Updates Stripe
+// (price/interval/anchor, never prorating) and the DB. payload: { monthlyAmount,
+// billingInterval, billingDate?, description? }.
+export const upgradeSubscription = (id, payload, options = {}) =>
+  apiFetch(`/subscriptions/${id}/upgrade`, {
+    method: 'POST',
+    body: payload,
+    ...options
+  });
+
 export const linkStripeSubscription = (id, stripeSubscriptionId, options = {}) =>
   apiFetch(`/subscriptions/${id}/link-stripe`, {
     method: 'POST',
