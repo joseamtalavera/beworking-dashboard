@@ -53,3 +53,8 @@ export const fetchDeskOccupancySummary = (options = {}) =>
 // All desk-slot products (MA1O1-N) for the Add-Subscription desk picker.
 export const fetchDeskProducts = (options = {}) =>
   apiFetch('/subscriptions/desk-products', options);
+
+// Desk-slot products each flagged { id, nombre, available } — available = not
+// linked to an active desk sub. Usable by admins and self-service users.
+export const fetchAvailableDeskProducts = (options = {}) =>
+  apiFetch('/subscriptions/desk-products/available', options);

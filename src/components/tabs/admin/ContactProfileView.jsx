@@ -52,7 +52,7 @@ import enContacts from '../../../i18n/locales/en/contacts.json';
 import { CANONICAL_USER_TYPES, normalizeUserTypeLabel } from './contactConstants';
 import { COUNTRIES, SPAIN_PROVINCES, SPAIN_CITIES, getCountryLabel, isSpain, filterCountries } from '../../../data/geography';
 import { fetchBookingStats } from '../../../api/bookings';
-import { fetchSubscriptions, createSubscription, updateSubscription, upgradeSubscription, linkStripeSubscription, fetchDeskProducts } from '../../../api/subscriptions';
+import { fetchSubscriptions, createSubscription, updateSubscription, upgradeSubscription, linkStripeSubscription, fetchAvailableDeskProducts } from '../../../api/subscriptions';
 import AddSubscriptionDialog from './AddSubscriptionDialog';
 import EditSubscriptionDialog from './EditSubscriptionDialog';
 import ContactCommunicationsCard from './ContactCommunicationsCard.jsx';
@@ -395,7 +395,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
     // Desk slots (MA1O1-1..16) live only in the productos table and are not
     // exposed by the rooms-first lookup endpoints, so we use the dedicated
     // /subscriptions/desk-products endpoint. Narrow to MA1O1-<digits> here.
-    fetchDeskProducts()
+    fetchAvailableDeskProducts()
       .then((productos) => {
         const desks = (productos || []).filter(p => DESK_PRODUCT_RE.test(p.nombre));
         desks.sort((a, b) => {
@@ -1566,6 +1566,7 @@ const ContactProfileView = ({ contact, onBack, onSave, userTypeOptions, refreshP
         sub={editAmtSub}
         onClose={() => setEditAmtSub(null)}
         onSubmit={handleEditAmountSubmit}
+        deskProducts={deskProducts}
       />
 
       {/* Edit Stripe Link Dialog */}

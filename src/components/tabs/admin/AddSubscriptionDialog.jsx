@@ -190,7 +190,7 @@ function AddSubscriptionDialog({ open, onClose, onSubmit, deskProducts = [] }) {
               <MenuItem value="">
                 <em>{t('profile.noDesk')}</em>
               </MenuItem>
-              {deskProducts.map((p) => (
+              {deskProducts.filter((p) => p.available !== false).map((p) => (
                 <MenuItem key={p.id} value={p.id}>
                   {p.nombre}
                 </MenuItem>

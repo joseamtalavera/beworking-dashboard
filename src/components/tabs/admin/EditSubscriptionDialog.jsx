@@ -9,6 +9,7 @@ import {
   Typography,
   Button,
   InputAdornment,
+  MenuItem,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import TextField from '../../common/ClearableTextField';
@@ -22,6 +23,9 @@ const TXT = {
   cancel:   { es: 'Cancelar', en: 'Cancel' },
   save:     { es: 'Guardar', en: 'Save' },
   amount:   { es: 'Importe', en: 'Amount' },
+  desk:     { es: 'Mesa asignada', en: 'Assigned desk' },
+  noDesk:   { es: 'Sin mesa asignada', en: 'No desk assigned' },
+  deskHelp: { es: 'Vincular esta suscripción a una mesa específica', en: 'Link this subscription to a specific desk' },
 };
 
 const dateInputSlotProps = {
@@ -38,10 +42,10 @@ const MONTHS = { year: 12, half_year: 6, quarter: 3 };
 // Admin edit of an existing subscription: amount + interval + billing date.
 // Calls onSubmit(id, { monthlyAmount, billingInterval, billingDate?, description }).
 // monthlyAmount is the MONTHLY net rate; the per-cycle total shown = rate × months.
-function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
+function EditSubscriptionDialog({ open, sub, onClose, onSubmit, deskProducts = [] }) {
   const { t, i18n } = useTranslation('contacts');
   const lang = i18n.language?.startsWith('es') ? 'es' : 'en';
-  const [form, setForm] = useState({ monthlyAmount: '', billingInterval: 'month', billingDate: '' });
+  const [form, setForm] = useState({ monthlyAmount: '', billingInterval: 'month', billingDate: '', productoId: '' });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const dateRef = useRef(null);
@@ -52,6 +56,7 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
         monthlyAmount: sub.monthlyAmount != null ? String(sub.monthlyAmount) : '',
         billingInterval: sub.billingInterval || 'month',
         billingDate: '',
+        productoId: sub.productoId != null ? String(sub.productoId) : '',
       });
       setError('');
       setSaving(false);
@@ -76,6 +81,7 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
         billingInterval: form.billingInterval,
         billingDate: form.billingDate || undefined,
         description: sub.description,
+        productoId: form.productoId === '' ? 0 : Number(form.productoId),
       });
       onClose();
     } catch (err) {
@@ -90,6 +96,11 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
   if (!sub) return null;
   const months = MONTHS[form.billingInterval] || 1;
   const cycleTotal = (Number(form.monthlyAmount || 0) * months).toFixed(2);
+  // Offer free desks plus this sub's own current desk (which reads as occupied
+  // by itself). Empty list ⇒ hide the selector.
+  const deskOptions = deskProducts.filter(
+    (p) => p.available !== false || String(p.id) === String(sub.productoId ?? ''),
+  );
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -148,6 +159,26 @@ function EditSubscriptionDialog({ open, sub, onClose, onSubmit }) {
             slotProps={dateInputSlotProps}
             helperText={TXT.nextHelp[lang]}
           />
+
+          {deskProducts.length > 0 && (
+            <TextField
+              fullWidth
+              select
+              label={TXT.desk[lang]}
+              value={form.productoId}
+              onChange={setField('productoId')}
+              helperText={TXT.deskHelp[lang]}
+            >
+              <MenuItem value="">
+                <em>{TXT.noDesk[lang]}</em>
+              </MenuItem>
+              {deskOptions.map((p) => (
+                <MenuItem key={p.id} value={String(p.id)}>
+                  {p.nombre}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>

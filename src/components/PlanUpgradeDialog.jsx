@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent,
   Box, Button, Stack, Typography, CircularProgress, Alert,
+  MenuItem, TextField,
 } from '@mui/material';
 import { tokens } from '../theme/tokens.js';
 import BillingIntervalToggle from './common/BillingIntervalToggle.jsx';
@@ -11,11 +12,16 @@ import IconButton from '@mui/material/IconButton';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../api/client.js';
 import { createSetupIntent } from '../api/stripe.js';
+import { fetchAvailableDeskProducts } from '../api/subscriptions.js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const PT_STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
 const stripePromise = PT_STRIPE_KEY ? loadStripe(PT_STRIPE_KEY) : null;
+
+// Plans that include a dedicated desk → the user must pick one before subscribing.
+const DESK_PLAN_KEYS = new Set(['max']);
+const DESK_PRODUCT_RE = /^MA1O1[-_ ]?\d{1,2}$/i;
 
 const PLANS = [
   {
@@ -109,10 +115,14 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
   const [paymentStep, setPaymentStep] = useState(null); // null = plan selection, { plan, clientSecret, customerId, billingInterval }
   const [creatingSubscription, setCreatingSubscription] = useState(false);
   const [billingInterval, setBillingInterval] = useState('month'); // month | half_year | year
+  // Desk assignment for the desk plan.
+  const [deskProducts, setDeskProducts] = useState([]);
+  const [deskPlanPending, setDeskPlanPending] = useState(null); // plan awaiting desk choice
+  const [deskChoice, setDeskChoice] = useState('');
 
   const currentKey = currentPlan?.toLowerCase() || 'free';
 
-  // Reset state when dialog opens/closes
+  // Reset state when dialog opens/closes; load available desks on open.
   useEffect(() => {
     if (!open) {
       setPaymentStep(null);
@@ -121,10 +131,17 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
       setLoading(null);
       setCreatingSubscription(false);
       setBillingInterval('month');
+      setDeskPlanPending(null);
+      setDeskChoice('');
+      return;
     }
+    fetchAvailableDeskProducts()
+      .then((list) => setDeskProducts(
+        (list || []).filter((p) => DESK_PRODUCT_RE.test(p.nombre) && p.available !== false)))
+      .catch(() => setDeskProducts([]));
   }, [open]);
 
-  const handleSelect = async (plan) => {
+  const handleSelect = async (plan, productoId) => {
     setLoading(plan.key);
     setError('');
     setSuccess('');
@@ -140,7 +157,8 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
           return;
         }
         const data = await createSetupIntent({ customerEmail: email, customerName: name, tenant: 'beworking' });
-        setPaymentStep({ plan, clientSecret: data.clientSecret, customerId: data.customerId, billingInterval });
+        setPaymentStep({ plan, clientSecret: data.clientSecret, customerId: data.customerId, billingInterval, productoId: productoId || null });
+        setDeskPlanPending(null);
         setLoading(null);
         return;
       }
@@ -154,8 +172,10 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
             monthlyAmount: plan.price,
             description: `Oficina Virtual ${plan.name}`,
             billingInterval,
+            ...(productoId ? { productoId } : {}),
           },
         });
+        setDeskPlanPending(null);
         setSuccess(lang === 'es'
           ? `Plan actualizado a ${plan.name} (${plan.price}€/mes)`
           : `Plan upgraded to ${plan.name} (€${plan.price}/month)`);
@@ -181,6 +201,7 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
           stripeCustomerId: paymentStep.customerId,
           paymentMethodId: setupIntent?.payment_method,
           billingInterval: paymentStep.billingInterval,
+          ...(paymentStep.productoId ? { productoId: paymentStep.productoId } : {}),
         },
       });
 
@@ -224,6 +245,60 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
               lang={lang}
             />
           </Elements>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Desk-selection step — user picked the desk plan and must choose a free desk.
+  if (deskPlanPending) {
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: `${tokens.radius.lg}px` } }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            {lang === 'es' ? 'Elige tu mesa' : 'Choose your desk'}
+          </Typography>
+          <IconButton onClick={onClose} size="small"><CloseRoundedIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {lang === 'es'
+              ? `${deskPlanPending.name} incluye un escritorio fijo reservado. Selecciona la mesa que quieres.`
+              : `${deskPlanPending.name} includes a reserved dedicated desk. Select the one you want.`}
+          </Typography>
+          {deskProducts.length === 0 ? (
+            <Alert severity="warning">
+              {lang === 'es'
+                ? 'No hay mesas disponibles en este momento. Contáctanos y te ayudamos.'
+                : 'No desks available right now. Please contact us and we will help.'}
+            </Alert>
+          ) : (
+            <TextField
+              select
+              fullWidth
+              label={lang === 'es' ? 'Mesa' : 'Desk'}
+              value={deskChoice}
+              onChange={(e) => setDeskChoice(e.target.value)}
+            >
+              {deskProducts.map((p) => (
+                <MenuItem key={p.id} value={String(p.id)}>{p.nombre}</MenuItem>
+              ))}
+            </TextField>
+          )}
+          <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
+            <Button onClick={() => setDeskPlanPending(null)} disabled={loading !== null}>
+              {lang === 'es' ? 'Atrás' : 'Back'}
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!deskChoice || loading !== null}
+              onClick={() => handleSelect(deskPlanPending, deskChoice)}
+              sx={{ borderRadius: '999px', px: 4, fontWeight: 600 }}
+            >
+              {loading !== null ? <CircularProgress size={20} color="inherit" /> : (lang === 'es' ? 'Continuar' : 'Continue')}
+            </Button>
+          </Stack>
         </DialogContent>
       </Dialog>
     );
@@ -290,7 +365,13 @@ export default function PlanUpgradeDialog({ open, onClose, currentPlan, subscrip
                   <Button
                     variant="contained"
                     fullWidth
-                    onClick={() => handleSelect(plan)}
+                    onClick={() => {
+                      if (DESK_PLAN_KEYS.has(plan.key)) {
+                        setError(''); setDeskChoice(''); setDeskPlanPending(plan);
+                      } else {
+                        handleSelect(plan);
+                      }
+                    }}
                     disabled={loading !== null}
                     sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.2, fontSize: '0.95rem' }}
                   >
