@@ -846,8 +846,11 @@ const AdminOverview = () => {
 
       const getKey = (name) => {
         if (!name) return null;
+        const upper = name.toUpperCase();
+        // Desks first: "MA1A5-DESKS" contains "MA1A" but is a desk product, not a
+        // meeting room — classifying it as MA1A5 would double that room's capacity.
+        if (upper.includes('MA1O') || upper.includes('DESK') || upper.includes('MESA')) return 'MA1-DESKS';
         if (name.includes('MA1A')) return name.match(/MA1A\d+/)?.[0] || name;
-        if (name.toUpperCase().includes('MA1O') || name.toUpperCase().includes('DESK') || name.toLowerCase().includes('mesa')) return 'MA1-DESKS';
         return null;
       };
 
@@ -892,22 +895,20 @@ const AdminOverview = () => {
         ? deskSummary.zones
         : [{ roomCode: 'MA1-DESKS', total: deskSummary?.totalDesks, occupied: deskSummary?.occupiedDesks }];
 
-      const deskRows = zones
-        .map((z) => {
-          const total = Number(z.total) || 0;
-          const occupied = Number(z.occupied) || 0;
-          return total > 0
-            ? {
-                name: z.roomCode || 'MA1-DESKS',
-                occupancy: Math.min(100, Math.round((occupied / total) * 100)),
-                bookedHours: occupied * totalHours,
-                totalHours: total * totalHours,
-                subtitleKey: 'occupancy.desksSubtitle',
-                subtitleVars: { occupied, total }
-              }
-            : null;
-        })
-        .filter(Boolean);
+      // Combine every coworking zone (cowork1 MA1O1 + summer cowork2 A5/MA1O5)
+      // into a single MA1-DESKS bar showing the summed capacity/occupancy.
+      const deskTotalCap = zones.reduce((s, z) => s + (Number(z.total) || 0), 0);
+      const deskOccupied = zones.reduce((s, z) => s + (Number(z.occupied) || 0), 0);
+      const deskRows = deskTotalCap > 0
+        ? [{
+            name: 'MA1-DESKS',
+            occupancy: Math.min(100, Math.round((deskOccupied / deskTotalCap) * 100)),
+            bookedHours: deskOccupied * totalHours,
+            totalHours: deskTotalCap * totalHours,
+            subtitleKey: 'occupancy.desksSubtitle',
+            subtitleVars: { occupied: deskOccupied, total: deskTotalCap }
+          }]
+        : [];
 
       setOccupancyData([...meetingRoomResults, ...deskRows].slice(0, 6));
     } catch (error) {
