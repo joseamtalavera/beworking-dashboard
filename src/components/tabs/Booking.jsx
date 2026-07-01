@@ -607,13 +607,29 @@ const addMinutesToTime = (timeString, minutesToAdd) => {
   return padTimeUser(normalized);
 };
 
+// A fechaFin at exactly midnight is an EXCLUSIVE end: the block occupies up to
+// but not including that day, so the last covered day is the day before. Mirrors
+// the backend's strict `fechaFin > start` overlap (BloqueoRepository) — e.g. the
+// summer Cowork block ending 2026-09-01T00:00 covers through 2026-08-31 only.
+const bloqueoLastCoveredDate = (bloqueo) => {
+  const from = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
+  if (!bloqueo.fechaFin) return from;
+  const [toDate, toTime = ''] = bloqueo.fechaFin.split('T');
+  if (toTime.slice(0, 5) === '00:00' && from && toDate > from) {
+    const d = new Date(`${toDate}T00:00:00`);
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  }
+  return toDate;
+};
+
 const bloqueoAppliesToDate = (bloqueo, isoDate) => {
   if (!isoDate || !bloqueo.fechaIni) {
     return false;
   }
   const dateKey = isoDate;
   const from = bloqueo.fechaIni.split('T')[0];
-  const to = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : from;
+  const to = bloqueoLastCoveredDate(bloqueo);
 
   if (from > dateKey || to < dateKey) {
     return false;
@@ -625,7 +641,7 @@ const bloqueoAppliesToDate = (bloqueo, isoDate) => {
 const bloqueoAppliesToDateRange = (bloqueo, rangeFrom, rangeTo) => {
   if (!bloqueo.fechaIni) return false;
   const bFrom = bloqueo.fechaIni.split('T')[0];
-  const bTo = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : bFrom;
+  const bTo = bloqueoLastCoveredDate(bloqueo);
   if (rangeFrom && bTo < rangeFrom) return false;
   if (rangeTo && bFrom > rangeTo) return false;
   return true;
