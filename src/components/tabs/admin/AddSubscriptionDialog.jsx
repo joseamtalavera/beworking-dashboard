@@ -28,6 +28,14 @@ const initialNewSub = () => ({
   productoId: '',
 });
 
+// Auto-fill the description from the plan amount: €15 = Oficina Virtual, €90 = Desk.
+const autoDescription = (amount) => {
+  const n = Number(amount);
+  if (n === 15) return 'Oficina Virtual';
+  if (n === 90) return 'Desk';
+  return null;
+};
+
 const dateInputSlotProps = {
   inputLabel: { shrink: true },
   htmlInput: { style: { cursor: 'pointer' } },
@@ -121,7 +129,10 @@ function AddSubscriptionDialog({ open, onClose, onSubmit, deskProducts = [] }) {
                 key={p}
                 size="small"
                 variant={Number(newSub.monthlyAmount) === p ? 'contained' : 'outlined'}
-                onClick={() => setNewSub((f) => ({ ...f, monthlyAmount: String(p) }))}
+                onClick={() => setNewSub((f) => {
+                  const d = autoDescription(p);
+                  return { ...f, monthlyAmount: String(p), ...(d ? { description: d } : {}) };
+                })}
                 sx={{ borderRadius: '999px', textTransform: 'none' }}
               >
                 {p}€{lang === 'es' ? '/mes' : '/mo'}
@@ -133,7 +144,10 @@ function AddSubscriptionDialog({ open, onClose, onSubmit, deskProducts = [] }) {
             label={t('profile.amount')}
             type="number"
             value={newSub.monthlyAmount}
-            onChange={setField('monthlyAmount')}
+            onChange={(e) => setNewSub((prev) => {
+              const d = autoDescription(e.target.value);
+              return { ...prev, monthlyAmount: e.target.value, ...(d ? { description: d } : {}) };
+            })}
             slotProps={amountSlotProps}
             fullWidth
           />
