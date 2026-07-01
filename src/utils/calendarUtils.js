@@ -123,8 +123,14 @@ export const bloqueoCoversSlot = (bloqueo, slotId) => {
   if (slotMinutes == null) {
     return false;
   }
-  const startMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni)) ?? 0;
-  const endMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin)) ?? 24 * 60;
+  // A multi-day block (e.g. the summer coworking "Cowork" block on MA1A5, Jul–Aug)
+  // ends at midnight, so its time-of-day window collapses to empty. When the block
+  // spans more than one calendar day it covers the entire displayed day.
+  const fromDate = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
+  const toDate = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : fromDate;
+  const spansDays = fromDate && toDate && fromDate !== toDate;
+  const startMinutes = spansDays ? 0 : (timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni)) ?? 0);
+  const endMinutes = spansDays ? 24 * 60 : (timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin)) ?? 24 * 60);
   return slotMinutes >= startMinutes && slotMinutes < endMinutes;
 };
 
@@ -174,8 +180,13 @@ export const coversSlot = (booking, slotId) => {
 export const getBookedSlotIds = (bloqueos = []) => {
   const booked = new Set();
   for (const bloqueo of bloqueos) {
-    const startMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni));
-    const endMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin));
+    // Multi-day blocks span whole days; their midnight end would otherwise yield
+    // an empty window and leave the day bookable (see bloqueoCoversSlot).
+    const fromDate = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
+    const toDate = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : fromDate;
+    const spansDays = fromDate && toDate && fromDate !== toDate;
+    const startMinutes = spansDays ? 0 : timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni));
+    const endMinutes = spansDays ? 24 * 60 : timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin));
     if (startMinutes == null || endMinutes == null) continue;
     for (let m = startMinutes; m < endMinutes; m += 30) {
       booked.add(padTime(m));

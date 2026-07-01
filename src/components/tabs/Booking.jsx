@@ -562,8 +562,13 @@ const describeBloqueoUser = (bloqueo) => {
 const bloqueoCoversSlotUser = (bloqueo, slotId) => {
   const slotMinutes = timeStringToMinutes(slotId);
   if (slotMinutes == null) return false;
-  const startMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni)) ?? 0;
-  const endMinutes = timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin)) ?? 24 * 60;
+  // Multi-day blocks (e.g. the summer coworking "Cowork" block on MA1A5) end at
+  // midnight, collapsing their same-day window; span > 1 day ⇒ cover the full day.
+  const fromDate = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
+  const toDate = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : fromDate;
+  const spansDays = fromDate && toDate && fromDate !== toDate;
+  const startMinutes = spansDays ? 0 : (timeStringToMinutes(extractTimeFromISO(bloqueo.fechaIni)) ?? 0);
+  const endMinutes = spansDays ? 24 * 60 : (timeStringToMinutes(extractTimeFromISO(bloqueo.fechaFin)) ?? 24 * 60);
   return slotMinutes >= startMinutes && slotMinutes < endMinutes;
 };
 
@@ -628,13 +633,18 @@ const bloqueoAppliesToDateRange = (bloqueo, rangeFrom, rangeTo) => {
 
 const coversBloqueoSlot = (bloqueo, slot) => {
   const slotMinutes = timeStringToMinutes(slot.id);
+  if (slotMinutes == null) return false;
+  // Multi-day blocks (e.g. the summer coworking "Cowork" block on MA1A5) end at
+  // midnight, collapsing their same-day window; span > 1 day ⇒ cover the full day.
+  // The caller already gates the date via bloqueoAppliesToDate.
+  const fromDate = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[0] : null;
+  const toDate = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[0] : fromDate;
+  const spansDays = fromDate && toDate && fromDate !== toDate;
   const startTime = bloqueo.fechaIni ? bloqueo.fechaIni.split('T')[1] : '00:00';
   const endTime = bloqueo.fechaFin ? bloqueo.fechaFin.split('T')[1] : '23:59';
-  
-  const startMinutes = timeStringToMinutes(startTime) ?? 0;
-  const endMinutes = timeStringToMinutes(endTime) ?? 24 * 60;
-
-  return slotMinutes != null && slotMinutes >= startMinutes && slotMinutes < endMinutes;
+  const startMinutes = spansDays ? 0 : (timeStringToMinutes(startTime) ?? 0);
+  const endMinutes = spansDays ? 24 * 60 : (timeStringToMinutes(endTime) ?? 24 * 60);
+  return slotMinutes >= startMinutes && slotMinutes < endMinutes;
 };
 
 const mapStatusKey = (status) => {
