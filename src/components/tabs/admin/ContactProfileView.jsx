@@ -112,7 +112,7 @@ const taxIdTypeLabel = (code) => {
   return opt ? opt.label : code;
 };
 
-const DESK_PRODUCT_RE = /^MA1O1[-_ ]?\d{1,2}$/i;
+const DESK_PRODUCT_RE = /^MA1O\d[-_ ]?\d{1,2}$/i;
 
 if (!i18n.hasResourceBundle('es', 'contacts')) {
   i18n.addResourceBundle('es', 'contacts', esContacts);

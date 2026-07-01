@@ -21,7 +21,7 @@ const stripePromise = PT_STRIPE_KEY ? loadStripe(PT_STRIPE_KEY) : null;
 
 // Plans that include a dedicated desk → the user must pick one before subscribing.
 const DESK_PLAN_KEYS = new Set(['max']);
-const DESK_PRODUCT_RE = /^MA1O1[-_ ]?\d{1,2}$/i;
+const DESK_PRODUCT_RE = /^MA1O\d[-_ ]?\d{1,2}$/i;
 
 const PLANS = [
   {
