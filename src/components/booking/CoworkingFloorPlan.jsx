@@ -180,7 +180,7 @@ export function DeskLegend() {
   );
 }
 
-export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDeskClick, loading, mode = 'admin', selectedDeskNumber = null, deskCount = DEFAULT_DESK_COUNT }) {
+export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDeskClick, loading, mode = 'admin', selectedDeskNumber = null, deskCount = DEFAULT_DESK_COUNT, zoneSelector = null }) {
   const { t } = useTranslation('booking');
   const isDateAware = bookedDeskNumbers instanceof Set;
   const showOccupantName = mode === 'admin';
@@ -227,15 +227,18 @@ export default function CoworkingFloorPlan({ deskData, bookedDeskNumbers, onDesk
   return (
     <Paper variant="outlined" sx={{ p: 3, borderRadius: '14px' }}>
       <Stack spacing={2.5}>
-        <Stack spacing={0.5}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            {t('admin.floorPlan')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {availableCount > 0
-              ? t('admin.desksAvailableCount', { available: availableCount, total: deskCount })
-              : t('admin.noDesksForPeriod')}
-          </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+          <Stack spacing={0.5}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {t('admin.floorPlan')}
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {availableCount > 0
+                ? t('admin.desksAvailableCount', { available: availableCount, total: deskCount })
+                : t('admin.noDesksForPeriod')}
+            </Typography>
+          </Stack>
+          {zoneSelector}
         </Stack>
 
         <DeskLegend />

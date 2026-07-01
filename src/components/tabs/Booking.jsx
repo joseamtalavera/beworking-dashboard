@@ -4975,17 +4975,6 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
 
       {view === 'coworking' ? (
         <Stack spacing={3}>
-          {coworkingZones.length > 1 && (
-            <Tabs
-              value={coworkingZonePrefix}
-              onChange={(e, v) => setCoworkingZonePrefix(v)}
-              sx={getViewToggleTabsStyle(theme)}
-            >
-              {coworkingZones.map((z) => (
-                <Tab key={z.prefix} label={z.shortLabel || z.displayName} value={z.prefix} />
-              ))}
-            </Tabs>
-          )}
           <CoworkingPeriodSelector
             bookingType={coworkingBookingType}
             onBookingTypeChange={setCoworkingBookingType}
@@ -5000,6 +4989,33 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
             deskOccupancy={deskOccupancy}
             onDeskClick={handleDeskClick}
             mode="admin"
+            zoneSelector={coworkingZones.length > 1 ? (
+              <Tabs
+                value={coworkingZonePrefix}
+                onChange={(e, v) => setCoworkingZonePrefix(v)}
+                sx={(theme) => ({
+                  minHeight: 36,
+                  bgcolor: alpha(theme.palette.common.black, 0.04),
+                  borderRadius: 2,
+                  p: 0.5,
+                  '& .MuiTabs-indicator': { display: 'none' },
+                  '& .MuiTabs-flexContainer': { gap: 0.5 },
+                  '& .MuiTab-root': {
+                    minHeight: 28, minWidth: 'auto', textTransform: 'none', fontWeight: 600,
+                    fontSize: '0.8rem', borderRadius: 1.5, px: 1.5, py: 0.25, color: 'text.secondary',
+                  },
+                  '& .Mui-selected': {
+                    color: `${theme.palette.brand.green} !important`,
+                    bgcolor: theme.palette.background.paper,
+                    boxShadow: 1,
+                  },
+                })}
+              >
+                {coworkingZones.map((z) => (
+                  <Tab key={z.prefix} label={z.shortLabel || z.displayName} value={z.prefix} />
+                ))}
+              </Tabs>
+            ) : null}
           />
         </Stack>
       ) : view === 'calendar' ? (

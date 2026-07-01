@@ -353,35 +353,6 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
       {/* ── Desk flow (when product is a desk) ── */}
       {isDeskProduct ? (
         <>
-          {deskZones.length > 1 && (
-            <Tabs
-              value={zonePrefix}
-              onChange={(e, v) => setZonePrefix(v)}
-              sx={(theme) => ({
-                minHeight: 40,
-                alignSelf: 'flex-start',
-                bgcolor: alpha(theme.palette.common.black, 0.04),
-                borderRadius: 2,
-                p: 0.5,
-                '& .MuiTabs-indicator': { display: 'none' },
-                '& .MuiTabs-flexContainer': { gap: 0.5 },
-                '& .MuiTab-root': {
-                  minHeight: 32, minWidth: 'auto', textTransform: 'none', fontWeight: 600,
-                  fontSize: '0.85rem', borderRadius: 1.5, px: 2, py: 0.5, color: 'text.secondary',
-                },
-                '& .Mui-selected': {
-                  color: `${theme.palette.brand.green} !important`,
-                  bgcolor: theme.palette.background.paper,
-                  boxShadow: 1,
-                },
-              })}
-            >
-              {deskZones.map((z) => (
-                <Tab key={z.prefix} value={z.prefix} label={z.shortLabel || z.displayName} />
-              ))}
-            </Tabs>
-          )}
-
           {(() => {
             const todayStr = new Date().toISOString().slice(0, 10);
             const plus30 = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
@@ -419,6 +390,33 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
               if (!bookedDeskNumbers.has(deskNum)) handleDeskSelect(deskNum);
             }}
             loading={availLoading}
+            zoneSelector={deskZones.length > 1 ? (
+              <Tabs
+                value={zonePrefix}
+                onChange={(e, v) => setZonePrefix(v)}
+                sx={(theme) => ({
+                  minHeight: 36,
+                  bgcolor: alpha(theme.palette.common.black, 0.04),
+                  borderRadius: 2,
+                  p: 0.5,
+                  '& .MuiTabs-indicator': { display: 'none' },
+                  '& .MuiTabs-flexContainer': { gap: 0.5 },
+                  '& .MuiTab-root': {
+                    minHeight: 28, minWidth: 'auto', textTransform: 'none', fontWeight: 600,
+                    fontSize: '0.8rem', borderRadius: 1.5, px: 1.5, py: 0.25, color: 'text.secondary',
+                  },
+                  '& .Mui-selected': {
+                    color: `${theme.palette.brand.green} !important`,
+                    bgcolor: theme.palette.background.paper,
+                    boxShadow: 1,
+                  },
+                })}
+              >
+                {deskZones.map((z) => (
+                  <Tab key={z.prefix} value={z.prefix} label={z.shortLabel || z.displayName} />
+                ))}
+              </Tabs>
+            ) : null}
           />
         </>
       ) : (

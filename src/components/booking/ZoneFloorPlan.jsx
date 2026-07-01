@@ -11,7 +11,7 @@ import { fetchPublicAvailability } from '../../api/bookings.js';
  * called with (zonePrefix, deskNumber, subscription) so the parent knows which
  * room/product the picked seat belongs to.
  */
-export default function ZoneFloorPlan({ zone, date, dateTo, deskOccupancy, onDeskClick, mode = 'admin' }) {
+export default function ZoneFloorPlan({ zone, date, dateTo, deskOccupancy, onDeskClick, mode = 'admin', zoneSelector = null }) {
   const [avail, setAvail] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -59,6 +59,7 @@ export default function ZoneFloorPlan({ zone, date, dateTo, deskOccupancy, onDes
         onDeskClick={(deskNumber, sub) => onDeskClick(zone.prefix, deskNumber, sub)}
         loading={loading}
         deskCount={zone.deskCount}
+        zoneSelector={zoneSelector}
       />
     </Stack>
   );
