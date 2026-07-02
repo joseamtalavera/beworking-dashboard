@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -91,6 +91,11 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
   // Coworking zones → Coworking 1 / Coworking 2 tabs (mirrors admin + booking app).
   const deskZones = useMemo(() => activeZonesToday(), []);
   const [zonePrefix, setZonePrefix] = useState(() => activeZonesToday()[0]?.prefix || 'MA1O1');
+  // Auto-switch: if the shown zone is full, fall through to the next zone with
+  // seats — unless the user manually picked a tab. `autoTriedZones` guards
+  // against A→B→A ping-pong when every zone is full.
+  const userPickedZoneRef = useRef(false);
+  const autoTriedZonesRef = useRef(new Set());
   const activeZone = useMemo(
     () => deskZones.find((z) => z.prefix === zonePrefix) || deskZones[0] || { prefix: 'MA1O1', deskCount: 16 },
     [deskZones, zonePrefix],
@@ -225,6 +230,22 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
     }
     return count;
   }, [bookedDeskNumbers, activeZone.deskCount]);
+
+  // New period → re-evaluate which zones are full from scratch.
+  useEffect(() => {
+    autoTriedZonesRef.current = new Set();
+  }, [deskStartDate, deskEndDate]);
+
+  // When the current zone is full, render the alternative zone automatically.
+  useEffect(() => {
+    if (!isDeskProduct || availLoading || userPickedZoneRef.current) return;
+    if (deskZones.length < 2) return;
+    autoTriedZonesRef.current.add(activeZone.prefix);
+    if (deskAvailableCount === 0) {
+      const next = deskZones.find((z) => !autoTriedZonesRef.current.has(z.prefix));
+      if (next) setZonePrefix(next.prefix);
+    }
+  }, [isDeskProduct, availLoading, deskAvailableCount, activeZone.prefix, deskZones]);
 
   const handleDeskSelect = (deskNum) => {
     setSelectedDesk(deskNum);
@@ -393,7 +414,7 @@ export default function SelectDetailsStep({ mode = 'admin' }) {
             zoneSelector={deskZones.length > 1 ? (
               <Tabs
                 value={zonePrefix}
-                onChange={(e, v) => setZonePrefix(v)}
+                onChange={(e, v) => { userPickedZoneRef.current = true; setZonePrefix(v); }}
                 sx={(theme) => ({
                   minHeight: 36,
                   bgcolor: alpha(theme.palette.common.black, 0.04),

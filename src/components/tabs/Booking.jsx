@@ -4682,6 +4682,10 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
   // desk count, floor-plan size and the pre-selected product on desk click.
   const coworkingZones = useMemo(() => activeZonesToday(), []);
   const [coworkingZonePrefix, setCoworkingZonePrefix] = useState(() => activeZonesToday()[0]?.prefix || 'MA1O1');
+  // Auto-switch to the alternative zone when the shown one is full (unless the
+  // admin picked a tab). Guards against ping-pong when every zone is full.
+  const coworkingUserPickedRef = useRef(false);
+  const coworkingAutoTriedRef = useRef(new Set());
   const coworkingZone = useMemo(
     () => coworkingZones.find((z) => z.prefix === coworkingZonePrefix) || coworkingZones[0] || { prefix: 'MA1O1', deskCount: 16 },
     [coworkingZones, coworkingZonePrefix],
@@ -4720,6 +4724,27 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
     });
     return set;
   }, [coworkingAvail, coworkingZone]);
+
+  const coworkingAvailableCount = useMemo(
+    () => Math.max(0, (coworkingZone?.deskCount || 16) - coworkingBookedDesks.size),
+    [coworkingZone, coworkingBookedDesks],
+  );
+
+  // New period → re-evaluate which zones are full from scratch.
+  useEffect(() => {
+    coworkingAutoTriedRef.current = new Set();
+  }, [coworkingDate, coworkingQueryDateTo]);
+
+  // When the current zone is full, render the alternative zone automatically.
+  useEffect(() => {
+    if (view !== 'coworking' || coworkingAvailLoading || coworkingUserPickedRef.current) return;
+    if (coworkingZones.length < 2) return;
+    coworkingAutoTriedRef.current.add(coworkingZone.prefix);
+    if (coworkingAvailableCount === 0) {
+      const next = coworkingZones.find((z) => !coworkingAutoTriedRef.current.has(z.prefix));
+      if (next) setCoworkingZonePrefix(next.prefix);
+    }
+  }, [view, coworkingAvailLoading, coworkingAvailableCount, coworkingZone, coworkingZones]);
 
   const deskDataMap = useMemo(() => {
     return buildDeskMap(deskOccupancy, { prefix: coworkingZone?.prefix, deskCount: coworkingZone?.deskCount });
@@ -4992,7 +5017,7 @@ const Booking = ({ mode = 'user', userProfile, initialView }) => {
             zoneSelector={coworkingZones.length > 1 ? (
               <Tabs
                 value={coworkingZonePrefix}
-                onChange={(e, v) => setCoworkingZonePrefix(v)}
+                onChange={(e, v) => { coworkingUserPickedRef.current = true; setCoworkingZonePrefix(v); }}
                 sx={(theme) => ({
                   minHeight: 36,
                   bgcolor: alpha(theme.palette.common.black, 0.04),
